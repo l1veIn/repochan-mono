@@ -68,17 +68,6 @@ Use explicitly, for example:
 3. **Art Director** consumes analysis/persona and writes `.repochan/orders/*.json`.
 4. **Painter** consumes approved orders, delegates actual image generation to installed image tools/packages when available, then saves assets under `.repochan/assets/<asset-id>/current/` and `.repochan/assets/<asset-id>/versions/` with manifest updates.
 
-## TUI asset browser
-
-The optional assets panel (loaded via an extra `-e` on `extensions/assets-panel.ts`) provides a lightweight keyboard-driven asset browser for existing `.repochan/assets/` workspaces:
-
-```text
-/repochan_panel
-/repochan_panel <asset-id>
-```
-
-The panel opens as a non-overlay custom TUI view by default. Use ↑/↓ to navigate, Enter to open details, `s` to set the selected version as current, `m` to view the manifest, `r` to refresh, and `q`/Esc to close. Inline image previews are enabled in default non-overlay mode; press `o` to open externally if your terminal cannot render them.
-
 ## Extension tool
 
 `extensions/repochan.ts` registers the unified `repochan` management tool (the single public surface for all `.repochan/` CRUD, analysis, versioning, and protocol operations).
@@ -87,7 +76,7 @@ Use `action` strings such as `analysis.run`, `persona.get`, `order.create`, `ass
 
 The core tool + skills are lightweight and do not depend on Pi TUI internals.
 
-## TUI asset browser (included by default)
+## TUI asset browser
 
 When the RepoChan package is active, it registers the `/repochan_panel` command for an interactive keyboard-driven browser of delivered assets (large previews, versions, set-current, manifest view).
 

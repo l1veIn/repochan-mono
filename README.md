@@ -78,7 +78,7 @@ pi install repochan-pi
 
 (If your Pi version prefers explicit registry syntax, `pi install npm:repochan-pi` should also work.)
 
-This gives you the core experience: the `repochan` unified tool and all the role skills. The optional visual asset browser panel can be loaded on demand with an extra extension file (see the Pi package README).
+This gives you the full default experience: the `repochan` unified tool, all role skills, and the `/repochan_panel` visual asset browser command.
 
 You do **not** install `@repochan/core` directly as an end user — it is an internal dependency of the `repochan` Pi package (and can be used separately by dashboards or other tools).
 

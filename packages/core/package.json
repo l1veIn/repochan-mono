@@ -4,6 +4,20 @@
   "description": "Pure RepoChan protocol, schemas, and entity management primitives.",
   "type": "module",
   "license": "MIT",
+  "author": "l1veIn",
+  "homepage": "https://github.com/l1veIn/repochan-mono/tree/main/packages/core",
+  "bugs": {
+    "url": "https://github.com/l1veIn/repochan-mono/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/l1veIn/repochan-mono.git",
+    "directory": "packages/core"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -12,15 +26,18 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist", "README.md", "package.json"],
-  "peerDependencies": {
-    "typebox": "*"
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ],
+  "dependencies": {
+    "typebox": "^1.0.55"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
     "typescript": "^5.9.3",
-    "vitest": "^2.1.9",
-    "typebox": "^1.0.55"
+    "vitest": "^2.1.9"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

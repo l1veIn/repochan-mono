@@ -4,9 +4,26 @@
   "description": "Pi package for manual multi-role workflows that turn git repositories into RepoChan mascot personas and visual brand assets.",
   "type": "module",
   "keywords": [
-    "pi-package"
+    "pi-package",
+    "repochan",
+    "mascot",
+    "brand-assets",
+    "creative-workflow"
   ],
   "license": "MIT",
+  "author": "l1veIn",
+  "homepage": "https://github.com/l1veIn/repochan-mono/tree/main/packages/pi",
+  "bugs": {
+    "url": "https://github.com/l1veIn/repochan-mono/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/l1veIn/repochan-mono.git",
+    "directory": "packages/pi"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
   "pi": {
     "extensions": [
       "./extensions/repochan.ts"
@@ -16,12 +33,12 @@
     ]
   },
   "dependencies": {
-    "@repochan/core": "workspace:*"
+    "@repochan/core": "workspace:*",
+    "typebox": "^1.0.55"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",
-    "@earendil-works/pi-tui": "*",
-    "typebox": "*"
+    "@earendil-works/pi-tui": "*"
   },
   "devDependencies": {
     "@earendil-works/pi-tui": "^0.79.2",

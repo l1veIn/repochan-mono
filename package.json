@@ -5,6 +5,14 @@
   "description": "RepoChan monorepo containing the pure @repochan/core library and the public Pi package.",
   "type": "module",
   "packageManager": "pnpm@9.15.4",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/l1veIn/repochan-mono.git"
+  },
+  "homepage": "https://github.com/l1veIn/repochan-mono#readme",
+  "bugs": {
+    "url": "https://github.com/l1veIn/repochan-mono/issues"
+  },
   "scripts": {
     "build": "pnpm -r build",
     "test": "pnpm -r test",
