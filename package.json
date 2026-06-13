@@ -15,7 +15,7 @@
   },
   "scripts": {
     "build": "pnpm -r build",
-    "test": "pnpm -r test",
+    "test": "pnpm --filter @repochan/core build && pnpm -r test",
     "dev": "pnpm exec pi -e ./packages/pi/extensions/repochan.ts",
     "lint": "pnpm -r lint"
   },

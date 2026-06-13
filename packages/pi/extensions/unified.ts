@@ -2,7 +2,6 @@ import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-a
 import { Type, type Static } from "typebox";
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { performAnalysis, type AnalyzeInput } from "./analyze.js";
 import {
   deepMerge,
   exists,
@@ -21,6 +20,8 @@ import {
   validateOrderId,
   validateVersionId,
   writeJson,
+  performAnalysis,
+  type AnalyzeInput,
   type AssetOrder,
   type OrderStatus,
 } from "@repochan/core";
@@ -168,7 +169,7 @@ async function runAnalysis(ctx: ExtensionContext, params: JsonObject) {
     const prior = await readJson(target);
     await writeJson(path.join(root(ctx.cwd), "analysis.versions", `${stampForPath()}.json`), prior, false);
   }
-  const generated = await performAnalysis(ctx, params as AnalyzeInput);
+  const generated = await performAnalysis(ctx.cwd, params as AnalyzeInput);
   const data = {
     ...generated,
     ...(isPlainObject(params.analysis) ? params.analysis : {}),

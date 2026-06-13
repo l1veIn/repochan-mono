@@ -72,7 +72,7 @@ Use explicitly, for example:
 
 `extensions/repochan.ts` registers the unified `repochan` management tool (the single public surface for all `.repochan/` CRUD, analysis, versioning, and protocol operations).
 
-Use `action` strings such as `analysis.run`, `persona.get`, `order.create`, `asset.create_version`, `protocol.inspect`, etc.; pass action-specific data in `params`. See the promptGuidelines on the tool for the full contract. Modular files under `extensions/` (analyze.ts, unified.ts, protocol helpers, etc.) are implementation details.
+Use `action` strings such as `analysis.run`, `persona.get`, `order.create`, `asset.create_version`, `protocol.inspect`, etc.; pass action-specific data in `params`. See the promptGuidelines on the tool for the full contract. Modular files under `extensions/` are implementation details; shared protocol and deterministic analysis logic lives in `@repochan/core`.
 
 The core tool + skills are lightweight and do not depend on Pi TUI internals.
 

@@ -19,7 +19,7 @@ RepoChan is a Pi package, not an application service. Keep it small, inspectable
 - `skills/*/SKILL.md` — role definitions, checklists, philosophy, examples.
 - `extensions/repochan.ts` — the Pi extension entrypoint (registers only the lightweight unified `repochan` tool).
 - `extensions/unified.ts` — implementation of the single public `pi.registerTool("repochan")` (all action-based management).
-- `extensions/analyze.ts` — deterministic analysis implementation (used by the tool).
+- `extensions/analyze.ts` — compatibility re-export for analysis helpers. The deterministic implementation lives in `@repochan/core` (`packages/core/src/analysis.ts`) so CLI/Studio/Pi can share it.
 - `extensions/assets-panel.ts` — TUI browser panel (`/repochan_panel` command). It depends on `@earendil-works/pi-tui`. It is deliberately included in the default extension entry (`repochan.ts`) so that users who activate the package get `/repochan_panel` out of the box without extra `-e` steps. Default mode avoids pi-tui overlay/image compositor paths; overlay mode is opt-in for patched pi-tui testing (see README).
 - Core protocol, entities, safe FS, versioning, and schemas live in the sibling `@repochan/core` package (imported by the tool and panel). Do not duplicate logic here.
 

@@ -3,3 +3,4 @@ export * from "./protocol/index.js";
 export * from "./schemas/index.js";
 export * from "./utils/index.js";
 export * from "./entities.js";
+export * from "./analysis.js";
