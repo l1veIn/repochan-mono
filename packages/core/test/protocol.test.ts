@@ -1,0 +1,102 @@
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import {
+  safeProtocolPath,
+  initProtocol,
+  inspectProtocol,
+  protocolVersionPath,
+  writeJson,
+  readJson,
+  exists,
+  PROTOCOL_DIR,
+  stampForPath,
+} from '../src/protocol/index.js';
+
+describe('protocol primitives', () => {
+  let tmpRoot: string;
+  let projectRoot: string;
+
+  beforeEach(async () => {
+    tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'repochan-core-test-'));
+    projectRoot = tmpRoot;
+  });
+
+  afterEach(async () => {
+    await fs.rm(tmpRoot, { recursive: true, force: true });
+  });
+
+  it('safeProtocolPath rejects paths that escape .repochan', () => {
+    const bad = '../outside.json';
+    expect(() => safeProtocolPath(projectRoot, bad)).toThrow(/Refusing to access path outside/);
+  });
+
+  it('safeProtocolPath accepts valid paths inside .repochan', () => {
+    const p = safeProtocolPath(projectRoot, '.repochan/analysis.json');
+    expect(p).toContain(PROTOCOL_DIR);
+    expect(p).toContain('analysis.json');
+  });
+
+  it('initProtocol creates the standard directory layout', async () => {
+    await initProtocol(projectRoot);
+    const r = path.join(projectRoot, PROTOCOL_DIR);
+
+    const expectedDirs = [
+      r,
+      path.join(r, 'analysis.versions'),
+      path.join(r, 'persona', 'versions'),
+      path.join(r, 'orders', 'batches'),
+      path.join(r, 'orders', 'versions'),
+      path.join(r, 'assets'),
+      path.join(r, 'notes'),
+      path.join(r, 'brand-kit'),
+    ];
+
+    for (const d of expectedDirs) {
+      expect(await exists(d)).toBe(true);
+    }
+  });
+
+  it('protocolVersionPath produces conventional locations', () => {
+    const v1 = protocolVersionPath('analysis.json');
+    expect(v1).toMatch(/^analysis\.versions\/.*\.json$/);
+
+    const v2 = protocolVersionPath('persona/current.json');
+    expect(v2).toMatch(/^persona\/versions\/.*\.json$/);
+
+    const v3 = protocolVersionPath('orders/ord-123.json');
+    expect(v3).toMatch(/^orders\/versions\/.*\.json$/);
+  });
+
+  it('writeJson refuses overwrite by default and succeeds with overwrite=true', async () => {
+    await initProtocol(projectRoot);
+    const target = path.join(projectRoot, PROTOCOL_DIR, 'analysis.json');
+
+    await writeJson(target, { hello: 'world' }, false);
+    expect(await exists(target)).toBe(true);
+
+    await expect(writeJson(target, { hello: 'again' }, false)).rejects.toThrow(/Refusing to overwrite/);
+
+    await writeJson(target, { hello: 'again' }, true);
+    const data = await readJson(target);
+    expect(data.hello).toBe('again');
+  });
+
+  it('inspectProtocol reports presence of top-level artifacts', async () => {
+    await initProtocol(projectRoot);
+    const summary1 = await inspectProtocol(projectRoot);
+    expect(summary1.exists).toBe(true);
+    expect(summary1.analysis).toBe(false);
+    expect(summary1.persona).toBe(false);
+
+    // create minimal files
+    const r = path.join(projectRoot, PROTOCOL_DIR);
+    await writeJson(path.join(r, 'analysis.json'), { foo: 1 }, true);
+    await writeJson(path.join(r, 'persona', 'current.json'), { bar: 2 }, true);
+
+    const summary2 = await inspectProtocol(projectRoot);
+    expect(summary2.analysis).toBe(true);
+    expect(summary2.persona).toBe(true);
+  });
+});

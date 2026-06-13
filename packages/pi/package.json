@@ -1,0 +1,43 @@
+{
+  "name": "repochan-pi",
+  "version": "0.1.0",
+  "description": "Pi package for manual multi-role workflows that turn git repositories into RepoChan mascot personas and visual brand assets.",
+  "type": "module",
+  "keywords": [
+    "pi-package"
+  ],
+  "license": "MIT",
+  "pi": {
+    "extensions": [
+      "./extensions/repochan.ts"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  },
+  "dependencies": {
+    "@repochan/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*",
+    "typebox": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-tui": "^0.79.2",
+    "@types/node": "^25.9.3",
+    "typescript": "^5.9.3"
+  },
+  "files": [
+    "README.md",
+    "AGENTS.md",
+    "extensions",
+    "skills",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit",
+    "test": "pnpm run build",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  }
+}
