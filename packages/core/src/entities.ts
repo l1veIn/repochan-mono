@@ -128,7 +128,6 @@ export async function createOrders(projectRoot: string, params: JsonObject) {
 }
 
 export async function listOrders(projectRoot: string) {
-  await initProtocol(projectRoot);
   const files = await listJsonFiles(path.join(protocolRoot(projectRoot), "orders"));
   const orders = [];
   for (const file of files) {
@@ -192,7 +191,6 @@ export async function addOrderRevision(projectRoot: string, orderId: string, rev
 }
 
 export async function listAssets(projectRoot: string) {
-  await initProtocol(projectRoot);
   const assetsDir = path.join(protocolRoot(projectRoot), "assets");
   let names: string[] = [];
   try {

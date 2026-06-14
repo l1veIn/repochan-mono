@@ -32,6 +32,13 @@
       "./skills"
     ]
   },
+  "exports": {
+    "./resources": {
+      "types": "./resources.d.ts",
+      "import": "./resources.js"
+    },
+    "./*": "./*"
+  },
   "dependencies": {
     "@repochan/core": "workspace:*",
     "typebox": "^1.0.55"
@@ -50,6 +57,9 @@
     "AGENTS.md",
     "extensions",
     "skills",
+    "resources.ts",
+    "resources.js",
+    "resources.d.ts",
     "package.json"
   ],
   "scripts": {

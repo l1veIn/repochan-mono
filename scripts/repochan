@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# RepoChan local development launcher
+#
+# This script lets you "cd to any project (including folders on your Desktop)
+# and run repochan" without pnpm --filter messing up the working directory.
+#
+# It prefers the built version (fast, after `pnpm --filter repochan build`).
+# If no build exists yet, it automatically falls back to the live TypeScript
+# sources via tsx (zero rebuilds needed while iterating on CLI code).
+#
+# Recommended one-time setup:
+#
+#   chmod +x scripts/repochan
+#   mkdir -p ~/bin
+#   ln -s "$(pwd)/scripts/repochan" ~/bin/repochan
+#
+#   # Add ~/bin to PATH if you haven't already (usually put this in ~/.zshrc):
+#   export PATH="$HOME/bin:$PATH"
+#
+# After that you can do:
+#
+#   cd ~/Desktop/随便一个项目
+#   repochan                     # default overview / guided TUI
+#   repochan validate --json
+#   repochan run analysis --new
+#   repochan chat
+#   repochan settings
+#   ...
+#
+# When you change CLI source:
+#   - For instant feedback (dev): no action needed (tsx fallback)
+#   - For "production-like" run: pnpm --filter repochan build   (the launcher will use the fresh dist)
+#
+# To stop using it: rm ~/bin/repochan
+#
+# This is the easiest way to test the CLI against real projects outside the monorepo.
+#
+# NOTE: The script contains symlink-resolution logic so that
+#   ln -s .../scripts/repochan ~/bin/repochan
+# works correctly even though the script is invoked by name from PATH.
+
+# Robustly resolve the directory containing the *real* script file,
+# even when this launcher is invoked through a symlink such as
+# ~/bin/repochan -> /path/to/monorepo/scripts/repochan .
+# We must do this because MONO_ROOT is computed relative to the script.
+resolve_real_dir() {
+  local src="${BASH_SOURCE[0]}"
+  local dir
+  while [ -L "$src" ]; do
+    dir="$(cd -P "$(dirname "$src")" && pwd)"
+    src="$(readlink "$src")"
+    # If the link target was relative, resolve it against the link's directory
+    [[ $src != /* ]] && src="$dir/$src"
+  done
+  dir="$(cd -P "$(dirname "$src")" && pwd)"
+  printf '%s\n' "$dir"
+}
+
+SCRIPT_DIR="$(resolve_real_dir)"
+MONO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+BUILT="$MONO_ROOT/packages/cli/dist/index.js"
+
+if [[ -x "$BUILT" ]]; then
+  exec "$BUILT" "$@"
+else
+  TSX_BIN="$MONO_ROOT/node_modules/.bin/tsx"
+  SRC="$MONO_ROOT/packages/cli/src/index.ts"
+  if [[ -x "$TSX_BIN" ]]; then
+    exec "$TSX_BIN" "$SRC" "$@"
+  else
+    echo "Error: RepoChan CLI not available." >&2
+    echo "  Resolved MONO_ROOT: $MONO_ROOT" >&2
+    echo "  Expected built binary: $BUILT (must be executable)" >&2
+    echo "  Expected tsx:          $TSX_BIN" >&2
+    echo "" >&2
+    echo "  - Run 'pnpm install' at the monorepo root (to get node_modules), or" >&2
+    echo "  - Run 'pnpm --filter repochan build' to create the dist binary." >&2
+    echo "" >&2
+    echo "  If using the ~/bin/repochan symlink, ensure the monorepo directory" >&2
+    echo "  still exists at the path the symlink points to." >&2
+    exit 1
+  fi
+fi

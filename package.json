@@ -17,9 +17,12 @@
     "build": "pnpm -r build",
     "test": "pnpm --filter @repochan/core build && pnpm -r test",
     "dev": "pnpm exec pi -e ./packages/pi/extensions/repochan.ts",
-    "lint": "pnpm -r lint"
+    "lint": "pnpm -r lint",
+    "cli": "pnpm --filter repochan run cli",
+    "cli:dev": "pnpm --filter repochan exec tsx src/index.ts"
   },
   "devDependencies": {
+    "tsx": "^4.19.3",
     "typescript": "^5.9.3"
   }
 }
