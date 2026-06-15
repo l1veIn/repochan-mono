@@ -5,17 +5,19 @@ RepoChan CLI combines deterministic `.repochan/` protocol helpers with Pi-guided
 ## Commands
 
 ```bash
-repochan [--new]
+repochan
+repochan status [--json]
 repochan guided [--new]
 repochan guide [--new]
 repochan chat [--new]
-repochan run analysis [--new]
-repochan run persona [--new]
-repochan run orders --goal <goal> [--new]
-repochan run painter --order <order-id> [--new]
+repochan phase analysis [--new]
+repochan phase persona [--new]
+repochan phase orders --goal <goal> [--new]
+repochan phase painter --order <order-id> [--new]
 repochan inspect [--json]
 repochan validate [--json]
-repochan install-pi-package [--local]
+repochan setup [--local]
+repochan app [overview|guided|inspect|validate|orders|assets|install|settings]
 repochan settings | login | model | panel
 repochan order list [--json]
 repochan order get <order-id> [--json]
@@ -23,22 +25,24 @@ repochan asset list [--json]
 repochan asset get <asset-id> [--json]
 ```
 
-- `guided` / default: opens the custom RepoChan TUI host. Guided starts the constrained guided kickoff; default lands on the Repo Wiki overview.
+- `repochan` / `status`: prints a normal CLI summary of the current `.repochan/` workspace.
+- `app` / `tui`: opens the custom RepoChan TUI host. `app guided` starts the constrained guided kickoff; default lands on the Repo Wiki overview.
+- `guided` / `guide`: starts the guided agent workflow in the custom TUI.
 - `chat`: the only command that starts full Pi `InteractiveMode`.
-- `run <phase>`: starts a constrained single-phase agent session for `analysis`, `persona`, `orders`, or `painter` inside the custom status/result screen.
+- `phase <phase>`: starts a constrained single-phase agent session for `analysis`, `persona`, `orders`, or `painter` inside the custom status/result screen. `run` remains a compatibility alias.
 - `inspect`: read-only summary of the current `.repochan/` workspace.
 - `validate`: read-only deterministic protocol validation, with `--json` for CI or scripts.
-- `install-pi-package`: asks for explicit confirmation, then uses the Pi SDK package manager to install/persist `repochan-pi` so plain `pi` can discover the extension and skills.
-- `settings` / `login` / `model`: opens the custom Settings screen with Pi SDK auth/model status.
+- `setup`: asks for explicit confirmation, then uses the Pi SDK package manager to install/persist `repochan-pi` so plain `pi` can discover the extension and skills. `install-pi-package` remains a compatibility alias.
+- `login` / `model` / `settings`: opens standalone Pi setup screens, without entering the RepoChan app or chat.
 - `panel`: opens the custom Assets screen.
-- `order` / `asset`: deterministic list/get helpers for current protocol artifacts (`--json`) or custom TUI screens (default).
+- `order` / `asset`: deterministic list/get helpers for current protocol artifacts. Use `--json` for machine-readable output or `app orders` / `app assets` for the TUI screens.
 
 ## Install RepoChan resources into normal Pi
 
 The CLI can install the Pi package that contains the RepoChan extension and skills:
 
 ```bash
-repochan install-pi-package
+repochan setup
 ```
 
 The command prints the source, target Pi agent directory, and settings change, then asks:
@@ -52,7 +56,7 @@ Nothing is installed and no Pi settings are changed unless you answer `y`/`yes`.
 For monorepo development, install the workspace `repochan-pi` package path instead of the npm package:
 
 ```bash
-repochan install-pi-package --local
+repochan setup --local
 ```
 
 `--local` means “use the local workspace package source”; it still persists to the normal Pi user settings after confirmation so plain `pi` can use it.
@@ -99,7 +103,7 @@ You want the classic experience:
 cd ~/Desktop/我的项目
 repochan
 repochan validate --json
-repochan run analysis --new
+repochan phase analysis --new
 cd ~/Desktop/另一个项目
 repochan chat
 ...
@@ -135,7 +139,7 @@ cd ~/Desktop/随便一个项目
 repochan
 repochan validate --json
 repochan settings
-repochan run analysis --new
+repochan phase analysis --new
 ```
 
 - After you edit CLI source: `pnpm --filter repochan build` again (the global link points at the package, so the new `dist/` is picked up).
@@ -219,7 +223,7 @@ Usage (this is what most people on the team use for external projects):
 cd ~/Desktop/项目A
 repochan                    # works even without a prior build (uses tsx)
 repochan validate --json
-repochan run orders --goal "hero icon set"
+repochan phase orders --goal "hero icon set"
 
 cd ~/Desktop/项目B
 repochan chat
@@ -238,4 +242,4 @@ These are still useful when you are deliberately running from the monorepo root:
 
 Use the four options above whenever your target project is outside the monorepo.
 
-`repochan chat`, `repochan guided`, and `repochan run ...` require a configured Pi model for LLM turns, but normal Pi setup commands such as `/login` and `/model` remain available inside the TUI.
+`repochan chat`, `repochan guided`, and `repochan phase ...` require a configured Pi model for LLM turns, but normal Pi setup commands such as `/login` and `/model` remain available inside the TUI. `repochan run ...` remains available as a compatibility alias for `phase`.

@@ -19,6 +19,14 @@ async function runCli(cwd: string, args: string[]) {
 }
 
 describe("repochan inspect smoke", () => {
+  it("prints protocol status by default without entering the TUI", async () => {
+    const cwd = await tempProject();
+    const { stdout } = await runCli(cwd, []);
+
+    expect(stdout).toContain("RepoChan protocol");
+    expect(stdout).toContain(".repochan");
+  });
+
   it("reports missing protocol state as JSON without creating .repochan", async () => {
     const cwd = await tempProject();
     const { stdout } = await runCli(cwd, ["inspect", "--json"]);
@@ -44,5 +52,21 @@ describe("repochan inspect smoke", () => {
     expect(result.orders).toContainEqual(
       expect.objectContaining({ orderId: "ord-smoke-001", status: "draft", assetType: "icon" }),
     );
+  });
+
+  it("prints order list as normal text by default", async () => {
+    const cwd = await tempProject();
+    await mkdir(path.join(cwd, ".repochan", "orders"), { recursive: true });
+    await writeFile(
+      path.join(cwd, ".repochan", "orders", "ord-text-001.json"),
+      JSON.stringify({ orderId: "ord-text-001", status: "draft", assetType: "icon", priority: "normal" }),
+      "utf8",
+    );
+
+    const { stdout } = await runCli(cwd, ["order", "list"]);
+
+    expect(stdout).toContain("RepoChan orders");
+    expect(stdout).toContain("ord-text-001");
+    expect(stdout).toContain("assetType: icon");
   });
 });

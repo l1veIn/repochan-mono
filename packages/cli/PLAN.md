@@ -146,7 +146,7 @@ packages/cli/
       pi-runtime.ts          # create Pi SDK runtime/session/services for RepoChan (M2+)
       run-guided.ts          # default `repochan` (M3+)
       run-chat.ts            # `repochan chat` (M2+)
-      run-phase.ts           # `repochan run <phase>` (M4+)
+      run-phase.ts           # `repochan phase <phase>`; `run` compatibility alias (M4+)
       install-pi-package.ts  # explicit install into normal Pi environment (M5)
       conductor.ts           # conductor prompts and workflow policy
       auth-model.ts          # model/auth preflight using Pi SDK AuthStorage/ModelRegistry (future)
@@ -185,7 +185,7 @@ Potential future migration: `packages/pi/skills/repochan-conductor/SKILL.md` if 
 
 ## Commands
 
-### Default guided app
+### Default status and explicit app
 
 ```bash
 repochan
@@ -195,11 +195,23 @@ Behavior:
 
 1. Detect `cwd` and project name.
 2. Inspect protocol state using `@repochan/core`.
-3. Continue the latest RepoChan session by default; provide `--new` to force a new guided session.
-4. Check model/auth availability through Pi SDK.
-5. If no usable model is configured, guide user through provider/API-key/model selection where practical.
-6. Start Pi SDK `InteractiveMode` with RepoChan extension, skills, and conductor prompt loaded.
-7. Send an initial guided workflow message.
+3. Print normal CLI output and exit.
+
+Interactive screens are explicit:
+
+```bash
+repochan app
+repochan app guided
+repochan guided
+```
+
+Guided behavior:
+
+1. Continue the latest RepoChan session by default; provide `--new` to force a new guided session.
+2. Check model/auth availability through Pi SDK.
+3. If no usable model is configured, guide user through provider/API-key/model selection where practical.
+4. Start the custom RepoChan TUI with RepoChan extension, skills, and conductor prompt loaded.
+5. Send an initial guided workflow message.
 
 This mode should keep approval gates:
 
@@ -228,13 +240,13 @@ First implementation should reuse Pi SDK `InteractiveMode` rather than building 
 ### Single-phase agent commands
 
 ```bash
-repochan run analysis
-repochan run persona
-repochan run orders --goal "README hero and icon set"
-repochan run painter --order ord-hero-001
+repochan phase analysis
+repochan phase persona
+repochan phase orders --goal "README hero and icon set"
+repochan phase painter --order ord-hero-001
 ```
 
-These commands use Pi SDK and RepoChan skills/tool. They are agent commands, not pure deterministic commands.
+These commands use Pi SDK and RepoChan skills/tool. They are agent commands, not pure deterministic commands. `repochan run ...` remains a compatibility alias, but `phase` is the preferred public wording because it better signals an interactive constrained session.
 
 Each phase should prompt the agent with a constrained task:
 
@@ -270,12 +282,12 @@ repochan asset list --json
 ### Optional Pi installation command
 
 ```bash
-repochan install-pi-package
+repochan setup
 ```
 
 This explicitly installs RepoChan into the user's normal Pi environment so plain `pi` can use RepoChan skills/tool.
 
-The CLI must not silently modify global Pi package settings. Installation/update of `repochan-pi` into normal Pi settings happens only through this explicit command. M5 implements a confirmation-first flow: it explains that the package provides the RepoChan Pi extension and skills, shows the source and Pi agent dir, asks `Proceed with installation? (y/N)`, and only then constructs Pi SDK `DefaultPackageManager` with `cwd`, `agentDir`, and `SettingsManager`, calls `install`, persists the source with `addSourceToSettings`, and flushes settings. Default source is `npm:repochan-pi`; `--local` uses the detected workspace `packages/pi` source for monorepo development while still requiring confirmation.
+The CLI must not silently modify global Pi package settings. Installation/update of `repochan-pi` into normal Pi settings happens only through this explicit command. M5 implements a confirmation-first flow: it explains that the package provides the RepoChan Pi extension and skills, shows the source and Pi agent dir, asks `Proceed with installation? (y/N)`, and only then constructs Pi SDK `DefaultPackageManager` with `cwd`, `agentDir`, and `SettingsManager`, calls `install`, persists the source with `addSourceToSettings`, and flushes settings. Default source is `npm:repochan-pi`; `--local` uses the detected workspace `packages/pi` source for monorepo development while still requiring confirmation. `repochan install-pi-package` remains a compatibility alias.
 
 ## Pi SDK runtime design
 
@@ -290,6 +302,7 @@ Important SDK pieces to verify during M2:
 - `DefaultResourceLoader` — load RepoChan extension/skills plus normal user/project resources as appropriate.
 - `createAgentSessionRuntime` / `createAgentSessionServices` / `createAgentSessionFromServices` — build runtime.
 - `InteractiveMode` — first implementation of chat/guided TUI.
+- Pi setup components — `repochan login`, `repochan model`, and `repochan settings` use standalone TUI screens built from Pi's exported selector/dialog components instead of entering RepoChan app or chat.
 
 Initial `pi-runtime.ts` should expose something like:
 
@@ -324,9 +337,9 @@ Preferred behavior:
 1. Load `AuthStorage.create()` and `ModelRegistry.create(authStorage)`.
 2. Call `modelRegistry.getAvailable()`.
 3. If at least one model is available, let Pi settings/default model selection handle it or show a concise selector.
-4. If no models are available, prompt the user for provider/API-key setup where supported.
+4. If no models are available, direct the user to `repochan login`; do not require opening chat.
 5. Store credentials through `AuthStorage`, not a RepoChan-specific auth file.
-6. Defer OAuth/subscription flows to `/login` inside `repochan chat` for the first implementation.
+6. `repochan login` and `repochan model` should mount Pi's exported TUI components directly. Do not simulate `/login` or `/model` through chat.
 
 ## First implementation milestones
 
@@ -342,7 +355,7 @@ Preferred behavior:
   - `repochan asset list [--json]`
   - `repochan asset get <asset-id> [--json]`
 - Wire package build/test.
-- Keep default `repochan` and `repochan run ...` as friendly placeholders until M3/M4; `repochan chat` is implemented in M2.
+- Keep default `repochan` as a deterministic status command; `repochan app` opens the custom overview. `repochan phase ...` is the preferred single-phase agent entry, with `run` kept as a compatibility alias. `repochan chat` is implemented in M2.
 
 ### Milestone 2: Pi resource reuse and chat
 
@@ -350,6 +363,7 @@ Preferred behavior:
 - Implement `createRepoChanRuntime()` with Pi SDK `AuthStorage`, `ModelRegistry`, `SettingsManager`, `SessionManager`, `DefaultResourceLoader` resource options, and `createAgentSessionRuntime`.
 - Start `repochan chat` using `InteractiveMode` with RepoChan extension/skills loaded.
 - If no model is configured, do not crash during preflight; open chat with a warning so `/login` and `/model` remain available.
+- Add standalone `repochan login`, `repochan model`, and `repochan settings` setup screens that do not enter RepoChan app or chat.
 
 ### Milestone 3: default guided flow
 
@@ -361,18 +375,26 @@ Preferred behavior:
 
 Implementation notes:
 
-- `repochan`, `repochan guided`, and `repochan guide` enter guided mode.
+- `repochan` prints deterministic status. `repochan app`, `repochan guided`, and `repochan guide` enter the interactive app/guided modes.
 - Guided mode reuses `createRepoChanRuntime()` with `initialSession: "continue"` by default and `initialSession: "new"` when `--new` is passed.
 - The guided kickoff message asks the agent to inspect state with `repochan` action `protocol.inspect`, summarize the next safe step, and avoid writes/role chaining until user approval.
 - If no configured model is detected, guided mode still opens InteractiveMode so the user can run `/login`, `/model`, or `/repochan_panel` inside the TUI.
 
+### Standalone Pi setup commands
+
+- `repochan login` opens a Pi-native authentication flow directly.
+- `repochan model` opens Pi's model selector directly.
+- `repochan settings` opens a small standalone settings launcher; v1 contains Login and is designed to grow with settings such as language.
+- Only `repochan app` / `repochan tui` open RepoChan app pages. `repochan app settings` can remain as an informational app page, but top-level setup commands must not enter RepoChan app.
+
 ### Milestone 4: phase commands
 
 - Implement:
-  - `repochan run analysis`
-  - `repochan run persona`
-  - `repochan run orders --goal ...`
-  - `repochan run painter --order ...`
+  - `repochan phase analysis`
+  - `repochan phase persona`
+  - `repochan phase orders --goal ...`
+  - `repochan phase painter --order ...`
+  - `repochan run ...` as a compatibility alias
 - Keep deterministic analysis as an internal implementation detail for guided/agent analysis in this phase.
 
 Implementation notes:
@@ -383,7 +405,7 @@ Implementation notes:
 
 ### Milestone 5: install helper and polish
 
-- Add `repochan install-pi-package`.
+- Add `repochan setup` with `repochan install-pi-package` as a compatibility alias.
 - Add validation and additional deterministic protocol helpers.
 - Add friendly errors and docs.
 - Add smoke tests.
@@ -434,7 +456,7 @@ pnpm --filter repochan exec node --input-type=module -e 'import { getRepoChanPiR
 ## Open decisions resolved for initial implementation
 
 1. **Default session behavior:** continue the latest RepoChan session by default; add `--new` to force a new guided session.
-2. **OAuth behavior:** defer OAuth/subscription auth to `/login` inside `repochan chat`; initial setup may cover API-key providers only.
+2. **OAuth behavior:** top-level `repochan login` supports subscription/OAuth and API-key setup through Pi-native components; chat still supports `/login`.
 3. **Painter image execution:** keep painter execution through the agent/image capabilities available in the Pi session for now. Direct CLI image adapters are a future option, not part of M1-M4.
-4. **Pi package installation:** only via explicit `repochan install-pi-package`; never automatic.
+4. **Pi package installation:** only via explicit `repochan setup` (`install-pi-package` compatibility alias); never automatic.
 5. **Deterministic analysis command:** do not expose a separate deterministic `repochan analysis run` yet. Keep deterministic analysis internal to guided/phase workflows until the CLI API stabilizes.
