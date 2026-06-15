@@ -5,7 +5,6 @@ import {
   getAgentDir,
   SettingsManager,
   Theme,
-  type ThemeColor,
 } from "@earendil-works/pi-coding-agent";
 import { Key, matchesKey, ProcessTerminal, TUI, truncateToWidth, visibleWidth, type Component } from "@earendil-works/pi-tui";
 import {
@@ -19,21 +18,17 @@ import {
   validateProtocol,
   type ProtocolValidationProblem,
 } from "@repochan/core";
+
 import { buildInstallPiPackagePlan, parseInstallPiPackageArgs, type InstallPiPackagePlan } from "../app/install-pi-package.js";
-import {
-  createGuidedRuntime,
-  DEFAULT_GUIDED_INITIAL_MESSAGE,
-  type RunGuidedOptions,
-} from "../app/run-guided.js";
-import {
-  buildRunPhaseInitialMessage,
-  buildRunPhaseConductorNote,
-  createRunPhaseRuntime,
-  parseRunPhaseArgs,
-  type RepoChanRunPhase,
-  type RunPhaseArgs,
-} from "../app/run-phase.js";
+import { createGuidedRuntime, DEFAULT_GUIDED_INITIAL_MESSAGE, type RunGuidedOptions } from "../app/run-guided.js";
+import { buildRunPhaseInitialMessage, buildRunPhaseConductorNote, createRunPhaseRuntime, parseRunPhaseArgs, type RepoChanRunPhase, type RunPhaseArgs } from "../app/run-phase.js";
 import { createRepoChanRuntime, type RepoChanRuntimeResult, type RepoChanSessionMode } from "../app/pi-runtime.js";
+
+import { createCliTheme } from "./theme.js";
+import { InstallScreen } from "./screens/install.js";
+import { PhaseTaskScreen } from "./screens/phase-task.js";
+import { SettingsScreen } from "./screens/settings.js";
+import { messageFromError, safeJson } from "./utils.js";
 
 export type TuiCommand =
   | { kind: "overview" }
@@ -66,18 +61,6 @@ type HostScreen =
 type RuntimeTask =
   | { type: "guided"; options: RunGuidedOptions }
   | { type: "phase"; args: RunPhaseArgs };
-
-type ActivityLog = { at: Date; text: string; tone?: "dim" | "success" | "warning" | "error" };
-
-type TaskStatus = "idle" | "starting" | "running" | "done" | "error" | "cancelled";
-
-const MENU: Array<{ screen: HostScreen; label: string; key: string }> = [
-  { screen: "overview", label: "Repo Wiki", key: "1" },
-  { screen: "assets", label: "Assets", key: "2" },
-  { screen: "validate", label: "Validate", key: "3" },
-  { screen: "settings", label: "Settings", key: "4" },
-  { screen: "help", label: "Help", key: "5" },
-];
 
 export async function launchRepoChanTui(options: LaunchRepoChanTuiOptions = {}) {
   const cliTheme = createCliTheme();
@@ -575,302 +558,13 @@ export class RepoChanTuiHost implements Component {
   }
 }
 
-class PhaseTaskScreen implements Component {
-  private status: TaskStatus = "idle";
-  private logs: ActivityLog[] = [];
-  private frame = 0;
-  private runtime: RepoChanRuntimeResult | undefined;
-  private error: string | undefined;
-  private timer: NodeJS.Timeout | undefined;
-  private startedAt: number | undefined;
-
-  constructor(
-    private readonly opts: {
-      cwd: string;
-      theme: Theme;
-      task: RuntimeTask;
-      requestRender: () => void;
-      onClose: () => void;
-      onDone: () => void;
-    },
-  ) {}
-
-  invalidate(): void {}
-
-  async dispose() {
-    if (this.timer) clearInterval(this.timer);
-    await this.runtime?.runtime.dispose();
-  }
-
-  handleInput(data: string): void {
-    if (matchesKey(data, Key.escape) || data === "q") {
-      if (this.status === "running" || this.status === "starting") {
-        this.status = "cancelled";
-        void this.runtime?.runtime.session.abort();
-      } else {
-        this.opts.onClose();
-      }
-      this.opts.requestRender();
-    }
-    if ((data === "r" || data === "R") && (this.status === "done" || this.status === "error")) {
-      this.opts.onDone();
-    }
-  }
-
-  async start() {
-    if (this.status !== "idle") return;
-    this.status = "starting";
-    this.startedAt = Date.now();
-    this.log("思考中.. preparing constrained RepoChan runtime", "dim");
-    this.timer = setInterval(() => {
-      this.frame += 1;
-      this.opts.requestRender();
-    }, 300);
-    this.opts.requestRender();
-
-    try {
-      if (this.opts.task.type === "guided") {
-        this.runtime = await createGuidedRuntime({ ...this.opts.task.options, cwd: this.opts.cwd });
-      } else {
-        this.runtime = await createRunPhaseRuntime({ ...this.opts.task.args, cwd: this.opts.cwd });
-      }
-      this.logDiagnostics();
-      const session = this.runtime.runtime.session;
-      const unsubscribe = session.subscribe((event) => {
-        if (event.type === "agent_start") this.log("[请求中] provider request started", "dim");
-        else if (event.type === "message_update") this.log("streaming assistant response…", "dim");
-        else if (event.type === "tool_execution_start") this.log(`[tool] ${event.toolName} ${safeJson(event.args)}`, "dim");
-        else if (event.type === "tool_execution_end") this.log(`[tool ${event.isError ? "error" : "ok"}] ${event.toolName}`, event.isError ? "error" : "success");
-        else if (event.type === "agent_end") this.log("agent_end", "success");
-        this.opts.requestRender();
-      });
-      this.status = "running";
-      const message = this.initialMessage();
-      this.log(`执行阶段: ${this.label()}`, "dim");
-      await session.prompt(message);
-      unsubscribe();
-      if ((this.status as TaskStatus) !== "cancelled") {
-        this.status = "done";
-        this.log("完成。Press r to refresh result views, esc to return.", "success");
-        this.opts.onDone();
-      }
-    } catch (error) {
-      this.status = "error";
-      this.error = messageFromError(error);
-      this.log(this.error, "error");
-    } finally {
-      if (this.timer) clearInterval(this.timer);
-      this.timer = undefined;
-      this.opts.requestRender();
-    }
-  }
-
-  render(width: number): string[] {
-    const lines: string[] = [];
-    lines.push(this.opts.theme.fg("accent", this.opts.theme.bold(`Phase task: ${this.label()}`)));
-    lines.push(this.opts.theme.fg("dim", "Constrained runtime reuses RepoChan conductor prompts and repochan tool gates."));
-    lines.push("");
-    lines.push(...this.statusBox(width));
-    lines.push("");
-    lines.push(this.opts.theme.fg("muted", "Recent activity"));
-    for (const log of this.logs.slice(-12)) {
-      const fn = log.tone ? (s: string) => this.opts.theme.fg(log.tone!, s) : (s: string) => this.opts.theme.fg("text", s);
-      lines.push(truncateToWidth(fn(`${log.at.toLocaleTimeString()}  ${log.text}`), width, "…"));
-    }
-    if (this.error) {
-      lines.push("");
-      lines.push(this.opts.theme.fg("warning", "If this is an auth/model error, open Settings or run `repochan chat` for full /login and /model commands."));
-    }
-    lines.push("");
-    lines.push(this.opts.theme.fg("dim", "esc/q cancel or return · r refresh result views after completion"));
-    return lines;
-  }
-
-  private statusBox(width: number) {
-    const stats = this.runtime?.runtime.session.getSessionStats();
-    const elapsed = this.startedAt ? Math.round((Date.now() - this.startedAt) / 1000) : 0;
-    const spinner = ["思考中.", "思考中..", "思考中..."][this.frame % 3];
-    const request = this.status === "running" || this.status === "starting" ? `[请求中] ${spinner}` : this.status;
-    const tokens = stats ? `tokens in/out/cache: ${stats.tokens.input}/${stats.tokens.output}/${stats.tokens.cacheRead + stats.tokens.cacheWrite}` : "tokens: n/a";
-    const lines = [
-      `┌${"─".repeat(Math.max(10, Math.min(width - 2, 76)))}┐`,
-      `│ ${request} · ${tokens} · ${elapsed}s`,
-      `│ model: ${this.runtime?.runtime.session.model?.id ?? "not selected"}`,
-      `└${"─".repeat(Math.max(10, Math.min(width - 2, 76)))}┘`,
-    ];
-    return lines.map((line) => truncateToWidth(this.opts.theme.fg(this.status === "error" ? "error" : "accent", line), width, "…"));
-  }
-
-  private initialMessage() {
-    if (this.opts.task.type === "guided") return this.opts.task.options.initialMessage ?? DEFAULT_GUIDED_INITIAL_MESSAGE;
-    return buildRunPhaseInitialMessage(this.opts.task.args);
-  }
-
-  private label() {
-    return this.opts.task.type === "guided" ? "guided" : this.opts.task.args.phase;
-  }
-
-  private log(text: string, tone?: ActivityLog["tone"]) {
-    if (this.logs.at(-1)?.text === text && text === "streaming assistant response…") return;
-    this.logs.push({ at: new Date(), text, tone });
-    if (this.logs.length > 80) this.logs.splice(0, this.logs.length - 80);
-  }
-
-  private logDiagnostics() {
-    const d = this.runtime?.diagnostics;
-    if (!d) return;
-    if (d.availableModelCount === 0) this.log("No configured Pi model detected.", "warning");
-    for (const item of d.runtime) this.log(`${item.type}: ${item.message}`, item.type === "error" ? "error" : "warning");
-    for (const item of d.resources) this.log(`resource ${item.type}: ${item.message}`, item.type === "error" ? "error" : "warning");
-    if (d.modelFallbackMessage) this.log(`model: ${d.modelFallbackMessage}`, "warning");
-  }
-}
-
-class InstallScreen implements Component {
-  private plan: InstallPiPackagePlan | undefined;
-  private error: string | undefined;
-  private state: "confirm" | "installing" | "cancelled" | "done" | "error" = "confirm";
-  private logs: string[] = [];
-
-  constructor(
-    private readonly opts: { cwd: string; args: string[]; theme: Theme; requestRender: () => void; onClose: () => void },
-  ) {
-    try {
-      this.plan = buildInstallPiPackagePlan(parseInstallPiPackageArgs(opts.args));
-    } catch (error) {
-      this.error = messageFromError(error);
-      this.state = "error";
-    }
-  }
-
-  invalidate(): void {}
-
-  handleInput(data: string): void {
-    if (matchesKey(data, Key.escape) || data === "q" || data === "n" || data === "N") {
-      if (this.state === "confirm") {
-        this.state = "cancelled";
-        this.logs.push("Installation cancelled. No Pi settings were changed.");
-        this.opts.requestRender();
-      } else this.opts.onClose();
-      return;
-    }
-    if ((data === "y" || data === "Y") && this.state === "confirm") void this.install();
-  }
-
-  render(width: number): string[] {
-    const lines: string[] = [];
-    lines.push(this.opts.theme.fg("accent", this.opts.theme.bold("Install RepoChan Pi package")));
-    lines.push("This will install the 'repochan-pi' package into your normal Pi user environment.");
-    if (this.plan) {
-      lines.push(`Source: ${this.plan.sourceLabel}`);
-      lines.push(`Pi agent dir: ${getAgentDir()}`);
-      if (this.plan.detectedWorkspacePath && !this.plan.localWorkspacePath) {
-        lines.push(this.opts.theme.fg("dim", `Local package detected: ${this.plan.detectedWorkspacePath}; use --local to install it.`));
-      }
-    }
-    if (this.error) lines.push(this.opts.theme.fg("error", this.error));
-    lines.push("");
-    if (this.state === "confirm") lines.push(this.opts.theme.fg("warning", "Proceed with installation? y/N"));
-    else lines.push(this.opts.theme.fg(this.state === "done" ? "success" : this.state === "error" ? "error" : "muted", this.state));
-    for (const log of this.logs) lines.push(this.opts.theme.fg("dim", log));
-    lines.push("");
-    lines.push(this.opts.theme.fg("dim", "y install · n/esc cancel · q close after completion"));
-    return lines.map((line) => truncateToWidth(line, width, "…"));
-  }
-
-  private async install() {
-    if (!this.plan) return;
-    this.state = "installing";
-    this.opts.requestRender();
-    const agentDir = getAgentDir();
-    const settingsManager = SettingsManager.create(this.opts.cwd, agentDir);
-    const packageManager = new DefaultPackageManager({ cwd: this.opts.cwd, agentDir, settingsManager });
-    packageManager.setProgressCallback((event) => {
-      if (event.message) this.logs.push(event.message);
-      this.opts.requestRender();
-    });
-    try {
-      await packageManager.install(this.plan.source);
-      packageManager.addSourceToSettings(this.plan.source);
-      await settingsManager.flush();
-      this.state = "done";
-      this.logs.push(`Installed and persisted ${this.plan.sourceLabel}.`);
-    } catch (error) {
-      this.state = "error";
-      this.logs.push(messageFromError(error));
-    } finally {
-      this.opts.requestRender();
-    }
-  }
-}
-
-class SettingsScreen implements Component {
-  private runtime: RepoChanRuntimeResult | undefined;
-  private error: string | undefined;
-
-  constructor(private readonly opts: { cwd: string; theme: Theme; requestRender: () => void }) {
-    void this.load();
-  }
-
-  async dispose() {
-    await this.runtime?.runtime.dispose();
-  }
-
-  invalidate(): void {}
-
-  handleInput(data: string): void {
-    if (data === "r" || data === "R") void this.load();
-  }
-
-  modelLabel() {
-    const model = this.runtime?.runtime.session.model;
-    return model ? `${model.provider}/${model.id}` : "model: none";
-  }
-
-  render(width: number): string[] {
-    const lines = [this.opts.theme.fg("accent", this.opts.theme.bold("Settings / login / model"))];
-    if (!this.runtime && !this.error) return [...lines, this.opts.theme.fg("dim", "Loading Pi SDK model registry…")];
-    if (this.error) lines.push(this.opts.theme.fg("error", this.error));
-    const runtime = this.runtime;
-    if (runtime) {
-      const models = runtime.modelRegistry.getAll();
-      const available = runtime.modelRegistry.getAvailable();
-      lines.push(`Current model: ${runtime.runtime.session.model ? `${runtime.runtime.session.model.provider}/${runtime.runtime.session.model.id}` : "none"}`);
-      lines.push(`Available authenticated models: ${available.length}`);
-      lines.push(`Known models: ${models.length}`);
-      lines.push("");
-      lines.push(this.opts.theme.fg("muted", "Configured auth providers"));
-      const providers = runtime.authStorage.list();
-      if (!providers.length) lines.push(this.opts.theme.fg("warning", "No stored credentials found."));
-      for (const provider of providers) {
-        const status = runtime.authStorage.getAuthStatus(provider);
-        lines.push(`• ${provider} · ${status.configured ? status.source ?? "configured" : "missing"}`);
-      }
-      lines.push("");
-      lines.push(this.opts.theme.fg("muted", "Model candidates"));
-      for (const model of models.slice(0, 10)) {
-        const ok = runtime.modelRegistry.hasConfiguredAuth(model);
-        lines.push(`${ok ? "✓" : "○"} ${model.provider}/${model.id}`);
-      }
-      if (models.length > 10) lines.push(this.opts.theme.fg("dim", `… ${models.length - 10} more`));
-    }
-    lines.push("");
-    lines.push(this.opts.theme.fg("dim", "r reload · esc back. OAuth/API-key login entry is exposed here as status; use repochan chat for full provider login flow if needed."));
-    return lines.map((line) => truncateToWidth(line, width, "…"));
-  }
-
-  private async load() {
-    try {
-      await this.runtime?.runtime.dispose();
-      this.runtime = await createRepoChanRuntime({ cwd: this.opts.cwd, initialSession: "memory", appendConductorPrompt: false });
-      this.error = undefined;
-    } catch (error) {
-      this.error = messageFromError(error);
-    } finally {
-      this.opts.requestRender();
-    }
-  }
-}
+const MENU: Array<{ screen: HostScreen; label: string; key: string }> = [
+  { screen: "overview", label: "Repo Wiki", key: "1" },
+  { screen: "assets", label: "Assets", key: "2" },
+  { screen: "validate", label: "Validate", key: "3" },
+  { screen: "settings", label: "Settings", key: "4" },
+  { screen: "help", label: "Help", key: "5" },
+];
 
 async function loadOverview(cwd: string) {
   const protocol = await inspectProtocol(cwd);
@@ -895,77 +589,7 @@ function asArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
 
-function messageFromError(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
-}
-
-function safeJson(value: unknown): string {
-  try {
-    return truncateToWidth(JSON.stringify(value), 80, "…");
-  } catch {
-    return String(value);
-  }
-}
-
 function joinLeftRight(left: string, right: string, width: number) {
   const gap = Math.max(1, width - visibleWidth(left) - visibleWidth(right));
   return truncateToWidth(left + " ".repeat(gap) + right, width, "");
-}
-
-function createCliTheme(): Theme {
-  const fgEntries: Record<ThemeColor, string> = {
-    accent: "#8bd5ff",
-    border: "#6272a4",
-    borderAccent: "#8bd5ff",
-    borderMuted: "#44475a",
-    success: "#50fa7b",
-    error: "#ff5555",
-    warning: "#f1fa8c",
-    muted: "#bd93f9",
-    dim: "#7f849c",
-    text: "#f8f8f2",
-    thinkingText: "#cba6f7",
-    userMessageText: "#f8f8f2",
-    customMessageText: "#f8f8f2",
-    customMessageLabel: "#8bd5ff",
-    toolTitle: "#8bd5ff",
-    toolOutput: "#f8f8f2",
-    mdHeading: "#8bd5ff",
-    mdLink: "#8bd5ff",
-    mdLinkUrl: "#7f849c",
-    mdCode: "#f1fa8c",
-    mdCodeBlock: "#f8f8f2",
-    mdCodeBlockBorder: "#44475a",
-    mdQuote: "#bd93f9",
-    mdQuoteBorder: "#6272a4",
-    mdHr: "#44475a",
-    mdListBullet: "#8bd5ff",
-    toolDiffAdded: "#50fa7b",
-    toolDiffRemoved: "#ff5555",
-    toolDiffContext: "#7f849c",
-    syntaxComment: "#7f849c",
-    syntaxKeyword: "#ff79c6",
-    syntaxFunction: "#50fa7b",
-    syntaxVariable: "#f8f8f2",
-    syntaxString: "#f1fa8c",
-    syntaxNumber: "#bd93f9",
-    syntaxType: "#8bd5ff",
-    syntaxOperator: "#ff79c6",
-    syntaxPunctuation: "#f8f8f2",
-    thinkingOff: "#7f849c",
-    thinkingMinimal: "#8bd5ff",
-    thinkingLow: "#50fa7b",
-    thinkingMedium: "#f1fa8c",
-    thinkingHigh: "#ffb86c",
-    thinkingXhigh: "#ff5555",
-    bashMode: "#50fa7b",
-  };
-  return new Theme(fgEntries, {
-    selectedBg: "#313244",
-    userMessageBg: "#1e1e2e",
-    customMessageBg: "#1e1e2e",
-    toolPendingBg: "#313244",
-    toolSuccessBg: "#1f3d2b",
-    toolErrorBg: "#3d1f2b",
-  }, "truecolor", { name: "repochan-cli" });
 }
