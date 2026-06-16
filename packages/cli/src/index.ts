@@ -8,6 +8,14 @@ import { runOrderCommand } from "./commands/order.js";
 import { runValidate } from "./commands/validate.js";
 import { runChat } from "./app/run-chat.js";
 import { runInstallPiPackage } from "./app/install-pi-package.js";
+import { createRepoChanRuntime } from "./app/pi-runtime.js";
+import { loadRepoChanSettings } from "./app/settings.js";
+import {
+  buildWizardInitialMessage,
+  chooseGenerateStep,
+  formatWizardSummary,
+  inspectWizardSnapshot,
+} from "./app/wizard.js";
 import { printError, UsageError } from "./ui/errors.js";
 import { launchRepoChanTui } from "./tui/host.js";
 import { launchPiSetupTui } from "./tui/pi-setup-host.js";
@@ -25,6 +33,7 @@ export type ParsedArgs = {
 export type CliRoute =
   | { kind: "version" }
   | { kind: "help" }
+  | { kind: "wizard"; newSession: boolean }
   | { kind: "status"; json: boolean }
   | { kind: "app"; args: string[]; parsed: ParsedArgs }
   | { kind: "guided"; newSession: boolean }
@@ -34,6 +43,7 @@ export type CliRoute =
   | { kind: "asset"; args: string[]; json: boolean }
   | { kind: "chat"; newSession: boolean }
   | { kind: "phase"; args: string[]; newSession: boolean }
+  | { kind: "generate"; newSession: boolean }
   | { kind: "setup"; args: string[] }
   | { kind: "piSetup"; mode: "login" | "model" | "settings" }
   | { kind: "panel"; args: string[] };
@@ -64,6 +74,10 @@ function printHelp() {
 
 Usage:
   repochan
+  repochan analyze [--new]
+  repochan persona [--new]
+  repochan generate [--new]
+  repochan browse
   repochan status [--json]
   repochan guided [--new]
   repochan guide [--new]
@@ -83,7 +97,8 @@ Usage:
   repochan asset get <asset-id> [--json]
 
 Common commands print normal CLI output by default; add --json for machine-readable output.
-Use app/tui/panel/guided/chat/phase when you want the RepoChan app or an agent session.
+No-argument repochan starts the RepoChan first-run wizard in an interactive terminal.
+Use app/tui/panel/guided/chat/phase when you want a specific RepoChan app view or agent session.
 Use login/model/settings for standalone Pi auth and model setup.
 Validate is read-only. Setup asks for confirmation before installing RepoChan resources into the normal Pi user environment.
 Phase starts a constrained single-phase agent session; run is kept as a compatibility alias:
@@ -150,9 +165,14 @@ export function resolveCliRoute(argv: string[]): CliRoute {
 
   if (parsed.version) return { kind: "version" };
   if (parsed.help) return { kind: "help" };
-  if (!command || command === "status") return { kind: "status", json: parsed.json };
+  if (!command) return { kind: "wizard", newSession: parsed.newSession };
+  if (command === "status") return { kind: "status", json: parsed.json };
   if (command === "app" || command === "tui" || command === "ui") return { kind: "app", args: rest, parsed };
+  if (command === "browse") return { kind: "app", args: rest.length ? rest : ["overview"], parsed };
   if (command === "guided" || command === "guide") return { kind: "guided", newSession: parsed.newSession };
+  if (command === "analyze") return { kind: "phase", args: ["analysis", ...rest], newSession: parsed.newSession };
+  if (command === "persona") return { kind: "phase", args: ["persona", ...rest], newSession: parsed.newSession };
+  if (command === "generate") return { kind: "generate", newSession: parsed.newSession };
   if (command === "inspect") return { kind: "inspect", json: parsed.json };
   if (command === "validate") return { kind: "validate", json: parsed.json };
   if (command === "order") return { kind: "order", args: rest, json: parsed.json };
@@ -169,6 +189,63 @@ export function resolveCliRoute(argv: string[]): CliRoute {
   );
 }
 
+async function maybeRunPiSetupPreflight(cwd: string) {
+  const result = await createRepoChanRuntime({ cwd, initialSession: "memory", appendConductorPrompt: false });
+  try {
+    if (result.diagnostics.availableModelCount > 0) return;
+  } finally {
+    await result.runtime.dispose();
+  }
+  console.error("RepoChan needs a configured Pi model for the guided wizard.");
+  console.error("Opening Pi-native login, then model selection. You can quit either screen and run `repochan login` or `repochan model` later.");
+  await launchPiSetupTui({ cwd, mode: "login" });
+  await launchPiSetupTui({ cwd, mode: "model" });
+}
+
+async function runWizard(cwd: string, newSession: boolean) {
+  const settings = await loadRepoChanSettings();
+  const snapshot = await inspectWizardSnapshot(cwd);
+
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    console.log(formatWizardSummary(snapshot, settings));
+    return;
+  }
+
+  await maybeRunPiSetupPreflight(cwd);
+  await launchRepoChanTui({
+    cwd,
+    command: {
+      kind: "wizard",
+      newSession: newSession || settings.sessionPolicy === "new",
+      initialMessage: buildWizardInitialMessage(snapshot, settings),
+    },
+  });
+}
+
+async function runGenerate(cwd: string, newSession: boolean) {
+  const settings = await loadRepoChanSettings();
+  const snapshot = await inspectWizardSnapshot(cwd);
+  const next = chooseGenerateStep(snapshot, settings);
+
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    console.log(formatWizardSummary(snapshot, settings));
+    return;
+  }
+
+  await maybeRunPiSetupPreflight(cwd);
+  if (next.kind === "phase") {
+    await launchRepoChanTui({ cwd, command: { kind: "run", args: next.args, newSession } });
+  } else if (next.kind === "guided") {
+    await launchRepoChanTui({ cwd, command: { kind: "wizard", newSession, initialMessage: next.initialMessage } });
+  } else if (next.screen === "assets") {
+    await launchRepoChanTui({ cwd, command: { kind: "assets", args: [] } });
+  } else if (next.screen === "orders") {
+    await launchRepoChanTui({ cwd, command: { kind: "orders", args: [] } });
+  } else {
+    await launchRepoChanTui({ cwd, command: { kind: "overview" } });
+  }
+}
+
 async function main(argv: string[]) {
   const route = resolveCliRoute(argv);
   const cwd = process.cwd();
@@ -180,6 +257,11 @@ async function main(argv: string[]) {
 
   if (route.kind === "help") {
     printHelp();
+    return;
+  }
+
+  if (route.kind === "wizard") {
+    await runWizard(cwd, route.newSession);
     return;
   }
 
@@ -225,6 +307,11 @@ async function main(argv: string[]) {
 
   if (route.kind === "phase") {
     await launchRepoChanTui({ cwd, command: { kind: "run", args: route.args, newSession: route.newSession } });
+    return;
+  }
+
+  if (route.kind === "generate") {
+    await runGenerate(cwd, route.newSession);
     return;
   }
 

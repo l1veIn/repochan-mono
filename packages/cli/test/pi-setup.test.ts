@@ -9,6 +9,11 @@ function createRegistry() {
 }
 
 describe("repochan standalone Pi setup routing", () => {
+  it("routes the no-argument command to the first-run wizard", () => {
+    expect(resolveCliRoute([])).toEqual({ kind: "wizard", newSession: false });
+    expect(resolveCliRoute(["--new"])).toEqual({ kind: "wizard", newSession: true });
+  });
+
   it("routes login model and settings outside the RepoChan app", () => {
     expect(resolveCliRoute(["login"])).toEqual({ kind: "piSetup", mode: "login" });
     expect(resolveCliRoute(["model"])).toEqual({ kind: "piSetup", mode: "model" });
@@ -20,6 +25,13 @@ describe("repochan standalone Pi setup routing", () => {
       kind: "app",
       args: ["settings"],
     });
+  });
+
+  it("routes legacy RepoNyan-style commands to RepoChan flows", () => {
+    expect(resolveCliRoute(["analyze"])).toEqual({ kind: "phase", args: ["analysis"], newSession: false });
+    expect(resolveCliRoute(["persona", "--new"])).toEqual({ kind: "phase", args: ["persona"], newSession: true });
+    expect(resolveCliRoute(["generate"])).toEqual({ kind: "generate", newSession: false });
+    expect(resolveCliRoute(["browse"])).toMatchObject({ kind: "app", args: ["overview"] });
   });
 });
 

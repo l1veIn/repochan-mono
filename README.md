@@ -1,109 +1,58 @@
 # RepoChan Monorepo
 
-RepoChan is split into two pnpm workspace packages:
+RepoChan turns a repository into an inspectable mascot and brand-asset workflow. It is organized as a small protocol core, a Pi package for agent roles, and a CLI app for normal users.
 
-- `packages/core` — `@repochan/core`, a pure TypeScript library for the `.repochan/` protocol, schemas, normalization, validation, and entity file operations.
-- `packages/pi` — `repochan-pi`, the public Pi package that registers the `repochan` tool, `/repochan_panel`, and ships the RepoChan skills.
+## Packages
 
-## Bootstrapping (for developers / contributors)
+- `packages/cli` — `repochan`, the user-facing CLI. Running `repochan` starts the first-run wizard: Pi setup, analysis, persona, first asset order, Painter, then the RepoChan app.
+- `packages/core` — `@repochan/core`, a pure TypeScript library for the `.repochan/` protocol, schemas, validation, deterministic analysis, and entity operations.
+- `packages/pi` — `repochan-pi`, the Pi package that registers the unified `repochan` tool, `/repochan_panel`, and role skills.
+
+## User Entry Points
+
+```bash
+# Normal CLI app
+repochan
+
+# Pi resources for plain Pi sessions
+pi install repochan-pi
+
+# Deterministic checks
+repochan inspect
+repochan validate --json
+```
+
+`repochan login`, `repochan model`, and `repochan settings` reuse Pi's auth/model setup directly. RepoChan's own lightweight preferences live in `~/.repochan/settings.yaml`; API keys and model credentials stay in Pi storage.
+
+## Developer Workflow
 
 ```bash
 cd repochan-mono
 pnpm install
-```
 
-For normal end users there is no bootstrapping — they just run `pi install repochan-pi` after release.
-
-## Recommended Development Workflow
-
-### Developing @repochan/core (pure protocol + schemas + business rules)
-
-```bash
-# Run tests (recommended after any core change)
 pnpm --filter @repochan/core test
-
-# Build (produces dist/ — required for some loaders / consumers)
-pnpm --filter @repochan/core build
+pnpm --filter repochan-pi build
+pnpm --filter repochan test
 ```
 
-Core must stay completely independent of Pi (no `ExtensionContext`, no agent prompting logic). All public APIs accept `projectRoot: string` (or plain data) and preserve the exact on-disk `.repochan/` format.
-
-### Developing the Pi package (`repochan-pi`)
-
-The Pi package lives at `packages/pi`. It depends on `@repochan/core` via workspace.
-
-**Loading the extension during development (recommended):**
+For local CLI testing against arbitrary repositories, use the helper launcher:
 
 ```bash
-# Best from monorepo root (ensures correct pnpm workspace resolution)
-pnpm exec pi -e ./packages/pi/extensions/repochan.ts -p "protocol.inspect"
-
-# Alternative: cd into the package first
-cd packages/pi
-pnpm exec pi -e ./extensions/repochan.ts -p "protocol.inspect"
+chmod +x scripts/repochan
+cd /path/to/another-project
+../repochan-mono/scripts/repochan validate
 ```
 
-**Running skills (the manual multi-role workflow):**
-
-Skills are at `packages/pi/skills/`. Use them exactly as before:
-
-```text
-/skill:repochan-analysis
-/skill:repochan-persona
-/skill:repochan-art-director
-/skill:repochan-painter
-/skill:repochan-protocol
-```
-
-The unified management tool is registered as `repochan` (with actions like `analysis.run`, `order.create`, `asset.create_version`, `protocol.inspect`, etc.). This is the stable public surface for all entity management.
-
-The TUI asset browser (`/repochan_panel`) is included by default when the package is active (for the seamless experience). See packages/pi/README.md for details and the current known pi-tui compositor limitation with image-heavy sessions + overlays.
-
-**Full local verification (after changes):**
+For Pi package development:
 
 ```bash
-pnpm install
-pnpm --filter @repochan/core build
-pnpm --filter @repochan/core test
 pnpm exec pi -e ./packages/pi/extensions/repochan.ts -p "protocol.inspect"
 ```
 
-## Installation (for end users)
+## Protocol And Examples
 
-Once published, the recommended command is simply:
+- Protocol spec: `docs/protocol.md`
+- Minimal fixture: `examples/minimal`
+- Migration notes from the old Python prototype: `docs/from-reponyan-to-repochan.md`
 
-```bash
-pi install repochan-pi
-```
-
-(If your Pi version prefers explicit registry syntax, `pi install npm:repochan-pi` should also work.)
-
-This gives you the full default experience: the `repochan` unified tool, all role skills, and the `/repochan_panel` visual asset browser command.
-
-You do **not** install `@repochan/core` directly as an end user — it is an internal dependency of the `repochan` Pi package (and can be used separately by dashboards or other tools).
-
-## Local development / pre-publish testing
-
-From inside this monorepo:
-
-```bash
-# Install the Pi package from local source
-pi install ./packages/pi
-
-# Recommended for active development
-pnpm exec pi -e ./packages/pi/extensions/repochan.ts -p "protocol.inspect"
-# (This loads the full default experience: unified `repochan` tool + /repochan_panel command + all skills)
-```
-
-See the "Recommended Development Workflow" section above for the full monorepo commands.
-
-## Publishing / Consumption (advanced)
-
-- `@repochan/core` is published as a normal npm library. Dashboards, other Pi packages, or CLIs can `npm install @repochan/core` (or pnpm equivalent) to get the protocol, schemas, and safe file primitives without pulling in any Pi-specific code.
-- The public Pi package (`repochan-pi`) is what normal users install via `pi install repochan-pi`.
-
-The on-disk `.repochan/` format and all public tool actions / prompt guidelines are unchanged.
-
-## Project Guidelines
-
-See `AGENTS.md` (monorepo-wide rules) and `packages/pi/AGENTS.md` (Pi-specific rules).
+The on-disk `.repochan/` format is the stable contract between CLI, Pi skills, future dashboards, and external tools.

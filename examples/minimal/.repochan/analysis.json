@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "repochan.analysis.v1",
+  "generatedAt": "2026-06-16T00:00:00.000Z",
+  "project": {
+    "name": "minimal-repochan-example",
+    "type": "example"
+  },
+  "summary": "A tiny fixture showing the RepoChan protocol without requiring an AI run.",
+  "themes": ["clear protocol", "agent-ready workflow"]
+}

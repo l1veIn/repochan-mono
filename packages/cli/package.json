@@ -33,7 +33,8 @@
     "@earendil-works/pi-tui": "^0.79.2",
     "@repochan/core": "workspace:*",
     "picocolors": "^1.1.1",
-    "repochan-pi": "workspace:*"
+    "repochan-pi": "workspace:*",
+    "yaml": "^2.9.0"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",

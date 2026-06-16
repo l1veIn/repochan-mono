@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "repochan.persona.v1",
+  "generatedAt": "2026-06-16T00:00:00.000Z",
+  "name": "Mina",
+  "summary": "A calm protocol guide for the minimal RepoChan example.",
+  "visual": {
+    "palette": ["#38bdf8", "#f9a8d4", "#111827"]
+  },
+  "provenance": {
+    "tool": "example-fixture"
+  }
+}

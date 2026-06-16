@@ -19,12 +19,13 @@ async function runCli(cwd: string, args: string[]) {
 }
 
 describe("repochan inspect smoke", () => {
-  it("prints protocol status by default without entering the TUI", async () => {
+  it("prints wizard status by default without entering the TUI in non-interactive mode", async () => {
     const cwd = await tempProject();
     const { stdout } = await runCli(cwd, []);
 
-    expect(stdout).toContain("RepoChan protocol");
+    expect(stdout).toContain("RepoChan wizard");
     expect(stdout).toContain(".repochan");
+    expect(stdout).toContain("next: repochan phase analysis");
   });
 
   it("reports missing protocol state as JSON without creating .repochan", async () => {

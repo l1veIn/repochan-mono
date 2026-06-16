@@ -32,6 +32,9 @@ importers:
       repochan-pi:
         specifier: workspace:*
         version: link:../pi
+      yaml:
+        specifier: ^2.9.0
+        version: 2.9.0
     devDependencies:
       '@types/node':
         specifier: ^25.9.3

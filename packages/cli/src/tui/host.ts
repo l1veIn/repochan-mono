@@ -32,6 +32,7 @@ import { messageFromError, safeJson } from "./utils.js";
 
 export type TuiCommand =
   | { kind: "overview" }
+  | { kind: "wizard"; newSession?: boolean; initialMessage?: string }
   | { kind: "guided"; newSession?: boolean }
   | { kind: "run"; args: string[]; newSession?: boolean }
   | { kind: "inspect" }
@@ -143,6 +144,10 @@ export class RepoChanTuiHost implements Component {
 
   async applyCommand(command: TuiCommand) {
     if (command.kind === "overview") return;
+    if (command.kind === "wizard") {
+      this.startGuided(command.newSession ?? false, command.initialMessage, "overview");
+      return;
+    }
     if (command.kind === "guided") {
       this.startGuided(command.newSession ?? false);
       return;
@@ -316,14 +321,16 @@ export class RepoChanTuiHost implements Component {
     this.opts.requestRender();
   }
 
-  private startGuided(newSession: boolean) {
+  private startGuided(newSession: boolean, initialMessage?: string, afterDoneScreen: "overview" | "assets" = "overview") {
     this.phaseScreen = new PhaseTaskScreen({
       cwd: this.opts.cwd,
       theme: this.opts.theme,
       requestRender: this.opts.requestRender,
       onClose: () => this.switchScreen("overview"),
-      onDone: () => void this.refreshAll(),
-      task: { type: "guided", options: { cwd: this.opts.cwd, newSession } },
+      onDone: () => {
+        void this.refreshAll().then(() => this.switchScreen(afterDoneScreen));
+      },
+      task: { type: "guided", options: { cwd: this.opts.cwd, newSession, initialMessage } },
     });
     this.switchScreen("phase");
     void this.phaseScreen.start();

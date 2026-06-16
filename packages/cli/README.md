@@ -6,6 +6,10 @@ RepoChan CLI combines deterministic `.repochan/` protocol helpers with Pi-guided
 
 ```bash
 repochan
+repochan analyze [--new]
+repochan persona [--new]
+repochan generate [--new]
+repochan browse
 repochan status [--json]
 repochan guided [--new]
 repochan guide [--new]
@@ -25,7 +29,11 @@ repochan asset list [--json]
 repochan asset get <asset-id> [--json]
 ```
 
-- `repochan` / `status`: prints a normal CLI summary of the current `.repochan/` workspace.
+- `repochan`: starts the first-run wizard in an interactive terminal. In non-interactive mode it prints a wizard summary and the next command.
+- `status`: prints a normal CLI summary of the current `.repochan/` workspace.
+- `analyze` / `persona`: compatibility aliases for `phase analysis` and `phase persona`.
+- `generate`: continues the first-image path, choosing orders or painter based on current `.repochan` state.
+- `browse`: compatibility alias for `repochan app`.
 - `app` / `tui`: opens the custom RepoChan TUI host. `app guided` starts the constrained guided kickoff; default lands on the Repo Wiki overview.
 - `guided` / `guide`: starts the guided agent workflow in the custom TUI.
 - `chat`: the only command that starts full Pi `InteractiveMode`.
@@ -36,6 +44,25 @@ repochan asset get <asset-id> [--json]
 - `login` / `model` / `settings`: opens standalone Pi setup screens, without entering the RepoChan app or chat.
 - `panel`: opens the custom Assets screen.
 - `order` / `asset`: deterministic list/get helpers for current protocol artifacts. Use `--json` for machine-readable output or `app orders` / `app assets` for the TUI screens.
+
+## RepoChan settings
+
+RepoChan CLI preferences live in:
+
+```text
+~/.repochan/settings.yaml
+```
+
+Current fields are lightweight only:
+
+```yaml
+language: en
+defaultGoal: README hero and icon
+openAppAfterWizard: true
+sessionPolicy: continue
+```
+
+Credentials and model provider configuration are not stored here. Use `repochan login` and `repochan model`; those commands reuse Pi's auth/model storage.
 
 ## Install RepoChan resources into normal Pi
 

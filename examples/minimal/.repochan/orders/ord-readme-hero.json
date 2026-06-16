@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "repochan.asset-order.v1",
+  "orderId": "ord-readme-hero",
+  "requestType": "new_asset",
+  "status": "approved",
+  "assetType": "readme-hero",
+  "priority": "normal",
+  "brief": {
+    "intent": "Create a README hero showing the RepoChan workflow.",
+    "mustInclude": ["mascot", "repository", "asset manifest"],
+    "avoid": ["provider logos"],
+    "creativeFreedom": ["clean composition", "friendly technical mood"]
+  },
+  "deliverables": [
+    {
+      "name": "README hero",
+      "format": "png",
+      "aspectRatio": "21:9"
+    }
+  ],
+  "acceptanceCriteria": ["Readable at README width", "Clearly tied to RepoChan protocol"],
+  "createdAt": "2026-06-16T00:00:00.000Z",
+  "updatedAt": "2026-06-16T00:00:00.000Z"
+}
