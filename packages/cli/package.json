@@ -1,7 +1,7 @@
 {
   "name": "repochan",
   "version": "0.1.0",
-  "description": "RepoChan CLI app and deterministic protocol helpers.",
+  "description": "RepoChan CLI (new modular TUI) - wizard, orders, agent status etc.",
   "type": "module",
   "license": "MIT",
   "author": "l1veIn",
@@ -25,32 +25,19 @@
   "files": [
     "dist",
     "README.md",
-    "PLAN.md",
     "package.json"
   ],
   "dependencies": {
     "@earendil-works/pi-coding-agent": "^0.79.1",
-    "@earendil-works/pi-tui": "^0.79.2",
+    "@earendil-works/pi-tui": "^0.79.6",
     "@repochan/core": "workspace:*",
-    "picocolors": "^1.1.1",
+    "chalk": "^5.6.2",
     "repochan-pi": "workspace:*",
     "yaml": "^2.9.0"
   },
-  "peerDependencies": {
-    "@earendil-works/pi-coding-agent": "*",
-    "@earendil-works/pi-tui": "*"
-  },
-  "peerDependenciesMeta": {
-    "@earendil-works/pi-coding-agent": {
-      "optional": true
-    },
-    "@earendil-works/pi-tui": {
-      "optional": true
-    }
-  },
   "devDependencies": {
-    "@types/node": "^25.9.3",
-    "typescript": "^5.9.3",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.8.0",
     "vitest": "^2.1.9"
   },
   "scripts": {

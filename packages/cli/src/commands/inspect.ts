@@ -1,14 +1,12 @@
 import { inspectProtocol } from "@repochan/core";
-import { asArray, bullet, heading, printJson, yesNo, type OutputOptions } from "../ui/output.js";
+import { asArray, bullet, heading, printJson, type OutputOptions, yesNo } from "./common.js";
 
-export async function runInspect(cwd: string, options: OutputOptions) {
+export async function runInspect(cwd: string, options: OutputOptions = {}) {
   const summary = await inspectProtocol(cwd);
-
   if (options.json) {
     printJson(summary);
     return;
   }
-
   heading("RepoChan protocol");
   bullet("root", summary.root);
   bullet(".repochan", yesNo(summary.exists));
