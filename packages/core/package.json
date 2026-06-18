@@ -32,6 +32,9 @@
     "package.json"
   ],
   "dependencies": {
+    "fast-glob": "^3.3.3",
+    "ignore": "^7.0.5",
+    "simple-git": "^3.36.0",
     "typebox": "^1.0.55"
   },
   "devDependencies": {

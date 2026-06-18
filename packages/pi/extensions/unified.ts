@@ -5,20 +5,17 @@ import {
   exists,
   initProtocol,
   inspectProtocol,
-  isPlainObject,
   listJsonFiles,
   protocolVersionPath,
   readJson,
   relativeProtocolPath,
   root,
   safeProtocolPath,
-  stamp,
-  stampForPath,
   validateAssetId,
   validateOrderId,
   validateVersionId,
   writeJson,
-  performAnalysis,
+  writeAnalysisArtifact,
   assetManifestPath as coreAssetManifestPath,
   createAssetVersion as coreCreateAssetVersion,
   createOrders as coreCreateOrders,
@@ -31,7 +28,6 @@ import {
   addOrderRevision as coreAddOrderRevision,
   updateAssetMeta as coreUpdateAssetMeta,
   updateOrder as coreUpdateOrder,
-  type AnalyzeInput,
   type OrderStatus,
 } from "@repochan/core";
 
@@ -98,26 +94,7 @@ function requireVersionId(value: string) {
 }
 
 async function runAnalysis(ctx: ExtensionContext, params: JsonObject) {
-  await initProtocol(ctx.cwd);
-  const target = path.join(root(ctx.cwd), "analysis.json");
-  const targetExists = await exists(target);
-  if (targetExists && !params.overwrite) {
-    throw new Error(
-      ".repochan/analysis.json already exists. Ask whether to reuse it or rerun with params.overwrite=true (params.versionPrevious defaults to true).",
-    );
-  }
-  if (targetExists && params.versionPrevious !== false) {
-    const prior = await readJson(target);
-    await writeJson(path.join(root(ctx.cwd), "analysis.versions", `${stampForPath()}.json`), prior, false);
-  }
-  const generated = await performAnalysis(ctx.cwd, params as AnalyzeInput);
-  const data = {
-    ...generated,
-    ...(isPlainObject(params.analysis) ? params.analysis : {}),
-    schemaVersion: "repochan.analysis.v1",
-    generatedAt: stamp(),
-  };
-  await writeJson(target, data, Boolean(params.overwrite));
+  const { data } = await writeAnalysisArtifact(ctx.cwd, params);
   return ok("Analyzed repository and wrote .repochan/analysis.json", data);
 }
 
