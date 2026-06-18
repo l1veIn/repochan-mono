@@ -13,6 +13,17 @@ Core has no Pi runtime dependency. APIs take `projectRoot: string` or plain JSON
 
 Core must not import Pi runtime APIs, agent prompts, or UI code.
 
+## Analysis modules
+
+The analyzer is split under `src/analysis/`:
+
+- `schema.ts` exports `AnalyzeSchema` and `AnalyzeInput`.
+- `assemble.ts` exports `performAnalysis(projectRoot, options)`, the deterministic analyzer orchestrator.
+- `write-artifact.ts` exports `writeAnalysisArtifact(projectRoot, params)`, which initializes `.repochan/`, versions any previous analysis, runs analysis, applies an optional analyst merge patch, and writes `.repochan/analysis.json`.
+- Helper modules cover walking/ignore handling, git profiling, tech-stack detection, color extraction, desensitized sampling, inventory/docs summaries, and heuristic abstracts.
+
+`performAnalysis` returns an in-memory `AnalysisResult`. `writeAnalysisArtifact` persists that result using the existing `.repochan/analysis.json` and `analysis.versions/` protocol. The package root continues to export `performAnalysis`, `AnalyzeSchema`, `AnalyzeInput`, `AnalysisResult`, `AnalysisContext`, `GitProfile`, and `writeAnalysisArtifact`.
+
 ## Protocol
 
 See `../../docs/protocol.md` for the public on-disk protocol. `examples/minimal` contains a small fixture that can be inspected without running any AI workflow.
