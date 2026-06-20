@@ -1,0 +1,23 @@
+id: "official/foundation-sheet"
+asset_type: "foundation_sheet"
+label: "设定集封面"
+description: "项目视觉锚点：全身立绘 + Q版 + 表情 + 配色卡 + 关键元素，是后续所有资产的角色参考。"
+tags: ["sheet", "foundation", "anchor"]
+
+width: 1024
+height: 1024
+aspect_ratio: "1:1"
+background: "plain"
+
+guide: "masterpiece, best quality"
+
+constraints:
+  - "single clean character concept sheet layout"
+  - "one main full-body character in signature pose"
+  - "small chibi sketch"
+  - "two small expression headshots"
+  - "compact color palette swatches"
+  - "small callout labels for key motifs"
+  - "neat white or very light background"
+  - "professional anime character design sheet"
+  - "readable composition"

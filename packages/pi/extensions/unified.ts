@@ -1,27 +1,33 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Type, type Static } from "typebox";
 import path from "node:path";
+import { loadAllTemplates } from "../src/template-loader.js";
 import {
   exists,
   initProtocol,
   inspectProtocol,
   listJsonFiles,
   protocolVersionPath,
+  readConfig,
   readJson,
   relativeProtocolPath,
   root,
   safeProtocolPath,
   validateOrderId,
   validateVersionId,
+  writeConfig,
   writeJson,
   writeAnalysisArtifact,
+  isPlainObject,
   createOrderResult as coreCreateOrderResult,
   createOrders as coreCreateOrders,
   createOrUpdatePersona as coreCreateOrUpdatePersona,
+  findFoundationSheet as coreFindFoundationSheet,
   listOrderResults as coreListOrderResults,
   listOrders as coreListOrders,
   readOrder as coreReadOrder,
   readOrderResult as coreReadOrderResult,
+  resolveOrderReferences as coreResolveOrderReferences,
   setCurrentOrderResult as coreSetCurrentOrderResult,
   setOrderStatus as coreSetOrderStatus,
   addOrderRevision as coreAddOrderRevision,
@@ -46,6 +52,12 @@ const ActionSchema = Type.Union([
   Type.Literal("order.list_results"),
   Type.Literal("order.set_current_result"),
   Type.Literal("order.get_result"),
+  Type.Literal("order.resolve_references"),
+  Type.Literal("foundation.find"),
+  Type.Literal("config.get"),
+  Type.Literal("config.set"),
+  Type.Literal("template.list"),
+  Type.Literal("template.get"),
   Type.Literal("protocol.inspect"),
   Type.Literal("protocol.read"),
   Type.Literal("protocol.write"),
@@ -155,6 +167,89 @@ async function getOrderResult(ctx: ExtensionContext, params: JsonObject) {
   return ok(JSON.stringify(result, null, 2), result);
 }
 
+async function resolveReferences(ctx: ExtensionContext, params: JsonObject) {
+  const references = params.references;
+  if (!Array.isArray(references)) throw new Error("order.resolve_references requires params.references (an array).");
+  const resolved = await coreResolveOrderReferences(ctx.cwd, references);
+  const summary = resolved
+    .map((r) => `${r.role}\t${r.orderId}/${r.versionId}\t${r.files.length} file(s)`)
+    .join("\n");
+  return ok(summary || "No references resolved.", { resolved });
+}
+
+async function findFoundation(ctx: ExtensionContext) {
+  const foundation = await coreFindFoundationSheet(ctx.cwd);
+  if (!foundation) return ok("No foundation sheet found.", { foundation: null });
+  return ok(
+    `Foundation: ${foundation.orderId}/${foundation.versionId} (${foundation.assetType}, ${foundation.files.length} file(s))`,
+    { foundation },
+  );
+}
+
+async function getConfig(ctx: ExtensionContext, params: JsonObject) {
+  const config = await readConfig(ctx.cwd);
+  const key = typeof params.key === "string" ? params.key : undefined;
+  if (key) return ok(`${key}: ${String(config[key] ?? "<unset>")}`, { config: { [key]: config[key] } });
+  return ok(JSON.stringify(config, null, 2), { config });
+}
+
+async function setConfig(ctx: ExtensionContext, params: JsonObject) {
+  if (!isPlainObject(params.values)) throw new Error("config.set requires params.values (an object).");
+  await writeConfig(ctx.cwd, params.values);
+  const config = await readConfig(ctx.cwd);
+  return ok(`Config updated.`, { config });
+}
+
+function getBuiltinTemplatesDir(): string {
+  return path.resolve(path.dirname(new URL(import.meta.url).pathname), "..", "templates");
+}
+
+async function listTemplates(ctx: ExtensionContext, params: JsonObject) {
+  const builtinDir = getBuiltinTemplatesDir();
+  const all = await loadAllTemplates(builtinDir, ctx.cwd);
+  const tag = typeof params.tag === "string" ? params.tag.toLowerCase() : undefined;
+  const query = typeof params.query === "string" ? params.query.toLowerCase() : undefined;
+
+  let filtered = all;
+  if (tag && tag !== "all") {
+    filtered = filtered.filter((t) => (t.tags ?? []).some((tg) => tg.toLowerCase() === tag));
+  }
+  if (query) {
+    filtered = filtered.filter(
+      (t) =>
+        t.id.toLowerCase().includes(query) ||
+        t.label.toLowerCase().includes(query) ||
+        t.assetType.toLowerCase().includes(query) ||
+        (t.description ?? "").toLowerCase().includes(query),
+    );
+  }
+
+  const summary = filtered.map((t) => ({
+    id: t.id,
+    label: t.label,
+    assetType: t.assetType,
+    aspectRatio: t.aspectRatio,
+    grid: t.grid,
+    tags: t.tags,
+  }));
+
+  return ok(
+    summary.length
+      ? summary.map((s) => `${s.id}\t${s.label}\t${s.assetType}\t${s.aspectRatio ?? ""}`).join("\n")
+      : "No templates found.",
+    { templates: summary },
+  );
+}
+
+async function getTemplate(ctx: ExtensionContext, params: JsonObject) {
+  const templateId = requireString(params, "templateId");
+  const builtinDir = getBuiltinTemplatesDir();
+  const all = await loadAllTemplates(builtinDir, ctx.cwd);
+  const tmpl = all.find((t) => t.id === templateId || t.assetType === templateId);
+  if (!tmpl) throw new Error(`Template '${templateId}' not found. Use action='template.list' to see available templates.`);
+  return ok(JSON.stringify(tmpl, null, 2), { template: tmpl });
+}
+
 async function protocolRead(ctx: ExtensionContext, params: JsonObject) {
   const artifactPath = requireString(params, "artifactPath");
   const file = safeProtocolPath(ctx.cwd, artifactPath);
@@ -205,6 +300,16 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "order.list_results params: { orderId }. Lists result versions under .repochan/orders/<orderId>/versions/.",
       "order.get_result params: { orderId, versionId? }. Reads a result version meta/files. Without versionId, reads order.currentVersion.",
       "order.set_current_result params: { orderId, versionId }. Requires an existing result version. Archives the previous order then updates order.currentVersion.",
+      "foundation.find params: {}. Searches for a foundation/cover sheet order (assetType 'foundation_sheet' or 'cover_sheet') that has a delivered result with image files. Returns { orderId, versionId, assetType, files } or null. The Art Director and Painter use this to check whether the project already has a visual anchor before creating or executing downstream orders.",
+      "config.get params: optional { key }. Reads .repochan/config.json. Without key, returns the full config. With key, returns just that value. Used by the Creative Writer to check the user's language preference before generating persona content.",
+      "config.set params: { values }. Merges values into .repochan/config.json. Used to update language preference or other project-level settings.",
+      "template.list params: optional { tag?, query? }. Lists all available templates (built-in + project-level .repochan/templates/). Each template returns id, label, assetType, aspectRatio, grid info, and tags. Use tag to filter (e.g., tag='sticker') or query to search.",
+      "template.get params: { templateId }. Returns the full template definition including dimensions, grid layout, background type, guide tags, and structural constraints. The Painter uses this to know the 'canvas spec' before writing a prompt.",
+      "Template system: Templates define OUTPUT SPECIFICATIONS (canvas size, grid layout, background type, quality prefix, structural constraints) — they are NOT prompt generators. The Painter reads persona + order + references + template, then writes the full prompt themselves. Templates ensure outputs have the right structure for downstream tools (e.g., a 3×3 grid can be auto-sliced into 9 tiles). The Art Director sets templateId on each order; the Painter reads it before generating.",
+      "Language awareness: .repochan/config.json stores the user's language preference ('zh' or 'en'). The Creative Writer MUST read config.get before generating persona content, and generate all narrative fields (personality, backstory, catchphrase, hobbies, characterFlaws, etc.) in that language. The rolePrompt field is ALWAYS English regardless of language setting, because it is consumed by image generation models.",
+      "order.resolve_references params: { references: [{ orderId, versionId?, role }] }. Resolves reference entries into absolute image file paths grouped by role. Used by the Painter before generation to get the actual reference image files to inject. role is one of: character, style, composition.",
+      "Visual anchor system: A 'foundation sheet' (assetType 'foundation_sheet' or 'cover_sheet') is the project's first real image output — it contains the mascot's signature pose, chibi form, expressions, and color palette on a single sheet. Every downstream order SHOULD reference it via the order.references field: [{ orderId: '<foundation-order-id>', role: 'character' }]. This ensures visual consistency across all generated assets. The Art Director creates the foundation order first; once it has a delivered result, the Art Director auto-fills references on all subsequent orders.",
+      "Order references field: Each order may include a `references` array of { orderId, versionId?, role } entries. When present, the Painter resolves them via action='order.resolve_references' and passes the resulting image files as reference images to the image generation tool. Orders with assetType 'foundation_sheet' or 'cover_sheet' do NOT need references — they ARE the anchor.",
       "protocol.inspect params: {}. Inspects .repochan existence, current analysis/persona, analysis/persona versions, order directories, and order result versions without creating or mutating files.",
       "protocol.read params: { artifactPath }. Safely reads a JSON artifact inside .repochan. artifactPath may be '.repochan/analysis.json' or a path relative to .repochan.",
       "protocol.write params: { artifactPath, data, overwrite=false }. Safely writes JSON inside .repochan, creating parent directories. Use entity actions first; use protocol.write only for migrations, notes, manifests, or user-directed maintenance. Ask before overwrite=true.",
@@ -260,6 +365,18 @@ export function registerRepoChan(pi: ExtensionAPI) {
           return setCurrentOrderResult(ctx, params);
         case "order.get_result":
           return getOrderResult(ctx, params);
+        case "order.resolve_references":
+          return resolveReferences(ctx, params);
+        case "foundation.find":
+          return findFoundation(ctx);
+        case "config.get":
+          return getConfig(ctx, params);
+        case "config.set":
+          return setConfig(ctx, params);
+        case "template.list":
+          return listTemplates(ctx, params);
+        case "template.get":
+          return getTemplate(ctx, params);
         case "protocol.inspect": {
           const summary = await inspectProtocol(ctx.cwd);
           return ok(JSON.stringify(summary, null, 2), summary);

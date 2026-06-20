@@ -1,6 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import type { AssetOrder, JsonObject, OrderResultVersion, OrderStatus } from "./types.js";
+import type { AssetOrder, JsonObject, OrderReference, OrderResultVersion, OrderStatus } from "./types.js";
 import {
   exists,
   initProtocol,
@@ -19,8 +19,10 @@ import {
 } from "./protocol/index.js";
 import {
   deepMerge,
+  isFoundationAssetType,
   isPlainObject,
   normalizeOrder,
+  normalizeReferences,
   requireValidStatus,
   validateBatchId,
   validateOrderId,
@@ -353,6 +355,76 @@ export async function setCurrentOrderResult(projectRoot: string, orderId: string
   order.updatedAt = stamp();
   await writeJson(file, order, true);
   return order;
+}
+
+// ---------------------------------------------------------------------------
+// Visual anchor (foundation sheet) + reference resolution
+// ---------------------------------------------------------------------------
+
+const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"];
+
+/**
+ * Find the project's foundation sheet order — the visual anchor for all
+ * downstream assets. Returns the first delivered order whose assetType is a
+ * known foundation type and that has at least one result version.
+ */
+export async function findFoundationSheet(projectRoot: string): Promise<{
+  orderId: string;
+  versionId: string;
+  assetType: string;
+  files: string[];
+} | null> {
+  const { orders } = await listOrders(projectRoot);
+  for (const summary of orders) {
+    if (summary.unreadable || !summary.assetType || !isFoundationAssetType(summary.assetType)) continue;
+    if (!summary.currentVersion) continue;
+    const orderId = validateOrderId(summary.orderId);
+    const dir = orderVersionDir(projectRoot, orderId, summary.currentVersion);
+    if (!(await exists(dir))) continue;
+    const files = (await fs.readdir(dir).catch(() => [])).filter((f) => IMAGE_EXTENSIONS.includes(path.extname(f).toLowerCase()));
+    if (files.length > 0) {
+      return { orderId, versionId: summary.currentVersion, assetType: summary.assetType, files };
+    }
+  }
+  return null;
+}
+
+/**
+ * Resolve a list of OrderReferences into absolute image file paths.
+ * Used by the Painter to inject reference images into generation.
+ *
+ * For each reference:
+ *  1. Read the referenced order
+ *  2. Determine versionId (explicit or currentVersion)
+ *  3. List image files in that version directory
+ *  4. Return absolute paths
+ */
+export async function resolveOrderReferences(
+  projectRoot: string,
+  references: OrderReference[],
+): Promise<
+  Array<{
+    role: string;
+    orderId: string;
+    versionId: string;
+    files: string[];
+  }>
+> {
+  const resolved: Array<{ role: string; orderId: string; versionId: string; files: string[] }> = [];
+  for (const ref of normalizeReferences(references)) {
+    const order = await readOrder(projectRoot, ref.orderId).catch(() => null);
+    if (!order) throw new Error(`Reference orderId '${ref.orderId}' does not exist.`);
+    const versionId = ref.versionId ?? order.currentVersion;
+    if (!versionId) throw new Error(`Reference order '${ref.orderId}' has no currentVersion and no versionId was specified.`);
+    const dir = orderVersionDir(projectRoot, ref.orderId, versionId);
+    if (!(await exists(dir))) throw new Error(`Reference order '${ref.orderId}' has no result version '${versionId}'.`);
+    const files = (await fs.readdir(dir).catch(() => []))
+      .filter((f) => IMAGE_EXTENSIONS.includes(path.extname(f).toLowerCase()))
+      .map((f) => path.resolve(dir, f));
+    if (files.length === 0) throw new Error(`Reference order '${ref.orderId}' version '${versionId}' has no image files.`);
+    resolved.push({ role: ref.role, orderId: ref.orderId, versionId, files });
+  }
+  return resolved;
 }
 
 /** @deprecated Order deliverables no longer use asset manifests. */

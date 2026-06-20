@@ -1,0 +1,17 @@
+id: "official/readme-banner-21x9"
+asset_type: "readme_banner"
+label: "README 横幅 (21:9)"
+description: "超宽横幅插画，适合 GitHub README 首屏。"
+tags: ["banner", "illustration"]
+
+width: 1536
+height: 864
+aspect_ratio: "21:9"
+background: "illustrated"
+
+guide: "masterpiece, best quality"
+
+constraints:
+  - "horizontal anime hero banner, aspect ratio 21:9"
+  - "project-specific composition, no generic split layout"
+  - "clean GitHub README cover, professional open source branding"
