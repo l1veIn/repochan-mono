@@ -88,6 +88,41 @@ export default {
   'orders.detail.done': 'Painter phase completed. Refreshed order and results.',
   'orders.detail.hint': '↑↓ versions • p run painter • s set current • r refresh • Esc back/cancel',
 
+  // Confirm flow (shared)
+  'confirm.skip': 'Use existing (skip)',
+  'confirm.version': 'Regenerate (archive old → new version)',
+  'confirm.overwrite': 'Overwrite (no backup)',
+
+  // Analysis
+  'analysis.confirm_title': '=== Analysis already exists ===',
+
+  // Persona confirm
+  'persona.confirm_title': '=== Persona already exists ===',
+
+  // Foundation
+  'foundation.title': '=== Foundation Sheet ===',
+  'foundation.subtitle': 'The visual anchor for all downstream art. Created by Art Director.',
+  'foundation.empty': 'No foundation sheet found yet.',
+  'foundation.confirm_title': '=== Foundation sheet already exists ===',
+  'foundation.has_foundation': 'Foundation sheet exists',
+  'foundation.needs_persona': 'Foundation requires analysis + persona first.',
+  'foundation.needs_analysis': 'Foundation requires analysis first.',
+  'foundation.done': 'Foundation phase completed.',
+  'foundation.hint': 'u/Enter: create/regenerate • r: refresh • Esc/q: back/cancel',
+
+  // Paint
+  'paint.title': '=== Painter ===',
+  'paint.subtitle': 'Execute an asset order through the Painter role.',
+  'paint.no_orders': 'No orders available. Run `repochan foundation` first.',
+  'paint.select_order': 'Select an order to paint:',
+  'paint.order_hint': '↑↓ select • Enter: paint selected • Esc/q: back',
+  'paint.confirm_title': '=== Order already has results ===',
+  'paint.needs_foundation': 'This order references a foundation sheet that does not exist yet.',
+  'paint.done': 'Paint phase completed.',
+  'paint.hint': 'u/Enter: paint/regenerate • r: refresh • Esc/q: back/cancel',
+  'paint.status_draft': 'Order is still draft. Approve first or press [a] to auto-approve.',
+  'paint.auto_approved': 'Order {id} auto-approved for painting.',
+
   // Agent status
   'agent.status.painter': 'Painter (画师) working on {orderId}...',
   'agent.status.analyst': 'Analyst working...',

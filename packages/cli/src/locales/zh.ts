@@ -88,6 +88,41 @@ export default {
   'orders.detail.done': '画师阶段已完成，已刷新订单和结果。',
   'orders.detail.hint': '↑↓ 版本 • p 运行画师 • s 设当前 • r 刷新 • Esc 返回/取消',
 
+  // Confirm flow (shared)
+  'confirm.skip': '使用现有（跳过）',
+  'confirm.version': '重新生成（归档旧版 → 新版本）',
+  'confirm.overwrite': '覆盖（不保留旧版）',
+
+  // Analysis
+  'analysis.confirm_title': '=== 分析已存在 ===',
+
+  // Persona confirm
+  'persona.confirm_title': '=== 人物档案已存在 ===',
+
+  // Foundation
+  'foundation.title': '=== 设定集封面 ===',
+  'foundation.subtitle': '所有下游视觉资产的锚点。由 Art Director 创建。',
+  'foundation.empty': '尚未找到设定集封面。',
+  'foundation.confirm_title': '=== 设定集封面已存在 ===',
+  'foundation.has_foundation': '设定集封面已存在',
+  'foundation.needs_persona': '创建设定集需要先有 analysis + persona。',
+  'foundation.needs_analysis': '创建设定集需要先有 analysis。',
+  'foundation.done': '设定集阶段已完成。',
+  'foundation.hint': 'u/Enter: 创建/重新生成 • r: 刷新 • Esc/q: 返回/取消',
+
+  // Paint
+  'paint.title': '=== 画师 ===',
+  'paint.subtitle': '通过 Painter 角色执行资产订单。',
+  'paint.no_orders': '没有可用订单。请先运行 `repochan foundation`。',
+  'paint.select_order': '选择要执行的订单：',
+  'paint.order_hint': '↑↓ 选择 • Enter: 执行选中订单 • Esc/q: 返回',
+  'paint.confirm_title': '=== 该订单已有结果 ===',
+  'paint.needs_foundation': '该订单引用的设定集封面尚不存在。',
+  'paint.done': '画师阶段已完成。',
+  'paint.hint': 'u/Enter: 执行/重新生成 • r: 刷新 • Esc/q: 返回/取消',
+  'paint.status_draft': '订单尚未审批。请先审批或按 [a] 自动审批。',
+  'paint.auto_approved': '订单 {id} 已自动审批，允许画师执行。',
+
   // Agent status
   'agent.status.painter': '画师 (painter) 正在处理 {orderId}...',
   'agent.status.analyst': '分析师工作中...',

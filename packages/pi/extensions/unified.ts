@@ -38,6 +38,7 @@ import {
 const ActionSchema = Type.Union([
   Type.Literal("analysis.run"),
   Type.Literal("analysis.get"),
+  Type.Literal("analysis.enrich"),
   Type.Literal("analysis.list_versions"),
   Type.Literal("persona.get"),
   Type.Literal("persona.create"),
@@ -101,6 +102,31 @@ function requireVersionId(value: string) {
 async function runAnalysis(ctx: ExtensionContext, params: JsonObject) {
   const { data } = await writeAnalysisArtifact(ctx.cwd, params);
   return ok("Analyzed repository and wrote .repochan/analysis.json", data);
+}
+
+async function enrichAnalysis(ctx: ExtensionContext, params: JsonObject) {
+  const analysisPath = path.join(root(ctx.cwd), "analysis.json");
+  const existing = await readJson(analysisPath);
+
+  // Version the current analysis before enriching
+  await initProtocol(ctx.cwd);
+  const versionDir = path.join(root(ctx.cwd), "analysis.versions");
+  const versionStamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const versionFile = path.join(versionDir, `${versionStamp}-pre-enrich.json`);
+  await writeJson(versionFile, existing, false);
+
+  // Merge LLM-generated fields
+  const enriched = { ...existing };
+  if (params.preAnalysis && isPlainObject(params.preAnalysis)) {
+    enriched.preAnalysis = params.preAnalysis;
+  }
+  if (params.abstract && isPlainObject(params.abstract)) {
+    enriched.abstract = params.abstract;
+  }
+  enriched.enrichedAt = new Date().toISOString();
+
+  await writeJson(analysisPath, enriched, true);
+  return ok("Enriched analysis.json with LLM preAnalysis and abstract dimensions.", { analysis: enriched });
 }
 
 async function createOrUpdatePersona(ctx: ExtensionContext, params: JsonObject, mode: "create" | "update") {
@@ -285,6 +311,7 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "Safety: keep provenance. persona.create/persona.update and order.create_result add provenance when absent; pass params.provenance when an external generator, dashboard, or human produced the artifact.",
       "Safety: protocol paths are constrained to .repochan. protocol.write and protocol.append_version must not be used to bypass entity-specific preconditions unless the user explicitly asks for protocol-level maintenance/migration.",
       "analysis.run params: optional { analysis, overwrite=false, versionPrevious=true, corePaths, focusAreas, includeSections, maxSampleFiles, maxSampleChars, perFileSampleChars, colorScanLimit, includeFileLists=true }. Runs deterministic file walking, git profile, color extraction, tech-stack detection, docs summary, inventory counts, and desensitized code sampling, then writes .repochan/analysis.json. If analysis exists, ask before overwrite=true.",
+      "analysis.enrich params: { preAnalysis: { project_category, summary, language_focus, core_paths, exclude_hints, needs_ui_assets, asset_recommendations, analysis_focus }, abstract: { dimensions: [{ dimension, summary, keywords, score }], overall_impression } }. Merges LLM-generated preAnalysis and abstract dimension analysis into the existing analysis.json. Archives the pre-enrichment version first. The Analyst must run analysis.run FIRST (deterministic scan), then perform the LLM analysis, then call this action to persist the results. The preAnalysis covers product-level judgment (what the project does, for whom, what assets it needs); the abstract covers 5 dimensions: code_style, architecture, product_philosophy, tech_choices, team_culture — each with a 200-char summary, 4 keywords, and a 0.0-1.0 score.",
       "analysis.get params: {}. Reads .repochan/analysis.json. Use before persona work when you need the upstream analysis. Fails if missing.",
       "analysis.list_versions params: {}. Lists .repochan/analysis.versions/*.json and reports whether current analysis exists.",
       "persona.get params: optional { versionId }. Without versionId, reads .repochan/persona/current.json. With versionId, reads .repochan/persona/versions/<versionId>.json (the .json suffix is optional). Use as the persona pre-flight before order or painter work.",
@@ -321,6 +348,8 @@ export function registerRepoChan(pi: ExtensionAPI) {
       switch (input.action) {
         case "analysis.run":
           return runAnalysis(ctx, params);
+        case "analysis.enrich":
+          return enrichAnalysis(ctx, params);
         case "analysis.get": {
           const data = await readJson(path.join(root(ctx.cwd), "analysis.json"));
           return ok(JSON.stringify(data, null, 2), data);
