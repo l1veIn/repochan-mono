@@ -6,8 +6,8 @@ import { type OnBack, type TuiRef } from "../types.js";
 import { AgentStatus } from "../components/agent-status.js";
 import { ConfirmList, type ConfirmChoice } from "../components/confirm-list.js";
 import { checkPreconditions } from "../lib/precondition.js";
-import { readAnalysis, readPersona } from "../lib/protocol.js";
 import { startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
+import { listOrderResults } from "../lib/protocol.js";
 
 const theme = {
   accent: (s: string) => chalk.cyan(s),
@@ -19,15 +19,15 @@ const theme = {
 
 type Phase = "loading" | "idle" | "confirm" | "running" | "done" | "error";
 
-export class PersonaPage implements Component {
+export class FoundationPage implements Component {
   private phase: Phase = "loading";
-  private persona: any = null;
-  private hasAnalysis = false;
+  private blockReason: string | null = null;
   private warnings: string[] = [];
   private statusMsg: string | null = null;
   private agentStatus: AgentStatus | null = null;
   private running: RunningRoleSession | null = null;
   private confirm: ConfirmList | null = null;
+  private foundationInfo: { orderId: string; versionId: string; files: string[] } | null = null;
 
   constructor(private onBack: OnBack, private tuiRef: TuiRef) {
     void this.load();
@@ -37,13 +37,26 @@ export class PersonaPage implements Component {
     this.phase = "loading";
     this.tuiRef.requestRender();
     try {
-      this.hasAnalysis = Boolean(await readAnalysis(process.cwd()));
-      this.persona = await readPersona(process.cwd());
-      const precond = await checkPreconditions(process.cwd(), { analysis: true });
+      const precond = await checkPreconditions(process.cwd(), { analysis: true, persona: true });
       this.warnings = precond.warnings;
-      this.phase = "idle";
+      if (!precond.ok) {
+        this.blockReason = precond.blockReason ?? "Blocked";
+        this.phase = "error";
+      } else {
+        this.blockReason = null;
+        if (precond.foundation) {
+          this.foundationInfo = {
+            orderId: precond.foundation.orderId,
+            versionId: precond.foundation.versionId,
+            files: precond.foundation.files,
+          };
+        } else {
+          this.foundationInfo = null;
+        }
+        this.phase = "idle";
+      }
     } catch (e: any) {
-      this.statusMsg = e?.message || String(e);
+      this.blockReason = e?.message || String(e);
       this.phase = "error";
     } finally {
       this.tuiRef.requestRender();
@@ -52,13 +65,14 @@ export class PersonaPage implements Component {
 
   private showConfirm() {
     const summary: string[] = [];
-    const name = this.persona?.name?.primary ?? this.persona?.name ?? "?";
-    const concept = this.persona?.coreConcept ?? this.persona?.backstory ?? "";
-    summary.push(`Name: ${name}`);
-    if (concept) summary.push(`Concept: ${concept}`);
+    if (this.foundationInfo) {
+      summary.push(`Order: ${this.foundationInfo.orderId}`);
+      summary.push(`Version: ${this.foundationInfo.versionId}`);
+      summary.push(`Files: ${this.foundationInfo.files.join(", ")}`);
+    }
 
     this.confirm = new ConfirmList({
-      title: t("persona.confirm_title"),
+      title: t("foundation.confirm_title"),
       summary,
       onSelect: (choice: ConfirmChoice) => {
         this.confirm = null;
@@ -74,21 +88,18 @@ export class PersonaPage implements Component {
 
   private async startRun() {
     if (this.running) return;
-    if (!this.hasAnalysis) {
-      this.statusMsg = t("persona.needs_analysis");
-      this.phase = "error";
-      this.tuiRef.requestRender();
-      return;
-    }
     this.confirm = null;
     this.phase = "running";
     this.statusMsg = null;
     this.agentStatus?.dispose();
-    this.agentStatus = new AgentStatus({ role: "creative", onRequestRender: () => this.tuiRef.requestRender() });
+    this.agentStatus = new AgentStatus({ role: "pm", onRequestRender: () => this.tuiRef.requestRender() });
     this.tuiRef.requestRender();
     try {
       this.running = await startRoleSession({
-        phase: "persona", cwd: process.cwd(), newSession: true,
+        phase: "orders",
+        goal: "Create foundation sheet order for this repository",
+        cwd: process.cwd(),
+        newSession: true,
         onDone: () => void this.finishRun(),
         onError: (error: unknown) => this.failRun(error),
       });
@@ -101,7 +112,7 @@ export class PersonaPage implements Component {
     this.agentStatus?.markDone();
     this.running = null;
     this.phase = "done";
-    this.statusMsg = t("persona.done");
+    this.statusMsg = t("foundation.done");
     await this.load();
   }
 
@@ -134,8 +145,7 @@ export class PersonaPage implements Component {
     if (this.running) return;
     if (data === "r" || data === "R") { void this.load(); return; }
     if (data === "u" || data === "U" || data === "\r") {
-      if (!this.hasAnalysis) { this.statusMsg = t("persona.needs_analysis"); this.tuiRef.requestRender(); return; }
-      if (this.persona) this.showConfirm(); else void this.startRun();
+      if (this.foundationInfo) this.showConfirm(); else void this.startRun();
     }
   }
 
@@ -144,8 +154,8 @@ export class PersonaPage implements Component {
     if (this.phase === "confirm" && this.confirm) return this.confirm.render(w);
 
     const lines: string[] = [];
-    lines.push(theme.accent(t("persona.title")));
-    lines.push(theme.dim(t("persona.subtitle")));
+    lines.push(theme.accent(t("foundation.title")));
+    lines.push(theme.dim(t("foundation.subtitle")));
     lines.push("");
 
     if (this.agentStatus && this.phase === "running") {
@@ -155,16 +165,19 @@ export class PersonaPage implements Component {
 
     if (this.phase === "loading") {
       lines.push(theme.dim(t("common.loading")));
-    } else if (!this.hasAnalysis) {
-      lines.push(theme.error(t("persona.needs_analysis")));
-    } else if (!this.persona) {
-      lines.push(theme.dim(t("persona.empty")));
+    } else if (this.blockReason) {
+      lines.push(theme.error(this.blockReason));
+    } else if (!this.foundationInfo) {
+      lines.push(theme.dim(t("foundation.empty")));
       lines.push("");
-      lines.push(theme.success("  [Enter/u] Generate persona"));
+      lines.push(theme.success("  [Enter/u] Create foundation sheet"));
     } else {
-      lines.push(...renderPersona(this.persona, w));
+      lines.push(theme.success(t("foundation.has_foundation")));
+      lines.push(`  order: ${this.foundationInfo.orderId}`);
+      lines.push(`  version: ${this.foundationInfo.versionId}`);
+      lines.push(`  files: ${this.foundationInfo.files.map((f) => truncateToWidth(f, w - 10, "…")).join(", ")}`);
       lines.push("");
-      lines.push(theme.success("  [Enter/u] Regenerate persona"));
+      lines.push(theme.success("  [Enter/u] Regenerate foundation"));
     }
 
     if (this.warnings.length) {
@@ -178,34 +191,7 @@ export class PersonaPage implements Component {
     }
 
     lines.push("");
-    lines.push(theme.dim(t("persona.hint")));
+    lines.push(theme.dim(t("foundation.hint")));
     return lines.map((l) => truncateToWidth(l, w, "…"));
   }
-}
-
-function renderPersona(persona: any, width: number) {
-  const lines: string[] = [];
-  const name = persona.name?.primary ?? persona.name ?? "?";
-  lines.push(`${theme.accent(t("persona.name"))}: ${name}`);
-  if (persona.coreConcept) lines.push(...wrap(`${t("persona.concept")}: ${persona.coreConcept}`, width));
-  if (persona.characterFlaws) lines.push(`Flaws: ${Array.isArray(persona.characterFlaws) ? persona.characterFlaws.join(", ") : persona.characterFlaws}`);
-  if (persona.catchphrase) lines.push(`Catchphrase: ${persona.catchphrase}`);
-  if (persona.rolePrompt) {
-    lines.push("");
-    lines.push(theme.accent("Role Prompt (image tags)"));
-    lines.push(...wrap(persona.rolePrompt, width - 2).map((l) => `  ${l}`));
-  }
-  return lines;
-}
-
-function wrap(text: string, width: number) {
-  const words = text.split(/\s+/);
-  const lines: string[] = [];
-  let line = "";
-  for (const word of words) {
-    if ((line + " " + word).trim().length > width && line) { lines.push(line); line = word; }
-    else line = (line + " " + word).trim();
-  }
-  if (line) lines.push(line);
-  return lines.slice(0, 6);
 }
