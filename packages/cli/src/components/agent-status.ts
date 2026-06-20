@@ -85,14 +85,17 @@ export class AgentStatus implements Component {
   }
 
   ingestEvent(event: any) {
-    const type = event?.type || "event";
+    const type = typeof event?.type === "string" ? event.type : (typeof event === "string" ? event : "event");
     if (type === "agent_start") this.log("provider request started", "dim");
     else if (type === "message_update") this.log("streaming assistant response…", "dim");
     else if (type === "tool_execution_start") this.log(`[tool] ${event.toolName ?? "tool"} ${shortJson(event.args)}`, "dim");
     else if (type === "tool_execution_end") this.log(`[tool ${event.isError ? "error" : "ok"}] ${event.toolName ?? "tool"}`, event.isError ? "error" : "success");
+    else if (type === "tool_execution_update") this.log(`[tool update] ${event.toolName ?? "tool"}`, "dim");
     else if (type === "agent_end") {
       this.state = "done";
       this.log("agent_end", "success");
+    } else if (type === "turn_start") {
+      // noise — skip
     } else if (event?.message || event?.text) {
       this.log(String(event.message || event.text), "dim");
     } else {

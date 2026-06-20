@@ -54,16 +54,16 @@ Pass the resolved image file paths to the image generation tool as reference ima
 ```
 image_generate(
   prompt=<refined painter brief>,
-  reference_image_urls=<resolved character reference files>,
-  aspect_ratio=<from order deliverables>
+  referenceImageUrls=<resolved character reference files>,
+  aspectRatio=<from order deliverables>
 )
 ```
 
 For `image_generate` available in this session:
 - `prompt` — the refined painter brief (text description)
-- `reference_image_urls` — array of absolute file paths from resolved references
-- `image_url` — for editing an existing image (if the order is a revision)
-- `aspect_ratio` — landscape / square / portrait based on deliverables
+- `referenceImageUrls` — array of absolute file paths from resolved references
+- `imageUrl` — for editing an existing image (if the order is a revision)
+- `aspectRatio` — landscape / square / portrait based on deliverables
 
 ### Step 4: If the current image_generate tool does not support reference images
 
@@ -154,15 +154,26 @@ No references needed. Generate from the persona and analysis. This is the only o
 
 If an order has multiple references (e.g., one `character` + one `style`), resolve all of them and pass all resolved images to the generation tool. The generation tool will use them as a combined reference set.
 
-## Generation priority
+## Generation: MANDATORY tool usage
 
-Use this priority order for image generation:
+**You MUST call `image_generate` to produce the image.** This tool is registered in every Painter Pi session by image-gen-pi.
 
-1. **Native model/session image generation** — if the active model supports image generation natively, use it directly with the reference images.
-2. **Registered Pi image-generation tool/package** — if native support is not available, use a registered tool like `image_generate`.
-3. **User-provided generated files** — if no in-session generation path exists, provide the refined brief and reference image paths to the user for external generation.
+Do NOT:
+- Ask the user for confirmation before generating — the user already approved by launching the Painter phase.
+- Write a brief and stop — a brief without a generated image is an incomplete deliverable.
+- Describe what you "would" generate — actually call the tool.
 
-Always state the proposed generation path before executing. Ask for confirmation.
+Call `image_generate` with:
+```json
+{
+  "prompt": "<your assembled prompt from persona + order + template>",
+  "aspect_ratio": "landscape" | "square" | "portrait"  // from template or order deliverables
+}
+```
+
+For foundation sheets, use `aspect_ratio: "portrait"` (taller canvas for full-body character sheet).
+
+The tool returns a saved file path. Use that path in `order.create_result`.
 
 ## Protocol saving rules
 
@@ -175,6 +186,34 @@ When an output is accepted:
 
 ## Example execution flow
 
+### Foundation sheet (no references)
+
+```
+1. order.get → read order ord-foundation-001
+   → assetType: "foundation_sheet", no references needed
+
+2. template.get → read "official/foundation-sheet" template
+   → grid, aspect ratio, constraints
+
+3. persona.get → read persona current.json
+   → rolePrompt, hairColor, eyeColor, outfit, accessories, signaturePose
+
+4. Assemble prompt from template guide + persona fields + precision visual fields
+
+5. image_generate(prompt=<assembled prompt>, aspect_ratio="portrait")
+
+6. Save result:
+   order.create_result params={
+     orderId: "ord-foundation-001",
+     files: ["<generated-image-path>"],
+     promptBrief: "<brief summary>",
+     notes: "Foundation sheet generated from persona. No references (first anchor).",
+     setCurrent: true
+   }
+```
+
+### Downstream order (with references)
+
 ```
 1. order.get → read order ord-readme-hero-001
    → references: [{ orderId: "ord-foundation-001", role: "character" }]
@@ -183,16 +222,11 @@ When an output is accepted:
    [{ role: "character", orderId: "ord-foundation-001", versionId: "v1",
      files: ["/abs/path/.repochan/orders/ord-foundation-001/versions/v1/sheet.png"] }]
 
-3. Produce painter brief based on order.brief + persona + reference images
+3. template.get + persona.get → assemble prompt
 
-4. Ask user: "Execute generation now?
-   Path: image_generate with foundation sheet as reference image.
-   Reference: ord-foundation-001/v1/sheet.png (character)"
+4. image_generate(prompt=<brief>, referenceImageUrls=[<sheet.png>], aspect_ratio="landscape")
 
-5. After confirmation:
-   image_generate(prompt=<brief>, reference_image_urls=[<sheet.png>], aspect_ratio="landscape")
-
-6. Save result:
+5. Save result:
    order.create_result params={
      orderId: "ord-readme-hero-001",
      files: ["<generated-image-path>"],

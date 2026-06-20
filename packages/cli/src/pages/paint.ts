@@ -112,15 +112,16 @@ export class PaintPage implements Component {
       const order = await readOrder(process.cwd(), orderId);
       const status = order.status || "draft";
 
-      if (status === "draft" || !["approved", "in_progress"].includes(status)) {
-        // Auto-approve prompt
+      // delivered = already has results, check for regeneration
+      // draft = needs approval before painting
+      if (status === "draft") {
         this.statusMsg = t("paint.status_draft");
         this.phase = "idle";
         this.tuiRef.requestRender();
         return;
       }
 
-      // Check existing results
+      // For delivered/approved/in_progress: check existing results
       const results = await listOrderResults(process.cwd(), orderId);
       if (results.results && results.results.length > 0) {
         this.showConfirm(orderId, results.results);
@@ -191,6 +192,8 @@ export class PaintPage implements Component {
     if (this.selectedOrderId) {
       try { await setOrderStatus(process.cwd(), this.selectedOrderId, "delivered"); } catch {}
     }
+    this.selectedOrderId = null;
+    this.initialOrderId = undefined;
     this.phase = "done";
     this.statusMsg = t("paint.done");
     await this.load();
