@@ -1,0 +1,25 @@
+id: "official/chibi-grid-4x4"
+asset_type: "chibi_emojis"
+label: "4×4 表情包"
+description: "4×4 格子 Q版表情包，可自动切片为 16 个独立表情。"
+tags: ["sticker", "chibi", "grid"]
+
+width: 1024
+height: 1024
+aspect_ratio: "1:1"
+background: "plain"
+
+grid:
+  rows: 4
+  cols: 4
+  sliceable: true
+
+guide: "masterpiece, best quality"
+
+constraints:
+  - "4×4 grid, one isolated chibi sticker per cell"
+  - "same character identity in all cells"
+  - "plain white background"
+  - "no overlap between cells"
+  - "each cell must be cleanly separable into equal tiles"
+  - "cute chibi proportions, exaggerated expressions"

@@ -1,8 +1,11 @@
-import type { AssetOrder, JsonObject, OrderStatus } from "../types.js";
+import type { AssetOrder, JsonObject, OrderReference, OrderStatus, ReferenceRole } from "../types.js";
+import { FOUNDATION_ASSET_TYPES } from "../types.js";
 import { stamp } from "../protocol/index.js";
 
 export const ORDER_STATUSES: OrderStatus[] = ["draft", "approved", "in_progress", "delivered", "needs_revision", "cancelled"];
 export const ORDER_STATUS_SET = new Set<OrderStatus>(ORDER_STATUSES);
+
+const VALID_REFERENCE_ROLES = new Set<ReferenceRole>(["character", "style", "composition"]);
 
 const TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   draft: ["draft", "approved", "cancelled"],
@@ -33,6 +36,7 @@ export function normalizeOrder(order: AssetOrder, batchId?: string, now = stamp(
     createdAt: now,
     updatedAt: now,
     ...order,
+    references: normalizeReferences(order.references),
     schemaVersion: "repochan.asset-order.v1",
     batchId: order.batchId ?? batchId,
   };
@@ -91,4 +95,29 @@ export function areOrdersApprovedForExecution(orders: JsonObject[], allowUnappro
 
 export function stampProvenance(existing: unknown, fallback: JsonObject) {
   return existing ?? fallback;
+}
+
+export function isFoundationAssetType(assetType: string): boolean {
+  return (FOUNDATION_ASSET_TYPES as readonly string[]).includes(assetType);
+}
+
+export function normalizeReference(ref: unknown): OrderReference {
+  if (!isPlainObject(ref)) throw new Error("Each reference must be an object with orderId and role.");
+  const orderId = ref.orderId;
+  const role = ref.role;
+  if (typeof orderId !== "string" || !orderId.trim()) throw new Error("reference.orderId is required.");
+  validateOrderId(orderId);
+  if (typeof role !== "string" || !VALID_REFERENCE_ROLES.has(role as ReferenceRole)) {
+    throw new Error(`reference.role must be one of: character, style, composition. Got: ${String(role)}`);
+  }
+  const result: OrderReference = { orderId, role: role as ReferenceRole };
+  if (typeof ref.versionId === "string" && ref.versionId.trim()) {
+    result.versionId = ref.versionId;
+  }
+  return result;
+}
+
+export function normalizeReferences(refs: unknown): OrderReference[] {
+  if (!Array.isArray(refs)) return [];
+  return refs.map(normalizeReference);
 }

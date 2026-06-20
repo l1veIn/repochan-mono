@@ -1,0 +1,19 @@
+id: "official/three-view"
+asset_type: "three_view"
+label: "三视图"
+description: "正面/侧面/背面三视图角色设定，用于角色一致性验证。"
+tags: ["sheet", "turnaround"]
+
+width: 1344
+height: 768
+aspect_ratio: "16:9"
+background: "plain"
+
+guide: "masterpiece, best quality"
+
+constraints:
+  - "character turnaround sheet, three views: front view, side view, back view"
+  - "same character in all views, consistent design"
+  - "white background, professional character design sheet"
+  - "full body, standard pose, clear details"
+  - "identical outfit and colors in all views"
