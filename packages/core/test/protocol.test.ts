@@ -46,9 +46,8 @@ describe('protocol primitives', () => {
       r,
       path.join(r, 'analysis.versions'),
       path.join(r, 'persona', 'versions'),
+      path.join(r, 'orders'),
       path.join(r, 'orders', 'batches'),
-      path.join(r, 'orders', 'versions'),
-      path.join(r, 'assets'),
       path.join(r, 'notes'),
       path.join(r, 'brand-kit'),
     ];
@@ -65,8 +64,8 @@ describe('protocol primitives', () => {
     const v2 = protocolVersionPath('persona/current.json');
     expect(v2).toMatch(/^persona\/versions\/.*\.json$/);
 
-    const v3 = protocolVersionPath('orders/ord-123.json');
-    expect(v3).toMatch(/^orders\/versions\/.*\.json$/);
+    const v3 = protocolVersionPath('orders/ord-123/order.json');
+    expect(v3).toMatch(/^orders\/ord-123\/versions\/.*\.json$/);
   });
 
   it('writeJson refuses overwrite by default and succeeds with overwrite=true', async () => {

@@ -16,7 +16,7 @@ export async function runValidate(cwd: string, options: OutputOptions = {}) {
   heading("RepoChan protocol validation");
   bullet("status", result.ok ? "ok" : "needs attention");
   bullet("orders checked", result.checked.orders);
-  bullet("assets checked", result.checked.assets);
+  bullet("results checked", result.checked.results);
   if (result.problems.length === 0 && result.warnings.length === 0) {
     console.log(dim("No protocol problems found."));
     return;

@@ -19,8 +19,8 @@ RepoChan treats repository branding like a professional commission (`约稿`): d
 |---|---|---|---|
 | Analyst | `repochan-analysis` | git repo, source files, docs, assets | `.repochan/analysis.json` |
 | Creative Writer | `repochan-persona` | analysis | `.repochan/persona/current.json`, versions |
-| Art Director | `repochan-art-director` | analysis, persona, user goals | `.repochan/orders/*.json` |
-| Painter | `repochan-painter` | approved orders, analysis, persona | `.repochan/assets/*`, manifests |
+| Art Director | `repochan-art-director` | analysis, persona, user goals | `.repochan/orders/<order-id>/order.json` |
+| Painter | `repochan-painter` | approved orders, analysis, persona | `.repochan/orders/<order-id>/versions/<version-id>/` results |
 | Protocol Steward | `repochan-protocol` | existing workspace | validated `.repochan/` layout |
 
 ## Pre-execution checks
@@ -47,7 +47,7 @@ When an output already exists:
 - **Replace** only after explicit confirmation.
 - **Fork** when exploring a different brand direction.
 
-Never silently overwrite `.repochan/analysis.json`, persona current profile, orders, or assets.
+Never silently overwrite `.repochan/analysis.json`, persona current profile, orders, or order result versions.
 
 ## Recommended manual sequence
 

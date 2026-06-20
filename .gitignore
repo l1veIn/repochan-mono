@@ -7,3 +7,6 @@ coverage/
 .env
 .env.*
 !.env.example
+.repochan/
+output/
+.pi/

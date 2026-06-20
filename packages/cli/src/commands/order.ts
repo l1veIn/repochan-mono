@@ -23,6 +23,7 @@ async function list(cwd: string, options: OutputOptions) {
     console.log(`- ${order.orderId ?? order.file ?? "unknown"} ${dim(String(order.status ?? ""))}`);
     if (order.assetType) console.log(`  assetType: ${order.assetType}`);
     if (order.priority) console.log(`  priority: ${order.priority}`);
+    console.log(`  results: ${order.resultCount ?? 0}${order.currentVersion ? ` (current ${order.currentVersion})` : ""}`);
   }
 }
 
@@ -35,6 +36,7 @@ async function get(cwd: string, orderId: string, options: OutputOptions) {
   bullet("status", order.status ?? "unknown");
   bullet("assetType", order.assetType ?? "unknown");
   bullet("priority", order.priority ?? "normal");
+  bullet("currentVersion", order.currentVersion ?? "none");
   if (order.brief?.intent) bullet("intent", order.brief.intent);
   if (Array.isArray(order.deliverables)) bullet("deliverables", order.deliverables.length);
   if (Array.isArray(order.acceptanceCriteria)) bullet("acceptance criteria", order.acceptanceCriteria.length);

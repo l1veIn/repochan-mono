@@ -1,6 +1,6 @@
 ---
 name: repochan-protocol
-description: Detailed .repochan workspace protocol specification for RepoChan artifacts, including analysis, persona, orders, assets, versions, manifests, and safe update rules.
+description: Detailed .repochan workspace protocol specification for RepoChan artifacts, including analysis, persona, orders, order result versions, and safe update rules.
 ---
 
 # `.repochan/` Protocol
@@ -15,7 +15,7 @@ You are the Protocol Steward. Ensure RepoChan state is durable, inspectable, ver
 2. List known artifacts and schema versions.
 3. Detect missing upstream artifacts for the requested role.
 4. Ask before destructive changes.
-5. Prefer additive migration and versioned writes.
+5. Prefer additive, versioned writes.
 
 ## Directory layout
 
@@ -27,36 +27,34 @@ You are the Protocol Steward. Ensure RepoChan state is durable, inspectable, ver
     current.json
     versions/
   orders/
-    <order-id>.json
-    batches/
-  assets/
-    <asset-id>/
-      manifest.json
-      current/
+    <order-id>/
+      order.json
       versions/
         <version-id>/
+          meta.json
+          hero.png
+    batches/
   notes/
   brand-kit/
-    manifest.json
 ```
 
-`brand-kit/manifest.json` may aggregate selected current assets for external use.
+`order.json` contains the full order data, `status`, and `currentVersion`. Result files live directly inside the selected order's `versions/<version-id>/` directory.
 
 ## Artifact dependencies
 
 - Analysis has no upstream `.repochan/` dependency.
 - Persona requires analysis.
 - Orders require analysis and persona.
-- Painter delivery requires analysis, persona, and an order.
-- Revisions require a referenced order or asset.
+- Painter delivery requires analysis, persona, and an approved/in_progress order.
+- Revisions should be new orders that reference the prior order/result and explain the requested delta.
 
 ## Safe write rules
 
 - Do not overwrite without user approval.
-- Archive current files into `versions/` before replacement.
-- Add `generatedAt`, `schemaVersion`, and provenance fields.
+- Archive current JSON files into a nearby `versions/` path before replacement.
+- Add timestamps, `schemaVersion`, and provenance fields where practical.
 - Keep user revision requests verbatim where practical.
-- Store large binary assets under asset version folders; JSON manifests reference them.
+- Store large binary outputs under order result version folders; `meta.json` references them.
 
 ## Minimal schemas
 
@@ -74,11 +72,12 @@ You are the Protocol Steward. Ensure RepoChan state is durable, inspectable, ver
 
 ### Asset Order
 
-See `schemas/asset-order.schema.json`. Important fields:
+Important fields:
 
 - `orderId`
 - `requestType`
 - `status`
+- `currentVersion`
 - `assetType`
 - `brief.intent`
 - `brief.mustInclude`
@@ -87,27 +86,20 @@ See `schemas/asset-order.schema.json`. Important fields:
 - `deliverables`
 - `acceptanceCriteria`
 
-### Asset manifest
+### Order result version
 
 ```json
 {
-  "schemaVersion": "repochan.asset-manifest.v1",
-  "assetId": "asset-readme-hero",
-  "currentVersion": "v2026-06-12-001",
-  "orderIds": ["ord-readme-hero-001"],
-  "versions": [
-    {
-      "versionId": "v2026-06-12-001",
-      "createdAt": "ISO-8601",
-      "tool": "image package or API",
-      "files": ["versions/v2026-06-12-001/hero.png"],
-      "promptBrief": "professional brief used for generation",
-      "notes": ""
-    }
-  ]
+  "versionId": "v2026-06-12-001",
+  "createdAt": "ISO-8601",
+  "tool": "image package, native model capability, or user-provided",
+  "files": ["hero.png"],
+  "promptBrief": "professional brief used for generation",
+  "notes": "",
+  "provenance": { "tool": "repochan", "action": "order.create_result" }
 }
 ```
 
 ## Example pre-flight response
 
-“`.repochan/analysis.json` exists and persona current exists. There are three draft orders and one delivered README hero. For a new illustration I can create a new order; for changes to the hero I should create a revision order. Which do you prefer?”
+“`.repochan/analysis.json` exists and persona current exists. There are three draft orders and one delivered README hero result. For a new illustration I can create a new order; for changes to the hero I should create a revision order. Which do you prefer?”

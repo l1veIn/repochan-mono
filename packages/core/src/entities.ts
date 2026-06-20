@@ -1,10 +1,12 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import type { AssetManifest, AssetOrder, JsonObject, OrderStatus, VersionEntry } from "./types.js";
+import type { AssetOrder, JsonObject, OrderResultVersion, OrderStatus } from "./types.js";
 import {
   exists,
   initProtocol,
-  listJsonFiles,
+  orderJsonPath,
+  orderVersionDir,
+  orderVersionsDir,
   protocolRoot,
   readJson,
   readJsonIfExists,
@@ -16,52 +18,35 @@ import {
   writeJson,
 } from "./protocol/index.js";
 import {
-  areOrdersApprovedForAsset,
   deepMerge,
   isPlainObject,
   normalizeOrder,
-  orderIdsFromParams,
   requireValidStatus,
-  validateAssetId,
   validateBatchId,
   validateOrderId,
   validateVersionId,
 } from "./utils/index.js";
 
-export function assetManifestPath(projectRoot: string, assetId: string) {
-  return path.join(protocolRoot(projectRoot), "assets", validateAssetId(assetId), "manifest.json");
-}
-
 export async function archiveOrder(projectRoot: string, orderId: string, order: unknown) {
-  const archive = path.join(protocolRoot(projectRoot), "orders", "versions", validateOrderId(orderId), `${stampForPath()}.json`);
+  const archive = path.join(orderVersionsDir(projectRoot, validateOrderId(orderId)), `${stampForPath()}-order.json`);
   await writeJson(archive, order, false);
   return archive;
 }
 
-export async function archiveAssetManifest(projectRoot: string, assetId: string, manifest: unknown) {
-  const archive = path.join(protocolRoot(projectRoot), "assets", validateAssetId(assetId), "manifest.versions", `${stampForPath()}.json`);
-  await writeJson(archive, manifest, false);
-  return archive;
-}
-
 export async function readOrder(projectRoot: string, orderId: string) {
-  return readJson(path.join(protocolRoot(projectRoot), "orders", `${validateOrderId(orderId)}.json`));
+  return readJson(orderJsonPath(projectRoot, validateOrderId(orderId)));
 }
 
-export async function ensureOrdersApprovedForAsset(projectRoot: string, orderIds: string[], allowUnapproved: boolean) {
-  const orders: JsonObject[] = [];
-  for (const rawOrderId of orderIds) {
-    const orderId = validateOrderId(rawOrderId);
-    const order = await readOrder(projectRoot, orderId);
-    orders.push(order);
-    if (!allowUnapproved && !["approved", "in_progress"].includes(String(order.status ?? ""))) {
-      throw new Error(
-        `Order ${orderId} is not approved/in_progress (status=${order.status ?? "missing"}). ` +
-          "Call repochan action='order.get' or 'order.list' for the pre-check, then obtain user approval or pass allowUnapprovedOrder=true only after explicit approval.",
-      );
-    }
+export async function ensureOrderApprovedForExecution(projectRoot: string, orderId: string, allowUnapproved: boolean) {
+  const id = validateOrderId(orderId);
+  const order = await readOrder(projectRoot, id);
+  if (!allowUnapproved && !["approved", "in_progress"].includes(String(order.status ?? ""))) {
+    throw new Error(
+      `Order ${id} is not approved/in_progress (status=${order.status ?? "missing"}). ` +
+        "Call repochan action='order.get' or 'order.list' for the pre-check, then obtain user approval or pass allowUnapprovedOrder=true only after explicit approval.",
+    );
   }
-  return orders;
+  return order;
 }
 
 export async function createOrUpdatePersona(projectRoot: string, params: JsonObject, mode: "create" | "update") {
@@ -104,7 +89,7 @@ export async function createOrders(projectRoot: string, params: JsonObject) {
   for (const order of orders) validateOrderId(order.orderId);
   const overwrite = params.overwrite === true;
   for (const order of orders) {
-    const file = path.join(protocolRoot(projectRoot), "orders", `${order.orderId}.json`);
+    const file = orderJsonPath(projectRoot, order.orderId);
     if ((await exists(file)) && !overwrite) throw new Error(`Order ${order.orderId} already exists. Ask before overwrite=true.`);
   }
   if (params.batchId) {
@@ -113,7 +98,8 @@ export async function createOrders(projectRoot: string, params: JsonObject) {
   }
   const written: string[] = [];
   for (const order of orders) {
-    const file = path.join(protocolRoot(projectRoot), "orders", `${order.orderId}.json`);
+    const file = orderJsonPath(projectRoot, order.orderId);
+    await fs.mkdir(orderVersionsDir(projectRoot, order.orderId), { recursive: true });
     await writeJson(file, order, overwrite);
     written.push(relativeProtocolPath(projectRoot, file));
   }
@@ -128,14 +114,32 @@ export async function createOrders(projectRoot: string, params: JsonObject) {
 }
 
 export async function listOrders(projectRoot: string) {
-  const files = await listJsonFiles(path.join(protocolRoot(projectRoot), "orders"));
+  const ordersDir = path.join(protocolRoot(projectRoot), "orders");
+  let entries: import("node:fs").Dirent[] = [];
+  try {
+    entries = await fs.readdir(ordersDir, { withFileTypes: true });
+  } catch {
+    return { files: [], orders: [] };
+  }
+  const orderDirs = entries.filter((entry) => entry.isDirectory() && entry.name !== "batches").map((entry) => entry.name).sort();
+  const files = orderDirs.map((orderId) => `${orderId}/order.json`);
   const orders = [];
-  for (const file of files) {
+  for (const orderId of orderDirs) {
+    const file = `${orderId}/order.json`;
     try {
-      const order = await readJson(path.join(protocolRoot(projectRoot), "orders", file));
-      orders.push({ orderId: order.orderId, status: order.status, assetType: order.assetType, priority: order.priority, file });
+      const order = await readJson(orderJsonPath(projectRoot, orderId));
+      const results = await listOrderResults(projectRoot, orderId).catch(() => ({ results: [] as OrderResultVersion[] }));
+      orders.push({
+        orderId: order.orderId,
+        status: order.status,
+        assetType: order.assetType,
+        priority: order.priority,
+        currentVersion: order.currentVersion,
+        resultCount: results.results.length,
+        file,
+      });
     } catch {
-      orders.push({ file, unreadable: true });
+      orders.push({ orderId, file, unreadable: true });
     }
   }
   return { files, orders };
@@ -144,7 +148,7 @@ export async function listOrders(projectRoot: string) {
 export async function updateOrder(projectRoot: string, params: JsonObject) {
   await initProtocol(projectRoot);
   const orderId = validateOrderId(String(params.orderId ?? ""));
-  const file = path.join(protocolRoot(projectRoot), "orders", `${orderId}.json`);
+  const file = orderJsonPath(projectRoot, orderId);
   const current = await readJson(file);
   if (params.overwrite !== true) {
     throw new Error("order.update requires params.overwrite=true after explicit user approval. Use order.set_status or order.add_revision for narrow updates.");
@@ -167,7 +171,7 @@ export async function setOrderStatus(projectRoot: string, orderId: string, statu
   await initProtocol(projectRoot);
   validateOrderId(orderId);
   requireValidStatus(status);
-  const file = path.join(protocolRoot(projectRoot), "orders", `${orderId}.json`);
+  const file = orderJsonPath(projectRoot, orderId);
   const order = await readJson(file);
   await archiveOrder(projectRoot, orderId, order);
   order.status = status;
@@ -179,7 +183,7 @@ export async function setOrderStatus(projectRoot: string, orderId: string, statu
 export async function addOrderRevision(projectRoot: string, orderId: string, revisionRequest: string) {
   await initProtocol(projectRoot);
   validateOrderId(orderId);
-  const file = path.join(protocolRoot(projectRoot), "orders", `${orderId}.json`);
+  const file = orderJsonPath(projectRoot, orderId);
   const order = await readJson(file);
   await archiveOrder(projectRoot, orderId, order);
   order.revisions ??= [];
@@ -190,93 +194,188 @@ export async function addOrderRevision(projectRoot: string, orderId: string, rev
   return order;
 }
 
-export async function listAssets(projectRoot: string) {
-  const assetsDir = path.join(protocolRoot(projectRoot), "assets");
-  let names: string[] = [];
-  try {
-    names = (await fs.readdir(assetsDir)).sort();
-  } catch {
-    // no assets yet
-  }
-  const assets = [];
-  for (const name of names) {
-    const manifest = await readJsonIfExists(path.join(assetsDir, name, "manifest.json"));
-    if (manifest) assets.push({ assetId: manifest.assetId ?? name, currentVersion: manifest.currentVersion, versionCount: manifest.versions?.length ?? 0 });
-  }
-  return { assets };
+function versionFilesFromDir(entries: string[]) {
+  return entries.filter((entry) => entry !== "meta.json" && !entry.endsWith("-order.json")).sort();
 }
 
-export async function createAssetVersion(projectRoot: string, params: JsonObject) {
+async function resolveResultFiles(projectRoot: string, orderId: string, versionId: string, files: string[], overwrite: boolean) {
+  const destDir = orderVersionDir(projectRoot, orderId, versionId);
+  const recorded: string[] = [];
+  for (const raw of files) {
+    if (typeof raw !== "string" || !raw.trim()) continue;
+    const basename = path.basename(raw);
+    const dest = path.join(destDir, basename);
+    const candidates = [
+      path.isAbsolute(raw) ? raw : path.resolve(projectRoot, raw),
+      raw.startsWith(".repochan/") || raw.startsWith(".repochan" + path.sep) ? path.resolve(projectRoot, raw) : path.join(destDir, raw),
+    ];
+    let source: string | undefined;
+    for (const candidate of candidates) {
+      if (path.resolve(candidate) === path.resolve(dest)) continue;
+      if (await exists(candidate)) {
+        source = candidate;
+        break;
+      }
+    }
+    if (source) {
+      if ((await exists(dest)) && !overwrite) throw new Error(`Result file ${basename} already exists in ${orderId}/${versionId}. Ask before overwrite=true.`);
+      await fs.copyFile(source, dest);
+      recorded.push(basename);
+    } else if (await exists(dest)) {
+      recorded.push(basename);
+    } else {
+      recorded.push(raw);
+    }
+  }
+  return [...new Set(recorded)];
+}
+
+export async function createOrderResult(projectRoot: string, params: JsonObject) {
   await initProtocol(projectRoot);
   await requireAnalysis(projectRoot);
   await requirePersona(projectRoot);
-  const assetId = validateAssetId(String(params.assetId ?? ""));
-  const orderIds = orderIdsFromParams(params);
-  const orders = await ensureOrdersApprovedForAsset(projectRoot, orderIds, params.allowUnapprovedOrder === true);
-  if (!areOrdersApprovedForAsset(orders, params.allowUnapprovedOrder === true)) {
-    throw new Error("At least one order is not approved for asset creation.");
-  }
+  const orderId = validateOrderId(String(params.orderId ?? ""));
+  const order = await ensureOrderApprovedForExecution(projectRoot, orderId, params.allowUnapprovedOrder === true);
   const versionId = validateVersionId(typeof params.versionId === "string" && params.versionId ? params.versionId : `v${stampForPath()}`);
-  const dir = path.join(protocolRoot(projectRoot), "assets", assetId);
-  const versionDir = path.join(dir, "versions", versionId);
+  const versionDir = orderVersionDir(projectRoot, orderId, versionId);
   const overwrite = params.overwrite === true;
-  if ((await exists(versionDir)) && !overwrite) throw new Error(`Asset version ${assetId}/${versionId} already exists. Ask before overwrite=true.`);
+  if ((await exists(versionDir)) && !overwrite) throw new Error(`Order result ${orderId}/${versionId} already exists. Ask before overwrite=true.`);
   await fs.mkdir(versionDir, { recursive: true });
-  const manifestFile = assetManifestPath(projectRoot, assetId);
-  const manifest =
-    ((await readJsonIfExists(manifestFile)) as AssetManifest | undefined) ??
-    ({ schemaVersion: "repochan.asset-manifest.v1", assetId, currentVersion: undefined, orderIds: [], versions: [], meta: {} } as AssetManifest);
-  if (manifest.versions?.some((version: JsonObject) => version.versionId === versionId) && !overwrite) {
-    throw new Error(`Manifest already contains version ${versionId}. Ask before overwrite=true.`);
-  }
-  const files = Array.isArray(params.files) ? params.files.filter((file): file is string => typeof file === "string") : [];
-  const versionEntry: VersionEntry = {
+  const inputFiles = Array.isArray(params.files) ? params.files.filter((file): file is string => typeof file === "string") : [];
+  const files = await resolveResultFiles(projectRoot, orderId, versionId, inputFiles, overwrite);
+  const version: OrderResultVersion = {
     versionId,
     createdAt: stamp(),
     tool: typeof params.tool === "string" ? params.tool : "repochan",
     files,
-    promptBrief: typeof params.promptBrief === "string" ? params.promptBrief : "",
-    notes: typeof params.notes === "string" ? params.notes : "",
-    provenance: params.provenance ?? { tool: "repochan", action: "asset.create_version" },
+    promptBrief: typeof params.promptBrief === "string" ? params.promptBrief : undefined,
+    notes: typeof params.notes === "string" ? params.notes : undefined,
+    provenance: params.provenance ?? { tool: "repochan", action: "order.create_result" },
     meta: isPlainObject(params.meta) ? params.meta : undefined,
   };
-  await writeJson(path.join(versionDir, "meta.json"), versionEntry, overwrite);
-  manifest.orderIds = [...new Set([...(Array.isArray(manifest.orderIds) ? manifest.orderIds : []), ...orderIds])];
-  manifest.versions = (Array.isArray(manifest.versions) ? manifest.versions : []).filter((version: JsonObject) => version.versionId !== versionId);
-  manifest.versions.push(versionEntry);
-  if (params.setCurrent !== false) manifest.currentVersion = versionId;
-  manifest.updatedAt = stamp();
-  await writeJson(manifestFile, manifest, true);
-  return { manifest, version: versionEntry, checkedOrders: orders };
+  await writeJson(path.join(versionDir, "meta.json"), version, overwrite);
+  await archiveOrder(projectRoot, orderId, order);
+
+  // Embed previous Asset info directly into order.json as orderAsset
+  const next = { ...order };
+  next.currentVersion = params.setCurrent === false ? order.currentVersion : versionId;
+  next.orderAsset = next.orderAsset || { versions: [], meta: {} };
+  // remove previous same version if overwrite
+  next.orderAsset.versions = (next.orderAsset.versions || []).filter((v: any) => v.versionId !== versionId);
+  next.orderAsset.versions.push(version);
+  next.orderAsset.currentVersion = next.currentVersion;
+  if (params.markDelivered !== false && ["approved", "in_progress"].includes(String(next.status ?? ""))) next.status = "delivered";
+  next.updatedAt = stamp();
+
+  await writeJson(orderJsonPath(projectRoot, orderId), next, true);
+  return { order: next, version, checkedOrder: order };
 }
 
-export async function setCurrentAsset(projectRoot: string, assetId: string, versionId: string) {
-  await initProtocol(projectRoot);
-  validateAssetId(assetId);
-  validateVersionId(versionId);
-  const manifestFile = assetManifestPath(projectRoot, assetId);
-  const manifest = await readJson(manifestFile);
-  if (!manifest.versions?.some((version: JsonObject) => version.versionId === versionId)) {
-    throw new Error(`Asset ${assetId} has no version ${versionId}.`);
+export async function listOrderResults(projectRoot: string, orderId: string) {
+  const id = validateOrderId(orderId);
+  const order = await readOrder(projectRoot, id).catch(() => ({} as any));
+
+  // Prefer embedded orderAsset info in order.json (previous Asset's data now here)
+  if (order.orderAsset && Array.isArray(order.orderAsset.versions)) {
+    return {
+      orderId: id,
+      results: order.orderAsset.versions as OrderResultVersion[],
+      currentVersion: order.orderAsset.currentVersion || order.currentVersion,
+    };
   }
-  await archiveAssetManifest(projectRoot, assetId, manifest);
-  manifest.currentVersion = versionId;
-  manifest.updatedAt = stamp();
-  await writeJson(manifestFile, manifest, true);
-  return manifest;
+
+  // Fallback to dir scan + meta.json
+  const dir = orderVersionsDir(projectRoot, id);
+  let entries: import("node:fs").Dirent[] = [];
+  try {
+    entries = await fs.readdir(dir, { withFileTypes: true });
+  } catch {
+    return { orderId: id, results: [] as OrderResultVersion[] };
+  }
+  const results: OrderResultVersion[] = [];
+  for (const entry of entries.filter((item) => item.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))) {
+    const versionId = validateVersionId(entry.name);
+    const versionDir = orderVersionDir(projectRoot, id, versionId);
+    const meta = (await readJsonIfExists(path.join(versionDir, "meta.json"))) as Partial<OrderResultVersion> | undefined;
+    const dirFiles = versionFilesFromDir(await fs.readdir(versionDir).catch(() => []));
+    results.push({
+      versionId,
+      createdAt: typeof meta?.createdAt === "string" ? meta.createdAt : "",
+      tool: meta?.tool,
+      files: Array.isArray(meta?.files) && meta.files.length ? meta.files : dirFiles,
+      promptBrief: meta?.promptBrief,
+      notes: meta?.notes,
+      provenance: meta?.provenance,
+      meta: meta?.meta,
+    });
+  }
+  return { orderId: id, results };
 }
 
-export async function updateAssetMeta(projectRoot: string, params: JsonObject) {
+export async function readOrderResult(projectRoot: string, orderId: string, versionId?: string) {
+  const id = validateOrderId(orderId);
+  const order = await readOrder(projectRoot, id);
+  const listed = versionId ? undefined : await listOrderResults(projectRoot, id);
+  const resolvedVersionId = versionId ? validateVersionId(versionId) : order.currentVersion ?? listed?.results.at(-1)?.versionId;
+  if (!resolvedVersionId) throw new Error(`Order ${id} has no currentVersion. Pass versionId or create a result first.`);
+  const dir = orderVersionDir(projectRoot, id, resolvedVersionId);
+  if (!(await exists(dir))) throw new Error(`Order ${id} has no result version ${resolvedVersionId}.`);
+  const meta = (await readJsonIfExists(path.join(dir, "meta.json"))) as Partial<OrderResultVersion> | undefined;
+  const files = versionFilesFromDir(await fs.readdir(dir).catch(() => []));
+  return {
+    orderId: id,
+    version: {
+      versionId: resolvedVersionId,
+      createdAt: typeof meta?.createdAt === "string" ? meta.createdAt : "",
+      tool: meta?.tool,
+      files: Array.isArray(meta?.files) && meta.files.length ? meta.files : files,
+      promptBrief: meta?.promptBrief,
+      notes: meta?.notes,
+      provenance: meta?.provenance,
+      meta: meta?.meta,
+    } as OrderResultVersion,
+  };
+}
+
+export async function setCurrentOrderResult(projectRoot: string, orderId: string, versionId: string) {
   await initProtocol(projectRoot);
-  const assetId = validateAssetId(String(params.assetId ?? ""));
-  if (params.overwrite !== true) {
-    throw new Error("asset.update_meta mutates the asset manifest and requires params.overwrite=true after explicit user approval.");
+  const id = validateOrderId(orderId);
+  const version = validateVersionId(versionId);
+  const dir = orderVersionDir(projectRoot, id, version);
+  if (!(await exists(dir))) throw new Error(`Order ${id} has no result version ${version}.`);
+  const file = orderJsonPath(projectRoot, id);
+  const order = await readJson(file);
+  await archiveOrder(projectRoot, id, order);
+  order.currentVersion = version;
+  if (order.orderAsset) {
+    order.orderAsset.currentVersion = version;
   }
-  const manifestFile = assetManifestPath(projectRoot, assetId);
-  const manifest = await readJson(manifestFile);
-  await archiveAssetManifest(projectRoot, assetId, manifest);
-  const patch = isPlainObject(params.patch) ? params.patch : { meta: isPlainObject(params.meta) ? params.meta : {} };
-  const next = { ...deepMerge(manifest, patch), assetId, schemaVersion: "repochan.asset-manifest.v1", updatedAt: stamp() };
-  await writeJson(manifestFile, next, true);
-  return next;
+  order.updatedAt = stamp();
+  await writeJson(file, order, true);
+  return order;
+}
+
+/** @deprecated Order deliverables no longer use asset manifests. */
+export function assetManifestPath(_projectRoot: string, _assetId: string) {
+  throw new Error("assetManifestPath is deprecated. Use orderJsonPath/orderVersionDir or order result helpers.");
+}
+
+/** @deprecated Order deliverables no longer use asset manifests. */
+export async function listAssets(_projectRoot: string) {
+  return { assets: [] as JsonObject[] };
+}
+
+/** @deprecated Use createOrderResult. */
+export async function createAssetVersion(): Promise<never> {
+  throw new Error("asset.create_version is removed. Use order.create_result.");
+}
+
+/** @deprecated Use setCurrentOrderResult. */
+export async function setCurrentAsset(): Promise<never> {
+  throw new Error("asset.set_current is removed. Use order.set_current_result.");
+}
+
+/** @deprecated Asset manifests are removed. */
+export async function updateAssetMeta(): Promise<never> {
+  throw new Error("asset.update_meta is removed. Use order.update for order metadata or order.create_result for deliverables.");
 }

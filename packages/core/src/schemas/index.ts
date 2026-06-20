@@ -22,6 +22,7 @@ export const AssetOrderSchema = Type.Object({
     Type.Literal("batch_item"),
   ]),
   status: Type.Optional(OrderStatusSchema),
+  currentVersion: Type.Optional(Type.String()),
   assetType: Type.String(),
   priority: Type.Optional(Type.Union([Type.Literal("low"), Type.Literal("normal"), Type.Literal("high")])),
   references: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
@@ -49,6 +50,21 @@ export const AssetOrderSchema = Type.Object({
   notes: Type.Optional(Type.String()),
   createdAt: Type.Optional(Type.String()),
   updatedAt: Type.Optional(Type.String()),
+  // orderAsset: the product (images) info - previous separate Asset data now embedded directly here
+  orderAsset: Type.Optional(Type.Object({
+    currentVersion: Type.Optional(Type.String()),
+    versions: Type.Optional(Type.Array(Type.Object({
+      versionId: Type.String(),
+      createdAt: Type.String(),
+      tool: Type.Optional(Type.String()),
+      files: Type.Array(Type.String()),
+      promptBrief: Type.Optional(Type.String()),
+      notes: Type.Optional(Type.String()),
+      provenance: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
+      meta: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
+    }))),
+    meta: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
+  })),
 });
 
 export const PersonaArtifactSchema = Type.Record(Type.String(), JsonValueSchema, {
@@ -59,25 +75,15 @@ export const AnalysisArtifactSchema = Type.Record(Type.String(), JsonValueSchema
   description: "RepoChan deterministic repository analysis artifact.",
 });
 
-export const AssetManifestSchema = Type.Object({
-  schemaVersion: Type.Literal("repochan.asset-manifest.v1"),
-  assetId: Type.String({ pattern: "^[a-z0-9][a-z0-9-]*$" }),
-  currentVersion: Type.Optional(Type.String()),
-  orderIds: Type.Array(Type.String()),
-  versions: Type.Array(
-    Type.Object({
-      versionId: Type.String(),
-      createdAt: Type.String(),
-      tool: Type.String(),
-      files: Type.Array(Type.String()),
-      promptBrief: Type.String(),
-      notes: Type.String(),
-      provenance: Type.Record(Type.String(), JsonValueSchema),
-      meta: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
-    }),
-  ),
-  meta: Type.Record(Type.String(), JsonValueSchema),
-  updatedAt: Type.Optional(Type.String()),
+export const OrderResultVersionSchema = Type.Object({
+  versionId: Type.String(),
+  createdAt: Type.String(),
+  tool: Type.Optional(Type.String()),
+  files: Type.Array(Type.String()),
+  promptBrief: Type.Optional(Type.String()),
+  notes: Type.Optional(Type.String()),
+  provenance: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
+  meta: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
 });
 
 export const OrderBatchSchema = Type.Object({

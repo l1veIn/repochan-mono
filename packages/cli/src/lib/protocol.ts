@@ -1,8 +1,7 @@
 import path from "node:path";
 import {
-  assetManifestPath,
   inspectProtocol,
-  listAssets,
+  listOrderResults as coreListOrderResults,
   listOrders,
   protocolRoot,
   readJson,
@@ -21,25 +20,14 @@ export async function readPersona(projectRoot: string) {
 export async function readProtocolOverview(projectRoot: string) {
   const protocol = await inspectProtocol(projectRoot);
   const orders = protocol.exists ? await listOrders(projectRoot) : { files: [], orders: [] };
-  const assets = protocol.exists ? await listAssets(projectRoot) : { assets: [] };
-  return { protocol, orders, assets };
+  const results = protocol.exists
+    ? Object.fromEntries(await Promise.all((orders.orders as any[]).filter((order) => order.orderId).map(async (order) => [order.orderId, await coreListOrderResults(projectRoot, order.orderId)])))
+    : {};
+  return { protocol, orders, results };
 }
 
-export async function listAssetsForOrder(projectRoot: string, orderId: string) {
-  const result = await listAssets(projectRoot);
-  const matches: Array<{ assetId: string; manifest: any }> = [];
-  for (const row of result.assets as Array<{ assetId?: string }>) {
-    if (!row.assetId) continue;
-    try {
-      const manifest = await readJson(assetManifestPath(projectRoot, row.assetId));
-      if (Array.isArray(manifest.orderIds) && manifest.orderIds.includes(orderId)) {
-        matches.push({ assetId: row.assetId, manifest });
-      }
-    } catch {
-      // ignore unreadable manifests; validate command reports details
-    }
-  }
-  return matches;
+export async function listOrderResults(projectRoot: string, orderId: string) {
+  return coreListOrderResults(projectRoot, orderId);
 }
 
 export function count(value: unknown) {

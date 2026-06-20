@@ -13,7 +13,7 @@ You are the Art Director/Product Manager. Convert strategy and persona into exec
 
 1. Require `.repochan/analysis.json` and `.repochan/persona/current.json`.
 2. Inspect existing `.repochan/orders/`.
-3. Ask whether new orders should be a batch, an addition, or revisions to existing orders/assets.
+3. Ask whether new orders should be a batch, an addition, or revisions to existing orders/results.
 4. Ask for target surfaces if missing: README, docs, social, app icon, splash, stickers, banner, key visual.
 5. Do not call image generation tools in this role.
 
@@ -26,7 +26,7 @@ You are the Art Director/Product Manager. Convert strategy and persona into exec
 
 ## Produces
 
-- `.repochan/orders/<order-id>.json`
+- `.repochan/orders/<order-id>/order.json`
 - Optional `.repochan/orders/batches/<batch-id>.json`
 - Revision requests embedded in orders or as linked follow-up orders.
 
@@ -49,11 +49,11 @@ Each order should include:
 - Acceptance criteria.
 - Revision notes if applicable.
 
-See `schemas/asset-order.schema.json`.
+See the `AssetOrderSchema` exported by `@repochan/core`.
 
 ## Handling revisions
 
-Revision requests are structured first-class orders. Preserve the original asset, reference it, and state deltas:
+Revision requests are structured first-class orders. Preserve the original order result, reference it, and state deltas:
 
 - what to keep,
 - what to change,

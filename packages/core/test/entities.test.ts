@@ -4,8 +4,9 @@ import path from 'node:path';
 import os from 'node:os';
 import {
   createOrders,
-  createAssetVersion,
+  createOrderResult,
   listOrders,
+  listOrderResults,
   setOrderStatus,
 } from '../src/entities.js';
 import { initProtocol } from '../src/protocol/index.js';
@@ -19,7 +20,7 @@ describe('entities (core business operations)', () => {
     projectRoot = tmpRoot;
     await initProtocol(projectRoot);
 
-    // seed minimal upstream artifacts so createOrders / createAssetVersion pass their checks
+    // seed minimal upstream artifacts so createOrders / createOrderResult pass their checks
     const r = path.join(projectRoot, '.repochan');
     await fs.writeFile(path.join(r, 'analysis.json'), JSON.stringify({ summary: 'test' }));
     await fs.writeFile(
@@ -79,12 +80,12 @@ describe('entities (core business operations)', () => {
     expect(afterOrder.status).toBe('approved');
 
     // version archive should exist
-    const versionsDir = path.join(projectRoot, '.repochan', 'orders', 'versions', 'ord-test-002');
+    const versionsDir = path.join(projectRoot, '.repochan', 'orders', 'ord-test-002', 'versions');
     const hasVersion = await fs.readdir(versionsDir).then((f) => f.length > 0).catch(() => false);
     expect(hasVersion).toBe(true);
   });
 
-  it('createAssetVersion enforces approved orders and writes manifest + version', async () => {
+  it('createOrderResult enforces approved orders and writes result version', async () => {
     // first create and approve an order
     await createOrders(projectRoot, {
       orders: [
@@ -100,22 +101,26 @@ describe('entities (core business operations)', () => {
     });
     await setOrderStatus(projectRoot, 'ord-asset-001', 'approved');
 
-    const res = await createAssetVersion(projectRoot, {
-      assetId: 'asset-readme-hero',
-      orderIds: ['ord-asset-001'],
-      files: ['hero.png'],
+    const sourceFile = path.join(projectRoot, 'hero.png');
+    await fs.writeFile(sourceFile, 'fake image bytes');
+    const res = await createOrderResult(projectRoot, {
+      orderId: 'ord-asset-001',
+      versionId: 'v1',
+      files: [sourceFile],
       promptBrief: 'clean hero image',
       setCurrent: true,
     });
 
-    expect(res.manifest.currentVersion).toBeDefined();
-    expect(res.version.versionId).toBeDefined();
-    expect(res.checkedOrders.length).toBe(1);
+    expect(res.order.currentVersion).toBe('v1');
+    expect(res.version.versionId).toBe('v1');
+    expect(res.checkedOrder.orderId).toBe('ord-asset-001');
 
-    // manifest file should exist
-    const manifestPath = path.join(projectRoot, '.repochan', 'assets', 'asset-readme-hero', 'manifest.json');
-    const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
-    expect(manifest.assetId).toBe('asset-readme-hero');
-    expect(manifest.versions.length).toBeGreaterThan(0);
+    const metaPath = path.join(projectRoot, '.repochan', 'orders', 'ord-asset-001', 'versions', 'v1', 'meta.json');
+    const meta = JSON.parse(await fs.readFile(metaPath, 'utf8'));
+    expect(meta.files).toEqual(['hero.png']);
+    expect(await fs.readFile(path.join(projectRoot, '.repochan', 'orders', 'ord-asset-001', 'versions', 'v1', 'hero.png'), 'utf8')).toBe('fake image bytes');
+
+    const listed = await listOrderResults(projectRoot, 'ord-asset-001');
+    expect(listed.results.length).toBe(1);
   });
 });

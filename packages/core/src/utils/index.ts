@@ -58,13 +58,6 @@ export function validateOrderId(orderId: string) {
   return orderId;
 }
 
-export function validateAssetId(assetId: string) {
-  if (!/^[a-z0-9][a-z0-9-]*$/.test(assetId)) {
-    throw new Error("assetId must match ^[a-z0-9][a-z0-9-]*$.");
-  }
-  return assetId;
-}
-
 export function validateBatchId(batchId: string) {
   if (!/^[a-z0-9][a-z0-9-]*$/.test(batchId)) {
     throw new Error("batchId must match ^[a-z0-9][a-z0-9-]*$.");
@@ -79,6 +72,8 @@ export function validateVersionId(versionId: string) {
   return versionId;
 }
 
+export const validateResultVersionId = validateVersionId;
+
 export function orderIdsFromParams(params: JsonObject) {
   const ids = new Set<string>();
   if (typeof params.orderId === "string") ids.add(validateOrderId(params.orderId));
@@ -90,7 +85,7 @@ export function orderIdsFromParams(params: JsonObject) {
   return [...ids];
 }
 
-export function areOrdersApprovedForAsset(orders: JsonObject[], allowUnapproved: boolean) {
+export function areOrdersApprovedForExecution(orders: JsonObject[], allowUnapproved: boolean) {
   return allowUnapproved || orders.every((order) => ["approved", "in_progress"].includes(String(order.status ?? "")));
 }
 
