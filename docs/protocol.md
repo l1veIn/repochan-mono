@@ -12,14 +12,13 @@
     current.json
     versions/
   orders/
-    <order-id>.json
+    <order-id>/
+      order.json
+      versions/
+        <version-id>/
+          meta.json
+          hero.png
     batches/
-    versions/<order-id>/
-  assets/
-    <asset-id>/
-      manifest.json
-      versions/<version-id>/meta.json
-      manifest.versions/
   notes/
   brand-kit/
 ```
@@ -28,17 +27,17 @@
 
 - `analysis.json` uses `schemaVersion: "repochan.analysis.v1"` and is the upstream baseline for every creative role.
 - `persona/current.json` uses `schemaVersion: "repochan.persona.v1"` and requires analysis.
-- `orders/<order-id>.json` uses `schemaVersion: "repochan.asset-order.v1"`. Order IDs must match `ord-[a-z0-9][a-z0-9-]*`.
-- `assets/<asset-id>/manifest.json` uses `schemaVersion: "repochan.asset-manifest.v1"`. Asset IDs must match `[a-z0-9][a-z0-9-]*`.
+- `orders/<order-id>/order.json` uses `schemaVersion: "repochan.asset-order.v1"`, contains status and `currentVersion`, and owns its result versions. Order IDs must match `ord-[a-z0-9][a-z0-9-]*`.
+- `orders/<order-id>/versions/<version-id>/meta.json` describes a delivered result version. Image/artifact files live directly in that version directory.
 
 ## Workflow Rules
 
 - Persona requires analysis.
 - Orders require analysis and persona.
-- Asset versions require analysis and persona.
-- Painter delivery should reference approved or in-progress orders unless the user explicitly allows an exception.
-- Mutating current artifacts should archive previous state where core helpers support it.
-- Overwrites, destructive updates, order status changes, and changing current asset versions require explicit user approval in agent workflows.
+- Order result versions require analysis, persona, and an approved or in-progress order unless the user explicitly allows an exception.
+- Painter delivery creates an order result version and updates `order.json.currentVersion`.
+- Mutating current artifacts should archive previous JSON state where core helpers support it.
+- Overwrites, destructive updates, order status changes, and changing current order result versions require explicit user approval in agent workflows.
 
 ## Validation
 

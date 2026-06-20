@@ -6,7 +6,7 @@ export default {
   'wizard.select': '选择一个部分:',
   'wizard.analysis': '分析（Analyst）',
   'wizard.persona': '人物档案 / Persona',
-  'wizard.orders': '订单 / 资产',
+  'wizard.orders': '订单 / 结果',
   'wizard.model': '模型（登录 / 选择）',
   'wizard.settings': '设置',
   'wizard.chat': '聊天（未实现）',
@@ -69,22 +69,23 @@ export default {
   'persona.boundaries': '边界',
   'persona.hint': 'u: 重新生成人物档案 • r: 刷新 • Esc/q: 返回（运行中 Esc 取消）',
 
-  // Orders / Assets
+  // Orders / Results
   'orders.title': '=== 订单管理 ===',
   'orders.subtitle': 'Art Director 产出的资产订单。进行中的工作会嵌入 AgentStatus。',
   'orders.empty': '暂无订单。通过 analysis + persona + orders 阶段创建。',
   'orders.hint': '↑↓ 选择 • Enter: 详情 • g: 生成订单 • p: 运行画师 • a: 批准 • r: 刷新 • Esc: 返回/取消',
   'orders.status': '状态: {status}',
   'orders.approved': '已批准 {id}。',
+  'orders.in_progress': '订单 {id} 已设为 in_progress 以允许画师执行。',
   'orders.done': 'Agent 阶段已完成，已刷新订单。',
   'orders.detail.title': '=== 订单详情: {id} ===',
-  'orders.detail.subtitle': '订单 JSON、关联资产版本和画师执行。',
+  'orders.detail.subtitle': '订单 JSON、结果版本和画师执行。',
   'orders.detail.json': '订单 JSON',
-  'orders.detail.images': '关联资产版本 / 文件:',
+  'orders.detail.images': '订单结果版本 / 文件:',
   'orders.detail.no_images': '（暂无关联文件 — 画师可能仍在工作中）',
   'orders.detail.switch_version': 's: 设为当前版本',
   'orders.detail.switched': '当前版本已设为 {id}。',
-  'orders.detail.done': '画师阶段已完成，已刷新订单和资产。',
+  'orders.detail.done': '画师阶段已完成，已刷新订单和结果。',
   'orders.detail.hint': '↑↓ 版本 • p 运行画师 • s 设当前 • r 刷新 • Esc 返回/取消',
 
   // Agent status

@@ -64,9 +64,8 @@ export async function initProtocol(projectRoot: string) {
     r,
     path.join(r, "analysis.versions"),
     path.join(r, "persona", "versions"),
+    path.join(r, "orders"),
     path.join(r, "orders", "batches"),
-    path.join(r, "orders", "versions"),
-    path.join(r, "assets"),
     path.join(r, "notes"),
     path.join(r, "brand-kit"),
   ];
@@ -89,15 +88,31 @@ export async function inspectProtocol(projectRoot: string) {
     summary.personaVersions = [];
   }
   try {
-    summary.orders = (await fs.readdir(path.join(r, "orders"))).filter((f) => f.endsWith(".json"));
+    const orderEntries = await fs.readdir(path.join(r, "orders"), { withFileTypes: true });
+    summary.orders = orderEntries
+      .filter((entry) => entry.isDirectory() && entry.name !== "batches")
+      .map((entry) => entry.name)
+      .sort();
+    summary.orderVersions = Object.fromEntries(
+      await Promise.all(
+        (summary.orders as string[]).map(async (orderId) => {
+          try {
+            const versions = (await fs.readdir(path.join(r, "orders", orderId, "versions"), { withFileTypes: true }))
+              .filter((entry) => entry.isDirectory())
+              .map((entry) => entry.name)
+              .sort();
+            return [orderId, versions];
+          } catch {
+            return [orderId, []];
+          }
+        }),
+      ),
+    );
   } catch {
     summary.orders = [];
+    summary.orderVersions = {};
   }
-  try {
-    summary.assets = await fs.readdir(path.join(r, "assets"));
-  } catch {
-    summary.assets = [];
-  }
+  summary.assets = [];
   return summary;
 }
 
@@ -110,6 +125,32 @@ export function protocolVersionPath(strippedArtifactPath: string, stampValue = s
 
 export function relativeProtocolPath(projectRoot: string, file: string) {
   return path.relative(projectRoot, file).split(path.sep).join("/");
+}
+
+function validateOrderIdForPath(orderId: string) {
+  if (!/^ord-[a-z0-9][a-z0-9-]*$/.test(orderId)) throw new Error("orderId must match ^ord-[a-z0-9][a-z0-9-]*$.");
+  return orderId;
+}
+
+function validateVersionIdForPath(versionId: string) {
+  if (!/^[A-Za-z0-9][A-Za-z0-9_.-]*$/.test(versionId)) throw new Error("versionId must match ^[A-Za-z0-9][A-Za-z0-9_.-]*$.");
+  return versionId;
+}
+
+export function orderDir(projectRoot: string, orderId: string) {
+  return path.join(protocolRoot(projectRoot), "orders", validateOrderIdForPath(orderId));
+}
+
+export function orderJsonPath(projectRoot: string, orderId: string) {
+  return path.join(orderDir(projectRoot, orderId), "order.json");
+}
+
+export function orderVersionsDir(projectRoot: string, orderId: string) {
+  return path.join(orderDir(projectRoot, orderId), "versions");
+}
+
+export function orderVersionDir(projectRoot: string, orderId: string, versionId: string) {
+  return path.join(orderVersionsDir(projectRoot, orderId), validateVersionIdForPath(versionId));
 }
 
 export async function listJsonFiles(dir: string) {

@@ -6,10 +6,9 @@ import {
   isValidOrderStatus,
   requireValidStatus,
   validateOrderId,
-  validateAssetId,
   validateVersionId,
   orderIdsFromParams,
-  areOrdersApprovedForAsset,
+  areOrdersApprovedForExecution,
   ORDER_STATUSES,
 } from '../src/utils/index.js';
 import type { AssetOrder, OrderStatus } from '../src/types.js';
@@ -56,10 +55,7 @@ describe('utils (pure)', () => {
     expect(() => validateOrderId('bad')).toThrow();
     expect(validateOrderId('ord-abc-123')).toBe('ord-abc-123');
 
-    expect(() => validateAssetId('Bad_Id')).toThrow();
-    expect(validateAssetId('readme-hero')).toBe('readme-hero');
-
-    expect(() => validateVersionId('v1')).toBeTruthy();
+    expect(validateVersionId('v1')).toBe('v1');
   });
 
   it('orderIdsFromParams collects and validates ids from various param shapes', () => {
@@ -67,9 +63,9 @@ describe('utils (pure)', () => {
     expect(ids).toEqual(['ord-1', 'ord-2', 'ord-3']);
   });
 
-  it('areOrdersApprovedForAsset respects allowUnapproved', () => {
+  it('areOrdersApprovedForExecution respects allowUnapproved', () => {
     const orders = [{ status: 'approved' }, { status: 'draft' }];
-    expect(areOrdersApprovedForAsset(orders, false)).toBe(false);
-    expect(areOrdersApprovedForAsset(orders, true)).toBe(true);
+    expect(areOrdersApprovedForExecution(orders, false)).toBe(false);
+    expect(areOrdersApprovedForExecution(orders, true)).toBe(true);
   });
 });

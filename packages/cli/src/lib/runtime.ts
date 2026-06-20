@@ -1,7 +1,6 @@
 import path from "node:path";
 import os from "node:os";
 import fs from "node:fs";
-import { fileURLToPath } from "node:url";
 
 import {
   AuthStorage,
@@ -45,7 +44,6 @@ export type RepoChanRuntimeDiagnostics = {
 
 export type RepoChanRuntimeResult = {
   runtime: AgentSessionRuntime;
-  resources: ReturnType<typeof getRepoChanPiResources>;
   authStorage: AuthStorage;
   modelRegistry: ModelRegistry;
   settingsManager: SettingsManager;
@@ -58,19 +56,6 @@ export type RunPhaseArgs = {
   orderId?: string;
   newSession?: boolean;
 };
-
-function getRepoChanPiResources() {
-  const here = path.dirname(fileURLToPath(import.meta.url));
-  const candidates = [
-    path.resolve(here, "../../../pi"),
-    path.resolve(process.cwd(), "packages/pi"),
-  ];
-  const dir = candidates.find((candidate) => fs.existsSync(path.join(candidate, "resources.js"))) ?? candidates[0];
-  return {
-    extensionPath: path.join(dir, "extensions", "repochan.ts"),
-    skillsPath: path.join(dir, "skills"),
-  };
-}
 
 const PHASE_SKILLS: Record<RepoChanPhase, string> = {
   analysis: "repochan-analysis",
@@ -132,7 +117,7 @@ export function buildRepoChanConductorPrompt(initialPrompt?: string) {
     "- Use the loaded RepoChan skills for role-specific work: repochan-analysis, repochan-persona, repochan-art-director, and repochan-painter.",
     "- Use the `repochan` tool for all .repochan protocol reads and writes during agent workflows; do not hand-edit protocol artifacts unless the user explicitly asks for protocol maintenance/migration.",
     "- Recommend the next role only after prerequisite checks: analysis before persona, analysis + persona before orders, approved/in_progress orders before painter execution.",
-    "- Treat overwrites, destructive changes, status changes, allowUnapprovedOrder=true, and changing current asset versions as approval-gated.",
+    "- Treat overwrites, destructive changes, status changes, allowUnapprovedOrder=true, and changing current order result versions as approval-gated.",
     "- Keep each turn focused and stop when the requested phase is complete or blocked.",
     initialPrompt ? `\nInitial user/conductor note:\n${initialPrompt}` : undefined,
   ].filter(Boolean).join("\n");
@@ -152,7 +137,7 @@ export function buildRunPhaseInitialMessage(args: RunPhaseArgs) {
     lines.push("Verify analysis and persona exist first. Create or revise only order artifacts; do not approve orders or begin painter work.");
   } else if (args.phase === "painter") {
     lines.push(`Specific order id for this painter phase: ${args.orderId}`);
-    lines.push("This order must be approved or in_progress before painter execution. Do not work on other orders and do not bypass approval unless the user explicitly approves an exception.");
+    lines.push("This order must be approved or in_progress before painter execution. Save accepted output with repochan action='order.create_result' and do not work on other orders or bypass approval unless the user explicitly approves an exception.");
   }
 
   return lines.join("\n");
@@ -168,7 +153,6 @@ export function buildRunPhaseConductorNote(args: RunPhaseArgs, initialSession: R
 export async function createRepoChanRuntime(options: CreateRepoChanRuntimeOptions = {}): Promise<RepoChanRuntimeResult> {
   const cwd = options.cwd ?? process.cwd();
   const agentDir = options.agentDir ?? OUR_AGENT_DIR;
-  const resources = getRepoChanPiResources();
   const authStorage = AuthStorage.create(path.join(agentDir, "auth.json"));
   const modelRegistry = ModelRegistry.create(authStorage, path.join(agentDir, "models.json"));
   const settingsManager = SettingsManager.create(cwd, agentDir);
@@ -183,9 +167,10 @@ export async function createRepoChanRuntime(options: CreateRepoChanRuntimeOption
       authStorage,
       modelRegistry,
       settingsManager,
+      // No additionalExtensionPaths / additionalSkillPaths — Pi auto-discovers
+      // all resources from settings.json (written by `repochan setup`).
+      // This loads both repochan-pi and image-gen-pi transparently.
       resourceLoaderOptions: {
-        additionalExtensionPaths: [resources.extensionPath],
-        additionalSkillPaths: [resources.skillsPath],
         appendSystemPrompt,
       },
     });
@@ -206,7 +191,6 @@ export async function createRepoChanRuntime(options: CreateRepoChanRuntimeOption
 
   return {
     runtime,
-    resources,
     authStorage,
     modelRegistry,
     settingsManager,

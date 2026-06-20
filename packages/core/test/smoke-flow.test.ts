@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
-  createAssetVersion,
+  createOrderResult,
   createOrders,
   createOrUpdatePersona,
   initProtocol,
@@ -18,7 +18,7 @@ async function tempProject() {
 }
 
 describe("RepoChan protocol smoke flow", () => {
-  it("supports init -> analysis -> persona -> order -> approval -> asset -> validate", async () => {
+  it("supports init -> analysis -> persona -> order -> approval -> order result -> validate", async () => {
     const cwd = await tempProject();
     await initProtocol(cwd);
     await writeJson(path.join(protocolRoot(cwd), "analysis.json"), {
@@ -45,18 +45,18 @@ describe("RepoChan protocol smoke flow", () => {
     expect(orders[0].status).toBe("draft");
 
     await setOrderStatus(cwd, "ord-hero-001", "approved");
-    const asset = await createAssetVersion(cwd, {
-      assetId: "readme-hero",
+    await writeJson(path.join(cwd, "hero-source.json"), { fake: "image" });
+    const result = await createOrderResult(cwd, {
       orderId: "ord-hero-001",
       versionId: "v1",
-      files: ["hero.png"],
+      files: [path.join(cwd, "hero-source.json")],
       promptBrief: "A clean RepoChan README hero.",
     });
-    expect(asset.manifest.currentVersion).toBe("v1");
+    expect(result.order.currentVersion).toBe("v1");
 
     const validation = await validateProtocol(cwd);
     expect(validation.ok).toBe(true);
     expect(validation.checked.orders).toBe(1);
-    expect(validation.checked.assets).toBe(1);
+    expect(validation.checked.results).toBe(1);
   });
 });

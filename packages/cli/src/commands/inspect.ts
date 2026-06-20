@@ -15,5 +15,5 @@ export async function runInspect(cwd: string, options: OutputOptions = {}) {
   bullet("analysis versions", asArray(summary.analysisVersions).length);
   bullet("persona versions", asArray(summary.personaVersions).length);
   bullet("orders", asArray(summary.orders).length);
-  bullet("assets", asArray(summary.assets).length);
+  bullet("order result groups", Object.keys((summary.orderVersions as Record<string, unknown>) ?? {}).length);
 }

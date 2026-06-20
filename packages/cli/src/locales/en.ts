@@ -6,7 +6,7 @@ export default {
   'wizard.select': 'Select a section:',
   'wizard.analysis': 'Analysis (Analyst)',
   'wizard.persona': 'Persona / 人物档案',
-  'wizard.orders': 'Orders / Assets',
+  'wizard.orders': 'Orders / Results',
   'wizard.model': 'Model (login / select)',
   'wizard.settings': 'Settings',
   'wizard.chat': 'Chat (not implemented)',
@@ -69,22 +69,23 @@ export default {
   'persona.boundaries': 'Boundaries',
   'persona.hint': 'u: regenerate Persona • r: refresh • Esc/q: back (Esc cancels while running)',
 
-  // Orders / Assets
+  // Orders / Results
   'orders.title': '=== Orders ===',
   'orders.subtitle': 'Asset orders from the Art Director. In-progress work embeds AgentStatus.',
   'orders.empty': 'No orders found. Create via analysis + persona + orders phase.',
   'orders.hint': '↑↓ select • Enter: detail • g: generate orders • p: run painter • a: approve • r: refresh • Esc: back/cancel',
   'orders.status': 'Status: {status}',
   'orders.approved': 'Approved {id}.',
+  'orders.in_progress': 'Order {id} set to in_progress to allow painter execution.',
   'orders.done': 'Agent phase completed. Refreshed orders.',
   'orders.detail.title': '=== Order Detail: {id} ===',
-  'orders.detail.subtitle': 'Order JSON, linked asset versions, and painter execution.',
+  'orders.detail.subtitle': 'Order JSON, result versions, and painter execution.',
   'orders.detail.json': 'Order JSON',
-  'orders.detail.images': 'Linked asset versions / files:',
+  'orders.detail.images': 'Order result versions / files:',
   'orders.detail.no_images': '(no linked files yet — painter may still be running)',
   'orders.detail.switch_version': 's: set as current version',
   'orders.detail.switched': 'Current version set to {id}.',
-  'orders.detail.done': 'Painter phase completed. Refreshed order and assets.',
+  'orders.detail.done': 'Painter phase completed. Refreshed order and results.',
   'orders.detail.hint': '↑↓ versions • p run painter • s set current • r refresh • Esc back/cancel',
 
   // Agent status

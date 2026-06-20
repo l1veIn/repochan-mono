@@ -4,12 +4,24 @@ export type JsonValue = any;
 export type OrderStatus = "draft" | "approved" | "in_progress" | "delivered" | "needs_revision" | "cancelled";
 export type OrderPriority = "low" | "normal" | "high";
 
+export type OrderResultVersion = JsonObject & {
+  versionId: string;
+  createdAt: string;
+  tool?: string;
+  files: string[];
+  promptBrief?: string;
+  notes?: string;
+  provenance?: JsonObject;
+  meta?: JsonObject;
+};
+
 export type AssetOrder = JsonObject & {
   schemaVersion?: "repochan.asset-order.v1";
   orderId: string;
   batchId?: string;
   requestType: "new_asset" | "revision" | "variant" | "batch_item";
   status?: OrderStatus;
+  currentVersion?: string;
   assetType: string;
   priority?: OrderPriority;
   brief: {
@@ -35,25 +47,12 @@ export type AssetOrder = JsonObject & {
   acceptanceCriteria: string[];
   createdAt?: string;
   updatedAt?: string;
-};
-
-export type VersionEntry = JsonObject & {
-  versionId: string;
-  createdAt: string;
-  tool: string;
-  files: string[];
-  promptBrief: string;
-  notes: string;
-  provenance: JsonObject;
-  meta?: JsonObject;
-};
-
-export type AssetManifest = JsonObject & {
-  schemaVersion: "repochan.asset-manifest.v1";
-  assetId: string;
-  currentVersion?: string;
-  orderIds: string[];
-  versions: VersionEntry[];
-  meta: JsonObject;
-  updatedAt?: string;
+  // orderAsset: the OrderAsset (pictures/products of this order).
+  // Previous separate Asset's information (currentVersion, versions list, meta) is now directly here.
+  // Pictures (OrderAsset versions) live under orders/<orderId>/versions/<versionId>/
+  orderAsset?: {
+    currentVersion?: string;
+    versions?: OrderResultVersion[];
+    meta?: JsonObject;
+  };
 };

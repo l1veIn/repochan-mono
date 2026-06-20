@@ -5,7 +5,7 @@ import { type OnBack, type TuiRef } from "../types.js";
 import { t } from "../i18n.js";
 import { AgentStatus } from "../components/agent-status.js";
 import { OrderDetailPage } from "./order-detail.js";
-import { listOrders, setOrderStatus } from "@repochan/core";
+import { listOrders, readOrder, setOrderStatus } from "@repochan/core";
 import { startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
 
 const theme = {
@@ -21,6 +21,8 @@ type OrderRow = {
   status?: string;
   assetType?: string;
   priority?: string;
+  currentVersion?: string;
+  resultCount?: number;
   file?: string;
   unreadable?: boolean;
 };
@@ -34,6 +36,7 @@ export class OrdersPage implements Component {
   private currentSub: Component | null = null;
   private agentStatus: AgentStatus | null = null;
   private running: RunningRoleSession | null = null;
+  private paintingOrderId?: string;
 
   constructor(private onBack: OnBack, private tuiRef: TuiRef) {
     void this.loadOrders();
@@ -74,7 +77,7 @@ export class OrdersPage implements Component {
   private rebuildList() {
     const items = this.orders.map((o) => ({
       value: o.orderId || o.file || "unknown",
-      label: `${statusBadge(o.status)} ${o.orderId || o.file} · ${o.assetType || "?"} · ${o.priority || "normal"}`,
+      label: `${statusBadge(o.status)} ${o.orderId || o.file} · ${o.assetType || "?"} · ${o.priority || "normal"} · ${o.resultCount ?? 0} result(s)`, 
     }));
     this.list = new SelectList(items.length ? items : [{ value: "empty", label: t("orders.empty") }], 12, {
       selectedPrefix: (s) => theme.accent("> " + s),
@@ -146,8 +149,23 @@ export class OrdersPage implements Component {
   private async runPainterForSelected() {
     const order = this.selectedOrder();
     if (!order?.orderId || this.running) return;
+
+    // Ensure precondition for painter skill: set to in_progress if still draft
+    // (the skill prompt strictly requires approved/in_progress; we make it user-friendly)
+    try {
+      const current = await readOrder(process.cwd(), order.orderId);
+      if (current.status === "draft" || !["approved", "in_progress"].includes(current.status || "")) {
+        await setOrderStatus(process.cwd(), order.orderId, "in_progress");
+        this.statusMsg = t("orders.in_progress", { id: order.orderId });
+        await this.loadOrders();
+      }
+    } catch (e) {
+      // non-fatal
+    }
+
     this.statusMsg = null;
     this.agentStatus?.dispose();
+    this.paintingOrderId = order.orderId;
     this.agentStatus = new AgentStatus({ role: "painter", orderId: order.orderId, onRequestRender: () => this.tuiRef.requestRender() });
     this.tuiRef.requestRender();
     try {
@@ -169,6 +187,16 @@ export class OrdersPage implements Component {
   private async finishRun() {
     this.agentStatus?.markDone();
     this.running = null;
+
+    // For painter runs, ensure the order is marked delivered (the skill should do this,
+    // but we make it robust so status is correct even if agent stopped early)
+    if (this.paintingOrderId) {
+      try {
+        await setOrderStatus(process.cwd(), this.paintingOrderId, "delivered");
+      } catch {}
+      this.paintingOrderId = undefined;
+    }
+
     this.statusMsg = t("orders.done");
     await this.loadOrders();
   }

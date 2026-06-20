@@ -1,11 +1,13 @@
-import { Key, matchesKey, truncateToWidth, type Component } from "@earendil-works/pi-tui";
+import { Key, matchesKey, truncateToWidth, type Component, Image, getCapabilities, setCapabilities } from "@earendil-works/pi-tui";
 import chalk from "chalk";
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 import { type OnBack, type TuiRef } from "../types.js";
 import { t } from "../i18n.js";
 import { AgentStatus } from "../components/agent-status.js";
-import { readOrder, setCurrentAsset } from "@repochan/core";
-import { listAssetsForOrder } from "../lib/protocol.js";
+import { readOrder, setCurrentOrderResult, setOrderStatus, protocolRoot } from "@repochan/core";
+import { listOrderResults } from "../lib/protocol.js";
 import { startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
 
 const theme = {
@@ -16,7 +18,7 @@ const theme = {
 };
 
 type VersionInfo = {
-  assetId: string;
+  orderId: string;
   versionId: string;
   createdAt?: string;
   files?: string[];
@@ -32,6 +34,8 @@ export class OrderDetailPage implements Component {
   private error: string | null = null;
   private agentStatus: AgentStatus | null = null;
   private running: RunningRoleSession | null = null;
+  private currentImageChild: Component | null = null;
+  private lastPreviewKey: string | null = null;
 
   constructor(private onBack: OnBack, private tuiRef: TuiRef, private orderId: string) {
     void this.load();
@@ -44,21 +48,17 @@ export class OrderDetailPage implements Component {
     try {
       const cwd = process.cwd();
       this.order = await readOrder(cwd, this.orderId);
-      const linked = await listAssetsForOrder(cwd, this.orderId);
-      this.versions = [];
-      for (const asset of linked) {
-        for (const v of Array.isArray(asset.manifest.versions) ? asset.manifest.versions : []) {
-          this.versions.push({
-            assetId: asset.assetId,
-            versionId: v.versionId,
-            createdAt: v.createdAt,
-            files: v.files,
-            isCurrent: v.versionId === asset.manifest.currentVersion,
-          });
-        }
-      }
+      const linked = await listOrderResults(cwd, this.orderId);
+      this.versions = linked.results.map((v: any) => ({
+        orderId: this.orderId,
+        versionId: v.versionId,
+        createdAt: v.createdAt,
+        files: v.files,
+        isCurrent: v.versionId === this.order?.currentVersion,
+      }));
       if (this.selectedVersionIdx >= this.versions.length) this.selectedVersionIdx = 0;
       this.syncProtocolAgentStatus();
+      this.updateImagePreview();
     } catch (e: any) {
       this.error = e?.message || String(e);
       this.order = null;
@@ -86,7 +86,10 @@ export class OrderDetailPage implements Component {
   handleInput(data: string): void {
     if (matchesKey(data, Key.escape) || data === "q" || data === "Q") {
       if (this.running) void this.cancelRun();
-      else this.onBack();
+      else {
+        this.cleanupImage();
+        this.onBack();
+      }
       return;
     }
     if (data === "r" || data === "R") void this.load();
@@ -97,15 +100,103 @@ export class OrderDetailPage implements Component {
     if (!n) return;
     if (matchesKey(data, Key.up)) {
       this.selectedVersionIdx = (this.selectedVersionIdx - 1 + n) % n;
+      this.updateImagePreview();
       this.tuiRef.requestRender();
     } else if (matchesKey(data, Key.down)) {
       this.selectedVersionIdx = (this.selectedVersionIdx + 1) % n;
+      this.updateImagePreview();
       this.tuiRef.requestRender();
     }
   }
 
+  private updateImagePreview() {
+    const ver = this.versions[this.selectedVersionIdx];
+    if (!ver || !ver.files?.length) {
+      this.setCurrentImage(null);
+      return;
+    }
+    const imageFile = ver.files.find((f: string) => /\.(png|jpe?g|gif|webp)$/i.test(f));
+    if (!imageFile) {
+      this.setCurrentImage(null);
+      return;
+    }
+    const previewKey = `${ver.orderId}/${ver.versionId}/${imageFile}`;
+    if (previewKey === this.lastPreviewKey) return;
+    this.lastPreviewKey = previewKey;
+
+    const fullPath = path.join(
+      protocolRoot(process.cwd()),
+      "orders",
+      ver.orderId,
+      "versions",
+      ver.versionId,
+      imageFile
+    );
+    if (!fs.existsSync(fullPath)) {
+      this.setCurrentImage(null);
+      return;
+    }
+    try {
+      const buffer = fs.readFileSync(fullPath);
+      const base64 = buffer.toString("base64");
+      const ext = path.extname(fullPath).toLowerCase();
+      const mime =
+        ext === ".png" ? "image/png" :
+        (ext === ".jpg" || ext === ".jpeg") ? "image/jpeg" :
+        ext === ".gif" ? "image/gif" :
+        ext === ".webp" ? "image/webp" : "image/png";
+
+      const imgTheme = {
+        fallbackColor: (s: string) => chalk.gray(s),
+      };
+
+      // Auto enable for common terminals if not detected (like in image-demo.ts)
+      const caps = getCapabilities ? getCapabilities() : { images: null as any };
+      if (!caps.images) {
+        const isWarp = (process.env.TERM_PROGRAM || "").toLowerCase().includes("warp");
+        if (isWarp) {
+          try { setCapabilities({ images: "iterm2", trueColor: true, hyperlinks: true }); } catch {}
+        }
+      }
+
+      const img = new Image(base64, mime, imgTheme, {
+        maxWidthCells: 55,
+        filename: imageFile,
+      });
+      this.setCurrentImage(img);
+    } catch (e) {
+      this.setCurrentImage(null);
+    }
+  }
+
+  private setCurrentImage(img: Component | null) {
+    const tui = this.tuiRef.getTui() as any;
+    if (this.currentImageChild) {
+      try { tui.removeChild(this.currentImageChild); } catch {}
+      this.currentImageChild = null;
+    }
+    if (img) {
+      tui.addChild(img);
+      this.currentImageChild = img;
+    }
+    this.tuiRef.requestRender();
+  }
+
   private async runPainter() {
     if (this.running) return;
+
+    // Ensure precondition for painter skill
+    try {
+      const current = await readOrder(process.cwd(), this.orderId);
+      if (current.status === "draft" || !["approved", "in_progress"].includes(current.status || "")) {
+        await setOrderStatus(process.cwd(), this.orderId, "in_progress");
+        this.statusMsg = t("orders.in_progress", { id: this.orderId });
+        await this.load();
+      }
+    } catch (e) {
+      // non fatal
+    }
+
     this.statusMsg = null;
     this.agentStatus?.dispose();
     this.agentStatus = new AgentStatus({ role: "painter", orderId: this.orderId, onRequestRender: () => this.tuiRef.requestRender() });
@@ -129,8 +220,15 @@ export class OrderDetailPage implements Component {
   private async finishRun() {
     this.agentStatus?.markDone();
     this.running = null;
+
+    // Ensure delivered status after successful painter (robustness)
+    try {
+      await setOrderStatus(process.cwd(), this.orderId, "delivered");
+    } catch {}
+
     this.statusMsg = t("orders.detail.done");
     await this.load();
+    this.updateImagePreview();
   }
 
   private failRun(error: unknown) {
@@ -146,14 +244,24 @@ export class OrderDetailPage implements Component {
     this.agentStatus?.markCancelled();
     this.running = null;
     this.statusMsg = t("agent.status.cancelled");
+    this.cleanupImage();
     this.tuiRef.requestRender();
+  }
+
+  private cleanupImage() {
+    const tui = this.tuiRef.getTui() as any;
+    if (this.currentImageChild) {
+      try { tui.removeChild(this.currentImageChild); } catch {}
+      this.currentImageChild = null;
+    }
+    this.lastPreviewKey = null;
   }
 
   private async switchVersion() {
     const v = this.versions[this.selectedVersionIdx];
     if (!v) return;
     try {
-      await setCurrentAsset(process.cwd(), v.assetId, v.versionId);
+      await setCurrentOrderResult(process.cwd(), this.orderId, v.versionId);
       this.statusMsg = t("orders.detail.switched", { id: v.versionId });
       await this.load();
     } catch (e: any) {
@@ -193,15 +301,23 @@ export class OrderDetailPage implements Component {
     if (this.versions.length === 0) {
       lines.push(theme.dim(t("orders.detail.no_images")));
     } else {
-      lines.push(theme.accent(t("orders.detail.images")));
+      lines.push(theme.accent(t("orders.detail.images") || "OrderAsset versions"));
       this.versions.forEach((ver, i) => {
         const mark = i === this.selectedVersionIdx ? "❯" : " ";
         const cur = ver.isCurrent ? " [current]" : "";
-        lines.push(truncateToWidth(`  ${mark} ${ver.assetId}/${ver.versionId}${cur}`, w, "…"));
+        lines.push(truncateToWidth(`  ${mark} ${ver.versionId}${cur}`, w, "…"));
         if (i === this.selectedVersionIdx && ver.files?.length) {
-          ver.files.forEach((f) => lines.push(truncateToWidth(`      📄 ${f}`, w, "…")));
+          ver.files.forEach((f) => {
+            const fullHint = `      📄 ${f}  (full: .repochan/orders/${this.orderId}/versions/${ver.versionId}/${f})`;
+            lines.push(truncateToWidth(fullHint, w, "…"));
+          });
         }
       });
+    }
+
+    if (this.currentImageChild) {
+      lines.push("");
+      lines.push(theme.dim("--- Image Preview below (pi-tui Image component) ---"));
     }
 
     if (this.statusMsg) {

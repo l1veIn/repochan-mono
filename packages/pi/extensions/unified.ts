@@ -11,22 +11,20 @@ import {
   relativeProtocolPath,
   root,
   safeProtocolPath,
-  validateAssetId,
   validateOrderId,
   validateVersionId,
   writeJson,
   writeAnalysisArtifact,
-  assetManifestPath as coreAssetManifestPath,
-  createAssetVersion as coreCreateAssetVersion,
+  createOrderResult as coreCreateOrderResult,
   createOrders as coreCreateOrders,
   createOrUpdatePersona as coreCreateOrUpdatePersona,
-  listAssets as coreListAssets,
+  listOrderResults as coreListOrderResults,
   listOrders as coreListOrders,
   readOrder as coreReadOrder,
-  setCurrentAsset as coreSetCurrentAsset,
+  readOrderResult as coreReadOrderResult,
+  setCurrentOrderResult as coreSetCurrentOrderResult,
   setOrderStatus as coreSetOrderStatus,
   addOrderRevision as coreAddOrderRevision,
-  updateAssetMeta as coreUpdateAssetMeta,
   updateOrder as coreUpdateOrder,
   type OrderStatus,
 } from "@repochan/core";
@@ -44,11 +42,10 @@ const ActionSchema = Type.Union([
   Type.Literal("order.update"),
   Type.Literal("order.set_status"),
   Type.Literal("order.add_revision"),
-  Type.Literal("asset.list"),
-  Type.Literal("asset.get"),
-  Type.Literal("asset.create_version"),
-  Type.Literal("asset.set_current"),
-  Type.Literal("asset.update_meta"),
+  Type.Literal("order.create_result"),
+  Type.Literal("order.list_results"),
+  Type.Literal("order.set_current_result"),
+  Type.Literal("order.get_result"),
   Type.Literal("protocol.inspect"),
   Type.Literal("protocol.read"),
   Type.Literal("protocol.write"),
@@ -79,10 +76,6 @@ function requireString(params: JsonObject, key: string) {
 function optionalBoolean(params: JsonObject, key: string, defaultValue = false) {
   const value = params[key];
   return typeof value === "boolean" ? value : defaultValue;
-}
-
-function assetIdFromParams(params: JsonObject) {
-  return validateAssetId(requireString(params, "assetId"));
 }
 
 function requireOrderId(params: JsonObject) {
@@ -133,28 +126,33 @@ async function addOrderRevision(ctx: ExtensionContext, params: JsonObject) {
   return ok(`Added revision request to ${orderId}.`, order);
 }
 
-async function listAssets(ctx: ExtensionContext) {
-  const { assets } = await coreListAssets(ctx.cwd);
-  return ok(assets.length ? assets.map((a) => `${a.assetId}\t${a.currentVersion ?? ""}\t${a.versionCount} version(s)`).join("\n") : "No assets found.", { assets });
+async function createOrderResult(ctx: ExtensionContext, params: JsonObject) {
+  const orderId = requireOrderId(params);
+  const result = await coreCreateOrderResult(ctx.cwd, { ...params, orderId });
+  return ok(`Created order result ${orderId}/${result.version.versionId}.`, result);
 }
 
-async function createAssetVersion(ctx: ExtensionContext, params: JsonObject) {
-  const assetId = assetIdFromParams(params);
-  const result = await coreCreateAssetVersion(ctx.cwd, { ...params, assetId });
-  return ok(`Created asset version ${assetId}/${result.version.versionId}.`, result);
+async function listOrderResults(ctx: ExtensionContext, params: JsonObject) {
+  const orderId = requireOrderId(params);
+  const result = await coreListOrderResults(ctx.cwd, orderId);
+  return ok(
+    result.results.length ? result.results.map((v) => `${v.versionId}\t${v.createdAt ?? ""}\t${v.files?.length ?? 0} file(s)`).join("\n") : "No order results found.",
+    result,
+  );
 }
 
-async function setCurrentAsset(ctx: ExtensionContext, params: JsonObject) {
-  const assetId = assetIdFromParams(params);
+async function setCurrentOrderResult(ctx: ExtensionContext, params: JsonObject) {
+  const orderId = requireOrderId(params);
   const versionId = requireVersionId(requireString(params, "versionId"));
-  const manifest = await coreSetCurrentAsset(ctx.cwd, assetId, versionId);
-  return ok(`Set ${assetId} currentVersion to ${versionId}.`, manifest);
+  const order = await coreSetCurrentOrderResult(ctx.cwd, orderId, versionId);
+  return ok(`Set ${orderId} currentVersion to ${versionId}.`, order);
 }
 
-async function updateAssetMeta(ctx: ExtensionContext, params: JsonObject) {
-  const assetId = assetIdFromParams(params);
-  const next = await coreUpdateAssetMeta(ctx.cwd, { ...params, assetId });
-  return ok(`Updated asset manifest metadata for ${assetId}.`, next);
+async function getOrderResult(ctx: ExtensionContext, params: JsonObject) {
+  const orderId = requireOrderId(params);
+  const versionId = typeof params.versionId === "string" && params.versionId ? requireVersionId(params.versionId) : undefined;
+  const result = await coreReadOrderResult(ctx.cwd, orderId, versionId);
+  return ok(JSON.stringify(result, null, 2), result);
 }
 
 async function protocolRead(ctx: ExtensionContext, params: JsonObject) {
@@ -181,15 +179,15 @@ export function registerRepoChan(pi: ExtensionAPI) {
     name: "repochan",
     label: "RepoChan",
     description:
-      "Unified RepoChan management surface for all .repochan entities. This is the single public tool for deterministic analysis, persona artifacts, asset orders, delivered assets, and protocol-safe reads/writes/versioning. Use action strings like 'analysis.run', 'persona.get', 'order.list', and 'asset.create_version' with action-specific params.",
+      "Unified RepoChan management surface for all .repochan entities. This is the single public tool for deterministic analysis, persona artifacts, orders, order result versions, and protocol-safe reads/writes/versioning. Use action strings like 'analysis.run', 'persona.get', 'order.list', and 'order.create_result' with action-specific params.",
     promptSnippet:
-      "Manage all .repochan analysis, persona, order, asset, and protocol artifacts through one action-based tool.",
+      "Manage all .repochan analysis, persona, order, order-result, and protocol artifacts through one action-based tool.",
     promptGuidelines: [
       "Use repochan as the only RepoChan management tool. Do not look for repochan_protocol_helpers, repochan_analyze, repochan_generate_persona, repochan_create_orders, or repochan_manage_orders; those actions now live under this unified tool.",
-      "RepoChan pre-checks that skills describe in text should be performed through repochan itself: call action='protocol.inspect' for workspace state, action='analysis.get' to verify analysis, action='persona.get' to verify persona, action='order.list' or action='order.get' to verify order existence/status, and action='asset.list' or action='asset.get' to verify delivered assets.",
+      "RepoChan pre-checks that skills describe in text should be performed through repochan itself: call action='protocol.inspect' for workspace state, action='analysis.get' to verify analysis, action='persona.get' to verify persona, action='order.list' or action='order.get' to verify order existence/status, and action='order.list_results' or action='order.get_result' to verify delivered order results.",
       "repochan is the single management surface for agents and future dashboards/panels. Prefer it over ad-hoc shell scripts for .repochan reads, writes, version lists, order status changes, revision capture, and deterministic repository analysis.",
       "Safety: repochan refuses blind overwrites. When an action has params.overwrite, set it to true only after explicit user approval. Mutating current artifacts archives prior state where appropriate; keep params.versionPrevious=true unless the user asks otherwise.",
-      "Safety: keep provenance. persona.create/persona.update and asset.create_version add provenance when absent; pass params.provenance when an external generator, dashboard, or human produced the artifact.",
+      "Safety: keep provenance. persona.create/persona.update and order.create_result add provenance when absent; pass params.provenance when an external generator, dashboard, or human produced the artifact.",
       "Safety: protocol paths are constrained to .repochan. protocol.write and protocol.append_version must not be used to bypass entity-specific preconditions unless the user explicitly asks for protocol-level maintenance/migration.",
       "analysis.run params: optional { analysis, overwrite=false, versionPrevious=true, corePaths, focusAreas, includeSections, maxSampleFiles, maxSampleChars, perFileSampleChars, colorScanLimit, includeFileLists=true }. Runs deterministic file walking, git profile, color extraction, tech-stack detection, docs summary, inventory counts, and desensitized code sampling, then writes .repochan/analysis.json. If analysis exists, ask before overwrite=true.",
       "analysis.get params: {}. Reads .repochan/analysis.json. Use before persona work when you need the upstream analysis. Fails if missing.",
@@ -197,18 +195,17 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "persona.get params: optional { versionId }. Without versionId, reads .repochan/persona/current.json. With versionId, reads .repochan/persona/versions/<versionId>.json (the .json suffix is optional). Use as the persona pre-flight before order or painter work.",
       "persona.create params: { persona, slug?, overwrite=false, versionPrevious=true, provenance? }. Requires analysis. Writes persona/current.json and a persona/versions/<timestamp>-<slug>.json copy. If current exists, ask before overwrite=true.",
       "persona.update params: { persona, slug?, overwrite=true, versionPrevious=true, provenance? }. Requires analysis and an existing persona/current.json. Archives previous current when versionPrevious is not false, then replaces current and writes a new version. Always obtain user approval before overwrite=true.",
-      "order.list params: {}. Lists .repochan/orders/*.json with orderId, status, assetType, and priority. Use to choose orders and check approval state.",
-      "order.get params: { orderId }. Reads .repochan/orders/<orderId>.json. Use before Painter execution to verify status and brief.",
+      "order.list params: {}. Lists .repochan/orders/<orderId>/order.json with orderId, status, assetType, priority, currentVersion, and result count. Use to choose orders and check approval state.",
+      "order.get params: { orderId }. Reads .repochan/orders/<orderId>/order.json. Use before Painter execution to verify status and brief.",
       "order.create params: { order } or { orders: [...] }, optional { batchId, overwrite=false }. Requires analysis and persona. Normalizes schemaVersion, status=draft, priority=normal, timestamps, and optional batch file. Use for Art Director outputs, not final image generation.",
-      "order.update params: { orderId, patch } or { orderId, order }, plus overwrite=true. Deep-merges the patch into the existing order, archives the previous order under orders/versions/<orderId>/, and updates updatedAt. Use only after explicit approval; use order.set_status or order.add_revision for narrow routine changes.",
+      "order.update params: { orderId, patch } or { orderId, order }, plus overwrite=true. Deep-merges the patch into the existing order, archives the previous order under orders/<orderId>/versions/<timestamp>-order.json, and updates updatedAt. Use only after explicit approval; use order.set_status or order.add_revision for narrow routine changes.",
       "order.set_status params: { orderId, status }. status must be one of draft, approved, in_progress, delivered, needs_revision, cancelled. Archives the previous order and updates status/updatedAt.",
       "order.add_revision params: { orderId, revisionRequest }. Records the user's revision text verbatim in order.revisions, archives the previous order, sets status=needs_revision, and updates updatedAt.",
-      "asset.list params: {}. Lists asset manifests under .repochan/assets/<assetId>/manifest.json with currentVersion and version count.",
-      "asset.get params: { assetId }. Reads .repochan/assets/<assetId>/manifest.json. Use before revisions, set_current, or brand-kit decisions.",
-      "asset.create_version params: { assetId, orderId? or orderIds?, files?, versionId?, tool?, promptBrief?, notes?, meta?, provenance?, setCurrent=true, overwrite=false, allowUnapprovedOrder=false }. Requires analysis and persona. If orderIds are provided, their statuses must be approved or in_progress unless allowUnapprovedOrder=true was explicitly approved. Creates assets/<assetId>/versions/<versionId>/meta.json and appends to manifest.json.",
-      "asset.set_current params: { assetId, versionId }. Requires an existing manifest and version. Archives the previous manifest then updates currentVersion.",
-      "asset.update_meta params: { assetId, meta } or { assetId, patch }, plus overwrite=true. Archives the previous manifest and deep-merges metadata/patch into manifest.json. Obtain user approval before overwrite=true.",
-      "protocol.inspect params: {}. Inspects .repochan existence, current analysis/persona, analysis/persona versions, order files, and asset directories without creating or mutating files.",
+      "order.create_result params: { orderId, files?, versionId?, tool?, promptBrief?, notes?, meta?, provenance?, setCurrent=true, overwrite=false, allowUnapprovedOrder=false, markDelivered=true }. Requires analysis, persona, and an approved/in_progress order unless allowUnapprovedOrder=true was explicitly approved. Creates orders/<orderId>/versions/<versionId>/meta.json, copies provided files into that version directory when possible, updates order.currentVersion, and normally marks the order delivered.",
+      "order.list_results params: { orderId }. Lists result versions under .repochan/orders/<orderId>/versions/.",
+      "order.get_result params: { orderId, versionId? }. Reads a result version meta/files. Without versionId, reads order.currentVersion.",
+      "order.set_current_result params: { orderId, versionId }. Requires an existing result version. Archives the previous order then updates order.currentVersion.",
+      "protocol.inspect params: {}. Inspects .repochan existence, current analysis/persona, analysis/persona versions, order directories, and order result versions without creating or mutating files.",
       "protocol.read params: { artifactPath }. Safely reads a JSON artifact inside .repochan. artifactPath may be '.repochan/analysis.json' or a path relative to .repochan.",
       "protocol.write params: { artifactPath, data, overwrite=false }. Safely writes JSON inside .repochan, creating parent directories. Use entity actions first; use protocol.write only for migrations, notes, manifests, or user-directed maintenance. Ask before overwrite=true.",
       "protocol.append_version params: { artifactPath, data? }. Writes data to the conventional version location for artifactPath. If data is omitted, reads artifactPath and snapshots its current JSON. Never overwrites existing version files.",
@@ -255,19 +252,14 @@ export function registerRepoChan(pi: ExtensionAPI) {
           return setOrderStatus(ctx, params);
         case "order.add_revision":
           return addOrderRevision(ctx, params);
-        case "asset.list":
-          return listAssets(ctx);
-        case "asset.get": {
-          const assetId = assetIdFromParams(params);
-          const data = await readJson(coreAssetManifestPath(ctx.cwd, assetId));
-          return ok(JSON.stringify(data, null, 2), data);
-        }
-        case "asset.create_version":
-          return createAssetVersion(ctx, params);
-        case "asset.set_current":
-          return setCurrentAsset(ctx, params);
-        case "asset.update_meta":
-          return updateAssetMeta(ctx, params);
+        case "order.create_result":
+          return createOrderResult(ctx, params);
+        case "order.list_results":
+          return listOrderResults(ctx, params);
+        case "order.set_current_result":
+          return setCurrentOrderResult(ctx, params);
+        case "order.get_result":
+          return getOrderResult(ctx, params);
         case "protocol.inspect": {
           const summary = await inspectProtocol(ctx.cwd);
           return ok(JSON.stringify(summary, null, 2), summary);
