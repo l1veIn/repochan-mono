@@ -42,10 +42,12 @@ Repository evidence is soil for the character, not a cage. Follow these rules st
 3. **README 文风映射性格**：README 的语气（幽默/严谨/热情/极简）应该映射到角色的性格底色，而不是功能列表。
 
 4. **能力命名要有二次元味道**：
-   - ✅ "灵视·代码读心"、"形代纺·资产召唤"
-   - ❌ "Repository Insight"、"Asset Pipeline"、"Layered Architecture"
+   - ✅ 用项目信号做灵感，起有中二感的名字（如"XX·YY"格式，结合项目特性）
+   - ❌ 直接用工程术语（如 "Repository Insight"、"Asset Pipeline"、"Layered Architecture"）
 
 5. **设计说明给后续资产复用**：designNotes 应该是给 Logo/Banner/表情包复用的视觉规范，不是角色自述。
+
+6. **禁止直白的计算机符号作为配件或视觉母题**：不要默认使用光标(cursor)、代码块(code block)、终端(terminal)、像素(pixel)、命令行等计算机符号作为角色的耳环、饰品、发光元素或标志性图案。每个项目的角色应该有从项目独特气质生发出来的原创视觉符号，而不是套用"代码项目=光标耳坠"这种通用模板。如果确实要融入科技元素，应该把它转化为更有想象力的形态（比如把"版本控制"变成"记录时间的发条怀表"，而不是"Git logo 胸针"）。
 
 ## Character flaws (角色缺点 / 萌点)
 
@@ -99,16 +101,16 @@ Generate a flat JSON object matching `PersonaData`. Save via `repochan action="p
   "accentColors": ["#EC4899", "#6366F1"],
 
   "appearance": "外貌描述（用用户选择的语言）",
-  "hairColor": "银白渐变为薄荷绿",
-  "eyeColor": "左青绿右深蓝（异色瞳）",
+  "hairColor": "发色描述：渐变、材质、发梢颜色等",
+  "eyeColor": "瞳色描述：单色或异色瞳，含高光形状",
   "outfit": "服装分层描述：外层、内层、下装、鞋，含材质",
-  "accessories": ["发光终端光标耳坠", "水晶吊牌", "指尖的像素光点"],
-  "keyMotifs": ["发光终端光标", "环形法阵", "树形图"],
+  "accessories": ["配饰1（材质+造型描述）", "配饰2", "配饰3"],
+  "keyMotifs": ["视觉母题1", "视觉母题2", "视觉母题3"],
 
-  "signaturePose": "肢体级精确：单手托起一团发光能量体，另一只手轻触其边缘",
-  "signatureAction": "叙事性动作：指尖轻点，代码如粒子般散开又重新凝聚",
+  "signaturePose": "肢体级精确的姿势描述（手、脚、身体角度）",
+  "signatureAction": "叙事性动作描述",
 
-  "abilities": ["灵视·代码读心", "形代纺·资产召唤"],
+  "abilities": ["二次元命名的能力1", "二次元命名的能力2"],
   "designNotes": "给后续资产复用的视觉规范",
 
   "rolePrompt": "ALWAYS English. 80-150 words. Comma-separated tag phrases. Order: appearance → outfit → accessories → signature pose. NO quality tags. NO background/scene/lighting description. Only character visual features.",
