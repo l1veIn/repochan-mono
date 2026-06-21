@@ -48,8 +48,6 @@ describe('protocol primitives', () => {
       path.join(r, 'persona', 'versions'),
       path.join(r, 'orders'),
       path.join(r, 'orders', 'batches'),
-      path.join(r, 'notes'),
-      path.join(r, 'brand-kit'),
     ];
 
     for (const d of expectedDirs) {

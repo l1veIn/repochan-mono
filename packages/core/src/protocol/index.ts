@@ -66,8 +66,6 @@ export async function initProtocol(projectRoot: string, options?: { language?: "
     path.join(r, "persona", "versions"),
     path.join(r, "orders"),
     path.join(r, "orders", "batches"),
-    path.join(r, "notes"),
-    path.join(r, "brand-kit"),
   ];
   await Promise.all(dirs.map((dir) => fs.mkdir(dir, { recursive: true })));
 

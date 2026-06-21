@@ -34,8 +34,6 @@ You are the Protocol Steward. Ensure RepoChan state is durable, inspectable, ver
           meta.json
           hero.png
     batches/
-  notes/
-  brand-kit/
 ```
 
 `order.json` contains the full order data, `status`, and `currentVersion`. Result files live directly inside the selected order's `versions/<version-id>/` directory.

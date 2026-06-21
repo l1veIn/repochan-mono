@@ -6,7 +6,7 @@ RepoChan turns a repository into an inspectable mascot and brand-asset workflow.
 
 - `packages/cli` — `repochan`, the user-facing CLI. Running `repochan` starts the first-run wizard: Pi setup, analysis, persona, first asset order, Painter, then the RepoChan app.
 - `packages/core` — `@repochan/core`, a pure TypeScript library for the `.repochan/` protocol, schemas, validation, deterministic analysis, and entity operations.
-- `packages/pi` — `repochan-pi`, the Pi package that registers the unified `repochan` tool, `/repochan_panel`, and role skills.
+- `packages/pi` — `repochan-pi`, the Pi package that registers the unified `repochan` tool, `/order_panel`, and role skills.
 
 ## User Entry Points
 

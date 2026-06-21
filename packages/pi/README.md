@@ -78,9 +78,7 @@ The core tool + skills are lightweight and do not depend on Pi TUI internals.
 
 ## TUI result browsing
 
-Order result browsing is now order-centric. Use the CLI/TUI order detail page or the unified tool actions `order.list_results`, `order.get_result`, and `order.set_current_result`.
-
-The legacy `/repochan_panel` command is retained only as a notice that separate asset manifests have been removed.
+Order result browsing is order-centric. Use the `/order_panel [order-id]` command to open an interactive TUI that lists orders, their result versions, inline image previews, and version meta. The CLI also exposes an order detail page and the unified tool actions `order.list_results`, `order.get_result`, and `order.set_current_result`.
 
 ## Protocol
 

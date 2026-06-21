@@ -19,8 +19,6 @@
           meta.json
           hero.png
     batches/
-  notes/
-  brand-kit/
 ```
 
 ## Artifacts

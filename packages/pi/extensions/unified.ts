@@ -339,7 +339,7 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "Order references field: Each order may include a `references` array of { orderId, versionId?, role } entries. When present, the Painter resolves them via action='order.resolve_references' and passes the resulting image files as reference images to the image generation tool. Orders with assetType 'foundation_sheet' or 'cover_sheet' do NOT need references — they ARE the anchor.",
       "protocol.inspect params: {}. Inspects .repochan existence, current analysis/persona, analysis/persona versions, order directories, and order result versions without creating or mutating files.",
       "protocol.read params: { artifactPath }. Safely reads a JSON artifact inside .repochan. artifactPath may be '.repochan/analysis.json' or a path relative to .repochan.",
-      "protocol.write params: { artifactPath, data, overwrite=false }. Safely writes JSON inside .repochan, creating parent directories. Use entity actions first; use protocol.write only for migrations, notes, manifests, or user-directed maintenance. Ask before overwrite=true.",
+      "protocol.write params: { artifactPath, data, overwrite=false }. Safely writes JSON inside .repochan, creating parent directories. Use entity actions first; use protocol.write only for migrations, manifests, or user-directed maintenance. Ask before overwrite=true.",
       "protocol.append_version params: { artifactPath, data? }. Writes data to the conventional version location for artifactPath. If data is omitted, reads artifactPath and snapshots its current JSON. Never overwrites existing version files.",
     ],
     parameters: RepoChanSchema,

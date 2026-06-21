@@ -57,12 +57,22 @@ export type RunPhaseArgs = {
   newSession?: boolean;
 };
 
-const PHASE_SKILLS: Record<RepoChanPhase, string> = {
-  analysis: "repochan-analysis",
-  persona: "repochan-persona",
-  orders: "repochan-art-director",
-  painter: "repochan-painter",
+// Each role is driven by its Pi skill via the /skill: command, which Pi expands
+// to the full skill content (same path as a user typing /skill:xxx in the TUI).
+// Only painter needs a runtime argument (which order to execute); the other
+// roles are fully self-describing once their skill is activated.
+const PHASE_SKILL_COMMANDS: Record<RepoChanPhase, string> = {
+  analysis: "/skill:repochan-analysis",
+  persona: "/skill:repochan-persona",
+  orders: "/skill:repochan-art-director",
+  painter: "/skill:repochan-painter",
 };
+
+export function buildSkillPrompt(phase: RepoChanPhase, opts?: { orderId?: string; goal?: string }): string {
+  const cmd = PHASE_SKILL_COMMANDS[phase];
+  if (phase === "painter" && opts?.orderId) return `${cmd} execute order ${opts.orderId}`;
+  return cmd;
+}
 
 let cachedSetupRuntime: any = null;
 let setupRuntimePromise: Promise<any> | null = null;
@@ -113,42 +123,12 @@ export function buildRepoChanConductorPrompt(initialPrompt?: string) {
   return [
     "## RepoChan CLI conductor",
     "- You are the coordinator for a manual, user-controlled RepoChan workflow. Do not auto-chain Analyst → Persona → Art Director → Painter.",
-    "- Always begin by inspecting .repochan protocol state with the `repochan` tool action='protocol.inspect' before choosing or suggesting the next step.",
-    "- Use the loaded RepoChan skills for role-specific work: repochan-analysis, repochan-persona, repochan-art-director, and repochan-painter.",
-    "- Use the `repochan` tool for all .repochan protocol reads and writes during agent workflows; do not hand-edit protocol artifacts unless the user explicitly asks for protocol maintenance/migration.",
-    "- Recommend the next role only after prerequisite checks: analysis before persona, analysis + persona before orders, approved/in_progress orders before painter execution.",
     "- Treat overwrites, destructive changes, status changes, allowUnapprovedOrder=true, and changing current order result versions as approval-gated.",
     "- Keep each turn focused and stop when the requested phase is complete or blocked.",
     initialPrompt ? `\nInitial user/conductor note:\n${initialPrompt}` : undefined,
   ].filter(Boolean).join("\n");
 }
 
-export function buildRunPhaseInitialMessage(args: RunPhaseArgs) {
-  const lines = [
-    `You are executing a single constrained phase: ${args.phase}. Use the matching RepoChan skill (${PHASE_SKILLS[args.phase]}). Use the repochan tool (action=...) for ALL .repochan writes and state changes. Respect preconditions strictly. Complete only this phase and stop when done. Ask user for approval before any overwrite or destructive step.`,
-  ];
-
-  if (args.phase === "analysis") {
-    lines.push("For this phase, inspect state first and then perform only the analysis workflow, normally through repochan action='analysis.run'.");
-  } else if (args.phase === "persona") {
-    lines.push("For this phase, verify analysis exists first, then perform only persona work and stop after persona persistence or the required approval question.");
-  } else if (args.phase === "orders") {
-    lines.push(`Goal for this orders phase: ${args.goal || "Create the next useful RepoChan asset orders for this repository."}`);
-    lines.push("Verify analysis and persona exist first. Create or revise only order artifacts; do not approve orders or begin painter work.");
-  } else if (args.phase === "painter") {
-    lines.push(`Specific order id for this painter phase: ${args.orderId}`);
-    lines.push("This order must be approved or in_progress before painter execution. Save accepted output with repochan action='order.create_result' and do not work on other orders or bypass approval unless the user explicitly approves an exception.");
-  }
-
-  return lines.join("\n");
-}
-
-export function buildRunPhaseConductorNote(args: RunPhaseArgs, initialSession: RepoChanSessionMode) {
-  return [
-    `This is RepoChan CLI single-phase mode for phase '${args.phase}'. Session policy: ${initialSession === "new" ? "start a new phase session" : "continue the latest RepoChan session"}.`,
-    "Do not auto-chain into any other RepoChan phase. Keep the agent constrained to the requested phase and stop when it is complete or blocked.",
-  ].join("\n");
-}
 
 export async function createRepoChanRuntime(options: CreateRepoChanRuntimeOptions = {}): Promise<RepoChanRuntimeResult> {
   const cwd = options.cwd ?? process.cwd();
@@ -205,11 +185,14 @@ export async function createRepoChanRuntime(options: CreateRepoChanRuntimeOption
 
 export async function createRunPhaseRuntime(options: RunPhaseArgs & { cwd?: string; agentDir?: string }) {
   const initialSession: RepoChanSessionMode = options.newSession ? "new" : "continue";
+  const phaseNote = initialSession === "new"
+    ? `RepoChan CLI single-phase mode for phase '${options.phase}'. Start a new phase session; do not auto-chain into any other phase.`
+    : `RepoChan CLI single-phase mode for phase '${options.phase}'. Continue the latest RepoChan session; do not auto-chain into any other phase.`;
   return createRepoChanRuntime({
     cwd: options.cwd ?? process.cwd(),
     agentDir: options.agentDir,
     initialSession,
-    initialConductorPrompt: buildRunPhaseConductorNote(options, initialSession),
+    initialConductorPrompt: phaseNote,
   });
 }
 
@@ -223,7 +206,7 @@ export type RunningRoleSession = {
 export async function startRoleSession(args: RunPhaseArgs & { cwd?: string; onDone?: () => void; onError?: (error: unknown) => void }): Promise<RunningRoleSession> {
   const runtimeResult = await createRunPhaseRuntime({ ...args, cwd: args.cwd ?? process.cwd(), newSession: args.newSession ?? true });
   const session = runtimeResult.runtime.session;
-  const done = session.prompt(buildRunPhaseInitialMessage(args)).then(
+  const done = session.prompt(buildSkillPrompt(args.phase, { orderId: args.orderId, goal: args.goal })).then(
     () => { args.onDone?.(); },
     (error: unknown) => { args.onError?.(error); throw error; },
   );
