@@ -1,5 +1,7 @@
 # RepoChan Monorepo
 
+[中文文档](./README_zh.md)
+
 RepoChan turns a git repository into a living mascot persona and consistent visual brand assets (hero images, icons, stickers, etc.). It follows a **manual, user-controlled** creative pipeline: Analyst → Creative Writer → Art Director → Painter. Each role is a separate Pi skill that checks prerequisites before it works and asks before overwriting.
 
 This monorepo contains four packages that share a stable `.repochan/` on-disk protocol.
