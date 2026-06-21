@@ -181,8 +181,9 @@ When an output is accepted:
 
 1. Save binary image files as a result version under `.repochan/orders/<order-id>/versions/<version-id>/` using `repochan` action `order.create_result` with `{ orderId, files, versionId?, tool?, promptBrief?, notes?, meta?, provenance?, setCurrent: true }`.
 2. Record in `meta.json` whether reference images were used, and which foundation/order they came from.
-3. Update the order status and delivery notes; `order.create_result` normally marks the order delivered.
-4. Preserve prior versions and never overwrite an existing result version without explicit user approval.
+3. **Never store absolute filesystem paths in `meta`** (e.g. the image-gen-pi cache path like `~/.pi/...` or `/Users/.../generated-images/...`). The image is already copied into the version directory by `order.create_result`; `meta` should only contain portable information: `referenceImagesUsed` (boolean), `references` (orderId/role list), `templateId`, `aspectRatio`, `safetyConstraintsApplied`.
+4. Update the order status and delivery notes; `order.create_result` normally marks the order delivered.
+5. Preserve prior versions and never overwrite an existing result version without explicit user approval.
 
 ## Example execution flow
 

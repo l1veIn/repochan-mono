@@ -18,7 +18,6 @@
         <version-id>/
           meta.json
           hero.png
-    batches/
 ```
 
 ## Artifacts

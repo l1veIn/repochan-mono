@@ -33,7 +33,7 @@ describe('entities (core business operations)', () => {
     await fs.rm(tmpRoot, { recursive: true, force: true });
   });
 
-  it('createOrders writes normalized orders and optional batch', async () => {
+  it('createOrders writes normalized orders', async () => {
     const res = await createOrders(projectRoot, {
       orders: [
         {
@@ -45,7 +45,6 @@ describe('entities (core business operations)', () => {
           acceptanceCriteria: [],
         },
       ],
-      batchId: 'batch-demo-001',
     });
 
     expect(res.orders.length).toBe(1);
@@ -56,7 +55,7 @@ describe('entities (core business operations)', () => {
     expect(listed.orders.some((o: any) => o.orderId === 'ord-test-001')).toBe(true);
   });
 
-  it('setOrderStatus updates status and archives previous', async () => {
+  it('setOrderStatus updates status in place', async () => {
     await createOrders(projectRoot, {
       orders: [
         {
@@ -70,19 +69,11 @@ describe('entities (core business operations)', () => {
       ],
     });
 
-    const before = await listOrders(projectRoot);
-    const beforeFile = before.orders.find((o: any) => o.orderId === 'ord-test-002');
-
     await setOrderStatus(projectRoot, 'ord-test-002', 'approved');
 
     const after = await listOrders(projectRoot);
     const afterOrder = after.orders.find((o: any) => o.orderId === 'ord-test-002');
     expect(afterOrder.status).toBe('approved');
-
-    // version archive should exist
-    const versionsDir = path.join(projectRoot, '.repochan', 'orders', 'ord-test-002', 'versions');
-    const hasVersion = await fs.readdir(versionsDir).then((f) => f.length > 0).catch(() => false);
-    expect(hasVersion).toBe(true);
   });
 
   it('createOrderResult enforces approved orders and writes result version', async () => {

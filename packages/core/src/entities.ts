@@ -24,16 +24,9 @@ import {
   normalizeOrder,
   normalizeReferences,
   requireValidStatus,
-  validateBatchId,
   validateOrderId,
   validateVersionId,
 } from "./utils/index.js";
-
-export async function archiveOrder(projectRoot: string, orderId: string, order: unknown) {
-  const archive = path.join(orderVersionsDir(projectRoot, validateOrderId(orderId)), `${stampForPath()}-order.json`);
-  await writeJson(archive, order, false);
-  return archive;
-}
 
 export async function readOrder(projectRoot: string, orderId: string) {
   return readJson(orderJsonPath(projectRoot, validateOrderId(orderId)));
@@ -86,17 +79,12 @@ export async function createOrders(projectRoot: string, params: JsonObject) {
   await requirePersona(projectRoot);
   const inputOrders = Array.isArray(params.orders) ? params.orders : params.order ? [params.order] : undefined;
   if (!inputOrders?.length) throw new Error("order.create requires params.order or params.orders.");
-  if (params.batchId) validateBatchId(String(params.batchId));
-  const orders = inputOrders.map((order) => normalizeOrder(order as AssetOrder, params.batchId));
+  const orders = inputOrders.map((order) => normalizeOrder(order as AssetOrder));
   for (const order of orders) validateOrderId(order.orderId);
   const overwrite = params.overwrite === true;
   for (const order of orders) {
     const file = orderJsonPath(projectRoot, order.orderId);
     if ((await exists(file)) && !overwrite) throw new Error(`Order ${order.orderId} already exists. Ask before overwrite=true.`);
-  }
-  if (params.batchId) {
-    const batchFile = path.join(protocolRoot(projectRoot), "orders", "batches", `${params.batchId}.json`);
-    if ((await exists(batchFile)) && !overwrite) throw new Error(`Order batch ${params.batchId} already exists. Ask before overwrite=true.`);
   }
   const written: string[] = [];
   for (const order of orders) {
@@ -104,13 +92,6 @@ export async function createOrders(projectRoot: string, params: JsonObject) {
     await fs.mkdir(orderVersionsDir(projectRoot, order.orderId), { recursive: true });
     await writeJson(file, order, overwrite);
     written.push(relativeProtocolPath(projectRoot, file));
-  }
-  if (params.batchId) {
-    await writeJson(
-      path.join(protocolRoot(projectRoot), "orders", "batches", `${params.batchId}.json`),
-      { schemaVersion: "repochan.order-batch.v1", batchId: params.batchId, orderIds: orders.map((o) => o.orderId), createdAt: stamp() },
-      overwrite,
-    );
   }
   return { written, orders };
 }
@@ -123,7 +104,7 @@ export async function listOrders(projectRoot: string) {
   } catch {
     return { files: [], orders: [] };
   }
-  const orderDirs = entries.filter((entry) => entry.isDirectory() && entry.name !== "batches").map((entry) => entry.name).sort();
+  const orderDirs = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort();
   const files = orderDirs.map((orderId) => `${orderId}/order.json`);
   const orders = [];
   for (const orderId of orderDirs) {
@@ -155,7 +136,6 @@ export async function updateOrder(projectRoot: string, params: JsonObject) {
   if (params.overwrite !== true) {
     throw new Error("order.update requires params.overwrite=true after explicit user approval. Use order.set_status or order.add_revision for narrow updates.");
   }
-  await archiveOrder(projectRoot, orderId, current);
   const patch = isPlainObject(params.patch) ? params.patch : isPlainObject(params.order) ? params.order : undefined;
   if (!patch) throw new Error("order.update requires params.patch or params.order.");
   const next = {
@@ -175,7 +155,6 @@ export async function setOrderStatus(projectRoot: string, orderId: string, statu
   requireValidStatus(status);
   const file = orderJsonPath(projectRoot, orderId);
   const order = await readJson(file);
-  await archiveOrder(projectRoot, orderId, order);
   order.status = status;
   order.updatedAt = stamp();
   await writeJson(file, order, true);
@@ -187,7 +166,6 @@ export async function addOrderRevision(projectRoot: string, orderId: string, rev
   validateOrderId(orderId);
   const file = orderJsonPath(projectRoot, orderId);
   const order = await readJson(file);
-  await archiveOrder(projectRoot, orderId, order);
   order.revisions ??= [];
   order.revisions.push({ requestedAt: stamp(), request: revisionRequest, status: "draft" });
   order.status = "needs_revision";
@@ -197,7 +175,7 @@ export async function addOrderRevision(projectRoot: string, orderId: string, rev
 }
 
 function versionFilesFromDir(entries: string[]) {
-  return entries.filter((entry) => entry !== "meta.json" && !entry.endsWith("-order.json")).sort();
+  return entries.filter((entry) => entry !== "meta.json").sort();
 }
 
 async function resolveResultFiles(projectRoot: string, orderId: string, versionId: string, files: string[], overwrite: boolean) {
@@ -256,7 +234,6 @@ export async function createOrderResult(projectRoot: string, params: JsonObject)
     meta: isPlainObject(params.meta) ? params.meta : undefined,
   };
   await writeJson(path.join(versionDir, "meta.json"), version, overwrite);
-  await archiveOrder(projectRoot, orderId, order);
 
   // Embed previous Asset info directly into order.json as orderAsset
   const next = { ...order };
@@ -347,7 +324,6 @@ export async function setCurrentOrderResult(projectRoot: string, orderId: string
   if (!(await exists(dir))) throw new Error(`Order ${id} has no result version ${version}.`);
   const file = orderJsonPath(projectRoot, id);
   const order = await readJson(file);
-  await archiveOrder(projectRoot, id, order);
   order.currentVersion = version;
   if (order.orderAsset) {
     order.orderAsset.currentVersion = version;

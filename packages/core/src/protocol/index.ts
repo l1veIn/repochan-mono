@@ -65,7 +65,6 @@ export async function initProtocol(projectRoot: string, options?: { language?: "
     path.join(r, "analysis.versions"),
     path.join(r, "persona", "versions"),
     path.join(r, "orders"),
-    path.join(r, "orders", "batches"),
   ];
   await Promise.all(dirs.map((dir) => fs.mkdir(dir, { recursive: true })));
 
@@ -110,7 +109,7 @@ export async function inspectProtocol(projectRoot: string) {
   try {
     const orderEntries = await fs.readdir(path.join(r, "orders"), { withFileTypes: true });
     summary.orders = orderEntries
-      .filter((entry) => entry.isDirectory() && entry.name !== "batches")
+      .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
       .sort();
     summary.orderVersions = Object.fromEntries(

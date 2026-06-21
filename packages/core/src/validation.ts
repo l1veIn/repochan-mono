@@ -130,7 +130,7 @@ export async function validateProtocol(projectRoot: string): Promise<ProtocolVal
     return { ok: true, protocol, problems, warnings, checked: { orders: 0, results: 0 } };
   }
 
-  const requiredDirs = ["analysis.versions", "persona/versions", "orders", "orders/batches"];
+  const requiredDirs = ["analysis.versions", "persona/versions", "orders"];
   for (const dir of requiredDirs) {
     if (!(await exists(path.join(protocolRoot(projectRoot), dir)))) {
       problem(warnings, "missing_protocol_directory", `Expected protocol directory is missing: .repochan/${dir}`, `.repochan/${dir}`);

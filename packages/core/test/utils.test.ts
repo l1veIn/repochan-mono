@@ -24,12 +24,11 @@ describe('utils (pure)', () => {
       acceptanceCriteria: [],
     };
 
-    const out = normalizeOrder(input as AssetOrder, 'batch-xyz');
+    const out = normalizeOrder(input as AssetOrder);
 
     expect(out.status).toBe('draft');
     expect(out.priority).toBe('normal');
     expect(out.schemaVersion).toBe('repochan.asset-order.v1');
-    expect(out.batchId).toBe('batch-xyz');
     expect(out.createdAt).toBeDefined();
   });
 

@@ -74,7 +74,6 @@ Once the foundation sheet has a delivered result:
 ## Produces
 
 - `.repochan/orders/<order-id>/order.json`
-- Optional `.repochan/orders/batches/<batch-id>.json`
 - Revision requests embedded in orders or as linked follow-up orders.
 
 ## Asset Order philosophy

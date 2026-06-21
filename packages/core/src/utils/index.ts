@@ -29,7 +29,7 @@ export function deepMerge(base: any, patch: any): any {
   return next;
 }
 
-export function normalizeOrder(order: AssetOrder, batchId?: string, now = stamp()): AssetOrder {
+export function normalizeOrder(order: AssetOrder, now = stamp()): AssetOrder {
   return {
     status: "draft",
     priority: "normal",
@@ -38,7 +38,6 @@ export function normalizeOrder(order: AssetOrder, batchId?: string, now = stamp(
     ...order,
     references: normalizeReferences(order.references),
     schemaVersion: "repochan.asset-order.v1",
-    batchId: order.batchId ?? batchId,
   };
 }
 
@@ -60,13 +59,6 @@ export function validateOrderId(orderId: string) {
     throw new Error("orderId must match ^ord-[a-z0-9][a-z0-9-]*$.");
   }
   return orderId;
-}
-
-export function validateBatchId(batchId: string) {
-  if (!/^[a-z0-9][a-z0-9-]*$/.test(batchId)) {
-    throw new Error("batchId must match ^[a-z0-9][a-z0-9-]*$.");
-  }
-  return batchId;
 }
 
 export function validateVersionId(versionId: string) {

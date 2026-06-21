@@ -86,11 +86,4 @@ export const OrderResultVersionSchema = Type.Object({
   meta: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
 });
 
-export const OrderBatchSchema = Type.Object({
-  schemaVersion: Type.Literal("repochan.order-batch.v1"),
-  batchId: Type.String({ pattern: "^[a-z0-9][a-z0-9-]*$" }),
-  orderIds: Type.Array(Type.String()),
-  createdAt: Type.String(),
-});
-
 export const ProvenanceSchema = Type.Record(Type.String(), JsonValueSchema);
