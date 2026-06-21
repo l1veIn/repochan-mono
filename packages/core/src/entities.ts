@@ -402,28 +402,3 @@ export async function resolveOrderReferences(
   }
   return resolved;
 }
-
-/** @deprecated Order deliverables no longer use asset manifests. */
-export function assetManifestPath(_projectRoot: string, _assetId: string) {
-  throw new Error("assetManifestPath is deprecated. Use orderJsonPath/orderVersionDir or order result helpers.");
-}
-
-/** @deprecated Order deliverables no longer use asset manifests. */
-export async function listAssets(_projectRoot: string) {
-  return { assets: [] as JsonObject[] };
-}
-
-/** @deprecated Use createOrderResult. */
-export async function createAssetVersion(): Promise<never> {
-  throw new Error("asset.create_version is removed. Use order.create_result.");
-}
-
-/** @deprecated Use setCurrentOrderResult. */
-export async function setCurrentAsset(): Promise<never> {
-  throw new Error("asset.set_current is removed. Use order.set_current_result.");
-}
-
-/** @deprecated Asset manifests are removed. */
-export async function updateAssetMeta(): Promise<never> {
-  throw new Error("asset.update_meta is removed. Use order.update for order metadata or order.create_result for deliverables.");
-}
