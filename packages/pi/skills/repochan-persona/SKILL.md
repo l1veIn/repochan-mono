@@ -91,7 +91,7 @@ These constraints are ALWAYS in effect for all roles. They are NOT stored in per
 - ❌ 禁止生成包含血腥、暴力、gore 的内容
 - ❌ 禁止生成包含儿童色情或任何形式的未成年人性化的内容
 - ❌ 禁止生成包含仇恨、歧视、侮辱性内容
-- ❌ 角色外观年龄不低于 15 岁
+- ❌ 角色外观年龄不低于 12 岁
 - ✅ 二次元各种风格（赛博朋克、魔法少女、机甲、和风等）都是允许的
 
 ## Persona output schema
@@ -139,6 +139,74 @@ Generate a flat JSON object matching `PersonaData`. Save via `repochan action="p
 }
 ```
 
+The schema above shows field structure only — all values are placeholders. Below are **two fully-realized examples** from different project types, showing how the same fields produce completely different characters. Use them to understand the range of valid output, **not** to copy their style. Your persona must derive from *your* repository.
+
+```json
+{
+  "_source": "a CLI data-pipeline tool written in Rust — fast, minimal, obsessively organized",
+  "name": "Linnea Voss",
+  "nameZh": "琳妮娅·沃斯",
+  "ageAppearance": "23",
+  "birthday": "03-09",
+  "birthdaySource": "git_first_commit",
+  "occupation": "alpine botanist who catalogs wildflowers by bloom-time",
+  "personality": "Linnea is methodical, patient, and quietly content in isolation. She finds peace in naming and sorting things — a meadow is not 'pretty' to her until she has identified every species in it. She speaks sparingly but precisely, and remembers the exact location of a flower she saw three summers ago. Under stress she becomes even more meticulous, which is both her strength and her way of avoiding emotions.",
+  "hobbies": ["pressing and labeling wildflower specimens", "brewing mountain-grain tea by precise temperature", "reading old expedition journals"],
+  "characterFlaws": ["refuses to discard any specimen, even diseased ones, 'because the data point matters'", "corrects people's plant identifications at social events until they stop talking to her", "would rather re-organize her portfolio than deal with a difficult conversation"],
+  "catchphrase": "Everything blooms on schedule — you just have to know the schedule.",
+  "backstory": "Linnea grew up at a mountain research station where her mother kept a herbarium of 2,000 specimens. She learned that every living thing deserves a labeled home, and that patience reveals what speed always misses. When the station closed, she took the portfolio and wandered until she found a new mountain — one that hadn't been cataloged yet.",
+  "mainColor": "#3B7A57",
+  "secondaryColor": "#E8DCC4",
+  "accentColors": ["#C9622E", "#5B7B95"],
+  "appearance": "A composed young woman with sharp, observant eyes behind round steel spectacles. She carries herself with the quiet confidence of someone who knows exactly where everything belongs.",
+  "hairColor": "short choppy black hair, no-nonsense, slightly wind-tousled",
+  "eyeColor": "mossy green with warm amber ring around the pupil",
+  "outfit": "Waxed canvas field jacket in forest green with a hundred tiny labeled pockets, worn linen shirt underneath, sturdy charcoal trousers tucked into leather hiking boots, fingerless gloves for dexterity",
+  "accessories": ["leather specimen portfolio with brass clasps, bulging with pressed flowers", "round steel spectacles with a chain strap", "brass measuring chain worn as a necklace", "ink-stained field notebook in breast pocket"],
+  "keyMotifs": ["herbarium specimen tags with Latin names", "contour-line embroidery along jacket cuffs", "brass instruments (calipers, chain, compass)"],
+  "signaturePose": "standing with weight on one foot, left hand holding an open specimen portfolio at waist height, right hand raised with thumb and forefinger measuring the distance to something only she can see",
+  "signatureAction": "She touches a specimen tag and the dried flower briefly blooms again, showing its living colors, then returns to pressed stillness",
+  "abilities": ["Bloom-memory Index", "Altitude-sense Calibration"],
+  "designNotes": "Keep her recognizable through round spectacles, the bulging specimen portfolio, forest-green waxed jacket, and her measuring-gesture pose. Visual identity is botanical-fieldwork, not tech. Avoid any computer or screen motifs.",
+  "rolePrompt": "female anime character, short choppy black wind-tousled hair, round steel spectacles with chain strap, mossy green eyes with amber ring, calm composed expression, waxed canvas forest-green field jacket with many small pockets, worn linen shirt, charcoal trousers, leather hiking boots, fingerless gloves, leather specimen portfolio with brass clasps held at waist, brass measuring chain necklace, ink-stained notebook in breast pocket, standing with right hand raised measuring distance with fingers",
+  "language": "zh",
+  "generatedAt": "ISO-8601"
+}
+```
+
+```json
+{
+  "_source": "a game engine plugin written in C# — experimental, fast-moving, chaotic, full of rewrites",
+  "name": "Vera Kolt",
+  "nameZh": "薇拉·科尔特",
+  "ageAppearance": "21",
+  "birthday": "11-22",
+  "birthdaySource": "git_first_commit",
+  "occupation": "storm-chaser who photographs lightning and names each bolt",
+  "personality": "Vera is electric, impulsive, and incapable of boredom. She treats danger as a personal invitation and chaos as proof that something interesting is about to happen. She's genuinely warm but expresses affection by dragging people into her terrible ideas. She documents everything obsessively — not out of organization, but because she wants proof that the madness happened.",
+  "hobbies": ["competitive kite-flying in bad weather", "scrapbooking near-misses with photos and annotations", "collecting barometers from flea markets"],
+  "characterFlaws": ["gets so excited when things go wrong that she secretly hopes they break", "tells the same near-death story five times to the same person without noticing", "has never backed out of a dare, including several she really should have"],
+  "catchphrase": "If it's not breaking, we're not learning!",
+  "backstory": "Vera grew up in a flat town where nothing ever happened, so she started chasing storms the day she turned sixteen. She survived a direct lightning strike that left a permanent white streak in her hair, and now she treats every storm like a rematch with an old rival. She has relocated four times, each time because her experiments got the last place condemned.",
+  "mainColor": "#1B3A5C",
+  "secondaryColor": "#F2D027",
+  "accentColors": ["#D946EF", "#FFFFFF"],
+  "appearance": "A wiry, constantly-in-motion young woman with windburn and a manic grin. Her eyes track the sky even indoors, and she's always half-poised to run somewhere.",
+  "hairColor": "dyed electric blue, wind-tangled, with one permanent stark white streak from a lightning scar",
+  "eyeColor": "storm-cloud gray with electric purple flecks",
+  "outfit": "Oversized neon-yellow rubberized raincoat covered in hand-written field notes and weather symbols, faded band t-shirt underneath, ripped dark jeans, tall rubber boots that squeak when she walks",
+  "accessories": ["dented old camera on a neck strap, lens cracked from hail", "barometric-pressure dial brooch pinned to her raincoat", "storm-cloud shaped canvas messenger bag stuffed with annotation cards"],
+  "keyMotifs": ["lightning-bolt shaped mending stitches on her coat", "hand-written weather symbols covering her raincoat", "cracked-camera-lens motif"],
+  "signaturePose": "mid-stride leaning forward into wind, raincoat billowing behind, right hand gripping the camera strap at her chest, left hand shielding her eyes looking up at the sky",
+  "signatureAction": "She clicks her camera and the captured lightning bolt replays in miniature above the lens for three seconds",
+  "abilities": ["Strikeframe Memory", "Pressure-read Instinct"],
+  "designNotes": "Keep her recognizable through the white lightning-scar streak in blue hair, neon-yellow annotated raincoat, cracked camera, and forward-leaning wind-blown pose. Visual identity is storm-chasing fieldwork, not tech. Avoid any computer or screen motifs.",
+  "rolePrompt": "female anime character, dyed electric blue wind-tangled hair with one stark white streak, storm-cloud gray eyes with purple flecks, manic excited grin, wiry energetic body, oversized neon-yellow rubberized raincoat covered in hand-written notes, faded band t-shirt, ripped dark jeans, tall rubber boots, dented cracked camera on neck strap, barometric dial brooch, storm-cloud canvas messenger bag, mid-stride leaning into wind, right hand gripping camera strap, left hand shielding eyes looking upward",
+  "language": "zh",
+  "generatedAt": "ISO-8601"
+}
+```
+
 ### rolePrompt format specification (critical for image quality)
 
 The `rolePrompt` is the single most important field for visual output quality. It must follow these rules:
@@ -179,17 +247,17 @@ a calm and welcoming atelier director with nice hair and pretty eyes wearing ele
 **Better**: "She's a sleep-deprived atelier spirit who remembers every refactor as a repaired seam. When contributors arrive confused, she quietly pins loose ideas to floating ribbons, hums a release-note lullaby, and smiles like someone who has survived three impossible migrations without losing her favorite thimble. She's terrible at directions but never asks for help — she just wanders until something looks right, which is exactly how she discovered her best design ideas."
 
 ## Diverse direction examples (anti-overfit reference)
-
+ 
 The personas below come from completely different project types. They exist to show the *range* of valid design directions — your persona should find its own unique direction, not imitate any of these. Notice how each one derives its visual identity from a different aspect of its project, and none uses generic computer-symbol accessories.
-
+ 
 **A CLI data-pipeline tool (rust, minimal, fast):**
 A quiet alpine botanist who catalogues every flower on the mountain by bloom-time. Short choppy black hair, round steel spectacles, waxed canvas field jacket with a hundred tiny labeled pockets. Collects pressed flowers in a leather portfolio — each one tagged with the exact altitude where she found it. Flaw: refuses to throw away any specimen, even diseased ones, "because the data point matters". Hobby: brewing mountain-grain tea by precise temperature. Visual motifs: herbarium specimen tags, contour-line embroidery, brass measuring chain.
-
+ 
 **A creative-writing web app (typescript, playful, community-driven):**
 A seaside postmaster who runs a mail route between lighthouses, delivering letters that are always slightly wet. Sun-bleached auburn braids tied with maritime signal-flag ribbons, oversized fisherman sweater with patches in the shape of different islands. Stamp collection organized by "the weather on the day I received this". Flaw: reads the return address before the letter and judges your handwriting. Hobby: carving driftwood into tiny unreliable compasses. Visual motifs: signal flags, wax seals, tide-chart patterns on her sleeves.
-
+ 
 **An embedded firmware library (c, old, stable, deeply documented):**
 A cathedral bellringer who has memorized every sequence her village has ever rung, going back 200 years. Iron-gray hair in a tight crown braid, heavy leather gauntlets, a scribe's apron stained with verdigris. She communicates mostly in rhythms — taps on the table, knocks on doors. Flaw: cannot stand silence and will fill it by drumming, which drives everyone crazy. Hobby: restoring antique clock movements. Visual motifs: bell-ropes as belt, patinated green-oxide accents, rhythm-notation tattoos on her forearms.
-
+ 
 **A game engine plugin (c#, experimental, fast-moving, chaotic):**
 A storm-chaser who photographs lightning and names each bolt after a discontinued feature. Wind-tangled dyed-blue hair with a single permanent white streak from a close call, neon-yellow raincoat covered in hand-written field notes, rubber boots that squeak. She has survived four rewrites and will tell you about all of them. Flaw: gets so excited about chaos that she secretly hopes things break. Hobby: competitive kite-flying. Visual motifs: lightning-bolt mending stitches on her coat, barometric-pressure dial brooch, storm-cloud shaped messenger bag.
