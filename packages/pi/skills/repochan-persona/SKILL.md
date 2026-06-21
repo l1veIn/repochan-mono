@@ -53,17 +53,33 @@ Repository evidence is soil for the character, not a cage. Follow these rules st
 
 **This is NOT a safety field.** Character flaws are personality quirks that make the character feel human and lovable. Every real person has flaws — these are what make a character memorable.
 
-Generate 2-4 character flaws from the character's personality, drawing inspiration from:
+### Generation order (critical for avoiding cliché)
 
-- ACG 萌点: 方向痴、贪吃、起床困难、社恐、低血压（低精力）、天然呆、路痴、不擅长做饭、收集癖、洁癖、完美主义到焦虑
-- Repository signals: if the repo has frequent refactors → she might be a perfectionist who can't stop rearranging things; if it has many dependencies → she might be a hoarder who collects too many tools
-- Flaws should be endearing, not debilitating
+Generate flaws in this priority order. Exhaust each tier before falling back to the next:
 
-Examples (in Chinese if language=zh):
-- "严重路痴，在自己住的城市也能走丢"
-- "嘴上说不吃宵夜，凌晨两点偷偷点外卖"
-- "整理强迫症，看到东西没对齐就坐立不安"
-- "社恐，人多的时候会躲在手机后面"
+**Tier 1 — Repository-derived (always try first):** Look for the repo's *specific* quirks, imperfections, and habits, then give the character the same *type* of quirk transplanted into daily life.
+- Does the repo have a file everyone's afraid to touch? → She has a "forbidden drawer" no one's allowed to open.
+- Are commit messages full of typos? → She's a chronic misspeller who writes beautiful letters with one wrong character.
+- Is there a deprecated module that never got removed? → She hoards obsolete gadgets "just in case".
+
+**Tier 2 — Personality-derived:** Derive flaws from the personality you've already written. If she's warm and nurturing, maybe she smothers people. If she's precise and tidy, maybe she reorganizes other people's things without asking. The flaw should be the *shadow* of a strength.
+
+**Tier 3 — Classic ACG 萌点 (fallback only):** These are valid and charming, but only use them when Tier 1 and 2 don't yield enough flaws. They must not be your default picks.
+- 路痴、贪吃、起床困难、社恐、低精力、天然呆、不擅长做饭、收集癖、洁癖、完美主义
+
+When you do use a classic 萌点, **twist it** to bind it to this specific character rather than using the vanilla version. Bad: "严重路痴". Better: "迷路到把导航app搞崩溃了三次，从此只信纸地图"。
+
+### Constraint
+
+Every flaw must be able to answer: *"Which specific trait of this repository or personality did this come from?"* If the answer is "this could apply to any character from any repo", it's too generic — try again.
+
+## Hobbies generation
+
+Same principle as flaws: derive from the repository first, fall back to generic interests last.
+
+- Look at what the repo *cares about* beyond code: Does it have extensive docs? → She loves writing letters and zines. Does it have a meticulous test suite? → She's into precision crafts like watchmaking or model-building. Is it a creative/design tool? → She sketches strangers on the train.
+- Hobbies should feel like they belong to *this* character, not to "a generic anime girl". Avoid default picks (逛同人展, 拿铁拉花, 烘焙) unless the repo genuinely points there.
+- At least one hobby should be unexpected — a contrast with the character's surface personality. (A serious librarian who does amateur standup. A energetic runner who collects dead insects.)
 
 ## Built-in safety constraints
 
@@ -91,8 +107,8 @@ Generate a flat JSON object matching `PersonaData`. Save via `repochan action="p
   "occupation": "职业/身份（生活化、象征性，不是软件岗位）",
 
   "personality": "鲜明的真实人类性格，有优点也有小怪癖...",
-  "hobbies": ["逛同人展", "收集复古终端主题", "拿铁拉花"],
-  "characterFlaws": ["严重路痴", "贪吃", "社恐"],
+  "hobbies": ["从项目信号推导的爱好1", "爱好2", "爱好3"],
+  "characterFlaws": ["从项目信号推导的缺点1（见 characterFlaws 生成规则）", "缺点2"],
   "catchphrase": "口头禅，自然不尴尬",
   "backstory": "与项目演进历史呼应的背景设定（100-200字）",
 
