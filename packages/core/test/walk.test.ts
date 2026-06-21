@@ -10,11 +10,12 @@ async function tempProject() {
   await mkdir(path.join(dir, "ignored"));
   await mkdir(path.join(dir, "node_modules", "pkg"), { recursive: true });
   await mkdir(path.join(dir, ".repochan"));
+  await mkdir(path.join(dir, ".repochan", "analysis"));
   await writeFile(path.join(dir, ".gitignore"), "ignored/\n*.tmp\n");
   await writeFile(path.join(dir, "src", "index.ts"), "export {};\n");
   await writeFile(path.join(dir, "ignored", "hidden.ts"), "ignored\n");
   await writeFile(path.join(dir, "node_modules", "pkg", "index.js"), "ignored\n");
-  await writeFile(path.join(dir, ".repochan", "analysis.json"), "{}\n");
+  await writeFile(path.join(dir, ".repochan", "analysis", "current.json"), "{}\n");
   await writeFile(path.join(dir, "scratch.tmp"), "ignored\n");
   return dir;
 }
@@ -30,7 +31,7 @@ describe("walkProject", () => {
     expect(dirs).toContain("src");
     expect(files).not.toContain("ignored/hidden.ts");
     expect(files).not.toContain("node_modules/pkg/index.js");
-    expect(files).not.toContain(".repochan/analysis.json");
+    expect(files).not.toContain(".repochan/analysis/current.json");
     expect(files).not.toContain("scratch.tmp");
   });
 });

@@ -21,7 +21,7 @@ describe("RepoChan protocol smoke flow", () => {
   it("supports init -> analysis -> persona -> order -> approval -> order result -> validate", async () => {
     const cwd = await tempProject();
     await initProtocol(cwd);
-    await writeJson(path.join(protocolRoot(cwd), "analysis.json"), {
+    await writeJson(path.join(protocolRoot(cwd), "analysis", "current.json"), {
       schemaVersion: "repochan.analysis.v1",
       generatedAt: new Date().toISOString(),
       project: { name: "minimal" },

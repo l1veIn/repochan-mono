@@ -101,16 +101,16 @@ function requireVersionId(value: string) {
 
 async function runAnalysis(ctx: ExtensionContext, params: JsonObject) {
   const { data } = await writeAnalysisArtifact(ctx.cwd, params);
-  return ok("Analyzed repository and wrote .repochan/analysis.json", data);
+  return ok("Analyzed repository and wrote .repochan/analysis/current.json", data);
 }
 
 async function enrichAnalysis(ctx: ExtensionContext, params: JsonObject) {
-  const analysisPath = path.join(root(ctx.cwd), "analysis.json");
+  const analysisPath = path.join(root(ctx.cwd), "analysis", "current.json");
   const existing = await readJson(analysisPath);
 
   // Version the current analysis before enriching
   await initProtocol(ctx.cwd);
-  const versionDir = path.join(root(ctx.cwd), "analysis.versions");
+  const versionDir = path.join(root(ctx.cwd), "analysis", "versions");
   const versionStamp = new Date().toISOString().replace(/[:.]/g, "-");
   const versionFile = path.join(versionDir, `${versionStamp}-pre-enrich.json`);
   await writeJson(versionFile, existing, false);
@@ -126,7 +126,7 @@ async function enrichAnalysis(ctx: ExtensionContext, params: JsonObject) {
   enriched.enrichedAt = new Date().toISOString();
 
   await writeJson(analysisPath, enriched, true);
-  return ok("Enriched analysis.json with LLM preAnalysis and abstract dimensions.", { analysis: enriched });
+  return ok("Enriched analysis/current.json with LLM preAnalysis and abstract dimensions.", { analysis: enriched });
 }
 
 async function createOrUpdatePersona(ctx: ExtensionContext, params: JsonObject, mode: "create" | "update") {
@@ -310,10 +310,10 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "Safety: repochan refuses blind overwrites. When an action has params.overwrite, set it to true only after explicit user approval. Mutating current artifacts archives prior state where appropriate; keep params.versionPrevious=true unless the user asks otherwise.",
       "Safety: keep provenance. persona.create/persona.update and order.create_result add provenance when absent; pass params.provenance when an external generator, dashboard, or human produced the artifact.",
       "Safety: protocol paths are constrained to .repochan. protocol.write and protocol.append_version must not be used to bypass entity-specific preconditions unless the user explicitly asks for protocol-level maintenance/migration.",
-      "analysis.run params: optional { analysis, overwrite=false, versionPrevious=true, corePaths, focusAreas, includeSections, maxSampleFiles, maxSampleChars, perFileSampleChars, colorScanLimit, includeFileLists=true }. Runs deterministic file walking, git profile, color extraction, tech-stack detection, docs summary, inventory counts, and desensitized code sampling, then writes .repochan/analysis.json. If analysis exists, ask before overwrite=true.",
-      "analysis.enrich params: { preAnalysis: { project_category, summary, language_focus, core_paths, exclude_hints, needs_ui_assets, asset_recommendations, analysis_focus }, abstract: { dimensions: [{ dimension, summary, keywords, score }], overall_impression } }. Merges LLM-generated preAnalysis and abstract dimension analysis into the existing analysis.json. Archives the pre-enrichment version first. The Analyst must run analysis.run FIRST (deterministic scan), then perform the LLM analysis, then call this action to persist the results. The preAnalysis covers product-level judgment (what the project does, for whom, what assets it needs); the abstract covers 5 dimensions: code_style, architecture, product_philosophy, tech_choices, team_culture — each with a 200-char summary, 4 keywords, and a 0.0-1.0 score.",
-      "analysis.get params: {}. Reads .repochan/analysis.json. Use before persona work when you need the upstream analysis. Fails if missing.",
-      "analysis.list_versions params: {}. Lists .repochan/analysis.versions/*.json and reports whether current analysis exists.",
+      "analysis.run params: optional { analysis, overwrite=false, versionPrevious=true, corePaths, focusAreas, includeSections, maxSampleFiles, maxSampleChars, perFileSampleChars, colorScanLimit, includeFileLists=true }. Runs deterministic file walking, git profile, color extraction, tech-stack detection, docs summary, inventory counts, and desensitized code sampling, then writes .repochan/analysis/current.json. If analysis exists, ask before overwrite=true.",
+      "analysis.enrich params: { preAnalysis: { project_category, summary, language_focus, core_paths, exclude_hints, needs_ui_assets, asset_recommendations, analysis_focus }, abstract: { dimensions: [{ dimension, summary, keywords, score }], overall_impression } }. Merges LLM-generated preAnalysis and abstract dimension analysis into the existing analysis/current.json. Archives the pre-enrichment version first. The Analyst must run analysis.run FIRST (deterministic scan), then perform the LLM analysis, then call this action to persist the results. The preAnalysis covers product-level judgment (what the project does, for whom, what assets it needs); the abstract covers 5 dimensions: code_style, architecture, product_philosophy, tech_choices, team_culture — each with a 200-char summary, 4 keywords, and a 0.0-1.0 score.",
+      "analysis.get params: {}. Reads .repochan/analysis/current.json. Use before persona work when you need the upstream analysis. Fails if missing.",
+      "analysis.list_versions params: {}. Lists .repochan/analysis/versions/*.json and reports whether current analysis exists.",
       "persona.get params: optional { versionId }. Without versionId, reads .repochan/persona/current.json. With versionId, reads .repochan/persona/versions/<versionId>.json (the .json suffix is optional). Use as the persona pre-flight before order or painter work.",
       "persona.create params: { persona, slug?, overwrite=false, versionPrevious=true, provenance? }. Requires analysis. Writes persona/current.json and a persona/versions/<timestamp>-<slug>.json copy. If current exists, ask before overwrite=true.",
       "persona.update params: { persona, slug?, overwrite=true, versionPrevious=true, provenance? }. Requires analysis and an existing persona/current.json. Archives previous current when versionPrevious is not false, then replaces current and writes a new version. Always obtain user approval before overwrite=true.",
@@ -338,7 +338,7 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "Visual anchor system: A 'foundation sheet' (assetType 'foundation_sheet' or 'cover_sheet') is the project's first real image output — it contains the mascot's signature pose, chibi form, expressions, and color palette on a single sheet. Every downstream order SHOULD reference it via the order.references field: [{ orderId: '<foundation-order-id>', role: 'character' }]. This ensures visual consistency across all generated assets. The Art Director creates the foundation order first; once it has a delivered result, the Art Director auto-fills references on all subsequent orders.",
       "Order references field: Each order may include a `references` array of { orderId, versionId?, role } entries. When present, the Painter resolves them via action='order.resolve_references' and passes the resulting image files as reference images to the image generation tool. Orders with assetType 'foundation_sheet' or 'cover_sheet' do NOT need references — they ARE the anchor.",
       "protocol.inspect params: {}. Inspects .repochan existence, current analysis/persona, analysis/persona versions, order directories, and order result versions without creating or mutating files.",
-      "protocol.read params: { artifactPath }. Safely reads a JSON artifact inside .repochan. artifactPath may be '.repochan/analysis.json' or a path relative to .repochan.",
+      "protocol.read params: { artifactPath }. Safely reads a JSON artifact inside .repochan. artifactPath may be '.repochan/analysis/current.json' or a path relative to .repochan.",
       "protocol.write params: { artifactPath, data, overwrite=false }. Safely writes JSON inside .repochan, creating parent directories. Use entity actions first; use protocol.write only for migrations, manifests, or user-directed maintenance. Ask before overwrite=true.",
       "protocol.append_version params: { artifactPath, data? }. Writes data to the conventional version location for artifactPath. If data is omitted, reads artifactPath and snapshots its current JSON. Never overwrites existing version files.",
     ],
@@ -351,13 +351,13 @@ export function registerRepoChan(pi: ExtensionAPI) {
         case "analysis.enrich":
           return enrichAnalysis(ctx, params);
         case "analysis.get": {
-          const data = await readJson(path.join(root(ctx.cwd), "analysis.json"));
+          const data = await readJson(path.join(root(ctx.cwd), "analysis", "current.json"));
           return ok(JSON.stringify(data, null, 2), data);
         }
         case "analysis.list_versions": {
           await initProtocol(ctx.cwd);
-          const current = await exists(path.join(root(ctx.cwd), "analysis.json"));
-          const versions = await listJsonFiles(path.join(root(ctx.cwd), "analysis.versions"));
+          const current = await exists(path.join(root(ctx.cwd), "analysis", "current.json"));
+          const versions = await listJsonFiles(path.join(root(ctx.cwd), "analysis", "versions"));
           return ok(versions.join("\n") || "No analysis versions found.", { current, versions });
         }
         case "persona.get": {

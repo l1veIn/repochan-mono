@@ -10,7 +10,7 @@ import {
 } from "@repochan/core";
 
 export async function readAnalysis(projectRoot: string) {
-  return readJsonIfExists(path.join(protocolRoot(projectRoot), "analysis.json"));
+  return readJsonIfExists(path.join(protocolRoot(projectRoot), "analysis", "current.json"));
 }
 
 export async function readPersona(projectRoot: string) {

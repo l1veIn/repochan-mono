@@ -45,7 +45,7 @@ export default {
   // Analysis
   'analysis.title': '=== Analysis ===',
   'analysis.subtitle': 'Repository understanding produced by the Analyst role.',
-  'analysis.empty': 'No .repochan/analysis.json found yet.',
+  'analysis.empty': 'No .repochan/analysis/current.json found yet.',
   'analysis.repo': 'Repository',
   'analysis.summary': 'Summary',
   'analysis.tech': 'Technical profile',
@@ -58,7 +58,7 @@ export default {
   'persona.title': '=== Persona / 人物档案 ===',
   'persona.subtitle': 'Living mascot profile produced by the Creative Writer role.',
   'persona.empty': 'No .repochan/persona/current.json found yet.',
-  'persona.needs_analysis': 'Persona generation requires .repochan/analysis.json first.',
+  'persona.needs_analysis': 'Persona generation requires .repochan/analysis/current.json first.',
   'persona.done': 'Persona phase completed. Refreshed artifact view.',
   'persona.name': 'Name',
   'persona.concept': 'Core concept',

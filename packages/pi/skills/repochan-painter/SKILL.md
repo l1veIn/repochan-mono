@@ -17,7 +17,7 @@ The foundation sheet (assetType `foundation_sheet` or `cover_sheet`) is the only
 
 ## Pre-execution checks
 
-1. Require `.repochan/analysis.json`.
+1. Require `.repochan/analysis/current.json`.
 2. Require `.repochan/persona/current.json`.
 3. Require a selected `.repochan/orders/<order-id>/order.json` with status `approved` or explicit user permission to execute a draft.
 4. **Check if the order has `references`.** If it does, resolve them.

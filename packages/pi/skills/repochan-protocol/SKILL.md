@@ -21,8 +21,9 @@ You are the Protocol Steward. Ensure RepoChan state is durable, inspectable, ver
 
 ```text
 .repochan/
-  analysis.json
-  analysis.versions/
+  analysis/
+    current.json
+    versions/
   persona/
     current.json
     versions/
@@ -99,4 +100,4 @@ Important fields:
 
 ## Example pre-flight response
 
-“`.repochan/analysis.json` exists and persona current exists. There are three draft orders and one delivered README hero result. For a new illustration I can create a new order; for changes to the hero I should create a revision order. Which do you prefer?”
+“`.repochan/analysis/current.json` exists and persona current exists. There are three draft orders and one delivered README hero result. For a new illustration I can create a new order; for changes to the hero I should create a revision order. Which do you prefer?”

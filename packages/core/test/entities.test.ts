@@ -22,7 +22,7 @@ describe('entities (core business operations)', () => {
 
     // seed minimal upstream artifacts so createOrders / createOrderResult pass their checks
     const r = path.join(projectRoot, '.repochan');
-    await fs.writeFile(path.join(r, 'analysis.json'), JSON.stringify({ summary: 'test' }));
+    await fs.writeFile(path.join(r, 'analysis', 'current.json'), JSON.stringify({ summary: 'test' }));
     await fs.writeFile(
       path.join(r, 'persona', 'current.json'),
       JSON.stringify({ coreConcept: 'test persona' })

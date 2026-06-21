@@ -33,9 +33,9 @@ describe('protocol primitives', () => {
   });
 
   it('safeProtocolPath accepts valid paths inside .repochan', () => {
-    const p = safeProtocolPath(projectRoot, '.repochan/analysis.json');
+    const p = safeProtocolPath(projectRoot, '.repochan/analysis/current.json');
     expect(p).toContain(PROTOCOL_DIR);
-    expect(p).toContain('analysis.json');
+    expect(p).toContain('current.json');
   });
 
   it('initProtocol creates the standard directory layout', async () => {
@@ -44,7 +44,7 @@ describe('protocol primitives', () => {
 
     const expectedDirs = [
       r,
-      path.join(r, 'analysis.versions'),
+      path.join(r, 'analysis', 'versions'),
       path.join(r, 'persona', 'versions'),
       path.join(r, 'orders'),
     ];
@@ -55,8 +55,8 @@ describe('protocol primitives', () => {
   });
 
   it('protocolVersionPath produces conventional locations', () => {
-    const v1 = protocolVersionPath('analysis.json');
-    expect(v1).toMatch(/^analysis\.versions\/.*\.json$/);
+    const v1 = protocolVersionPath('analysis/current.json');
+    expect(v1).toMatch(/^analysis\/versions\/.*\.json$/);
 
     const v2 = protocolVersionPath('persona/current.json');
     expect(v2).toMatch(/^persona\/versions\/.*\.json$/);
@@ -67,7 +67,7 @@ describe('protocol primitives', () => {
 
   it('writeJson refuses overwrite by default and succeeds with overwrite=true', async () => {
     await initProtocol(projectRoot);
-    const target = path.join(projectRoot, PROTOCOL_DIR, 'analysis.json');
+    const target = path.join(projectRoot, PROTOCOL_DIR, 'analysis', 'current.json');
 
     await writeJson(target, { hello: 'world' }, false);
     expect(await exists(target)).toBe(true);
@@ -88,7 +88,7 @@ describe('protocol primitives', () => {
 
     // create minimal files
     const r = path.join(projectRoot, PROTOCOL_DIR);
-    await writeJson(path.join(r, 'analysis.json'), { foo: 1 }, true);
+    await writeJson(path.join(r, 'analysis', 'current.json'), { foo: 1 }, true);
     await writeJson(path.join(r, 'persona', 'current.json'), { bar: 2 }, true);
 
     const summary2 = await inspectProtocol(projectRoot);

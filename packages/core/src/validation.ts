@@ -130,7 +130,7 @@ export async function validateProtocol(projectRoot: string): Promise<ProtocolVal
     return { ok: true, protocol, problems, warnings, checked: { orders: 0, results: 0 } };
   }
 
-  const requiredDirs = ["analysis.versions", "persona/versions", "orders"];
+  const requiredDirs = ["analysis/versions", "persona/versions", "orders"];
   for (const dir of requiredDirs) {
     if (!(await exists(path.join(protocolRoot(projectRoot), dir)))) {
       problem(warnings, "missing_protocol_directory", `Expected protocol directory is missing: .repochan/${dir}`, `.repochan/${dir}`);
@@ -138,13 +138,13 @@ export async function validateProtocol(projectRoot: string): Promise<ProtocolVal
   }
 
   if (protocol.analysis) {
-    await readArtifact(".repochan/analysis.json", path.join(protocolRoot(projectRoot), "analysis.json"), problems);
+    await readArtifact(".repochan/analysis/current.json", path.join(protocolRoot(projectRoot), "analysis", "current.json"), problems);
   }
   if (protocol.persona) {
     await readArtifact(".repochan/persona/current.json", path.join(protocolRoot(projectRoot), "persona", "current.json"), problems);
   }
   if (protocol.persona && !protocol.analysis) {
-    problem(problems, "persona_without_analysis", "Persona exists but .repochan/analysis.json is missing.", ".repochan/persona/current.json", "Run or restore the analysis artifact first.");
+    problem(problems, "persona_without_analysis", "Persona exists but .repochan/analysis/current.json is missing.", ".repochan/persona/current.json", "Run or restore the analysis artifact first.");
   }
 
   const orderList = await listOrders(projectRoot);
@@ -162,7 +162,7 @@ export async function validateProtocol(projectRoot: string): Promise<ProtocolVal
   }
 
   if (orderList.files.length > 0 && !protocol.analysis) {
-    problem(problems, "orders_without_analysis", "Orders exist but .repochan/analysis.json is missing.", ".repochan/orders", "Run or restore analysis before creating orders.");
+    problem(problems, "orders_without_analysis", "Orders exist but .repochan/analysis/current.json is missing.", ".repochan/orders", "Run or restore analysis before creating orders.");
   }
 
   return {

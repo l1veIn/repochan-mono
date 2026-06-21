@@ -14,16 +14,16 @@ export async function writeAnalysisArtifact(
   params: WriteAnalysisInput,
 ): Promise<{ path: string; data: AnalysisResult }> {
   await initProtocol(projectRoot);
-  const target = path.join(root(projectRoot), "analysis.json");
+  const target = path.join(root(projectRoot), "analysis", "current.json");
   const targetExists = await exists(target);
   if (targetExists && !params.overwrite) {
     throw new Error(
-      ".repochan/analysis.json already exists. Ask whether to reuse it or rerun with params.overwrite=true (params.versionPrevious defaults to true).",
+      ".repochan/analysis/current.json already exists. Ask whether to reuse it or rerun with params.overwrite=true (params.versionPrevious defaults to true).",
     );
   }
   if (targetExists && params.versionPrevious !== false) {
     const prior = await readJson(target);
-    await writeJson(path.join(root(projectRoot), "analysis.versions", `${stampForPath()}.json`), prior, false);
+    await writeJson(path.join(root(projectRoot), "analysis", "versions", `${stampForPath()}.json`), prior, false);
   }
   const generated = await performAnalysis(projectRoot, params);
   const data = {

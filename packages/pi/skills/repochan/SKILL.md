@@ -20,7 +20,7 @@ Persistent state lives in `.repochan/` so outputs are inspectable, repeatable, a
 ## Pipeline
 
 ```
-① Analyst         → .repochan/analysis.json
+① Analyst         → .repochan/analysis/current.json
 ② Creative Writer  → .repochan/persona/current.json
 ③ Art Director     → creates foundation_sheet order first
 ④ Painter          → executes foundation → visual anchor established
@@ -36,7 +36,7 @@ Persistent state lives in `.repochan/` so outputs are inspectable, repeatable, a
 
 | Role | Skill | Consumes | Produces |
 |------|-------|----------|----------|
-| Analyst | `repochan-analysis` | git repo, source files, docs, assets | `.repochan/analysis.json` |
+| Analyst | `repochan-analysis` | git repo, source files, docs, assets | `.repochan/analysis/current.json` |
 | Creative Writer | `repochan-persona` | analysis | `.repochan/persona/current.json`, versions |
 | Art Director | `repochan-art-director` | analysis, persona, foundation status | foundation order + downstream orders (with references) |
 | Painter | `repochan-painter` | approved orders, resolved references, analysis, persona | `.repochan/orders/<order-id>/versions/<version-id>/` results |
@@ -87,7 +87,7 @@ When an output already exists:
 - **Replace** only after explicit confirmation.
 - **Fork** when exploring a different brand direction.
 
-Never silently overwrite `.repochan/analysis.json`, persona current profile, orders, or order result versions.
+Never silently overwrite `.repochan/analysis/current.json`, persona current profile, orders, or order result versions.
 
 ## Recommended manual sequence
 
@@ -108,6 +108,6 @@ Response pattern:
 
 1. Inspect `.repochan/`.
 2. Explain that persona creation requires analysis.
-3. Ask: "Run Analyst now and write `.repochan/analysis.json`?"
+3. Ask: "Run Analyst now and write `.repochan/analysis/current.json`?"
 4. If yes, load `repochan-analysis`.
 5. After persona: "Now I'll create the foundation sheet order — the visual anchor for all future assets. The Painter will generate it first, then all downstream orders reference it for consistency."

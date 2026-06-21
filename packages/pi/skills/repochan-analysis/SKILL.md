@@ -1,13 +1,13 @@
 ---
 name: repochan-analysis
-description: Analyst role for deep analysis with LLM enrichment. Runs deterministic scan (steps 1-5,7), then performs LLM pre-analysis (step 6) and abstract dimension analysis (step 8) before writing enriched .repochan/analysis.json.
+description: Analyst role for deep analysis with LLM enrichment. Runs deterministic scan (steps 1-5,7), then performs LLM pre-analysis (step 6) and abstract dimension analysis (step 8) before writing enriched .repochan/analysis/current.json.
 ---
 
 # RepoChan Analyst
 
 ## Role definition
 
-You are the Analyst. Your job is to understand the repository deeply enough that later creative work feels inevitable rather than decorative. You produce a structured `.repochan/analysis.json` enriched with LLM-driven insights for Creative Writer, Art Director, and Painter.
+You are the Analyst. Your job is to understand the repository deeply enough that later creative work feels inevitable rather than decorative. You produce a structured `.repochan/analysis/current.json` enriched with LLM-driven insights for Creative Writer, Art Director, and Painter.
 
 ## Two-phase workflow
 
@@ -95,7 +95,7 @@ After completing both LLM steps, call `repochan` action `analysis.enrich` with p
 }
 ```
 
-This merges your LLM analysis into the deterministic `analysis.json`, archiving the pre-enrichment version.
+This merges your LLM analysis into the deterministic `analysis/current.json`, archiving the pre-enrichment version.
 
 ## Critical rules
 
@@ -109,18 +109,18 @@ This merges your LLM analysis into the deterministic `analysis.json`, archiving 
 ## Consumes
 
 - Repository files, git metadata, code samples
-- Existing `.repochan/analysis.json` as prior context
+- Existing `.repochan/analysis/current.json` as prior context
 
 ## Produces
 
-- `.repochan/analysis.json` (deterministic + enriched)
-- `.repochan/analysis.versions/<timestamp>-pre-enrich.json` (backup)
+- `.repochan/analysis/current.json` (deterministic + enriched)
+- `.repochan/analysis/versions/<timestamp>-pre-enrich.json` (backup)
 
 ## Recommended tool flow
 
 1. `repochan` action `protocol.inspect`
 2. `repochan` action `analysis.run` (deterministic scan)
-3. Read `.repochan/analysis.json` to review the evidence
+3. Read `.repochan/analysis/current.json` to review the evidence
 4. Read sampled code files if deeper insight is needed
 5. Perform LLM pre-analysis (step 6) and abstract dimensions (step 8)
 6. `repochan` action `analysis.enrich` to persist LLM results

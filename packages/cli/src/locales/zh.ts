@@ -45,7 +45,7 @@ export default {
   // Analysis
   'analysis.title': '=== 分析 ===',
   'analysis.subtitle': '由 Analyst 角色产出的仓库理解。',
-  'analysis.empty': '尚未找到 .repochan/analysis.json。',
+  'analysis.empty': '尚未找到 .repochan/analysis/current.json。',
   'analysis.repo': '仓库',
   'analysis.summary': '摘要',
   'analysis.tech': '技术画像',
@@ -58,7 +58,7 @@ export default {
   'persona.title': '=== 人物档案 / Persona ===',
   'persona.subtitle': '由 Creative Writer 角色产出的活体吉祥物档案。',
   'persona.empty': '尚未找到 .repochan/persona/current.json。',
-  'persona.needs_analysis': '生成人物档案前需要先有 .repochan/analysis.json。',
+  'persona.needs_analysis': '生成人物档案前需要先有 .repochan/analysis/current.json。',
   'persona.done': '人物档案阶段已完成，已刷新。',
   'persona.name': '名字',
   'persona.concept': '核心概念',

@@ -6,8 +6,9 @@
 
 ```text
 .repochan/
-  analysis.json
-  analysis.versions/
+  analysis/
+    current.json
+    versions/
   persona/
     current.json
     versions/
@@ -22,7 +23,7 @@
 
 ## Artifacts
 
-- `analysis.json` uses `schemaVersion: "repochan.analysis.v1"` and is the upstream baseline for every creative role.
+- `analysis/current.json` uses `schemaVersion: "repochan.analysis.v1"` and is the upstream baseline for every creative role.
 - `persona/current.json` uses `schemaVersion: "repochan.persona.v1"` and requires analysis.
 - `orders/<order-id>/order.json` uses `schemaVersion: "repochan.asset-order.v1"`, contains status and `currentVersion`, and owns its result versions. Order IDs must match `ord-[a-z0-9][a-z0-9-]*`.
 - `orders/<order-id>/versions/<version-id>/meta.json` describes a delivered result version. Image/artifact files live directly in that version directory.

@@ -11,7 +11,7 @@ You are the Creative Writer. Transform repository analysis into a living mascot 
 
 ## Pre-execution checks
 
-1. Require `.repochan/analysis.json`. If missing, stop and ask the user to run the Analyst skill.
+1. Require `.repochan/analysis/current.json`. If missing, stop and ask the user to run the Analyst skill.
 2. **Read the user's language preference**: `repochan action="config.get" params={}` — check the `language` field.
 3. Inspect `.repochan/persona/current.json` and existing versions.
 4. If a current persona exists, ask whether to reuse, revise, fork, or replace.
@@ -141,7 +141,7 @@ a calm and welcoming atelier director with nice hair and pretty eyes wearing ele
 
 ## Workflow
 
-1. Load and understand `.repochan/analysis.json`.
+1. Load and understand `.repochan/analysis/current.json`.
 2. Read language preference: `config.get`.
 3. Identify repository signals: history, struggles, maintenance patterns, design taste, documentation style, naming conventions, emotional rhythm.
 4. Convert signals into character material: memories, personality, contradictions, hobbies, flaws, abilities.

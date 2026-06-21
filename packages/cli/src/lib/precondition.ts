@@ -37,7 +37,7 @@ export async function checkPreconditions(
     warnings.push("No .repochan/ directory found — will be auto-initialized.");
   }
 
-  const analysis = await readJsonIfExists(path.join(protocolRoot(projectRoot), "analysis.json"));
+  const analysis = await readJsonIfExists(path.join(protocolRoot(projectRoot), "analysis", "current.json"));
   const persona = await readJsonIfExists(path.join(protocolRoot(projectRoot), "persona", "current.json"));
   const config = await readJsonIfExists(path.join(protocolRoot(projectRoot), "config.json"));
   const foundation = await findFoundationSheet(projectRoot).catch(() => null);

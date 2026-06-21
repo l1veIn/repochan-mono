@@ -62,7 +62,7 @@ export async function initProtocol(projectRoot: string, options?: { language?: "
   const r = protocolRoot(projectRoot);
   const dirs = [
     r,
-    path.join(r, "analysis.versions"),
+    path.join(r, "analysis", "versions"),
     path.join(r, "persona", "versions"),
     path.join(r, "orders"),
   ];
@@ -94,10 +94,10 @@ export async function writeConfig(projectRoot: string, patch: Record<string, unk
 export async function inspectProtocol(projectRoot: string) {
   const r = protocolRoot(projectRoot);
   const summary: Record<string, unknown> = { exists: await exists(r), root: PROTOCOL_DIR };
-  summary.analysis = await exists(path.join(r, "analysis.json"));
+  summary.analysis = await exists(path.join(r, "analysis", "current.json"));
   summary.persona = await exists(path.join(r, "persona", "current.json"));
   try {
-    summary.analysisVersions = (await fs.readdir(path.join(r, "analysis.versions"))).filter((f) => f.endsWith(".json"));
+    summary.analysisVersions = (await fs.readdir(path.join(r, "analysis", "versions"))).filter((f) => f.endsWith(".json"));
   } catch {
     summary.analysisVersions = [];
   }
@@ -137,7 +137,7 @@ export async function inspectProtocol(projectRoot: string) {
 
 export function protocolVersionPath(strippedArtifactPath: string, stampValue = stampForPath()) {
   const clean = stripProtocolPrefix(strippedArtifactPath).split(/[\\/]+/).join("/");
-  if (clean === "analysis.json") return path.join("analysis.versions", `${stampValue}.json`);
+  if (clean === "analysis/current.json") return path.join("analysis", "versions", `${stampValue}.json`);
   if (clean === "persona/current.json") return path.join("persona", "versions", `${stampValue}.json`);
   return path.join(path.dirname(clean), "versions", `${stampValue}.json`);
 }
@@ -181,8 +181,8 @@ export async function listJsonFiles(dir: string) {
 }
 
 export async function requireAnalysis(projectRoot: string) {
-  const file = path.join(protocolRoot(projectRoot), "analysis.json");
-  if (!(await exists(file))) throw new Error("Missing .repochan/analysis.json. Run repochan action='analysis.run' first.");
+  const file = path.join(protocolRoot(projectRoot), "analysis", "current.json");
+  if (!(await exists(file))) throw new Error("Missing .repochan/analysis/current.json. Run repochan action='analysis.run' first.");
 }
 
 export async function requirePersona(projectRoot: string) {
