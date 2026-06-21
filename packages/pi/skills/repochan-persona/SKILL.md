@@ -47,7 +47,10 @@ Repository evidence is soil for the character, not a cage. Follow these rules st
 
 5. **设计说明给后续资产复用**：designNotes 应该是给 Logo/Banner/表情包复用的视觉规范，不是角色自述。
 
-6. **禁止直白的计算机符号作为配件或视觉母题**：不要默认使用光标(cursor)、代码块(code block)、终端(terminal)、像素(pixel)、命令行等计算机符号作为角色的耳环、饰品、发光元素或标志性图案。每个项目的角色应该有从项目独特气质生发出来的原创视觉符号，而不是套用"代码项目=光标耳坠"这种通用模板。如果确实要融入科技元素，应该把它转化为更有想象力的形态（比如把"版本控制"变成"记录时间的发条怀表"，而不是"Git logo 胸针"）。
+6. **视觉符号的原创性分层（accessories / keyMotifs）**：角色的配件和视觉母题要避免千篇一律的计算机符号，按以下优先级设计：
+   - **Tier 1（首选）**：从项目的独特气质生发出原创视觉符号。想想这个项目"在乎什么"、"像什么"——版本控制→记录时间的发条怀表；实时通信→传递心声的纸鹤链条；数据可视化→能把情绪画成星图的指南针。
+   - **Tier 2（可用）**：把计算机符号**转化**成有想象力的形态。光标→会自己移动的缝衣针；终端→会呼吸的墨水瓶；代码块→刻着看不懂文字的符文砖。关键是它已经不像原始的计算机物件了。
+   - **Tier 3（慎用，需扭曲）**：直白的计算机符号（光标耳环、像素胸针、终端图标）作为小点缀可以用，但必须满足两个条件：(a) 前两层已经产出了主要的视觉身份，这个只是锦上添花；(b) 它不能是角色最显眼的配件——如果去掉它角色就没辨识度了，说明你过度依赖它了。
 
 ## Character flaws (角色缺点 / 萌点)
 
@@ -174,3 +177,19 @@ a calm and welcoming atelier director with nice hair and pretty eyes wearing ele
 **Bad**: "It's a Python project, so she has a snake tail and wears a blue-yellow tracksuit."
 
 **Better**: "She's a sleep-deprived atelier spirit who remembers every refactor as a repaired seam. When contributors arrive confused, she quietly pins loose ideas to floating ribbons, hums a release-note lullaby, and smiles like someone who has survived three impossible migrations without losing her favorite thimble. She's terrible at directions but never asks for help — she just wanders until something looks right, which is exactly how she discovered her best design ideas."
+
+## Diverse direction examples (anti-overfit reference)
+
+The personas below come from completely different project types. They exist to show the *range* of valid design directions — your persona should find its own unique direction, not imitate any of these. Notice how each one derives its visual identity from a different aspect of its project, and none uses generic computer-symbol accessories.
+
+**A CLI data-pipeline tool (rust, minimal, fast):**
+A quiet alpine botanist who catalogues every flower on the mountain by bloom-time. Short choppy black hair, round steel spectacles, waxed canvas field jacket with a hundred tiny labeled pockets. Collects pressed flowers in a leather portfolio — each one tagged with the exact altitude where she found it. Flaw: refuses to throw away any specimen, even diseased ones, "because the data point matters". Hobby: brewing mountain-grain tea by precise temperature. Visual motifs: herbarium specimen tags, contour-line embroidery, brass measuring chain.
+
+**A creative-writing web app (typescript, playful, community-driven):**
+A seaside postmaster who runs a mail route between lighthouses, delivering letters that are always slightly wet. Sun-bleached auburn braids tied with maritime signal-flag ribbons, oversized fisherman sweater with patches in the shape of different islands. Stamp collection organized by "the weather on the day I received this". Flaw: reads the return address before the letter and judges your handwriting. Hobby: carving driftwood into tiny unreliable compasses. Visual motifs: signal flags, wax seals, tide-chart patterns on her sleeves.
+
+**An embedded firmware library (c, old, stable, deeply documented):**
+A cathedral bellringer who has memorized every sequence her village has ever rung, going back 200 years. Iron-gray hair in a tight crown braid, heavy leather gauntlets, a scribe's apron stained with verdigris. She communicates mostly in rhythms — taps on the table, knocks on doors. Flaw: cannot stand silence and will fill it by drumming, which drives everyone crazy. Hobby: restoring antique clock movements. Visual motifs: bell-ropes as belt, patinated green-oxide accents, rhythm-notation tattoos on her forearms.
+
+**A game engine plugin (c#, experimental, fast-moving, chaotic):**
+A storm-chaser who photographs lightning and names each bolt after a discontinued feature. Wind-tangled dyed-blue hair with a single permanent white streak from a close call, neon-yellow raincoat covered in hand-written field notes, rubber boots that squeak. She has survived four rewrites and will tell you about all of them. Flaw: gets so excited about chaos that she secretly hopes things break. Hobby: competitive kite-flying. Visual motifs: lightning-bolt mending stitches on her coat, barometric-pressure dial brooch, storm-cloud shaped messenger bag.
