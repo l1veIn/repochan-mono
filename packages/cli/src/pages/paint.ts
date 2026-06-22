@@ -6,7 +6,7 @@ import { type OnBack, type TuiRef } from "../types.js";
 import { AgentStatus } from "../components/agent-status.js";
 import { ConfirmList, type ConfirmChoice } from "../components/confirm-list.js";
 import { checkPreconditions } from "../lib/precondition.js";
-import { startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
+import { formatSessionSavedMessage, startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
 import { listOrderResults } from "../lib/protocol.js";
 import { listOrders, readOrder, setOrderStatus } from "@repochan/core";
 
@@ -201,9 +201,10 @@ export class PaintPage implements Component {
 
   private failRun(error: unknown) {
     this.agentStatus?.markError(error);
+    const session = this.running;
     this.running = null;
     this.phase = "error";
-    this.statusMsg = error instanceof Error ? error.message : String(error);
+    this.statusMsg = `${error instanceof Error ? error.message : String(error)}\n${formatSessionSavedMessage(session)}`;
     this.tuiRef.requestRender();
   }
 
@@ -267,7 +268,9 @@ export class PaintPage implements Component {
 
     if (this.statusMsg) {
       lines.push("");
-      lines.push(this.phase === "error" ? theme.error(this.statusMsg) : theme.success(this.statusMsg));
+      for (const line of this.statusMsg.split("\n")) {
+        lines.push(this.phase === "error" ? theme.error(line) : theme.success(line));
+      }
     }
 
     lines.push("");

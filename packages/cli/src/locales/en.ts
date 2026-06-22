@@ -6,18 +6,26 @@ export default {
   'wizard.select': 'Select a section:',
   'wizard.analysis': 'Analysis (Analyst)',
   'wizard.persona': 'Persona / 人物档案',
+  'wizard.foundation': 'Foundation Sheet',
   'wizard.orders': 'Orders / Results',
+  'wizard.chat': 'Chat',
+  'wizard.sessions': 'Sessions',
   'wizard.model': 'Model (login / select)',
   'wizard.settings': 'Settings',
-  'wizard.chat': 'Chat (not implemented)',
-  'wizard.hint': '↑↓ select  •  Enter to enter  •  q / Esc to quit',
+  'wizard.hint': '↑↓ select  •  Enter to enter  •  r refresh  •  q / Esc to quit',
 
   // Settings
   'settings.title': '=== Settings ===',
   'settings.header': 'RepoChan settings:',
   'settings.model': 'Model (login / select model)',
-  'settings.language': 'Language (current: {lang})',
+  'settings.language': 'UI language (current: {lang})',
   'settings.hint': '↑↓ select  •  Enter  •  Esc back to wizard',
+
+  // Sessions
+  'sessions.title': '=== Sessions ===',
+  'sessions.subtitle': 'Saved RepoChan Pi sessions for this project.',
+  'sessions.empty': 'No saved sessions found for this project yet.',
+  'sessions.hint': '↑↓ select  •  Enter open in Pi  •  r refresh  •  Esc/q back',
 
   // Model / Login
   'model.title': '=== Model / Login ===',
@@ -52,7 +60,7 @@ export default {
   'analysis.visual': 'Visual signals',
   'analysis.creative': 'Creative signals',
   'analysis.done': 'Analysis phase completed. Refreshed artifact view.',
-  'analysis.hint': 'u: run/re-run Analyst • r: refresh • Esc/q: back (Esc cancels while running)',
+  'analysis.hint': 'u: run/re-run Analyst • e: edit artifact • r: refresh • Esc/q: back (Esc cancels while running)',
 
   // Persona
   'persona.title': '=== Persona / 人物档案 ===',
@@ -67,7 +75,7 @@ export default {
   'persona.relationships': 'Relationships',
   'persona.hooks': 'Art direction hooks',
   'persona.boundaries': 'Boundaries',
-  'persona.hint': 'u: regenerate Persona • r: refresh • Esc/q: back (Esc cancels while running)',
+  'persona.hint': 'u: regenerate Persona • e: edit artifact • r: refresh • Esc/q: back (Esc cancels while running)',
 
   // Orders / Results
   'orders.title': '=== Orders ===',

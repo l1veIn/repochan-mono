@@ -42,6 +42,15 @@ export type AnalysisContext = {
 export type AnalysisResult = {
   schemaVersion: "repochan.analysis.v1";
   generatedAt: string;
+  updatedAt?: string;
+  documentLanguage?: string;
+  languageSignals?: {
+    nativeLanguage: string;
+    confidence: number;
+    evidence: string[];
+    notes?: string;
+  };
+  revisionReason?: string;
   context: AnalysisContext;
   persona: null;
   error: null;

@@ -16,13 +16,13 @@ let currentLang: Lang = 'en';
 
 /**
  * Call this once at startup (before creating any pages).
- * It loads the language from settings.yaml so that t() is up-to-date.
+ * It loads the UI locale from settings.yaml so that t() is up-to-date.
  */
 export async function initLanguage() {
   try {
     const settings = await loadSettings();
-    if (settings.language === 'en' || settings.language === 'zh') {
-      currentLang = settings.language;
+    if (settings.uiLocale === 'en' || settings.uiLocale === 'zh') {
+      currentLang = settings.uiLocale;
     }
   } catch {
     // keep default 'en'
@@ -34,16 +34,16 @@ export function getLanguage(): Lang {
 }
 
 /**
- * Change language at runtime.
+ * Change UI locale at runtime.
  * Updates in-memory value immediately (so UI refreshes can see it)
  * and persists to settings.yaml in the background.
  */
-export async function setLanguage(lang: Lang): Promise<void> {
-  if (lang === 'en' || lang === 'zh') {
-    currentLang = lang;
+export async function setUiLocale(locale: Lang): Promise<void> {
+  if (locale === 'en' || locale === 'zh') {
+    currentLang = locale;
     try {
       const settings = await loadSettings();
-      settings.language = lang;
+      settings.uiLocale = locale;
       await saveSettings(settings);
     } catch {
       // persistence failure should not break the UI
@@ -71,4 +71,3 @@ export function getLangLabel(lang?: Lang): string {
   const l = lang || currentLang;
   return l === 'en' ? 'English' : '中文';
 }
-

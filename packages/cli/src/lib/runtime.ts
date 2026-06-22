@@ -1,9 +1,9 @@
 import path from "node:path";
 import os from "node:os";
-import fs from "node:fs";
 
 import {
   AuthStorage,
+  InteractiveMode,
   createAgentSessionFromServices,
   createAgentSessionRuntime,
   createAgentSessionServices,
@@ -16,15 +16,13 @@ import {
   type CreateAgentSessionRuntimeFactory,
   type ResourceDiagnostic,
   type ResourceLoader,
+  type SessionInfo,
 } from "@earendil-works/pi-coding-agent";
 
 export const OUR_AGENT_DIR = path.join(os.homedir(), ".repochan", "pi");
+export const OUR_SESSION_DIR = path.join(OUR_AGENT_DIR, "sessions");
 
-if (!fs.existsSync(OUR_AGENT_DIR)) {
-  fs.mkdirSync(OUR_AGENT_DIR, { recursive: true });
-}
-
-export type RepoChanSessionMode = "new" | "continue" | "memory";
+export type RepoChanSessionMode = "new" | "continue" | "memory" | { kind: "open"; path: string };
 export type RepoChanPhase = "analysis" | "persona" | "orders" | "painter";
 
 export type CreateRepoChanRuntimeOptions = {
@@ -70,8 +68,8 @@ const PHASE_SKILL_COMMANDS: Record<RepoChanPhase, string> = {
 
 export function buildSkillPrompt(phase: RepoChanPhase, opts?: { orderId?: string; goal?: string }): string {
   const cmd = PHASE_SKILL_COMMANDS[phase];
-  if (phase === "painter" && opts?.orderId) return `${cmd} execute order ${opts.orderId}`;
-  return cmd;
+  const base = phase === "painter" && opts?.orderId ? `${cmd} execute order ${opts.orderId}` : cmd;
+  return opts?.goal ? `${base}\n\nCLI request:\n${opts.goal}` : base;
 }
 
 let cachedSetupRuntime: any = null;
@@ -101,9 +99,10 @@ export function clearRuntimeCache() {
 }
 
 function createSessionManager(cwd: string, mode: RepoChanSessionMode) {
+  if (typeof mode === "object" && mode.kind === "open") return SessionManager.open(mode.path, OUR_SESSION_DIR, cwd);
   if (mode === "memory") return SessionManager.inMemory(cwd);
-  if (mode === "continue") return SessionManager.continueRecent(cwd);
-  return SessionManager.create(cwd);
+  if (mode === "continue") return SessionManager.continueRecent(cwd, OUR_SESSION_DIR);
+  return SessionManager.create(cwd, OUR_SESSION_DIR);
 }
 
 function collectResourceDiagnostics(resourceLoader: ResourceLoader) {
@@ -185,9 +184,17 @@ export async function createRepoChanRuntime(options: CreateRepoChanRuntimeOption
 
 export async function createRunPhaseRuntime(options: RunPhaseArgs & { cwd?: string; agentDir?: string }) {
   const initialSession: RepoChanSessionMode = options.newSession ? "new" : "continue";
-  const phaseNote = initialSession === "new"
-    ? `RepoChan CLI single-phase mode for phase '${options.phase}'. Start a new phase session; do not auto-chain into any other phase.`
-    : `RepoChan CLI single-phase mode for phase '${options.phase}'. Continue the latest RepoChan session; do not auto-chain into any other phase.`;
+  const sessionModeNote = initialSession === "new"
+    ? "Start a new phase session."
+    : "Continue the latest RepoChan session.";
+  const phaseNote = [
+    `RepoChan CLI single-phase mode for phase '${options.phase}'. ${sessionModeNote}`,
+    "This is a task execution run, not an open-ended chat.",
+    "Do not ask optional clarification questions. Optional preferences, style direction, naming taste, and creative constraints are not blockers.",
+    "If hard preconditions are satisfied, use your judgment for unspecified choices, complete this phase, and save the expected RepoChan artifact or order/result through the repochan tool.",
+    "Stop only when the requested phase is complete or blocked by a hard precondition such as a missing required upstream artifact, unavailable tool, invalid order, or required explicit overwrite/destructive approval.",
+    "Do not auto-chain into any other phase.",
+  ].join("\n");
   return createRepoChanRuntime({
     cwd: options.cwd ?? process.cwd(),
     agentDir: options.agentDir,
@@ -196,12 +203,42 @@ export async function createRunPhaseRuntime(options: RunPhaseArgs & { cwd?: stri
   });
 }
 
+export function listRepoChanSessions(cwd: string = process.cwd()): Promise<SessionInfo[]> {
+  return SessionManager.list(cwd, OUR_SESSION_DIR);
+}
+
+export async function runRepoChanInteractive(options: {
+  cwd?: string;
+  initialSession?: RepoChanSessionMode;
+  initialMessage?: string;
+} = {}) {
+  const runtimeResult = await createRepoChanRuntime({
+    cwd: options.cwd ?? process.cwd(),
+    initialSession: options.initialSession ?? "continue",
+    initialConductorPrompt: "RepoChan CLI chat mode. The user is interacting directly; help with RepoChan workflow and repository artifact maintenance.",
+  });
+  const interactive = new InteractiveMode(runtimeResult.runtime, {
+    modelFallbackMessage: runtimeResult.diagnostics.modelFallbackMessage,
+    initialMessage: options.initialMessage,
+  });
+  await interactive.run();
+}
+
 export type RunningRoleSession = {
   runtimeResult: RepoChanRuntimeResult;
   session: any;
+  sessionFile?: string;
+  sessionId?: string;
   done: Promise<void>;
   abort: () => Promise<void>;
 };
+
+export function formatSessionSavedMessage(session?: Pick<RunningRoleSession, "sessionFile" | "sessionId"> | null) {
+  if (!session?.sessionFile && !session?.sessionId) return "Session saved. Open it with `repochan sessions`.";
+  const id = session.sessionId ? ` (${session.sessionId.slice(0, 8)})` : "";
+  const file = session.sessionFile ? `: ${session.sessionFile}` : "";
+  return `Session saved${id}. Open it with \`repochan sessions\`${file}`;
+}
 
 export async function startRoleSession(args: RunPhaseArgs & { cwd?: string; onDone?: () => void; onError?: (error: unknown) => void }): Promise<RunningRoleSession> {
   const runtimeResult = await createRunPhaseRuntime({ ...args, cwd: args.cwd ?? process.cwd(), newSession: args.newSession ?? true });
@@ -213,6 +250,8 @@ export async function startRoleSession(args: RunPhaseArgs & { cwd?: string; onDo
   return {
     runtimeResult,
     session,
+    sessionFile: session.sessionFile,
+    sessionId: session.sessionId,
     done,
     abort: async () => {
       if (typeof session.abort === "function") await session.abort();

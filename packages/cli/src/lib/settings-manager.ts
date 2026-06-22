@@ -4,14 +4,14 @@ import path from "node:path";
 import { parse, stringify } from "yaml";
 
 export type RepoChanSettings = {
-  language: "en" | "zh";
+  uiLocale: "en" | "zh";
 };
 
 export const DEFAULT_SETTINGS: RepoChanSettings = {
-  language: "en",
+  uiLocale: "en",
 };
 
-const SETTINGS_PATH = path.join(homedir(), ".repochan", "settings.yaml");
+export const SETTINGS_PATH = path.join(homedir(), ".repochan", "settings.yaml");
 
 let cachedSettings: RepoChanSettings | null = null;
 
@@ -24,8 +24,10 @@ export async function loadSettings(): Promise<RepoChanSettings> {
   try {
     const content = await readFile(SETTINGS_PATH, "utf8");
     const raw = parse(content) || {};
-    const language = raw.language === "en" || raw.language === "zh" ? raw.language : DEFAULT_SETTINGS.language;
-    cachedSettings = { language };
+    if (raw.uiLocale !== "en" && raw.uiLocale !== "zh") {
+      throw new Error(`${SETTINGS_PATH} must contain uiLocale: en or uiLocale: zh.`);
+    }
+    cachedSettings = { uiLocale: raw.uiLocale };
     return cachedSettings;
   } catch (err: any) {
     if (err.code === "ENOENT") {
@@ -42,13 +44,23 @@ export async function saveSettings(settings: RepoChanSettings): Promise<void> {
   cachedSettings = settings;
 }
 
-export async function getLanguage(): Promise<"en" | "zh"> {
-  const s = await loadSettings();
-  return s.language;
+export async function hasSettings(): Promise<boolean> {
+  try {
+    await readFile(SETTINGS_PATH, "utf8");
+    return true;
+  } catch (err: any) {
+    if (err.code === "ENOENT") return false;
+    throw err;
+  }
 }
 
-export async function setLanguage(lang: "en" | "zh"): Promise<void> {
+export async function getUiLocale(): Promise<"en" | "zh"> {
   const s = await loadSettings();
-  s.language = lang;
+  return s.uiLocale;
+}
+
+export async function setUiLocale(locale: "en" | "zh"): Promise<void> {
+  const s = await loadSettings();
+  s.uiLocale = locale;
   await saveSettings(s);
 }

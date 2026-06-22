@@ -18,7 +18,6 @@ export type PreconditionResult = {
   /** loaded data */
   analysis: any | null;
   persona: any | null;
-  config: any | null;
   foundation: { orderId: string; versionId: string; assetType: string; files: string[] } | null;
   hasProtocol: boolean;
 };
@@ -39,7 +38,6 @@ export async function checkPreconditions(
 
   const analysis = await readJsonIfExists(path.join(protocolRoot(projectRoot), "analysis", "current.json"));
   const persona = await readJsonIfExists(path.join(protocolRoot(projectRoot), "persona", "current.json"));
-  const config = await readJsonIfExists(path.join(protocolRoot(projectRoot), "config.json"));
   const foundation = await findFoundationSheet(projectRoot).catch(() => null);
 
   // Check analysis requirement
@@ -50,7 +48,6 @@ export async function checkPreconditions(
       warnings,
       analysis: null,
       persona,
-      config,
       foundation,
       hasProtocol,
     };
@@ -64,7 +61,6 @@ export async function checkPreconditions(
       warnings,
       analysis,
       persona: null,
-      config,
       foundation,
       hasProtocol,
     };
@@ -78,7 +74,6 @@ export async function checkPreconditions(
       warnings,
       analysis,
       persona,
-      config,
       foundation: null,
       hasProtocol,
     };
@@ -89,7 +84,7 @@ export async function checkPreconditions(
     warnings.push(`Analysis schema version is '${analysis.schemaVersion}', expected 'repochan.analysis.v1'. Consider re-running analyze.`);
   }
 
-  return { ok: true, warnings, analysis, persona, config, foundation, hasProtocol };
+  return { ok: true, warnings, analysis, persona, foundation, hasProtocol };
 }
 
 /** Check if an order exists and its status is valid for painting. */

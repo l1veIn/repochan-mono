@@ -2,7 +2,7 @@ import { matchesKey, Key, SelectList, truncateToWidth, type Component } from "@e
 import chalk from "chalk";
 
 import { type OnBack, type TuiRef } from "../types.js";
-import { t, setLanguage, getLanguage, getLangLabel } from "../i18n.js";
+import { t, getLanguage, getLangLabel } from "../i18n.js";
 import { LanguageHost } from "./language.js";
 
 const theme = {
@@ -21,7 +21,7 @@ export class SettingsHost implements Component {
   private buildList() {
     const items = [
       { value: "model", label: t("settings.model") },
-      { value: "language", label: t("settings.language", { lang: getLangLabel() }) },
+      { value: "uiLocale", label: t("settings.language", { lang: getLangLabel() }) },
     ];
     const list = new SelectList(items, 5, {
       selectedPrefix: (s) => theme.accent("> " + s),
@@ -33,7 +33,7 @@ export class SettingsHost implements Component {
     list.onSelect = (item) => {
       if (item.value === "model") {
         this.onSelectModel(this.tui);
-      } else if (item.value === "language") {
+      } else if (item.value === "uiLocale") {
         this.enterLanguage();
       }
     };

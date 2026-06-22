@@ -5,9 +5,10 @@ import { t } from "../i18n.js";
 import { type OnBack, type TuiRef } from "../types.js";
 import { AgentStatus } from "../components/agent-status.js";
 import { ConfirmList, type ConfirmChoice } from "../components/confirm-list.js";
+import { PromptInput } from "../components/prompt-input.js";
 import { checkPreconditions } from "../lib/precondition.js";
 import { readAnalysis, readPersona } from "../lib/protocol.js";
-import { startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
+import { formatSessionSavedMessage, startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
 
 const theme = {
   accent: (s: string) => chalk.cyan(s),
@@ -17,7 +18,7 @@ const theme = {
   error: (s: string) => chalk.red(s),
 };
 
-type Phase = "loading" | "idle" | "confirm" | "running" | "done" | "error";
+type Phase = "loading" | "idle" | "confirm" | "revision" | "running" | "done" | "error";
 
 export class PersonaPage implements Component {
   private phase: Phase = "loading";
@@ -28,6 +29,7 @@ export class PersonaPage implements Component {
   private agentStatus: AgentStatus | null = null;
   private running: RunningRoleSession | null = null;
   private confirm: ConfirmList | null = null;
+  private revisionInput: PromptInput | null = null;
 
   constructor(private onBack: OnBack, private tuiRef: TuiRef) {
     void this.load();
@@ -72,7 +74,32 @@ export class PersonaPage implements Component {
     this.tuiRef.requestRender();
   }
 
-  private async startRun() {
+  private showRevisionInput() {
+    this.revisionInput = new PromptInput({
+      title: "=== Revise Persona ===",
+      prompt: "Describe how to update .repochan/persona/current.json:",
+      placeholder: "e.g. Rewrite the persona document in Chinese with blue-pink colors",
+      onSubmit: (request) => {
+        this.revisionInput = null;
+        void this.startRun([
+          "Revise the current persona artifact according to this user request.",
+          "Read current analysis and persona first, then call repochan action=\"persona.update\" with a complete updated persona object and overwrite=true.",
+          "Keep rolePrompt in English image-generation tags regardless of the persona document language.",
+          `User request: ${request}`,
+        ].join("\n"));
+      },
+      onCancel: () => {
+        this.revisionInput = null;
+        this.phase = "idle";
+        this.tuiRef.requestRender();
+      },
+    });
+    this.phase = "revision";
+    this.tuiRef.setFocus(this);
+    this.tuiRef.requestRender();
+  }
+
+  private async startRun(goal?: string) {
     if (this.running) return;
     if (!this.hasAnalysis) {
       this.statusMsg = t("persona.needs_analysis");
@@ -81,6 +108,7 @@ export class PersonaPage implements Component {
       return;
     }
     this.confirm = null;
+    this.revisionInput = null;
     this.phase = "running";
     this.statusMsg = null;
     this.agentStatus?.dispose();
@@ -89,6 +117,7 @@ export class PersonaPage implements Component {
     try {
       this.running = await startRoleSession({
         phase: "persona", cwd: process.cwd(), newSession: true,
+        goal,
         onDone: () => void this.finishRun(),
         onError: (error: unknown) => this.failRun(error),
       });
@@ -107,9 +136,10 @@ export class PersonaPage implements Component {
 
   private failRun(error: unknown) {
     this.agentStatus?.markError(error);
+    const session = this.running;
     this.running = null;
     this.phase = "error";
-    this.statusMsg = error instanceof Error ? error.message : String(error);
+    this.statusMsg = `${error instanceof Error ? error.message : String(error)}\n${formatSessionSavedMessage(session)}`;
     this.tuiRef.requestRender();
   }
 
@@ -127,12 +157,14 @@ export class PersonaPage implements Component {
 
   handleInput(data: string): void {
     if (this.phase === "confirm" && this.confirm) { this.confirm.handleInput(data); return; }
+    if (this.phase === "revision" && this.revisionInput) { this.revisionInput.handleInput(data); return; }
     if (matchesKey(data, Key.escape) || data === "q" || data === "Q") {
       if (this.running) void this.cancelRun(); else this.onBack();
       return;
     }
     if (this.running) return;
     if (data === "r" || data === "R") { void this.load(); return; }
+    if ((data === "e" || data === "E") && this.persona) { this.showRevisionInput(); return; }
     if (data === "u" || data === "U" || data === "\r") {
       if (!this.hasAnalysis) { this.statusMsg = t("persona.needs_analysis"); this.tuiRef.requestRender(); return; }
       if (this.persona) this.showConfirm(); else void this.startRun();
@@ -142,6 +174,7 @@ export class PersonaPage implements Component {
   render(width: number): string[] {
     const w = Math.max(40, width);
     if (this.phase === "confirm" && this.confirm) return this.confirm.render(w);
+    if (this.phase === "revision" && this.revisionInput) return this.revisionInput.render(w);
 
     const lines: string[] = [];
     lines.push(theme.accent(t("persona.title")));
@@ -164,7 +197,7 @@ export class PersonaPage implements Component {
     } else {
       lines.push(...renderPersona(this.persona, w));
       lines.push("");
-      lines.push(theme.success("  [Enter/u] Regenerate persona"));
+      lines.push(theme.success("  [Enter/u] Regenerate persona  [e] Edit persona"));
     }
 
     if (this.warnings.length) {
@@ -174,7 +207,9 @@ export class PersonaPage implements Component {
 
     if (this.statusMsg) {
       lines.push("");
-      lines.push(this.phase === "error" ? theme.error(this.statusMsg) : theme.success(this.statusMsg));
+      for (const line of this.statusMsg.split("\n")) {
+        lines.push(this.phase === "error" ? theme.error(line) : theme.success(line));
+      }
     }
 
     lines.push("");
@@ -187,6 +222,12 @@ function renderPersona(persona: any, width: number) {
   const lines: string[] = [];
   const name = persona.name?.primary ?? persona.name ?? "?";
   lines.push(`${theme.accent(t("persona.name"))}: ${name}`);
+  if (persona.language || persona.nativeLanguage) {
+    const parts = [];
+    if (persona.language) parts.push(`language: ${persona.language}`);
+    if (persona.nativeLanguage) parts.push(`native: ${persona.nativeLanguage}`);
+    lines.push(parts.join("  "));
+  }
   if (persona.coreConcept) lines.push(...wrap(`${t("persona.concept")}: ${persona.coreConcept}`, width));
   if (persona.characterFlaws) lines.push(`Flaws: ${Array.isArray(persona.characterFlaws) ? persona.characterFlaws.join(", ") : persona.characterFlaws}`);
   if (persona.catchphrase) lines.push(`Catchphrase: ${persona.catchphrase}`);

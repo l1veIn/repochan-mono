@@ -8,7 +8,7 @@ import { t } from "../i18n.js";
 import { AgentStatus } from "../components/agent-status.js";
 import { readOrder, setCurrentOrderResult, setOrderStatus, protocolRoot } from "@repochan/core";
 import { listOrderResults } from "../lib/protocol.js";
-import { startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
+import { formatSessionSavedMessage, startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
 
 const theme = {
   accent: (s: string) => chalk.cyan(s),
@@ -233,8 +233,9 @@ export class OrderDetailPage implements Component {
 
   private failRun(error: unknown) {
     this.agentStatus?.markError(error);
+    const session = this.running;
     this.running = null;
-    this.statusMsg = error instanceof Error ? error.message : String(error);
+    this.statusMsg = `${error instanceof Error ? error.message : String(error)}\n${formatSessionSavedMessage(session)}`;
     this.tuiRef.requestRender();
   }
 
@@ -322,7 +323,7 @@ export class OrderDetailPage implements Component {
 
     if (this.statusMsg) {
       lines.push("");
-      lines.push(theme.success(this.statusMsg));
+      for (const line of this.statusMsg.split("\n")) lines.push(theme.success(line));
     }
 
     lines.push("");

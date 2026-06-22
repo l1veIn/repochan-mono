@@ -27,7 +27,7 @@ You are the Analyst. Your job is to understand the repository deeply enough that
 
 ### Phase 2: LLM enrichment (your intelligence)
 
-After the deterministic scan completes, you must perform two LLM analysis steps using your own reasoning, then persist them with `analysis.enrich`.
+After the deterministic scan completes, you must perform three LLM analysis steps using your own reasoning, then persist them with `analysis.enrich`.
 
 #### Step 6: LLM Pre-analysis
 
@@ -85,11 +85,42 @@ Output as `abstract`:
 }
 ```
 
-#### Persist: Call `analysis.enrich`
+#### Step 9: Language signals
 
-After completing both LLM steps, call `repochan` action `analysis.enrich` with params:
+Infer the mascot's native/cultural language from the repository evidence. This is not the CLI UI locale. It is a creative signal for the project mascot's mother tongue and cultural atmosphere.
+
+Use concrete evidence such as:
+- README/documentation language
+- commit message language
+- comments, examples, sample data, UI copy
+- package names, domain vocabulary, target audience
+- repository origin or community signals when visible
+
+Also decide the analysis/persona document language:
+- If the CLI conductor or user explicitly provides a document language, use that as `documentLanguage`.
+- In Pi-only conversational usage, infer `documentLanguage` from the user's current conversation language.
+- Do not write or read a project config file for language.
+
+Output as:
 ```json
 {
+  "documentLanguage": "English",
+  "languageSignals": {
+    "nativeLanguage": "Japanese",
+    "confidence": 0.72,
+    "evidence": ["README contains Japanese examples", "UI copy uses Japanese terminology"],
+    "notes": "Short optional explanation"
+  }
+}
+```
+
+#### Persist: Call `analysis.enrich`
+
+After completing all LLM steps, call `repochan` action `analysis.enrich` with params:
+```json
+{
+  "documentLanguage": "English",
+  "languageSignals": { ... },
   "preAnalysis": { ... },
   "abstract": { ... }
 }
@@ -105,6 +136,7 @@ This merges your LLM analysis into the deterministic `analysis/current.json`, ar
 4. **Score honestly** — a well-maintained project gets 0.8+; a messy prototype gets 0.3-0.5. Don't inflate.
 5. **The preAnalysis summary is product-focused** — what it does for users, not how it's built.
 6. **Abstract dimensions are design-relevant** — they feed the Creative Writer. Think "what personality traits would a mascot for THIS project have?"
+7. **Language signals are evidence-based** — nativeLanguage can be any human language string. Use confidence honestly and cite evidence.
 
 ## Consumes
 
@@ -122,6 +154,6 @@ This merges your LLM analysis into the deterministic `analysis/current.json`, ar
 2. `repochan` action `analysis.run` (deterministic scan)
 3. Read `.repochan/analysis/current.json` to review the evidence
 4. Read sampled code files if deeper insight is needed
-5. Perform LLM pre-analysis (step 6) and abstract dimensions (step 8)
+5. Perform LLM pre-analysis (step 6), abstract dimensions (step 8), and language signals (step 9)
 6. `repochan` action `analysis.enrich` to persist LLM results
 7. Stop. Do not generate persona or orders.

@@ -2,7 +2,7 @@ import { SelectList, matchesKey, Key, truncateToWidth, type Component } from "@e
 import chalk from "chalk";
 
 import { type OnBack } from "../types.js";
-import { t, setLanguage, getLanguage } from "../i18n.js";
+import { t, setUiLocale, getLanguage } from "../i18n.js";
 
 const theme = {
   accent: (s: string) => chalk.cyan(s),
@@ -13,10 +13,12 @@ export class LanguageHost implements Component {
   private list: SelectList;
   private onBack: OnBack;
   private tui: any;
+  private allowCancel: boolean;
 
-  constructor(onBack: OnBack, tui?: any) {
+  constructor(onBack: OnBack, tui?: any, options: { allowCancel?: boolean } = {}) {
     this.onBack = onBack;
     this.tui = tui;
+    this.allowCancel = options.allowCancel !== false;
 
     const current = getLanguage();
 
@@ -39,13 +41,15 @@ export class LanguageHost implements Component {
     this.list.setSelectedIndex(initialIndex);
 
     this.list.onSelect = (item) => {
-      const newLang = item.value as "en" | "zh";
-      setLanguage(newLang);
-      this.onBack();
-      // force re-render so parent settings list updates immediately
-      if (this.tui && typeof this.tui.requestRender === 'function') {
-        this.tui.requestRender();
-      }
+      void (async () => {
+        const newLang = item.value as "en" | "zh";
+        await setUiLocale(newLang);
+        this.onBack();
+        // force re-render so parent settings list updates immediately
+        if (this.tui && typeof this.tui.requestRender === 'function') {
+          this.tui.requestRender();
+        }
+      })();
     };
   }
 
@@ -53,7 +57,7 @@ export class LanguageHost implements Component {
 
   handleInput(data: string): void {
     if (matchesKey(data, Key.escape) || data === "q") {
-      this.onBack();
+      if (this.allowCancel) this.onBack();
       return;
     }
     this.list.handleInput(data);

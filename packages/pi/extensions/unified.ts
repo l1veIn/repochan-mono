@@ -8,15 +8,14 @@ import {
   inspectProtocol,
   listJsonFiles,
   protocolVersionPath,
-  readConfig,
   readJson,
   relativeProtocolPath,
   root,
   safeProtocolPath,
   validateOrderId,
   validateVersionId,
-  writeConfig,
   writeJson,
+  updateAnalysisArtifact,
   writeAnalysisArtifact,
   isPlainObject,
   createOrderResult as coreCreateOrderResult,
@@ -39,6 +38,7 @@ const ActionSchema = Type.Union([
   Type.Literal("analysis.run"),
   Type.Literal("analysis.get"),
   Type.Literal("analysis.enrich"),
+  Type.Literal("analysis.update"),
   Type.Literal("analysis.list_versions"),
   Type.Literal("persona.get"),
   Type.Literal("persona.create"),
@@ -55,8 +55,6 @@ const ActionSchema = Type.Union([
   Type.Literal("order.get_result"),
   Type.Literal("order.resolve_references"),
   Type.Literal("foundation.find"),
-  Type.Literal("config.get"),
-  Type.Literal("config.set"),
   Type.Literal("template.list"),
   Type.Literal("template.get"),
   Type.Literal("protocol.inspect"),
@@ -104,6 +102,19 @@ async function runAnalysis(ctx: ExtensionContext, params: JsonObject) {
   return ok("Analyzed repository and wrote .repochan/analysis/current.json", data);
 }
 
+async function updateAnalysis(ctx: ExtensionContext, params: JsonObject) {
+  if (!isPlainObject(params.patch)) {
+    throw new Error("analysis.update requires params.patch (an object).");
+  }
+  const { data } = await updateAnalysisArtifact(ctx.cwd, {
+    patch: params.patch,
+    overwrite: params.overwrite === true,
+    versionPrevious: params.versionPrevious,
+    reason: typeof params.reason === "string" ? params.reason : undefined,
+  });
+  return ok("Updated .repochan/analysis/current.json", data);
+}
+
 async function enrichAnalysis(ctx: ExtensionContext, params: JsonObject) {
   const analysisPath = path.join(root(ctx.cwd), "analysis", "current.json");
   const existing = await readJson(analysisPath);
@@ -122,6 +133,12 @@ async function enrichAnalysis(ctx: ExtensionContext, params: JsonObject) {
   }
   if (params.abstract && isPlainObject(params.abstract)) {
     enriched.abstract = params.abstract;
+  }
+  if (typeof params.documentLanguage === "string" && params.documentLanguage.trim()) {
+    enriched.documentLanguage = params.documentLanguage.trim();
+  }
+  if (params.languageSignals && isPlainObject(params.languageSignals)) {
+    enriched.languageSignals = params.languageSignals;
   }
   enriched.enrichedAt = new Date().toISOString();
 
@@ -212,20 +229,6 @@ async function findFoundation(ctx: ExtensionContext) {
   );
 }
 
-async function getConfig(ctx: ExtensionContext, params: JsonObject) {
-  const config = await readConfig(ctx.cwd);
-  const key = typeof params.key === "string" ? params.key : undefined;
-  if (key) return ok(`${key}: ${String(config[key] ?? "<unset>")}`, { config: { [key]: config[key] } });
-  return ok(JSON.stringify(config, null, 2), { config });
-}
-
-async function setConfig(ctx: ExtensionContext, params: JsonObject) {
-  if (!isPlainObject(params.values)) throw new Error("config.set requires params.values (an object).");
-  await writeConfig(ctx.cwd, params.values);
-  const config = await readConfig(ctx.cwd);
-  return ok(`Config updated.`, { config });
-}
-
 function getBuiltinTemplatesDir(): string {
   return path.resolve(path.dirname(new URL(import.meta.url).pathname), "..", "templates");
 }
@@ -311,7 +314,8 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "Safety: keep provenance. persona.create/persona.update and order.create_result add provenance when absent; pass params.provenance when an external generator, dashboard, or human produced the artifact.",
       "Safety: protocol paths are constrained to .repochan. protocol.write and protocol.append_version must not be used to bypass entity-specific preconditions unless the user explicitly asks for protocol-level maintenance/migration.",
       "analysis.run params: optional { analysis, overwrite=false, versionPrevious=true, corePaths, focusAreas, includeSections, maxSampleFiles, maxSampleChars, perFileSampleChars, colorScanLimit, includeFileLists=true }. Runs deterministic file walking, git profile, color extraction, tech-stack detection, docs summary, inventory counts, and desensitized code sampling, then writes .repochan/analysis/current.json. If analysis exists, ask before overwrite=true.",
-      "analysis.enrich params: { preAnalysis: { project_category, summary, language_focus, core_paths, exclude_hints, needs_ui_assets, asset_recommendations, analysis_focus }, abstract: { dimensions: [{ dimension, summary, keywords, score }], overall_impression } }. Merges LLM-generated preAnalysis and abstract dimension analysis into the existing analysis/current.json. Archives the pre-enrichment version first. The Analyst must run analysis.run FIRST (deterministic scan), then perform the LLM analysis, then call this action to persist the results. The preAnalysis covers product-level judgment (what the project does, for whom, what assets it needs); the abstract covers 5 dimensions: code_style, architecture, product_philosophy, tech_choices, team_culture — each with a 200-char summary, 4 keywords, and a 0.0-1.0 score.",
+      "analysis.enrich params: { documentLanguage?, languageSignals?, preAnalysis, abstract }. Merges LLM-generated language signals, preAnalysis, and abstract dimension analysis into analysis/current.json. Archives the pre-enrichment version first. The Analyst must run analysis.run FIRST, then reason over the evidence, then call this action.",
+      "analysis.update params: { patch, overwrite=true, versionPrevious=true, reason? }. Deep-merges patch into .repochan/analysis/current.json, archives the previous current by default, and records updatedAt/revisionReason. Use this for user-requested analysis report revisions such as changing documentLanguage or languageSignals.",
       "analysis.get params: {}. Reads .repochan/analysis/current.json. Use before persona work when you need the upstream analysis. Fails if missing.",
       "analysis.list_versions params: {}. Lists .repochan/analysis/versions/*.json and reports whether current analysis exists.",
       "persona.get params: optional { versionId }. Without versionId, reads .repochan/persona/current.json. With versionId, reads .repochan/persona/versions/<versionId>.json (the .json suffix is optional). Use as the persona pre-flight before order or painter work.",
@@ -328,12 +332,10 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "order.get_result params: { orderId, versionId? }. Reads a result version meta/files. Without versionId, reads order.currentVersion.",
       "order.set_current_result params: { orderId, versionId }. Requires an existing result version. Updates order.currentVersion in place.",
       "foundation.find params: {}. Searches for a foundation/cover sheet order (assetType 'foundation_sheet' or 'cover_sheet') that has a delivered result with image files. Returns { orderId, versionId, assetType, files } or null. The Art Director and Painter use this to check whether the project already has a visual anchor before creating or executing downstream orders.",
-      "config.get params: optional { key }. Reads .repochan/config.json. Without key, returns the full config. With key, returns just that value. Used by the Creative Writer to check the user's language preference before generating persona content.",
-      "config.set params: { values }. Merges values into .repochan/config.json. Used to update language preference or other project-level settings.",
       "template.list params: optional { tag?, query? }. Lists all available templates (built-in + project-level .repochan/templates/). Each template returns id, label, assetType, aspectRatio, grid info, and tags. Use tag to filter (e.g., tag='sticker') or query to search.",
       "template.get params: { templateId }. Returns the full template definition including dimensions, grid layout, background type, guide tags, and structural constraints. The Painter uses this to know the 'canvas spec' before writing a prompt.",
       "Template system: Templates define OUTPUT SPECIFICATIONS (canvas size, grid layout, background type, quality prefix, structural constraints) — they are NOT prompt generators. The Painter reads persona + order + references + template, then writes the full prompt themselves. Templates ensure outputs have the right structure for downstream tools (e.g., a 3×3 grid can be auto-sliced into 9 tiles). The Art Director sets templateId on each order; the Painter reads it before generating.",
-      "Language awareness: .repochan/config.json stores the user's language preference ('zh' or 'en'). The Creative Writer MUST read config.get before generating persona content, and generate all narrative fields (personality, backstory, catchphrase, hobbies, characterFlaws, etc.) in that language. The rolePrompt field is ALWAYS English regardless of language setting, because it is consumed by image generation models.",
+      "Language awareness: UI locale is not part of the .repochan protocol. Analysis may contain documentLanguage (the report/persona document language) and languageSignals.nativeLanguage (the mascot's inferred native/cultural language). Creative roles should use those artifact fields and explicit user requests, not global config.",
       "order.resolve_references params: { references: [{ orderId, versionId?, role }] }. Resolves reference entries into absolute image file paths grouped by role. Used by the Painter before generation to get the actual reference image files to inject. role is one of: character, style, composition.",
       "Visual anchor system: A 'foundation sheet' (assetType 'foundation_sheet' or 'cover_sheet') is the project's first real image output — it contains the mascot's signature pose, chibi form, expressions, and color palette on a single sheet. Every downstream order SHOULD reference it via the order.references field: [{ orderId: '<foundation-order-id>', role: 'character' }]. This ensures visual consistency across all generated assets. The Art Director creates the foundation order first; once it has a delivered result, the Art Director auto-fills references on all subsequent orders.",
       "Order references field: Each order may include a `references` array of { orderId, versionId?, role } entries. When present, the Painter resolves them via action='order.resolve_references' and passes the resulting image files as reference images to the image generation tool. Orders with assetType 'foundation_sheet' or 'cover_sheet' do NOT need references — they ARE the anchor.",
@@ -350,6 +352,8 @@ export function registerRepoChan(pi: ExtensionAPI) {
           return runAnalysis(ctx, params);
         case "analysis.enrich":
           return enrichAnalysis(ctx, params);
+        case "analysis.update":
+          return updateAnalysis(ctx, params);
         case "analysis.get": {
           const data = await readJson(path.join(root(ctx.cwd), "analysis", "current.json"));
           return ok(JSON.stringify(data, null, 2), data);
@@ -398,10 +402,6 @@ export function registerRepoChan(pi: ExtensionAPI) {
           return resolveReferences(ctx, params);
         case "foundation.find":
           return findFoundation(ctx);
-        case "config.get":
-          return getConfig(ctx, params);
-        case "config.set":
-          return setConfig(ctx, params);
         case "template.list":
           return listTemplates(ctx, params);
         case "template.get":

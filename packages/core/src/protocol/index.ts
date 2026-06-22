@@ -58,7 +58,7 @@ export async function writeJson(file: string, data: unknown, overwrite = false) 
   await fs.writeFile(file, `${JSON.stringify(data, null, 2)}\n`, "utf8");
 }
 
-export async function initProtocol(projectRoot: string, options?: { language?: "zh" | "en" }) {
+export async function initProtocol(projectRoot: string) {
   const r = protocolRoot(projectRoot);
   const dirs = [
     r,
@@ -67,28 +67,6 @@ export async function initProtocol(projectRoot: string, options?: { language?: "
     path.join(r, "orders"),
   ];
   await Promise.all(dirs.map((dir) => fs.mkdir(dir, { recursive: true })));
-
-  // Write default config.json if not exists
-  const configPath = path.join(r, "config.json");
-  if (!(await exists(configPath))) {
-    await writeJson(configPath, {
-      schemaVersion: "repochan.config.v1",
-      language: options?.language ?? "en",
-    }, false);
-  }
-}
-
-export async function readConfig(projectRoot: string): Promise<{ language: "zh" | "en"; [key: string]: unknown }> {
-  const configPath = path.join(protocolRoot(projectRoot), "config.json");
-  const config = await readJsonIfExists(configPath);
-  return config ?? { language: "en" as const };
-}
-
-export async function writeConfig(projectRoot: string, patch: Record<string, unknown>) {
-  const r = protocolRoot(projectRoot);
-  const configPath = path.join(r, "config.json");
-  const current = await readConfig(projectRoot);
-  await writeJson(configPath, { ...current, ...patch }, true);
 }
 
 export async function inspectProtocol(projectRoot: string) {

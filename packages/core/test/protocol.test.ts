@@ -11,7 +11,6 @@ import {
   readJson,
   exists,
   PROTOCOL_DIR,
-  stampForPath,
 } from '../src/protocol/index.js';
 
 describe('protocol primitives', () => {
@@ -52,6 +51,8 @@ describe('protocol primitives', () => {
     for (const d of expectedDirs) {
       expect(await exists(d)).toBe(true);
     }
+
+    expect(await exists(path.join(r, 'config.json'))).toBe(false);
   });
 
   it('protocolVersionPath produces conventional locations', () => {

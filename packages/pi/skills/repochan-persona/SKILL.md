@@ -12,20 +12,26 @@ You are the Creative Writer. Transform repository analysis into a living mascot 
 ## Pre-execution checks
 
 1. Require `.repochan/analysis/current.json`. If missing, stop and ask the user to run the Analyst skill.
-2. **Read the user's language preference**: `repochan action="config.get" params={}` — check the `language` field.
+2. Read `analysis.documentLanguage` and `analysis.languageSignals.nativeLanguage`.
 3. Inspect `.repochan/persona/current.json` and existing versions.
 4. If a current persona exists, ask whether to reuse, revise, fork, or replace.
-5. Ask for any user direction: preferred genre, tone, cultural constraints, required continuity.
-6. Do not create asset orders or final image prompts in this role.
+5. Use any user direction already present in the current request/session: preferred genre, tone, cultural constraints, required continuity, naming preferences, or things to avoid.
+6. If no optional direction is provided, use your judgment and generate the first persona directly. Do not stop to ask for optional preferences in CLI single-phase runs.
+7. Do not create asset orders or final image prompts in this role.
+
+Hard blockers: missing analysis, missing required tool access, invalid protocol state, or a current persona that would require unapproved overwrite/destructive replacement.
+
+Non-blockers: absent genre/style/tone preferences, absent naming preference, absent cultural constraints, absent continuity requirements, and broad instructions like "generate persona". For non-blockers, proceed with a coherent default.
 
 ## Language awareness
 
-**Before writing ANY persona content**, call `repochan action="config.get"` and read the `language` field.
+**Before writing ANY persona content**, read `.repochan/analysis/current.json` and use its artifact language fields. RepoChan does not have a project language config file.
 
-- If `language` is `"zh"`: all narrative fields (personality, backstory, catchphrase, hobbies, occupation, appearance, outfit, designNotes, abilities, characterFlaws) must be in **Chinese**.
-- If `language` is `"en"`: all narrative fields must be in **English**.
+- Use `analysis.documentLanguage` as the persona document language unless the user's current request explicitly asks for another language.
+- Use `analysis.languageSignals.nativeLanguage` as the mascot's native language / cultural atmosphere when designing name, motifs, idioms, and worldview. Do not force the whole document into that language unless it is also the document language.
 - **`rolePrompt` is ALWAYS English**, regardless of language setting. It is consumed by image generation models.
-- Set the `language` field on the persona output to match.
+- Set the persona `language` field to the document language string.
+- Set `nativeLanguage` to the inferred mascot native language string when available.
 
 ## Anti-overfit rules (critical)
 
@@ -134,7 +140,8 @@ Generate a flat JSON object matching `PersonaData`. Save via `repochan action="p
 
   "rolePrompt": "ALWAYS English. 80-150 words. Comma-separated tag phrases. Order: appearance → outfit → accessories → signature pose. NO quality tags. NO background/scene/lighting description. Only character visual features.",
 
-  "language": "zh",
+  "language": "Chinese",
+  "nativeLanguage": "Japanese",
   "generatedAt": "ISO-8601"
 }
 ```
@@ -169,7 +176,8 @@ The schema above shows field structure only — all values are placeholders. Bel
   "abilities": ["Bloom-memory Index", "Altitude-sense Calibration"],
   "designNotes": "Keep her recognizable through round spectacles, the bulging specimen portfolio, forest-green waxed jacket, and her measuring-gesture pose. Visual identity is botanical-fieldwork, not tech. Avoid any computer or screen motifs.",
   "rolePrompt": "female anime character, short choppy black wind-tousled hair, round steel spectacles with chain strap, mossy green eyes with amber ring, calm composed expression, waxed canvas forest-green field jacket with many small pockets, worn linen shirt, charcoal trousers, leather hiking boots, fingerless gloves, leather specimen portfolio with brass clasps held at waist, brass measuring chain necklace, ink-stained notebook in breast pocket, standing with right hand raised measuring distance with fingers",
-  "language": "zh",
+  "language": "English",
+  "nativeLanguage": "German",
   "generatedAt": "ISO-8601"
 }
 ```
@@ -202,7 +210,8 @@ The schema above shows field structure only — all values are placeholders. Bel
   "abilities": ["Strikeframe Memory", "Pressure-read Instinct"],
   "designNotes": "Keep her recognizable through the white lightning-scar streak in blue hair, neon-yellow annotated raincoat, cracked camera, and forward-leaning wind-blown pose. Visual identity is storm-chasing fieldwork, not tech. Avoid any computer or screen motifs.",
   "rolePrompt": "female anime character, dyed electric blue wind-tangled hair with one stark white streak, storm-cloud gray eyes with purple flecks, manic excited grin, wiry energetic body, oversized neon-yellow rubberized raincoat covered in hand-written notes, faded band t-shirt, ripped dark jeans, tall rubber boots, dented cracked camera on neck strap, barometric dial brooch, storm-cloud canvas messenger bag, mid-stride leaning into wind, right hand gripping camera strap, left hand shielding eyes looking upward",
-  "language": "zh",
+  "language": "Chinese",
+  "nativeLanguage": "English",
   "generatedAt": "ISO-8601"
 }
 ```
@@ -231,14 +240,15 @@ a calm and welcoming atelier director with nice hair and pretty eyes wearing ele
 ## Workflow
 
 1. Load and understand `.repochan/analysis/current.json`.
-2. Read language preference: `config.get`.
+2. Read `analysis.documentLanguage` and `analysis.languageSignals.nativeLanguage`.
 3. Identify repository signals: history, struggles, maintenance patterns, design taste, documentation style, naming conventions, emotional rhythm.
-4. Convert signals into character material: memories, personality, contradictions, hobbies, flaws, abilities.
-5. Design visual identity: hair, eyes, outfit, accessories, motifs, colors, signature pose — all inspired by but not mechanically mapped from the repo.
-6. Write `rolePrompt` in English following the format spec above.
-7. Write all narrative fields in the user's selected language.
-8. Check anti-overfit rules. Remove any literal tech cosplay.
-9. Save via `repochan action="persona.create"` with `{ persona: <full object>, slug: "v1", overwrite: true }`.
+4. Apply any user-provided direction already present. If none exists, choose the genre, tone, names, and constraints yourself from repository evidence.
+5. Convert signals into character material: memories, personality, contradictions, hobbies, flaws, abilities.
+6. Design visual identity: hair, eyes, outfit, accessories, motifs, colors, signature pose — all inspired by but not mechanically mapped from the repo.
+7. Write `rolePrompt` in English following the format spec above.
+8. Write narrative fields in the document language, unless the user explicitly requested a different language.
+9. Check anti-overfit rules. Remove any literal tech cosplay.
+10. Save via `repochan action="persona.create"` with `{ persona: <full object>, slug: "v1", overwrite: true }`.
 
 ## Example
 

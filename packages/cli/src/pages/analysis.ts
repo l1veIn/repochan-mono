@@ -5,9 +5,10 @@ import { t } from "../i18n.js";
 import { type OnBack, type TuiRef } from "../types.js";
 import { AgentStatus } from "../components/agent-status.js";
 import { ConfirmList, type ConfirmChoice } from "../components/confirm-list.js";
+import { PromptInput } from "../components/prompt-input.js";
 import { checkPreconditions } from "../lib/precondition.js";
 import { readAnalysis } from "../lib/protocol.js";
-import { startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
+import { formatSessionSavedMessage, startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
 
 const theme = {
   accent: (s: string) => chalk.cyan(s),
@@ -17,7 +18,7 @@ const theme = {
   error: (s: string) => chalk.red(s),
 };
 
-type Phase = "loading" | "idle" | "confirm" | "running" | "done" | "error";
+type Phase = "loading" | "idle" | "confirm" | "revision" | "running" | "done" | "error";
 
 export class AnalysisPage implements Component {
   private phase: Phase = "loading";
@@ -27,6 +28,7 @@ export class AnalysisPage implements Component {
   private agentStatus: AgentStatus | null = null;
   private running: RunningRoleSession | null = null;
   private confirm: ConfirmList | null = null;
+  private revisionInput: PromptInput | null = null;
 
   constructor(private onBack: OnBack, private tuiRef: TuiRef) {
     void this.load();
@@ -70,9 +72,35 @@ export class AnalysisPage implements Component {
     this.tuiRef.requestRender();
   }
 
-  private async startRun() {
+  private showRevisionInput() {
+    this.revisionInput = new PromptInput({
+      title: "=== Revise Analysis ===",
+      prompt: "Describe how to update .repochan/analysis/current.json:",
+      placeholder: "e.g. Set documentLanguage to 中文 and adjust native language evidence",
+      onSubmit: (request) => {
+        this.revisionInput = null;
+        void this.startRun([
+          "Revise the current analysis artifact according to this user request.",
+          "Read analysis.current first, then call repochan action=\"analysis.update\" with overwrite=true and a minimal deep-merge patch.",
+          "Do not re-run full repository analysis unless the request explicitly needs fresh evidence.",
+          `User request: ${request}`,
+        ].join("\n"));
+      },
+      onCancel: () => {
+        this.revisionInput = null;
+        this.phase = "idle";
+        this.tuiRef.requestRender();
+      },
+    });
+    this.phase = "revision";
+    this.tuiRef.setFocus(this);
+    this.tuiRef.requestRender();
+  }
+
+  private async startRun(goal?: string) {
     if (this.running) return;
     this.confirm = null;
+    this.revisionInput = null;
     this.phase = "running";
     this.statusMsg = null;
     this.agentStatus?.dispose();
@@ -81,6 +109,7 @@ export class AnalysisPage implements Component {
     try {
       this.running = await startRoleSession({
         phase: "analysis", cwd: process.cwd(), newSession: true,
+        goal,
         onDone: () => void this.finishRun(),
         onError: (error: unknown) => this.failRun(error),
       });
@@ -99,9 +128,10 @@ export class AnalysisPage implements Component {
 
   private failRun(error: unknown) {
     this.agentStatus?.markError(error);
+    const session = this.running;
     this.running = null;
     this.phase = "error";
-    this.statusMsg = error instanceof Error ? error.message : String(error);
+    this.statusMsg = `${error instanceof Error ? error.message : String(error)}\n${formatSessionSavedMessage(session)}`;
     this.tuiRef.requestRender();
   }
 
@@ -119,12 +149,14 @@ export class AnalysisPage implements Component {
 
   handleInput(data: string): void {
     if (this.phase === "confirm" && this.confirm) { this.confirm.handleInput(data); return; }
+    if (this.phase === "revision" && this.revisionInput) { this.revisionInput.handleInput(data); return; }
     if (matchesKey(data, Key.escape) || data === "q" || data === "Q") {
       if (this.running) void this.cancelRun(); else this.onBack();
       return;
     }
     if (this.running) return;
     if (data === "r" || data === "R") { void this.load(); return; }
+    if ((data === "e" || data === "E") && this.analysis) { this.showRevisionInput(); return; }
     if (data === "u" || data === "U" || data === "\r") {
       if (this.analysis) this.showConfirm(); else void this.startRun();
     }
@@ -133,6 +165,7 @@ export class AnalysisPage implements Component {
   render(width: number): string[] {
     const w = Math.max(40, width);
     if (this.phase === "confirm" && this.confirm) return this.confirm.render(w);
+    if (this.phase === "revision" && this.revisionInput) return this.revisionInput.render(w);
 
     const lines: string[] = [];
     lines.push(theme.accent(t("analysis.title")));
@@ -155,7 +188,7 @@ export class AnalysisPage implements Component {
     } else {
       lines.push(...renderAnalysisSummary(this.analysis, w));
       lines.push("");
-      lines.push(theme.success("  [Enter/u] Re-run analysis"));
+      lines.push(theme.success("  [Enter/u] Re-run analysis  [e] Edit analysis"));
     }
 
     if (this.warnings.length) {
@@ -165,7 +198,9 @@ export class AnalysisPage implements Component {
 
     if (this.statusMsg) {
       lines.push("");
-      lines.push(this.phase === "error" ? theme.error(this.statusMsg) : theme.success(this.statusMsg));
+      for (const line of this.statusMsg.split("\n")) {
+        lines.push(this.phase === "error" ? theme.error(line) : theme.success(line));
+      }
     }
 
     lines.push("");
@@ -181,6 +216,17 @@ function renderAnalysisSummary(analysis: any, width: number) {
     lines.push(`  name: ${analysis.repo.name ?? "?"}`);
     if (analysis.repo.remote) lines.push(`  remote: ${analysis.repo.remote}`);
     if (analysis.repo.head) lines.push(`  head: ${analysis.repo.head}`);
+  }
+  if (analysis.documentLanguage || analysis.languageSignals) {
+    lines.push("");
+    lines.push(theme.accent("Language"));
+    if (analysis.documentLanguage) lines.push(`  document: ${analysis.documentLanguage}`);
+    const signals = analysis.languageSignals;
+    if (signals?.nativeLanguage) lines.push(`  native: ${signals.nativeLanguage}`);
+    if (typeof signals?.confidence === "number") lines.push(`  confidence: ${Math.round(signals.confidence * 100)}%`);
+    if (Array.isArray(signals?.evidence) && signals.evidence.length > 0) {
+      lines.push(`  evidence: ${signals.evidence.slice(0, 3).join("; ")}`);
+    }
   }
   if (analysis.summary) {
     lines.push("");

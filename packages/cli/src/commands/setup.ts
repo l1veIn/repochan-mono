@@ -165,7 +165,21 @@ export interface SetupOptions extends OutputOptions {
   force?: boolean;
 }
 
-export async function runSetup(options: SetupOptions = {}) {
+export type SetupResult = {
+  installed: Array<{ name: string; version: string; dir: string }>;
+  missing: string[];
+  missingPaths: string[];
+  settingsPath: string;
+  resources: {
+    extensions: string[];
+    skills: string[];
+    prompts: string[];
+    themes: string[];
+  };
+  ready: boolean;
+};
+
+export async function ensureBundledSetup(): Promise<SetupResult> {
   // --- Step 1: Resolve all bundled packages ---
   const packages = collectBundledPackages();
   const missing = BUNDLED_PACKAGE_NAMES.filter(
@@ -200,19 +214,38 @@ export async function runSetup(options: SetupOptions = {}) {
 
   writeGlobalSettings(newSettings);
 
+  const settingsPath = path.join(OUR_AGENT_DIR, "settings.json");
+  return {
+    installed: packages.map((p) => ({
+      name: p.name,
+      version: p.manifest.version ?? "unknown",
+      dir: p.dir,
+    })),
+    missing,
+    missingPaths,
+    settingsPath,
+    resources: {
+      extensions: resources.extensionPaths,
+      skills: resources.skillPaths,
+      prompts: resources.promptPaths,
+      themes: resources.themePaths,
+    },
+    ready: missing.length === 0 && missingPaths.length === 0,
+  };
+}
+
+export async function runSetup(options: SetupOptions = {}) {
+  const result = await ensureBundledSetup();
+
   // --- Step 5: Report ---
   if (options.json) {
     printJson({
-      installed: packages.map((p) => ({
-        name: p.name,
-        version: p.manifest.version ?? "unknown",
-        dir: p.dir,
-      })),
-      missing,
-      missingPaths,
+      installed: result.installed,
+      missing: result.missing,
+      missingPaths: result.missingPaths,
       settings: {
-        extensions: resources.extensionPaths,
-        skills: resources.skillPaths,
+        extensions: result.resources.extensions,
+        skills: result.resources.skills,
       },
     });
     return;
@@ -222,34 +255,33 @@ export async function runSetup(options: SetupOptions = {}) {
   bullet("agent dir", OUR_AGENT_DIR);
 
   console.log();
-  for (const pkg of packages) {
-    const pi = pkg.manifest.pi;
-    const extCount = pi?.extensions?.length ?? 0;
-    const skillCount = pi?.skills?.length ?? 0;
+  for (const pkg of result.installed) {
+    const extCount = result.resources.extensions.filter((p) => p.includes(`/node_modules/${pkg.name}/`) || p.startsWith(pkg.dir)).length;
+    const skillCount = result.resources.skills.filter((p) => p.includes(`/node_modules/${pkg.name}/`) || p.startsWith(pkg.dir)).length;
     bullet(
       pkg.name,
-      `${pkg.manifest.version ?? "?"} (${extCount} ext, ${skillCount} skills)`,
+      `${pkg.version} (${extCount} ext, ${skillCount} skills)`,
     );
   }
 
-  if (missing.length > 0) {
+  if (result.missing.length > 0) {
     console.log();
-    for (const name of missing) {
+    for (const name of result.missing) {
       console.log(`  ${dim("⚠ missing:")} ${name}`);
     }
   }
 
-  if (missingPaths.length > 0) {
+  if (result.missingPaths.length > 0) {
     console.log();
     console.log(dim("  ⚠ Some resolved paths do not exist:"));
-    for (const p of missingPaths) {
+    for (const p of result.missingPaths) {
       console.log(dim(`    ${p}`));
     }
   }
 
   console.log();
-  bullet("extensions", resources.extensionPaths.length);
-  bullet("skills", resources.skillPaths.length);
-  bullet("settings.json", path.join(OUR_AGENT_DIR, "settings.json"));
-  bullet("ready", yesNo(missing.length === 0 && missingPaths.length === 0));
+  bullet("extensions", result.resources.extensions.length);
+  bullet("skills", result.resources.skills.length);
+  bullet("settings.json", result.settingsPath);
+  bullet("ready", yesNo(result.ready));
 }

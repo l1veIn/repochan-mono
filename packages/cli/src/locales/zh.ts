@@ -6,18 +6,26 @@ export default {
   'wizard.select': '选择一个部分:',
   'wizard.analysis': '分析（Analyst）',
   'wizard.persona': '人物档案 / Persona',
+  'wizard.foundation': '设定集封面',
   'wizard.orders': '订单 / 结果',
+  'wizard.chat': '聊天',
+  'wizard.sessions': '会话历史',
   'wizard.model': '模型（登录 / 选择）',
   'wizard.settings': '设置',
-  'wizard.chat': '聊天（未实现）',
-  'wizard.hint': '↑↓ 选择  •  Enter 进入  •  q / Esc 退出',
+  'wizard.hint': '↑↓ 选择  •  Enter 进入  •  r 刷新  •  q / Esc 退出',
 
   // Settings
   'settings.title': '=== 设置 ===',
   'settings.header': 'RepoChan 设置:',
   'settings.model': '模型（登录 / 选择模型）',
-  'settings.language': '语言（当前: {lang}）',
+  'settings.language': '界面语言（当前: {lang}）',
   'settings.hint': '↑↓ 选择  •  Enter  •  Esc 返回向导',
+
+  // Sessions
+  'sessions.title': '=== 会话历史 ===',
+  'sessions.subtitle': '当前项目保存的 RepoChan Pi 会话。',
+  'sessions.empty': '当前项目还没有保存的会话。',
+  'sessions.hint': '↑↓ 选择  •  Enter 用 Pi 打开  •  r 刷新  •  Esc/q 返回',
 
   // Model / Login
   'model.title': '=== 模型 / 登录 ===',
@@ -52,11 +60,11 @@ export default {
   'analysis.visual': '视觉信号',
   'analysis.creative': '创意信号',
   'analysis.done': '分析阶段已完成，已刷新。',
-  'analysis.hint': 'u: 运行/重跑 Analyst • r: 刷新 • Esc/q: 返回（运行中 Esc 取消）',
+  'analysis.hint': 'u: 运行/重跑 Analyst • e: 修改 artifact • r: 刷新 • Esc/q: 返回（运行中 Esc 取消）',
 
   // Persona
   'persona.title': '=== 人物档案 / Persona ===',
-  'persona.subtitle': '由 Creative Writer 角色产出的活体吉祥物档案。',
+  'persona.subtitle': '由 Creative Writer 角色产出的仓库娘人设档案。',
   'persona.empty': '尚未找到 .repochan/persona/current.json。',
   'persona.needs_analysis': '生成人物档案前需要先有 .repochan/analysis/current.json。',
   'persona.done': '人物档案阶段已完成，已刷新。',
@@ -67,7 +75,7 @@ export default {
   'persona.relationships': '关系',
   'persona.hooks': '美术指导钩子',
   'persona.boundaries': '边界',
-  'persona.hint': 'u: 重新生成人物档案 • r: 刷新 • Esc/q: 返回（运行中 Esc 取消）',
+  'persona.hint': 'u: 重新生成人物档案 • e: 修改 artifact • r: 刷新 • Esc/q: 返回（运行中 Esc 取消）',
 
   // Orders / Results
   'orders.title': '=== 订单管理 ===',

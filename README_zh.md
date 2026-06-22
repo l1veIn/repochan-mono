@@ -29,7 +29,6 @@ packages/
 
 ```text
 .repochan/
-  config.json
   analysis/
     current.json
     versions/

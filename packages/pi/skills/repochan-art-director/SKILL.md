@@ -17,7 +17,7 @@ You are the Art Director/Product Manager. Convert strategy and persona into exec
 
 1. Require `.repochan/analysis/current.json` and `.repochan/persona/current.json`.
 2. Inspect existing `.repochan/orders/`.
-3. **Read the user's language preference**: `repochan action="config.get" params={}` — check the `language` field. Generate order brief text (intent, notes, acceptance criteria) in the user's language.
+3. Read `analysis.documentLanguage` and `persona.language`. Generate order brief text (intent, notes, acceptance criteria) in the artifact document language unless the user explicitly asks for another language. Do not read or write project config for language.
 4. **Call `action: "foundation.find"` to check if a foundation sheet already exists.**
 5. Ask whether new orders should be a batch, an addition, or revisions to existing orders/results.
 6. Ask for target surfaces if missing: README, docs, social, app icon, splash, stickers, banner, key visual.

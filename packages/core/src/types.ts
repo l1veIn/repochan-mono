@@ -26,7 +26,7 @@ export type FoundationAssetType = (typeof FOUNDATION_ASSET_TYPES)[number];
  *
  * Design principles:
  * - `rolePrompt` is ALWAYS English (for image models). All other narrative
- *   fields use the user's selected language (`language` field).
+ *   fields use the artifact's document language (`language` field).
  * - NO `negativeTraits` field — content safety constraints are built into the
  *   Painter and Creative Writer skills, not stored per-persona.
  * - `characterFlaws` replaces v1's `negativeTraits`: these are personality
@@ -111,8 +111,10 @@ export type PersonaData = {
   rolePrompt: string;
 
   // ── Meta ──────────────────────────────────────────────────
-  /** Language used for narrative fields. rolePrompt is always English. */
-  language?: "zh" | "en";
+  /** Document language used for narrative fields. rolePrompt is always English. */
+  language?: string;
+  /** Project mascot native/cultural language inferred from analysis. */
+  nativeLanguage?: string;
   generatedAt?: string;
   provenance?: JsonObject;
 };
