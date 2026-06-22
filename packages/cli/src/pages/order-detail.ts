@@ -23,6 +23,9 @@ type VersionInfo = {
   createdAt?: string;
   files?: string[];
   isCurrent?: boolean;
+  promptBrief?: string;
+  generationPrompt?: string;
+  revisedPrompt?: string;
 };
 
 export class OrderDetailPage implements Component {
@@ -55,6 +58,9 @@ export class OrderDetailPage implements Component {
         createdAt: v.createdAt,
         files: v.files,
         isCurrent: v.versionId === this.order?.currentVersion,
+        promptBrief: v.promptBrief,
+        generationPrompt: v.generationPrompt,
+        revisedPrompt: v.revisedPrompt,
       }));
       if (this.selectedVersionIdx >= this.versions.length) this.selectedVersionIdx = 0;
       this.syncProtocolAgentStatus();
@@ -307,6 +313,15 @@ export class OrderDetailPage implements Component {
         const mark = i === this.selectedVersionIdx ? "❯" : " ";
         const cur = ver.isCurrent ? " [current]" : "";
         lines.push(truncateToWidth(`  ${mark} ${ver.versionId}${cur}`, w, "…"));
+        if (i === this.selectedVersionIdx && ver.promptBrief) {
+          lines.push(truncateToWidth(`      promptBrief: ${ver.promptBrief}`, w, "…"));
+        }
+        if (i === this.selectedVersionIdx && ver.generationPrompt) {
+          lines.push(truncateToWidth(`      generationPrompt: ${ver.generationPrompt}`, w, "…"));
+        }
+        if (i === this.selectedVersionIdx && ver.revisedPrompt) {
+          lines.push(truncateToWidth(`      revisedPrompt: ${ver.revisedPrompt}`, w, "…"));
+        }
         if (i === this.selectedVersionIdx && ver.files?.length) {
           ver.files.forEach((f) => {
             const fullHint = `      📄 ${f}  (full: .repochan/orders/${this.orderId}/versions/${ver.versionId}/${f})`;

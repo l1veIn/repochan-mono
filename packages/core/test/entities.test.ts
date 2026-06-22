@@ -7,6 +7,7 @@ import {
   createOrderResult,
   listOrders,
   listOrderResults,
+  readOrderResult,
   setOrderStatus,
 } from '../src/entities.js';
 import { initProtocol } from '../src/protocol/index.js';
@@ -99,6 +100,8 @@ describe('entities (core business operations)', () => {
       versionId: 'v1',
       files: [sourceFile],
       promptBrief: 'clean hero image',
+      generationPrompt: 'full generation prompt sent to image_generate',
+      revisedPrompt: 'provider revised prompt',
       setCurrent: true,
     });
 
@@ -109,9 +112,16 @@ describe('entities (core business operations)', () => {
     const metaPath = path.join(projectRoot, '.repochan', 'orders', 'ord-asset-001', 'versions', 'v1', 'meta.json');
     const meta = JSON.parse(await fs.readFile(metaPath, 'utf8'));
     expect(meta.files).toEqual(['hero.png']);
+    expect(meta.generationPrompt).toBe('full generation prompt sent to image_generate');
+    expect(meta.revisedPrompt).toBe('provider revised prompt');
     expect(await fs.readFile(path.join(projectRoot, '.repochan', 'orders', 'ord-asset-001', 'versions', 'v1', 'hero.png'), 'utf8')).toBe('fake image bytes');
+    expect(res.order.orderAsset.versions[0].generationPrompt).toBe('full generation prompt sent to image_generate');
+    expect(res.order.orderAsset.versions[0].revisedPrompt).toBe('provider revised prompt');
 
     const listed = await listOrderResults(projectRoot, 'ord-asset-001');
     expect(listed.results.length).toBe(1);
+    expect(listed.results[0].generationPrompt).toBe('full generation prompt sent to image_generate');
+    const read = await readOrderResult(projectRoot, 'ord-asset-001', 'v1');
+    expect(read.version.generationPrompt).toBe('full generation prompt sent to image_generate');
   });
 });

@@ -92,7 +92,9 @@ Important fields:
   "createdAt": "ISO-8601",
   "tool": "image package, native model capability, or user-provided",
   "files": ["hero.png"],
-  "promptBrief": "professional brief used for generation",
+  "promptBrief": "short generation summary",
+  "generationPrompt": "exact full prompt sent to the image generation tool",
+  "revisedPrompt": "provider revised prompt, if returned",
   "notes": "",
   "provenance": { "tool": "repochan", "action": "order.create_result" }
 }

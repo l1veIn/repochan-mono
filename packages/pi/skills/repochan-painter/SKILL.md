@@ -179,11 +179,12 @@ The tool returns a saved file path. Use that path in `order.create_result`.
 
 When an output is accepted:
 
-1. Save binary image files as a result version under `.repochan/orders/<order-id>/versions/<version-id>/` using `repochan` action `order.create_result` with `{ orderId, files, versionId?, tool?, promptBrief?, notes?, meta?, provenance?, setCurrent: true }`.
+1. Save binary image files as a result version under `.repochan/orders/<order-id>/versions/<version-id>/` using `repochan` action `order.create_result` with `{ orderId, files, versionId?, tool?, promptBrief?, generationPrompt?, revisedPrompt?, notes?, meta?, provenance?, setCurrent: true }`.
 2. Record in `meta.json` whether reference images were used, and which foundation/order they came from.
-3. **Never store absolute filesystem paths in `meta`** (e.g. the image-gen-pi cache path like `~/.pi/...` or `/Users/.../generated-images/...`). The image is already copied into the version directory by `order.create_result`; `meta` should only contain portable information: `referenceImagesUsed` (boolean), `references` (orderId/role list), `templateId`, `aspectRatio`, `safetyConstraintsApplied`.
-4. Update the order status and delivery notes; `order.create_result` normally marks the order delivered.
-5. Preserve prior versions and never overwrite an existing result version without explicit user approval.
+3. Record `generationPrompt` as the exact full prompt you passed to `image_generate`. If `image_generate` returns a revised prompt, record it as `revisedPrompt`.
+4. **Never store absolute filesystem paths in `meta`** (e.g. the image-gen-pi cache path like `~/.pi/...` or `/Users/.../generated-images/...`). The image is already copied into the version directory by `order.create_result`; `meta` should only contain portable information: `referenceImagesUsed` (boolean), `references` (orderId/role list), `templateId`, `aspectRatio`, `safetyConstraintsApplied`.
+5. Update the order status and delivery notes; `order.create_result` normally marks the order delivered.
+6. Preserve prior versions and never overwrite an existing result version without explicit user approval.
 
 ## Example execution flow
 
@@ -208,6 +209,8 @@ When an output is accepted:
      orderId: "ord-foundation-001",
      files: ["<generated-image-path>"],
      promptBrief: "<brief summary>",
+     generationPrompt: "<exact assembled prompt passed to image_generate>",
+     revisedPrompt: "<provider revised prompt, if returned>",
      notes: "Foundation sheet generated from persona. No references (first anchor).",
      setCurrent: true
    }
@@ -232,6 +235,8 @@ When an output is accepted:
      orderId: "ord-readme-hero-001",
      files: ["<generated-image-path>"],
      promptBrief: "<brief summary>",
+     generationPrompt: "<exact assembled prompt passed to image_generate>",
+     revisedPrompt: "<provider revised prompt, if returned>",
      notes: "Used foundation sheet ord-foundation-001/v1 as character reference.",
      setCurrent: true
    }

@@ -125,6 +125,8 @@ export type OrderResultVersion = JsonObject & {
   tool?: string;
   files: string[];
   promptBrief?: string;
+  generationPrompt?: string;
+  revisedPrompt?: string;
   notes?: string;
   provenance?: JsonObject;
   meta?: JsonObject;

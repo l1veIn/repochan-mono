@@ -507,6 +507,8 @@ class RepoChanOrderPanel implements Component {
         tool: version.tool,
         files: version.files,
         promptBrief: version.promptBrief,
+        generationPrompt: version.generationPrompt,
+        revisedPrompt: version.revisedPrompt,
         notes: version.notes,
         provenance: version.provenance,
         meta: version.meta,
