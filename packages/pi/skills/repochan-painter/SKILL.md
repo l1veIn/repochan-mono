@@ -21,7 +21,7 @@ The foundation sheet (assetType `foundation_sheet` or `cover_sheet`) is the only
 2. Require `.repochan/persona/current.json`.
 3. Require a selected `.repochan/orders/<order-id>/order.json` with status `approved` or explicit user permission to execute a draft.
 4. **Check if the order has `references`.** If it does, resolve them.
-5. **Read the order's `templateId`** (if present): `repochan action="template.get" params={ templateId: order.templateId }`. This gives you the output spec (canvas size, grid layout, constraints, guide tags).
+5. **Read the order's `templateId`** (if present): `repochan action="template.get" params={ templateId: order.templateId }`. This gives you the authoritative output spec (canvas size, grid layout, constraints, guide tags).
 6. **If the order has no references and is NOT a foundation sheet, warn the user** (see Edge cases below).
 7. Inspect related existing order result versions.
 8. Ask before changing `currentVersion`. Prefer adding a new version.
@@ -55,7 +55,7 @@ Pass the resolved image file paths to the image generation tool as reference ima
 image_generate(
   prompt=<refined painter brief>,
   referenceImageUrls=<resolved character reference files>,
-  aspectRatio=<from order deliverables>
+  aspectRatio=<resolved output aspect ratio>
 )
 ```
 
@@ -63,7 +63,7 @@ For `image_generate` available in this session:
 - `prompt` — the refined painter brief (text description)
 - `referenceImageUrls` — array of absolute file paths from resolved references
 - `imageUrl` — for editing an existing image (if the order is a revision)
-- `aspectRatio` — landscape / square / portrait based on deliverables
+- `aspectRatio` — landscape / square / portrait based on the resolved output spec
 
 ### Step 4: If the current image_generate tool does not support reference images
 
@@ -111,12 +111,29 @@ If an order brief or persona field requests content that violates these constrai
 
 The Painter writes the full prompt. Here's how to assemble it from all sources:
 
+### Source priority
+
+When sources conflict, apply this priority:
+
+1. **User request / explicit execution instruction** — highest priority, as long as it does not violate safety constraints.
+2. **Template** — authoritative for output specs and structural rules: canvas size, aspect ratio, grid layout, required labels/callouts, background, and other template constraints.
+3. **Order** — commissioning intent, subject, must-include elements, avoid list, creative freedom, and acceptance criteria.
+
+If an order conflicts with the selected template, follow the template. Examples:
+- If the template requires labels or callouts but `order.brief.avoid` says "no text labels", keep the template-required labels/callouts and avoid only extra non-template text.
+- If the template says `aspect_ratio: "1:1"` but the order or prior notes imply portrait, generate square.
+- If the template defines a grid, sheet layout, or background, preserve it even when the order brief is looser or contradictory.
+
+Record material conflicts in the result notes or `meta` so the user can audit why the template won.
+
+### Assembly steps
+
 1. **Template guide** (if order has templateId): prepend the template's `guide` tags verbatim (e.g., "masterpiece, best quality").
-2. **Template constraints**: include all structural constraints from the template (grid layout, background, canvas rules).
+2. **Template constraints**: include all structural constraints from the template (grid layout, background, canvas rules). Template-required text labels, callouts, grids, and canvas rules override contradictory order avoid-list items.
 3. **Persona rolePrompt**: the character's visual identity — this is the core of your prompt. Read it from `persona.get`.
 4. **Persona precision fields**: supplement rolePrompt with `signaturePose`, `hairColor`, `eyeColor`, `outfit`, `accessories`, `keyMotifs`, `colorPalette` (main + secondary + accent), `designNotes` — weave these into the prompt with their hex values.
-5. **Order brief**: add intent-specific elements from `order.brief.mustInclude`, `order.brief.avoid`, `order.brief.creativeFreedom`.
-6. **Reference images** (if available): resolved via `order.resolve_references` — pass as reference_image_urls, not in the text prompt.
+5. **Order brief**: add intent-specific elements from `order.brief.mustInclude`, `order.brief.avoid`, `order.brief.creativeFreedom`, except where they conflict with the user request or template.
+6. **Reference images** (if available): resolved via `order.resolve_references` — pass as `referenceImageUrls`, not in the text prompt.
 
 Final prompt structure:
 ```
@@ -124,10 +141,21 @@ Final prompt structure:
 {precision fields: hairColor, eyeColor, outfit, accessories},
 {color palette: main, secondary, accents},
 {key motifs}, {order-specific mustInclude},
-avoid: {order-specific avoid + built-in safety}
+avoid: {order-specific avoid that does not conflict with the template + built-in safety}
 ```
 
 **Do NOT describe layout positions** (no "TOP-LEFT:", "CENTER:"). Image models don't follow spatial instructions well. Instead, use comma-separated tags like the template constraints do.
+
+## Output spec resolution
+
+Resolve the output spec before calling `image_generate`:
+
+1. If the user gave an explicit size/aspect instruction for this execution, use it unless unsafe or impossible.
+2. Else if a template is present, use the template's `width`, `height`, and `aspectRatio`/`aspect_ratio`.
+3. Else use the first order deliverable's `aspectRatio`; if absent, infer from `width` and `height`.
+4. Map the resolved aspect to `image_generate.aspectRatio`: `1:1` or equal width/height → `square`; wider than tall → `landscape`; taller than wide → `portrait`.
+
+Do not invent a special aspect rule for foundation sheets. A foundation sheet follows its template just like every other order.
 
 ## Edge cases
 
@@ -167,11 +195,9 @@ Call `image_generate` with:
 ```json
 {
   "prompt": "<your assembled prompt from persona + order + template>",
-  "aspect_ratio": "landscape" | "square" | "portrait"  // from template or order deliverables
+  "aspectRatio": "landscape" | "square" | "portrait"
 }
 ```
-
-For foundation sheets, use `aspect_ratio: "portrait"` (taller canvas for full-body character sheet).
 
 The tool returns a saved file path. Use that path in `order.create_result`.
 
@@ -202,7 +228,7 @@ When an output is accepted:
 
 4. Assemble prompt from template guide + persona fields + precision visual fields
 
-5. image_generate(prompt=<assembled prompt>, aspect_ratio="portrait")
+5. Resolve output spec from official/foundation-sheet. If it is 1:1, call image_generate(prompt=<assembled prompt>, aspectRatio="square")
 
 6. Save result:
    order.create_result params={
@@ -228,7 +254,7 @@ When an output is accepted:
 
 3. template.get + persona.get → assemble prompt
 
-4. image_generate(prompt=<brief>, referenceImageUrls=[<sheet.png>], aspect_ratio="landscape")
+4. Resolve output spec from the selected template/order, then call image_generate(prompt=<brief>, referenceImageUrls=[<sheet.png>], aspectRatio=<resolved aspectRatio>)
 
 5. Save result:
    order.create_result params={
