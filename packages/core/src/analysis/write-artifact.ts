@@ -1,6 +1,8 @@
 import path from "node:path";
 import { exists, initProtocol, readJson, relativeProtocolPath, root, stamp, stampForPath, writeJson } from "../protocol/index.js";
 import { deepMerge, isPlainObject } from "../utils/index.js";
+import { validateInput } from "../validate.js";
+import { AnalysisRunParamsSchema, AnalysisUpdateParamsSchema } from "../schemas/index.js";
 import type { AnalyzeInput } from "./schema.js";
 import type { AnalysisResult } from "./types.js";
 import { performAnalysis } from "./assemble.js";
@@ -13,6 +15,7 @@ export async function writeAnalysisArtifact(
   projectRoot: string,
   params: WriteAnalysisInput,
 ): Promise<{ path: string; data: AnalysisResult }> {
+  validateInput("analysis.run", AnalysisRunParamsSchema, params);
   await initProtocol(projectRoot);
   const target = path.join(root(projectRoot), "analysis", "current.json");
   const targetExists = await exists(target);
@@ -47,6 +50,7 @@ export async function updateAnalysisArtifact(
   projectRoot: string,
   params: UpdateAnalysisInput,
 ): Promise<{ path: string; data: AnalysisResult }> {
+  validateInput("analysis.update", AnalysisUpdateParamsSchema, params);
   await initProtocol(projectRoot);
   if (params.overwrite !== true) {
     throw new Error("analysis.update requires params.overwrite=true after explicit user approval.");

@@ -17,10 +17,23 @@ import {
   stampForPath,
   writeJson,
 } from "./protocol/index.js";
+import { validateInput } from "./validate.js";
+import {
+  OrderCreateParamsSchema,
+  OrderCreateResultParamsSchema,
+  OrderAddRevisionParamsSchema,
+  OrderSetCurrentResultParamsSchema,
+  OrderSetStatusParamsSchema,
+  OrderUpdateParamsSchema,
+  PersonaCreateParamsSchema,
+  PersonaUpdateParamsSchema,
+} from "./schemas/index.js";
 import {
   deepMerge,
   isFoundationAssetType,
   isPlainObject,
+  isValidStatusTransition,
+  validNextStatuses,
   normalizeOrder,
   normalizeReferences,
   requireValidStatus,
@@ -45,6 +58,8 @@ export async function ensureOrderApprovedForExecution(projectRoot: string, order
 }
 
 export async function createOrUpdatePersona(projectRoot: string, params: JsonObject, mode: "create" | "update") {
+  const schemaName = mode === "create" ? "persona.create" : "persona.update";
+  validateInput(schemaName, mode === "create" ? PersonaCreateParamsSchema : PersonaUpdateParamsSchema, params);
   await initProtocol(projectRoot);
   await requireAnalysis(projectRoot);
   if (!isPlainObject(params.persona)) throw new Error("params.persona is required and must be an object.");
@@ -74,6 +89,7 @@ export async function createOrUpdatePersona(projectRoot: string, params: JsonObj
 }
 
 export async function createOrders(projectRoot: string, params: JsonObject) {
+  validateInput("order.create", OrderCreateParamsSchema, params);
   await initProtocol(projectRoot);
   await requireAnalysis(projectRoot);
   await requirePersona(projectRoot);
@@ -129,6 +145,7 @@ export async function listOrders(projectRoot: string) {
 }
 
 export async function updateOrder(projectRoot: string, params: JsonObject) {
+  validateInput("order.update", OrderUpdateParamsSchema, params);
   await initProtocol(projectRoot);
   const orderId = validateOrderId(String(params.orderId ?? ""));
   const file = orderJsonPath(projectRoot, orderId);
@@ -150,11 +167,20 @@ export async function updateOrder(projectRoot: string, params: JsonObject) {
 }
 
 export async function setOrderStatus(projectRoot: string, orderId: string, status: OrderStatus) {
+  validateInput("order.set_status", OrderSetStatusParamsSchema, { orderId, status });
   await initProtocol(projectRoot);
   validateOrderId(orderId);
   requireValidStatus(status);
   const file = orderJsonPath(projectRoot, orderId);
   const order = await readJson(file);
+  // Enforce state-machine transition: prevent illegal jumps like delivered→draft
+  const currentStatus = order.status as OrderStatus | undefined;
+  if (currentStatus && !isValidStatusTransition(currentStatus, status)) {
+    throw new Error(
+      `order.set_status: illegal transition ${currentStatus}→${status} for order ${orderId}. ` +
+        `Valid targets from ${currentStatus}: ${validNextStatuses(currentStatus).join(", ")}.`,
+    );
+  }
   order.status = status;
   order.updatedAt = stamp();
   await writeJson(file, order, true);
@@ -162,8 +188,13 @@ export async function setOrderStatus(projectRoot: string, orderId: string, statu
 }
 
 export async function addOrderRevision(projectRoot: string, orderId: string, revisionRequest: string) {
+  validateInput("order.add_revision", OrderAddRevisionParamsSchema, { orderId, revisionRequest });
   await initProtocol(projectRoot);
   validateOrderId(orderId);
+  // Business rule: schema minLength:1 doesn't catch whitespace-only strings
+  if (!revisionRequest.trim()) {
+    throw new Error("order.add_revision: revisionRequest must contain non-whitespace text.");
+  }
   const file = orderJsonPath(projectRoot, orderId);
   const order = await readJson(file);
   order.revisions ??= [];
@@ -211,6 +242,7 @@ async function resolveResultFiles(projectRoot: string, orderId: string, versionI
 }
 
 export async function createOrderResult(projectRoot: string, params: JsonObject) {
+  validateInput("order.create_result", OrderCreateResultParamsSchema, params);
   await initProtocol(projectRoot);
   await requireAnalysis(projectRoot);
   await requirePersona(projectRoot);
@@ -223,13 +255,28 @@ export async function createOrderResult(projectRoot: string, params: JsonObject)
   await fs.mkdir(versionDir, { recursive: true });
   const inputFiles = Array.isArray(params.files) ? params.files.filter((file): file is string => typeof file === "string") : [];
   const files = await resolveResultFiles(projectRoot, orderId, versionId, inputFiles, overwrite);
+  const resolvedTool = typeof params.tool === "string" ? params.tool : "repochan";
+  const resolvedGenerationPrompt = typeof params.generationPrompt === "string" && params.generationPrompt.trim() ? params.generationPrompt.trim() : undefined;
+
+  // Hard gate: if the result came from image generation, the full prompt must be recorded.
+  // This prevents Painter agents from silently dropping the long assembled prompt and
+  // only saving a short promptBrief — the exact full prompt is required for reproducibility.
+  const isImageGeneration = resolvedTool.toLowerCase().includes("image_generate") || resolvedTool.toLowerCase().includes("image-gen");
+  if (isImageGeneration && !resolvedGenerationPrompt) {
+    throw new Error(
+      `order.create_result: generationPrompt is REQUIRED when tool involves image generation (got tool="${resolvedTool}"). ` +
+        "Pass generationPrompt=<the exact full prompt sent to image_generate>. " +
+        "promptBrief is a short human summary and cannot substitute for the full prompt.",
+    );
+  }
+
   const version: OrderResultVersion = {
     versionId,
     createdAt: stamp(),
-    tool: typeof params.tool === "string" ? params.tool : "repochan",
+    tool: resolvedTool,
     files,
     promptBrief: typeof params.promptBrief === "string" ? params.promptBrief : undefined,
-    generationPrompt: typeof params.generationPrompt === "string" ? params.generationPrompt : undefined,
+    generationPrompt: resolvedGenerationPrompt,
     revisedPrompt: typeof params.revisedPrompt === "string" ? params.revisedPrompt : undefined,
     notes: typeof params.notes === "string" ? params.notes : undefined,
     provenance: params.provenance ?? { tool: "repochan", action: "order.create_result" },
@@ -323,6 +370,7 @@ export async function readOrderResult(projectRoot: string, orderId: string, vers
 }
 
 export async function setCurrentOrderResult(projectRoot: string, orderId: string, versionId: string) {
+  validateInput("order.set_current_result", OrderSetCurrentResultParamsSchema, { orderId, versionId });
   await initProtocol(projectRoot);
   const id = validateOrderId(orderId);
   const version = validateVersionId(versionId);

@@ -124,4 +124,75 @@ describe('entities (core business operations)', () => {
     const read = await readOrderResult(projectRoot, 'ord-asset-001', 'v1');
     expect(read.version.generationPrompt).toBe('full generation prompt sent to image_generate');
   });
+
+  it('createOrderResult rejects image-gen results without generationPrompt', async () => {
+    await createOrders(projectRoot, {
+      orders: [
+        {
+          orderId: 'ord-asset-002',
+          requestType: 'new_asset',
+          assetType: 'icon',
+          brief: { intent: 'icon', mustInclude: [], avoid: [], creativeFreedom: [] },
+          deliverables: [],
+          acceptanceCriteria: [],
+        },
+      ],
+    });
+    await setOrderStatus(projectRoot, 'ord-asset-002', 'approved');
+
+    await expect(
+      createOrderResult(projectRoot, {
+        orderId: 'ord-asset-002',
+        versionId: 'v1',
+        files: [],
+        tool: 'image_generate:gpt-image-2',
+        promptBrief: 'a short summary only',
+        // generationPrompt deliberately omitted — this is the bug we're preventing
+        setCurrent: true,
+      }),
+    ).rejects.toThrow(/generationPrompt is REQUIRED/);
+
+    // also test "image-gen" variant in tool string
+    await expect(
+      createOrderResult(projectRoot, {
+        orderId: 'ord-asset-002',
+        versionId: 'v2',
+        files: [],
+        tool: 'image-gen-pi:fal',
+        promptBrief: 'another short summary',
+        setCurrent: true,
+      }),
+    ).rejects.toThrow(/generationPrompt is REQUIRED/);
+  });
+
+  it('createOrderResult allows non-image-gen results without generationPrompt', async () => {
+    await createOrders(projectRoot, {
+      orders: [
+        {
+          orderId: 'ord-asset-003',
+          requestType: 'new_asset',
+          assetType: 'readme-hero',
+          brief: { intent: 'manual asset', mustInclude: [], avoid: [], creativeFreedom: [] },
+          deliverables: [],
+          acceptanceCriteria: [],
+        },
+      ],
+    });
+    await setOrderStatus(projectRoot, 'ord-asset-003', 'approved');
+
+    // A non-image tool (e.g. user manually drops a file, or a hypothetical different tool)
+    // should work fine without generationPrompt — backward compatible
+    const res = await createOrderResult(projectRoot, {
+      orderId: 'ord-asset-003',
+      versionId: 'v1',
+      files: [],
+      tool: 'repochan',
+      promptBrief: 'manually uploaded asset',
+      // no generationPrompt — OK because tool doesn't involve image generation
+      setCurrent: true,
+    });
+
+    expect(res.version.versionId).toBe('v1');
+    expect(res.version.generationPrompt).toBeUndefined();
+  });
 });

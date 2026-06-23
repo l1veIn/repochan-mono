@@ -16,6 +16,10 @@ const TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   cancelled: ["cancelled", "draft"],
 };
 
+export function validNextStatuses(from: OrderStatus): OrderStatus[] {
+  return TRANSITIONS[from] ?? [];
+}
+
 export function isPlainObject(value: unknown): value is JsonObject {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
