@@ -5,7 +5,7 @@ import { t } from "../i18n.js";
 import { type OnBack, type TuiRef } from "../types.js";
 import { AnalysisPage } from "./analysis.js";
 import { PersonaPage } from "./persona.js";
-import { FoundationPage } from "./foundation.js";
+import { AddCreationTaskPage } from "./create-task.js";
 import { PaintPage } from "./paint.js";
 import { readOnboardingProgress, type OnboardingProgress, type OnboardingStep } from "../lib/onboarding.js";
 import { actionBar, appHeader, callout, pipelineList, type PipelineItem } from "../ui/layout.js";
@@ -53,7 +53,7 @@ export class GuidedWizardPage implements Component {
     }
     if (step === "analysis") this.enterSub(new AnalysisPage(() => this.exitSub(), this.tuiRef));
     else if (step === "persona") this.enterSub(new PersonaPage(() => this.exitSub(), this.tuiRef));
-    else if (step === "foundation-order") this.enterSub(new FoundationPage(() => this.exitSub(), this.tuiRef));
+    else if (step === "foundation-order") this.enterSub(new AddCreationTaskPage(() => this.exitSub(), this.tuiRef));
     else this.enterSub(new PaintPage(() => this.exitSub(), this.tuiRef, this.progress?.foundationOrderId));
   }
 

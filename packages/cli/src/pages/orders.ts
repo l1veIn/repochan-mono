@@ -5,7 +5,6 @@ import { type OnBack, type TuiRef } from "../types.js";
 import { t } from "../i18n.js";
 import { AgentStatus } from "../components/agent-status.js";
 import { OrderDetailPage } from "./order-detail.js";
-import { AddCreationTaskPage } from "./create-task.js";
 import { listOrders, readOrder, setOrderStatus } from "@repochan/core";
 import { formatSessionSavedMessage, startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
 import { actionBar, appHeader, statusGrid } from "../ui/layout.js";
@@ -29,9 +28,7 @@ type OrderRow = {
   unreadable?: boolean;
 };
 
-type CreationTaskActions = {
-  onChat?: (initialMessage: string) => void;
-};
+type CreationTaskActions = {};
 
 export class OrdersPage implements Component {
   private list: SelectList | null = null;
@@ -115,13 +112,6 @@ export class OrdersPage implements Component {
     this.currentSub = null;
     this.tuiRef.setFocus(this);
     void this.loadOrders();
-  }
-
-  private openCreateTaskPage() {
-    this.enterSub(new AddCreationTaskPage(() => this.exitSub(), this.tuiRef, {
-      onDone: () => void this.loadOrders(),
-      onChat: this.actions.onChat,
-    }));
   }
 
   private async approveSelected() {
@@ -247,7 +237,6 @@ export class OrdersPage implements Component {
     }
     if (data === "r" || data === "R") void this.loadOrders();
     else if (data === "a" || data === "A") void this.approveSelected();
-    else if (data === "g" || data === "G") this.openCreateTaskPage();
     else if (data === "p" || data === "P") void this.runPainterForSelected();
     else this.list?.handleInput(data);
   }
@@ -281,7 +270,6 @@ export class OrdersPage implements Component {
     lines.push("");
     lines.push(...actionBar([
       { key: "Enter", label: t("orders.action.detail"), tone: "accent" },
-      { key: "g", label: t("orders.action.generate") },
       { key: "p", label: t("orders.action.paint") },
       { key: "a", label: t("orders.action.approve") },
       { key: "r", label: t("wizard.action.refresh") },

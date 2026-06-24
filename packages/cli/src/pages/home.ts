@@ -8,15 +8,15 @@ import { SettingsHost } from "./settings.js";
 import { t, getLanguage } from "../i18n.js";
 import { AnalysisPage } from "./analysis.js";
 import { PersonaPage } from "./persona.js";
-import { FoundationPage } from "./foundation.js";
 import { CreationTasksPage } from "./orders.js";
+import { AddCreationTaskPage } from "./create-task.js";
 import { GuidedWizardPage } from "./guided-wizard.js";
 import { SessionsPage } from "./sessions.js";
 import { readOnboardingProgress, type OnboardingProgress } from "../lib/onboarding.js";
 import { actionBar, appHeader, pipelineList, statusGrid, type PipelineItem } from "../ui/layout.js";
 import { uiTheme } from "../ui/theme.js";
 
-type MenuRoute = "wizard" | "analysis" | "persona" | "foundation" | "orders" | "chat" | "sessions" | "model" | "settings";
+type MenuRoute = "wizard" | "analysis" | "persona" | "create-task" | "orders" | "chat" | "sessions" | "model" | "settings";
 
 export class HomePage implements Component {
   private list: SelectList;
@@ -40,8 +40,8 @@ export class HomePage implements Component {
       { value: "wizard", label: `${t("home.guided")} ${this.badge(p.complete ? t("home.badge.complete") : t("home.badge.incomplete"))}` },
       { value: "analysis", label: `${t("wizard.analysis")} ${this.badge(p.hasAnalysis ? t("home.badge.ready") : t("home.badge.missing"))}` },
       { value: "persona", label: `${t("wizard.persona")} ${this.badge(p.hasPersona ? t("home.badge.ready") : t("home.badge.missing"))}` },
-      { value: "foundation", label: `${t("wizard.foundation")} ${this.badge(p.hasFoundationResult ? t("home.badge.ready") : p.hasFoundationOrder ? t("home.badge.order_ready") : t("home.badge.missing"))}` },
-      { value: "orders", label: `${t("wizard.orders")} ${this.badge(t("home.badge.orders", { count: p.orderCount }))}` },
+      { value: "create-task", label: `${t("home.create_task")} ${this.badge(p.hasFoundationResult ? t("home.badge.ready") : p.hasFoundationOrder ? t("home.badge.order_ready") : t("home.badge.missing"))}` },
+      { value: "orders", label: `${t("home.task_list")} ${this.badge(t("home.badge.orders", { count: p.orderCount }))}` },
       { value: "chat", label: t("wizard.chat") },
       { value: "sessions", label: t("wizard.sessions") },
       { value: "model", label: t("wizard.model") },
@@ -50,8 +50,8 @@ export class HomePage implements Component {
       { value: "wizard", label: t("home.guided") },
       { value: "analysis", label: t("wizard.analysis") },
       { value: "persona", label: t("wizard.persona") },
-      { value: "foundation", label: t("wizard.foundation") },
-      { value: "orders", label: t("wizard.orders") },
+      { value: "create-task", label: t("home.create_task") },
+      { value: "orders", label: t("home.task_list") },
       { value: "chat", label: t("wizard.chat") },
       { value: "sessions", label: t("wizard.sessions") },
       { value: "model", label: t("wizard.model") },
@@ -76,10 +76,10 @@ export class HomePage implements Component {
     if (value === "wizard") this.enterSub(new GuidedWizardPage(() => this.exitSub(), this.tuiRef, { allowRestartPrompt: true, onOpenHome: () => this.exitSub() }));
     else if (value === "analysis") this.enterSub(new AnalysisPage(() => this.exitSub(), this.tuiRef));
     else if (value === "persona") this.enterSub(new PersonaPage(() => this.exitSub(), this.tuiRef));
-    else if (value === "foundation") this.enterSub(new FoundationPage(() => this.exitSub(), this.tuiRef));
-    else if (value === "orders") this.enterSub(new CreationTasksPage(() => this.exitSub(), this.tuiRef, {
+    else if (value === "create-task") this.enterSub(new AddCreationTaskPage(() => this.exitSub(), this.tuiRef, {
       onChat: (initialMessage) => this.actions.onChat?.(initialMessage),
     }));
+    else if (value === "orders") this.enterSub(new CreationTasksPage(() => this.exitSub(), this.tuiRef));
     else if (value === "chat") this.actions.onChat?.();
     else if (value === "sessions") this.enterSub(new SessionsPage(() => this.exitSub(), this.tuiRef, (session) => this.actions.onOpenSession?.(session)));
     else if (value === "model") this.enterSub(new ModelHost(() => this.exitSub(), this.tuiRef.getTui()));

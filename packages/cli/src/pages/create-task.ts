@@ -5,12 +5,14 @@ import { createOrders } from "@repochan/core";
 import { PromptInput } from "../components/prompt-input.js";
 import { AgentStatus } from "../components/agent-status.js";
 import { t } from "../i18n.js";
+import { readOnboardingProgress, type OnboardingProgress } from "../lib/onboarding.js";
 import { formatSessionSavedMessage, startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
 import type { OnBack, TuiRef } from "../types.js";
 import { actionBar, appHeader, callout } from "../ui/layout.js";
 import { bulletList, keyValueRows, rawJson, toStringArray, wrapText } from "../ui/detail.js";
+import { OrderDetailPage } from "./order-detail.js";
 
-type CreateMode = "auto" | "chat" | "manual" | "import";
+type CreateMode = "foundation" | "view-foundation" | "auto" | "chat" | "manual";
 type ManualStep = "assetType" | "intent" | "deliverable" | "criteria" | "mustInclude" | "avoid" | "preview";
 
 type ManualDraft = {
@@ -43,6 +45,10 @@ export class CreateTaskPage implements Component {
   private manualStep: ManualStep | null = null;
   private manualDraft: ManualDraft = {};
   private manualRaw = false;
+  private loading = true;
+  private error: string | null = null;
+  private progress: OnboardingProgress | null = null;
+  private currentSub: Component | null = null;
 
   constructor(
     private onBack: OnBack,
@@ -50,15 +56,40 @@ export class CreateTaskPage implements Component {
     private actions: CreateTaskActions = {},
   ) {
     this.list = this.createList();
+    void this.loadProgress();
+  }
+
+  private async loadProgress() {
+    this.loading = true;
+    this.error = null;
+    this.tuiRef.requestRender();
+    try {
+      this.progress = await readOnboardingProgress(process.cwd());
+      this.list = this.createList();
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : String(error);
+    } finally {
+      this.loading = false;
+      this.tuiRef.requestRender();
+    }
   }
 
   private createList() {
-    const items: { value: CreateMode; label: string }[] = [
-      { value: "auto", label: t("create_task.mode.auto") },
-      { value: "chat", label: t("create_task.mode.chat") },
-      { value: "manual", label: t("create_task.mode.manual") },
-      { value: "import", label: t("create_task.mode.import") },
-    ];
+    const p = this.progress;
+    const items: { value: CreateMode; label: string }[] = !p || p.orderCount === 0
+      ? [
+          { value: "foundation", label: t("create_task.mode.foundation") },
+        ]
+      : p.hasFoundationResult
+        ? [
+            { value: "auto", label: t("create_task.mode.auto") },
+            { value: "chat", label: t("create_task.mode.chat") },
+            { value: "manual", label: t("create_task.mode.manual") },
+            { value: "view-foundation", label: t("create_task.mode.view_foundation") },
+          ]
+        : [
+            { value: p.foundationOrderId ? "view-foundation" : "foundation", label: p.foundationOrderId ? t("create_task.mode.view_foundation") : t("create_task.mode.foundation") },
+          ];
     const list = new SelectList(items, 8, {
       selectedPrefix: (s) => theme.accent("> " + s),
       selectedText: (s) => theme.accent(s),
@@ -71,10 +102,51 @@ export class CreateTaskPage implements Component {
   }
 
   private selectMode(mode: CreateMode) {
+    if (mode === "foundation") { void this.runFoundationPlanner(); return; }
+    if (mode === "view-foundation") { this.openFoundationOrder(); return; }
     if (mode === "auto") { void this.runAutoPlanner(); return; }
     if (mode === "chat") { this.openChatPlanner(); return; }
-    if (mode === "manual") { this.startManualWizard(); return; }
-    this.openImportJsonInput();
+    this.startManualWizard();
+  }
+
+  private async runFoundationPlanner() {
+    if (this.running) return;
+    this.statusMsg = null;
+    this.agentStatus?.dispose();
+    this.agentStatus = new AgentStatus({ role: "pm", onRequestRender: () => this.tuiRef.requestRender() });
+    this.tuiRef.requestRender();
+    try {
+      this.running = await startRoleSession({
+        phase: "orders",
+        goal: "Create the initial RepoChan visual anchor cover task for this repository. Create exactly one foundation-sheet or cover-sheet creation task that will become the setting cover / visual anchor. Do not propose additional downstream assets yet.",
+        cwd: process.cwd(),
+        newSession: true,
+        onDone: () => void this.finishFoundationPlanner(),
+        onError: (error: unknown) => this.failRun(error),
+      });
+      this.agentStatus.setSession(this.running.session);
+      void this.running.done.catch(() => undefined);
+    } catch (error) {
+      this.failRun(error);
+    }
+  }
+
+  private async finishFoundationPlanner() {
+    this.agentStatus?.markDone();
+    this.running = null;
+    this.statusMsg = t("create_task.foundation.done");
+    this.actions.onDone?.();
+    await this.loadProgress();
+  }
+
+  private openFoundationOrder() {
+    const orderId = this.progress?.foundationOrderId;
+    if (!orderId) {
+      this.statusMsg = t("create_task.foundation.missing");
+      this.tuiRef.requestRender();
+      return;
+    }
+    this.enterSub(new OrderDetailPage(() => this.exitSub(), this.tuiRef, orderId));
   }
 
   private async runAutoPlanner() {
@@ -104,7 +176,7 @@ export class CreateTaskPage implements Component {
     this.running = null;
     this.statusMsg = t("create_task.auto.done");
     this.actions.onDone?.();
-    this.tuiRef.requestRender();
+    await this.loadProgress();
   }
 
   private failRun(error: unknown) {
@@ -122,6 +194,26 @@ export class CreateTaskPage implements Component {
     this.running = null;
     this.statusMsg = t("agent.status.cancelled");
     this.tuiRef.requestRender();
+  }
+
+  private enterSub(sub: Component) {
+    this.currentSub = sub;
+    this.tuiRef.setFocus(sub);
+    this.tuiRef.requestRender();
+  }
+
+  private exitSub() {
+    this.currentSub = null;
+    this.tuiRef.setFocus(this);
+    void this.loadProgress();
+  }
+
+  private helpText() {
+    const p = this.progress;
+    if (!p) return t("create_task.help.loading");
+    if (p.orderCount === 0) return t("create_task.help.empty");
+    if (!p.hasFoundationResult) return t("create_task.help.anchor_pending");
+    return t("create_task.help");
   }
 
   private openChatPlanner() {
@@ -198,6 +290,7 @@ export class CreateTaskPage implements Component {
       this.promptInput = null;
       this.statusMsg = t("create_task.import.done");
       this.actions.onDone?.();
+      await this.loadProgress();
     } catch (error) {
       this.statusMsg = error instanceof Error ? error.message : String(error);
     } finally {
@@ -211,6 +304,7 @@ export class CreateTaskPage implements Component {
       this.statusMsg = t("create_task.manual.done");
       this.cancelManualWizard();
       this.actions.onDone?.();
+      await this.loadProgress();
     } catch (error) {
       this.statusMsg = error instanceof Error ? error.message : String(error);
       this.tuiRef.requestRender();
@@ -222,6 +316,10 @@ export class CreateTaskPage implements Component {
   }
 
   handleInput(data: string): void {
+    if (this.currentSub) {
+      this.currentSub.handleInput?.(data);
+      return;
+    }
     if (this.promptInput) { this.promptInput.handleInput(data); return; }
     if (this.manualStep === "preview") {
       if (matchesKey(data, Key.escape) || data === "q" || data === "Q") { this.cancelManualWizard(); return; }
@@ -234,10 +332,12 @@ export class CreateTaskPage implements Component {
       else this.onBack();
       return;
     }
+    if (data === "r" || data === "R") { void this.loadProgress(); return; }
     this.list.handleInput(data);
   }
 
   render(width: number): string[] {
+    if (this.currentSub) return this.currentSub.render(width);
     if (this.promptInput) return this.promptInput.render(width);
     if (this.manualStep === "preview") return this.renderManualPreview(width);
 
@@ -245,7 +345,7 @@ export class CreateTaskPage implements Component {
     const lines: string[] = [];
     lines.push(...appHeader({ title: t("create_task.title"), subtitle: t("create_task.subtitle"), width: w }));
     lines.push("");
-    lines.push(...callout({ title: t("create_task.help"), tone: "dim", width: w }));
+    lines.push(...callout({ title: this.helpText(), tone: "dim", width: w }));
     lines.push("");
 
     if (this.agentStatus) {
@@ -253,7 +353,14 @@ export class CreateTaskPage implements Component {
       lines.push("");
     }
 
-    lines.push(...this.list.render(w).map((line) => truncateToWidth(line, w, "…")));
+    if (this.loading) {
+      lines.push(theme.dim(t("common.loading")));
+    } else if (this.error) {
+      lines.push(theme.error(t("create_task.status_error")));
+      lines.push(theme.error(`  ${this.error}`));
+    } else {
+      lines.push(...this.list.render(w).map((line) => truncateToWidth(line, w, "…")));
+    }
 
     if (this.statusMsg) {
       lines.push("");
@@ -263,7 +370,8 @@ export class CreateTaskPage implements Component {
     lines.push("");
     lines.push(...actionBar([
       { key: "Enter", label: t("create_task.action.choose"), tone: "accent" },
-      { key: "Esc", label: t("wizard.action.quit") },
+      { key: "r", label: t("wizard.action.refresh") },
+      { key: "Esc", label: t("guided.action.stop") },
     ], w));
     return lines.map((line) => truncateToWidth(line, w, "…"));
   }

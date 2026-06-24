@@ -78,6 +78,8 @@ export default {
   'home.badge.incomplete': '未完成',
   'home.badge.orders': '{count} 个任务',
   'home.badge.results': '{count} 个结果',
+  'home.create_task': '创建创作任务',
+  'home.task_list': '创作任务列表',
   'home.action.open': '打开',
   'home.action.wizard': '向导',
 
@@ -186,10 +188,10 @@ export default {
   'persona.action.edit': '修改人物档案',
 
   // Creation Tasks
-  'orders.title': '创作任务',
-  'orders.subtitle': '管理 Spiria 的创作任务、状态和结果版本。',
+  'orders.title': '创作任务列表',
+  'orders.subtitle': '查看和管理 Spiria 的创作任务、状态和结果版本。',
   'orders.empty': '暂无创作任务。请在 Spiria 人设和视觉锚点就绪后创建。',
-  'orders.hint': '↑↓ 选择 • Enter: 详情 • g: 创建任务 • p: 完成任务 • a: 批准 • r: 刷新 • Esc: 返回/取消',
+  'orders.hint': '↑↓ 选择 • Enter: 详情 • p: 完成任务 • a: 批准 • r: 刷新 • Esc: 返回/取消',
   'orders.status': '任务状态: {status}',
   'orders.approved': '已批准任务 {id}。',
   'orders.in_progress': '任务 {id} 已设为 in_progress，可以完成。',
@@ -226,8 +228,14 @@ export default {
 
   // Create Task
   'create_task.title': '新增创作任务',
-  'create_task.subtitle': '通过自动规划、聊天或手动创建新任务。',
-  'create_task.help': '创作任务是后续被完成并产出结果的基本单位。',
+  'create_task.subtitle': '创建设定集封面，或在视觉锚点就绪后新增后续任务。',
+  'create_task.help': '视觉锚点已就绪。可以继续创建新的 Spiria 创作任务，或查看设定集封面详情。',
+  'create_task.help.loading': '正在读取当前创作任务状态。',
+  'create_task.help.empty': '当前项目还没有任何创作任务；先创建视觉锚点（设定集封面）这一项。',
+  'create_task.help.anchor_pending': '视觉锚点尚未完成；先查看并完成设定集封面任务，再创建其他资产任务。',
+  'create_task.status_error': '无法读取创作任务状态',
+  'create_task.mode.foundation': '创建视觉锚点（设定集封面）',
+  'create_task.mode.view_foundation': '查看设定集封面',
   'create_task.mode.auto': '让创意总监自动提出若干任务',
   'create_task.mode.chat': '和创意总监聊天创建任务',
   'create_task.mode.manual': '手动引导创建',
@@ -236,6 +244,8 @@ export default {
   'create_task.action.create': '创建任务',
   'create_task.action.edit': '修改答案',
   'create_task.auto.done': '创作任务规划完成，已刷新任务列表。',
+  'create_task.foundation.done': '视觉锚点任务已创建，已刷新任务状态。',
+  'create_task.foundation.missing': '还没有找到设定集封面任务。',
   'create_task.chat.unavailable': '聊天创建只能从 Home 打开。',
   'create_task.chat.initial_message': '/skill:repochan-art-director\n\n我想新增 RepoChan 创作任务。请你作为创意总监，如果需要先问我澄清问题，然后使用 repochan order 工具创建具体创作任务。任务概念要和当前 Spiria 人设、视觉锚点保持一致。',
   'create_task.manual.title': '手动创作任务 JSON',

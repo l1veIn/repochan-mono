@@ -78,6 +78,8 @@ export default {
   'home.badge.incomplete': 'incomplete',
   'home.badge.orders': '{count} task(s)',
   'home.badge.results': '{count} result(s)',
+  'home.create_task': 'Create Creation Task',
+  'home.task_list': 'Creation Task List',
   'home.action.open': 'Open',
   'home.action.wizard': 'Wizard',
 
@@ -186,10 +188,10 @@ export default {
   'persona.action.edit': 'Revise persona',
 
   // Creation Tasks
-  'orders.title': 'Creation Tasks',
-  'orders.subtitle': 'Manage Spiria creation tasks, statuses, and result versions.',
+  'orders.title': 'Creation Task List',
+  'orders.subtitle': 'View and manage Spiria creation tasks, statuses, and result versions.',
   'orders.empty': 'No creation tasks found. Create them after Spiria profile and visual anchor are ready.',
-  'orders.hint': '↑↓ select • Enter: detail • g: create tasks • p: complete task • a: approve • r: refresh • Esc: back/cancel',
+  'orders.hint': '↑↓ select • Enter: detail • p: complete task • a: approve • r: refresh • Esc: back/cancel',
   'orders.status': 'Task status: {status}',
   'orders.approved': 'Approved task {id}.',
   'orders.in_progress': 'Task {id} set to in_progress for completion.',
@@ -226,8 +228,14 @@ export default {
 
   // Create Task
   'create_task.title': 'Add Creation Task',
-  'create_task.subtitle': 'Create new tasks manually, automatically, or through chat.',
-  'create_task.help': 'A creation task is the unit that later gets completed into generated results.',
+  'create_task.subtitle': 'Create the setting cover first, then add downstream tasks after the visual anchor is ready.',
+  'create_task.help': 'The visual anchor is ready. Create more Spiria tasks, or open the setting cover detail.',
+  'create_task.help.loading': 'Reading current creation task state.',
+  'create_task.help.empty': 'This project has no creation tasks yet; start with the visual anchor / setting cover task.',
+  'create_task.help.anchor_pending': 'The visual anchor is not complete yet. Open and complete the setting cover task before adding other assets.',
+  'create_task.status_error': 'Could not read creation task state',
+  'create_task.mode.foundation': 'Create visual anchor (setting cover)',
+  'create_task.mode.view_foundation': 'View setting cover',
   'create_task.mode.auto': 'Ask Creative Director to propose tasks automatically',
   'create_task.mode.chat': 'Chat with Creative Director to create tasks',
   'create_task.mode.manual': 'Manual guided creation',
@@ -236,6 +244,8 @@ export default {
   'create_task.action.create': 'Create task',
   'create_task.action.edit': 'Edit answers',
   'create_task.auto.done': 'Creation task planning finished. Refreshed tasks.',
+  'create_task.foundation.done': 'Visual anchor task created. Refreshed task state.',
+  'create_task.foundation.missing': 'No setting cover task found yet.',
   'create_task.chat.unavailable': 'Chat creation is only available from Home.',
   'create_task.chat.initial_message': '/skill:repochan-art-director\n\nI want to create new RepoChan Creation Tasks. Act as the creative director: ask clarifying questions if needed, then create concrete creation tasks using the repochan order tools. Keep task concepts aligned with the current Spiria profile and visual anchor.',
   'create_task.manual.title': 'Manual Creation Task JSON',
