@@ -8,6 +8,7 @@ import { ConfirmList, type ConfirmChoice } from "../components/confirm-list.js";
 import { checkPreconditions } from "../lib/precondition.js";
 import { formatSessionSavedMessage, startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
 import { listOrderResults } from "../lib/protocol.js";
+import { actionBar, appHeader, statusGrid } from "../ui/layout.js";
 
 const theme = {
   accent: (s: string) => chalk.cyan(s),
@@ -155,8 +156,7 @@ export class FoundationPage implements Component {
     if (this.phase === "confirm" && this.confirm) return this.confirm.render(w);
 
     const lines: string[] = [];
-    lines.push(theme.accent(t("foundation.title")));
-    lines.push(theme.dim(t("foundation.subtitle")));
+    lines.push(...appHeader({ title: t("foundation.title"), subtitle: t("foundation.subtitle"), width: w }));
     lines.push("");
 
     if (this.agentStatus && this.phase === "running") {
@@ -167,18 +167,18 @@ export class FoundationPage implements Component {
     if (this.phase === "loading") {
       lines.push(theme.dim(t("common.loading")));
     } else if (this.blockReason) {
+      lines.push(...statusGrid([{ label: t("foundation.state"), value: t("persona.state.blocked"), tone: "error" }], w));
       lines.push(theme.error(this.blockReason));
     } else if (!this.foundationInfo) {
-      lines.push(theme.dim(t("foundation.empty")));
-      lines.push("");
-      lines.push(theme.success("  [Enter/u] Create foundation sheet"));
+      lines.push(...statusGrid([{ label: t("foundation.state"), value: t("foundation.state.empty"), tone: "warn" }], w));
     } else {
-      lines.push(theme.success(t("foundation.has_foundation")));
-      lines.push(`  order: ${this.foundationInfo.orderId}`);
-      lines.push(`  version: ${this.foundationInfo.versionId}`);
-      lines.push(`  files: ${this.foundationInfo.files.map((f) => truncateToWidth(f, w - 10, "…")).join(", ")}`);
-      lines.push("");
-      lines.push(theme.success("  [Enter/u] Regenerate foundation"));
+      lines.push(...statusGrid([
+        { label: t("foundation.state"), value: t("home.status.ready"), tone: "success" },
+        { label: "order", value: this.foundationInfo.orderId },
+        { label: "version", value: this.foundationInfo.versionId },
+        { label: "files", value: this.foundationInfo.files.length, tone: "success" },
+      ], w));
+      lines.push(`  ${this.foundationInfo.files.map((f) => truncateToWidth(f, w - 10, "…")).join(", ")}`);
     }
 
     if (this.warnings.length) {
@@ -194,7 +194,11 @@ export class FoundationPage implements Component {
     }
 
     lines.push("");
-    lines.push(theme.dim(t("foundation.hint")));
+    lines.push(...actionBar([
+      { key: "Enter", label: this.foundationInfo ? t("foundation.action.regenerate") : t("foundation.action.create"), tone: "accent" },
+      { key: "r", label: t("wizard.action.refresh") },
+      { key: "Esc", label: t("guided.action.stop") },
+    ], w));
     return lines.map((l) => truncateToWidth(l, w, "…"));
   }
 }

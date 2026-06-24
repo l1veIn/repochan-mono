@@ -5,8 +5,10 @@ import { type OnBack, type TuiRef } from "../types.js";
 import { t } from "../i18n.js";
 import { AgentStatus } from "../components/agent-status.js";
 import { OrderDetailPage } from "./order-detail.js";
+import { AddCreationTaskPage } from "./create-task.js";
 import { listOrders, readOrder, setOrderStatus } from "@repochan/core";
 import { formatSessionSavedMessage, startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
+import { actionBar, appHeader, statusGrid } from "../ui/layout.js";
 
 const theme = {
   accent: (s: string) => chalk.cyan(s),
@@ -27,6 +29,10 @@ type OrderRow = {
   unreadable?: boolean;
 };
 
+type CreationTaskActions = {
+  onChat?: (initialMessage: string) => void;
+};
+
 export class OrdersPage implements Component {
   private list: SelectList | null = null;
   private orders: OrderRow[] = [];
@@ -38,7 +44,7 @@ export class OrdersPage implements Component {
   private running: RunningRoleSession | null = null;
   private paintingOrderId?: string;
 
-  constructor(private onBack: OnBack, private tuiRef: TuiRef) {
+  constructor(private onBack: OnBack, private tuiRef: TuiRef, private actions: CreationTaskActions = {}) {
     void this.loadOrders();
   }
 
@@ -111,6 +117,13 @@ export class OrdersPage implements Component {
     void this.loadOrders();
   }
 
+  private openCreateTaskPage() {
+    this.enterSub(new AddCreationTaskPage(() => this.exitSub(), this.tuiRef, {
+      onDone: () => void this.loadOrders(),
+      onChat: this.actions.onChat,
+    }));
+  }
+
   private async approveSelected() {
     const order = this.selectedOrder();
     if (!order?.orderId) return;
@@ -133,7 +146,7 @@ export class OrdersPage implements Component {
     try {
       this.running = await startRoleSession({
         phase: "orders",
-        goal: "Create or regenerate RepoChan asset orders based on the current analysis and persona.",
+        goal: "Create or regenerate RepoChan creation tasks based on the current repository profile and Spiria profile.",
         cwd: process.cwd(),
         newSession: true,
         onDone: () => void this.finishRun(),
@@ -234,7 +247,7 @@ export class OrdersPage implements Component {
     }
     if (data === "r" || data === "R") void this.loadOrders();
     else if (data === "a" || data === "A") void this.approveSelected();
-    else if (data === "g" || data === "G") void this.runOrdersPhase();
+    else if (data === "g" || data === "G") this.openCreateTaskPage();
     else if (data === "p" || data === "P") void this.runPainterForSelected();
     else this.list?.handleInput(data);
   }
@@ -244,8 +257,7 @@ export class OrdersPage implements Component {
 
     const w = Math.max(40, width);
     const lines: string[] = [];
-    lines.push(theme.accent(t("orders.title")));
-    lines.push(theme.dim(t("orders.subtitle")));
+    lines.push(...appHeader({ title: t("orders.title"), subtitle: t("orders.subtitle"), width: w }));
     lines.push("");
 
     if (this.agentStatus) {
@@ -255,6 +267,10 @@ export class OrdersPage implements Component {
 
     if (this.loading) lines.push(theme.dim(t("common.loading")));
     if (this.error) lines.push(theme.error(this.error));
+    if (!this.loading) {
+      lines.push(...this.renderOrderBoard(w));
+      lines.push("");
+    }
     if (this.list && !this.loading) lines.push(...this.list.render(w).map((l) => truncateToWidth(l, w, "…")));
 
     if (this.statusMsg) {
@@ -263,12 +279,33 @@ export class OrdersPage implements Component {
     }
 
     lines.push("");
-    lines.push(theme.dim(t("orders.hint")));
+    lines.push(...actionBar([
+      { key: "Enter", label: t("orders.action.detail"), tone: "accent" },
+      { key: "g", label: t("orders.action.generate") },
+      { key: "p", label: t("orders.action.paint") },
+      { key: "a", label: t("orders.action.approve") },
+      { key: "r", label: t("wizard.action.refresh") },
+      { key: "Esc", label: t("guided.action.stop") },
+    ], w));
     return lines.map((l) => truncateToWidth(l, w, "…"));
+  }
+
+  private renderOrderBoard(width: number) {
+    const counts = this.orders.reduce<Record<string, number>>((acc, order) => {
+      const status = order.status || "draft";
+      acc[status] = (acc[status] ?? 0) + 1;
+      return acc;
+    }, {});
+    return statusGrid([
+      { label: t("orders.board.total"), value: this.orders.length, tone: this.orders.length > 0 ? "success" : "dim" },
+      { label: t("orders.board.draft"), value: counts.draft ?? 0, tone: (counts.draft ?? 0) > 0 ? "warn" : "dim" },
+      { label: t("orders.board.approved"), value: counts.approved ?? 0, tone: (counts.approved ?? 0) > 0 ? "success" : "dim" },
+      { label: t("orders.board.delivered"), value: counts.delivered ?? 0, tone: (counts.delivered ?? 0) > 0 ? "success" : "dim" },
+    ], width);
   }
 }
 
-export { OrdersPage as OrdersHost };
+export { OrdersPage as OrdersHost, OrdersPage as CreationTasksPage, OrdersPage as CreationTasksHost };
 
 function statusBadge(status?: string) {
   if (status === "approved") return "[approved]";

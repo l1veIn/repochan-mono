@@ -28,6 +28,6 @@ export async function runStatus(cwd: string, options: OutputOptions = {}) {
   }
 
   if (!protocol.exists) console.log(dim("\nNext: run `repochan init` or open the TUI with `repochan`."));
-  else if (!protocol.analysis) console.log(dim("\nNext: open Analysis in the TUI and run the Analyst."));
-  else if (!protocol.persona) console.log(dim("\nNext: open Persona in the TUI and run the Creative Writer."));
+  else if (!protocol.analysis) console.log(dim("\nNext: open Repository Profile in the TUI and build the profile."));
+  else if (!protocol.persona) console.log(dim("\nNext: open Spiria Profile in the TUI and generate the profile."));
 }

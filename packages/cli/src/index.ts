@@ -4,7 +4,8 @@ import { fileURLToPath } from "node:url";
 import { TUI, ProcessTerminal, matchesKey, Key, type Component } from "@earendil-works/pi-tui";
 import type { SessionInfo } from "@earendil-works/pi-coding-agent";
 
-import { WizardHost } from "./pages/wizard.js";
+import { HomePage } from "./pages/home.js";
+import { GuidedWizardPage } from "./pages/guided-wizard.js";
 import { ModelHost } from "./pages/model.js";
 import { LanguageHost } from "./pages/language.js";
 import { AnalysisPage } from "./pages/analysis.js";
@@ -22,13 +23,15 @@ import { runOrderCommand } from "./commands/order.js";
 import { printError, UsageError } from "./commands/common.js";
 import { clearRuntimeCache, getRepoChanRuntime, runRepoChanInteractive, type RepoChanSessionMode } from "./lib/runtime.js";
 import { hasSettings } from "./lib/settings-manager.js";
+import { readOnboardingProgress } from "./lib/onboarding.js";
 
 const VERSION = "0.1.0";
 
 type ParsedArgs = { positionals: string[]; json: boolean; help: boolean; version: boolean };
 
 type Route =
-  | { kind: "wizard"; directMode?: "model" }
+  | { kind: "wizard"; directMode?: "model"; forceGuided?: boolean }
+  | { kind: "home" }
   | { kind: "help" }
   | { kind: "version" }
   | { kind: "init"; json: boolean }
@@ -44,7 +47,7 @@ type Route =
   | { kind: "foundation" }
   | { kind: "paint"; orderId?: string };
 
-export async function launchWizard(directMode?: "model") {
+export async function launchWizard(directMode?: "model", forceGuided = false, forceHome = false) {
   const terminal = new ProcessTerminal();
   const tui = new TUI(terminal);
 
@@ -57,21 +60,46 @@ export async function launchWizard(directMode?: "model") {
     getTui: () => tui,
   };
 
-  const showWizard = () => {
-    const wizard = new WizardHost(tuiRef, {
-      onChat: () => {
+  const showHome = () => {
+    const home = new HomePage(tuiRef, {
+      onChat: (initialMessage?: string) => {
         tui.stop();
-        void runInteractiveSafely({ initialSession: "continue" });
+        void runInteractiveSafely({ initialSession: "continue", initialMessage });
       },
-      onSessions: () => {
+      onOpenSession: (session: SessionInfo) => {
         tui.stop();
-        void launchSessionsSelector();
+        void runInteractiveSafely({ initialSession: { kind: "open", path: session.path } });
       },
     });
     tui.clear();
-    tui.addChild(wizard);
-    tui.setFocus(wizard);
+    tui.addChild(home);
+    tui.setFocus(home);
     tui.requestRender();
+  };
+
+  const showGuided = () => {
+    const guided = new GuidedWizardPage(() => showHome(), tuiRef, {
+      allowRestartPrompt: true,
+      onOpenHome: showHome,
+    });
+    tui.clear();
+    tui.addChild(guided);
+    tui.setFocus(guided);
+    tui.requestRender();
+  };
+
+  const showSmartEntry = async () => {
+    if (forceHome) {
+      showHome();
+      return;
+    }
+    if (forceGuided) {
+      showGuided();
+      return;
+    }
+    const progress = await readOnboardingProgress(process.cwd());
+    if (progress.complete) showHome();
+    else showGuided();
   };
 
   const showModel = (onBack: () => void) => {
@@ -98,27 +126,31 @@ export async function launchWizard(directMode?: "model") {
   } else if (!(await hasSettings())) {
     const languageHost = new LanguageHost(async () => {
       await initLanguage();
-      await continueStartup(showWizard, showModel);
+      await continueStartup(showSmartEntry, showModel);
     }, tui, { allowCancel: false });
     tui.addChild(languageHost);
     tui.setFocus(languageHost);
   } else {
-    await continueStartup(showWizard, showModel);
+    await continueStartup(showSmartEntry, showModel);
   }
 
   tui.start();
 }
 
-async function continueStartup(showWizard: () => void, showModel: (onBack: () => void) => void) {
+export async function launchHome() {
+  return launchWizard(undefined, false, true);
+}
+
+async function continueStartup(showEntry: () => void | Promise<void>, showModel: (onBack: () => void) => void) {
   await ensureBundledSetup();
   clearRuntimeCache();
   const runtime = await getRepoChanRuntime(process.cwd());
   const availableModels = await runtime.modelRegistry.getAvailable();
   if (availableModels.length === 0) {
-    showModel(showWizard);
+    showModel(() => { void showEntry(); });
     return;
   }
-  showWizard();
+  await showEntry();
 }
 
 async function ensureInteractiveStartup() {
@@ -293,13 +325,15 @@ function resolveRoute(argv: string[]): Route {
   if (parsed.version) return { kind: "version" };
   if (parsed.help) return { kind: "help" };
   if (!command) return { kind: "wizard" };
+  if (command === "home") return { kind: "home" };
+  if (command === "wizard") return { kind: "wizard", forceGuided: true };
   if (command === "model" || command === "login" || command === "settings") return { kind: "wizard", directMode: "model" };
   if (command === "init") return { kind: "init", json: parsed.json };
   if (command === "setup") return { kind: "setup", json: parsed.json };
   if (command === "status") return { kind: "status", json: parsed.json };
   if (command === "inspect") return { kind: "inspect", json: parsed.json };
   if (command === "validate") return { kind: "validate", json: parsed.json };
-  if (command === "order") return { kind: "order", args: rest, json: parsed.json };
+  if (command === "task" || command === "tasks" || command === "order") return { kind: "order", args: rest, json: parsed.json };
   if (command === "chat") return { kind: "chat", fresh: rest.includes("--new") };
   if (command === "sessions" || command === "session") return { kind: "sessions" };
   if (command === "analyze" || command === "analysis") return { kind: "analyze" };
@@ -315,20 +349,22 @@ function printHelp() {
   console.log(`RepoChan CLI ${VERSION}
 
 Usage:
-  repochan                         Launch interactive TUI wizard
-  repochan analyze                 Run Analyst (analysis phase)
-  repochan persona                 Run Creative Writer (persona phase)
-  repochan foundation              Run Art Director (foundation sheet)
-  repochan paint [order-id]        Run Painter for an order
+  repochan                         Smart entry: guided wizard until foundation visual exists, then Home
+  repochan home                    Open RepoChan Home directly
+  repochan wizard                  Continue guided creation wizard / restart if complete
+  repochan analyze                 Build repository profile
+  repochan persona                 Generate Spiria profile
+  repochan foundation              Create or refresh visual anchor
+  repochan paint [task-id]         Complete a creation task
   repochan chat [--new]            Open RepoChan interactive chat
-  repochan sessions                Pick and open a saved RepoChan session
+  repochan sessions                Open saved RepoChan sessions page
   repochan setup [--json]          Install bundled pi packages to ~/.repochan/pi/
   repochan init [--json]           Initialize .repochan protocol directories
   repochan status [--json]         Print protocol overview
   repochan inspect [--json]        Print raw protocol inspection summary
   repochan validate [--json]       Validate protocol artifacts
-  repochan order list [--json]
-  repochan order get <order-id> [--json]
+  repochan task list [--json]      List creation tasks
+  repochan task get <task-id> [--json]
   repochan model                   Open model/login setup in TUI
 `);
 }
@@ -338,7 +374,8 @@ async function main(argv: string[]) {
   const cwd = process.cwd();
   if (route.kind === "version") return console.log(VERSION);
   if (route.kind === "help") return printHelp();
-  if (route.kind === "wizard") return launchWizard(route.directMode);
+  if (route.kind === "wizard") return launchWizard(route.directMode, route.forceGuided);
+  if (route.kind === "home") return launchHome();
   if (route.kind === "init") return runInit(cwd, { json: route.json });
   if (route.kind === "setup") return runSetup({ json: route.json });
   if (route.kind === "status") return runStatus(cwd, { json: route.json });
@@ -355,7 +392,8 @@ async function main(argv: string[]) {
 
 export { ModelHost } from "./pages/model.js";
 export { SettingsHost } from "./pages/settings.js";
-export { WizardHost } from "./pages/wizard.js";
+export { GuidedWizardPage, GuidedWizardPage as WizardHost } from "./pages/guided-wizard.js";
+export { HomePage, HomeHost } from "./pages/home.js";
 export { LanguageHost } from "./pages/language.js";
 export { AnalysisPage } from "./pages/analysis.js";
 export { PersonaPage } from "./pages/persona.js";
@@ -364,7 +402,8 @@ export { PaintPage } from "./pages/paint.js";
 export { SessionsPage, SessionsHost } from "./pages/sessions.js";
 export { ConfirmList } from "./components/confirm-list.js";
 export { checkPreconditions } from "./lib/precondition.js";
-export { OrdersPage, OrdersHost } from "./pages/orders.js";
+export { OrdersPage, OrdersHost, CreationTasksPage, CreationTasksHost } from "./pages/orders.js";
+export { CreateTaskPage, AddCreationTaskPage, CreateTaskHost } from "./pages/create-task.js";
 export { OrderDetailPage, OrderDetailHost } from "./pages/order-detail.js";
 export { getRepoChanRuntime, clearRuntimeCache, OUR_AGENT_DIR, OUR_SESSION_DIR, createRepoChanRuntime, startRoleSession, listRepoChanSessions, runRepoChanInteractive } from "./lib/runtime.js";
 export type { OnBack, TuiRef } from "./types.js";

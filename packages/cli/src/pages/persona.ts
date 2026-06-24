@@ -9,6 +9,8 @@ import { PromptInput } from "../components/prompt-input.js";
 import { checkPreconditions } from "../lib/precondition.js";
 import { readAnalysis, readPersona } from "../lib/protocol.js";
 import { formatSessionSavedMessage, startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
+import { actionBar, appHeader, statusGrid } from "../ui/layout.js";
+import { bulletList, paragraph, rawJson } from "../ui/detail.js";
 
 const theme = {
   accent: (s: string) => chalk.cyan(s),
@@ -30,6 +32,7 @@ export class PersonaPage implements Component {
   private running: RunningRoleSession | null = null;
   private confirm: ConfirmList | null = null;
   private revisionInput: PromptInput | null = null;
+  private rawMode = false;
 
   constructor(private onBack: OnBack, private tuiRef: TuiRef) {
     void this.load();
@@ -164,6 +167,7 @@ export class PersonaPage implements Component {
     }
     if (this.running) return;
     if (data === "r" || data === "R") { void this.load(); return; }
+    if ((data === "j" || data === "J") && this.persona) { this.rawMode = !this.rawMode; this.tuiRef.requestRender(); return; }
     if ((data === "e" || data === "E") && this.persona) { this.showRevisionInput(); return; }
     if (data === "u" || data === "U" || data === "\r") {
       if (!this.hasAnalysis) { this.statusMsg = t("persona.needs_analysis"); this.tuiRef.requestRender(); return; }
@@ -177,8 +181,7 @@ export class PersonaPage implements Component {
     if (this.phase === "revision" && this.revisionInput) return this.revisionInput.render(w);
 
     const lines: string[] = [];
-    lines.push(theme.accent(t("persona.title")));
-    lines.push(theme.dim(t("persona.subtitle")));
+    lines.push(...appHeader({ title: t("persona.title"), subtitle: t("persona.subtitle"), width: w }));
     lines.push("");
 
     if (this.agentStatus && this.phase === "running") {
@@ -189,15 +192,15 @@ export class PersonaPage implements Component {
     if (this.phase === "loading") {
       lines.push(theme.dim(t("common.loading")));
     } else if (!this.hasAnalysis) {
+      lines.push(...statusGrid([{ label: t("persona.state"), value: t("persona.state.blocked"), tone: "error" }], w));
       lines.push(theme.error(t("persona.needs_analysis")));
     } else if (!this.persona) {
-      lines.push(theme.dim(t("persona.empty")));
-      lines.push("");
-      lines.push(theme.success("  [Enter/u] Generate persona"));
+      lines.push(...statusGrid([{ label: t("persona.state"), value: t("persona.state.empty"), tone: "warn" }], w));
+    } else if (this.rawMode) {
+      lines.push(theme.accent(t("common.raw_json")));
+      lines.push(...rawJson(this.persona, w, 40));
     } else {
       lines.push(...renderPersona(this.persona, w));
-      lines.push("");
-      lines.push(theme.success("  [Enter/u] Regenerate persona  [e] Edit persona"));
     }
 
     if (this.warnings.length) {
@@ -213,7 +216,13 @@ export class PersonaPage implements Component {
     }
 
     lines.push("");
-    lines.push(theme.dim(t("persona.hint")));
+    lines.push(...actionBar([
+      { key: "Enter", label: this.persona ? t("persona.action.regenerate") : t("persona.action.generate"), tone: "accent" },
+      ...(this.persona ? [{ key: "e", label: t("persona.action.edit") }] : []),
+      ...(this.persona ? [{ key: "j", label: this.rawMode ? t("common.summary") : t("common.raw_json") }] : []),
+      { key: "r", label: t("wizard.action.refresh") },
+      { key: "Esc", label: t("guided.action.stop") },
+    ], w));
     return lines.map((l) => truncateToWidth(l, w, "…"));
   }
 }
@@ -228,8 +237,10 @@ function renderPersona(persona: any, width: number) {
     if (persona.nativeLanguage) parts.push(`native: ${persona.nativeLanguage}`);
     lines.push(parts.join("  "));
   }
-  if (persona.coreConcept) lines.push(...wrap(`${t("persona.concept")}: ${persona.coreConcept}`, width));
-  if (persona.characterFlaws) lines.push(`Flaws: ${Array.isArray(persona.characterFlaws) ? persona.characterFlaws.join(", ") : persona.characterFlaws}`);
+  if (persona.coreConcept) lines.push(...paragraph(t("persona.concept"), persona.coreConcept, width));
+  lines.push(...bulletList("Personality", persona.personality ?? persona.characterTraits, width));
+  lines.push(...bulletList("Visual motifs", persona.visualMotifs ?? persona.appearance?.motifs, width));
+  lines.push(...bulletList("Flaws", persona.characterFlaws, width));
   if (persona.catchphrase) lines.push(`Catchphrase: ${persona.catchphrase}`);
   if (persona.rolePrompt) {
     lines.push("");

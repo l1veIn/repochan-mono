@@ -9,6 +9,7 @@ import { checkPreconditions } from "../lib/precondition.js";
 import { formatSessionSavedMessage, startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
 import { listOrderResults } from "../lib/protocol.js";
 import { listOrders, readOrder, setOrderStatus } from "@repochan/core";
+import { actionBar, appHeader, statusGrid } from "../ui/layout.js";
 
 const theme = {
   accent: (s: string) => chalk.cyan(s),
@@ -240,8 +241,7 @@ export class PaintPage implements Component {
     if (this.phase === "confirm" && this.confirm) return this.confirm.render(w);
 
     const lines: string[] = [];
-    lines.push(theme.accent(t("paint.title")));
-    lines.push(theme.dim(t("paint.subtitle")));
+    lines.push(...appHeader({ title: t("paint.title"), subtitle: t("paint.subtitle"), width: w }));
     lines.push("");
 
     if (this.agentStatus && this.phase === "running") {
@@ -254,6 +254,8 @@ export class PaintPage implements Component {
     } else if (this.blockReason) {
       lines.push(theme.error(this.blockReason));
     } else if (this.phase === "select" || this.phase === "idle") {
+      lines.push(...this.renderPaintBoard(w));
+      lines.push("");
       if (this.list) {
         lines.push(theme.dim(t("paint.select_order")));
         lines.push("");
@@ -274,14 +276,23 @@ export class PaintPage implements Component {
     }
 
     lines.push("");
-    if (this.phase === "idle") {
-      lines.push(theme.dim(t("paint.hint")));
-    } else if (this.phase === "select") {
-      lines.push(theme.dim(t("paint.order_hint")));
-    } else {
-      lines.push(theme.dim(t("paint.hint")));
-    }
+    lines.push(...actionBar([
+      { key: "Enter", label: t("paint.action.paint"), tone: "accent" },
+      { key: "a", label: t("paint.action.approve") },
+      { key: "r", label: t("wizard.action.refresh") },
+      { key: "Esc", label: t("guided.action.stop") },
+    ], w));
     return lines.map((l) => truncateToWidth(l, w, "…"));
+  }
+
+  private renderPaintBoard(width: number) {
+    const approved = this.orders.filter((order) => order.status === "approved" || order.status === "in_progress").length;
+    const delivered = this.orders.filter((order) => order.status === "delivered" || (order.resultCount ?? 0) > 0).length;
+    return statusGrid([
+      { label: t("orders.board.total"), value: this.orders.length, tone: this.orders.length > 0 ? "success" : "dim" },
+      { label: t("paint.board.ready"), value: approved, tone: approved > 0 ? "success" : "dim" },
+      { label: t("orders.board.delivered"), value: delivered, tone: delivered > 0 ? "success" : "dim" },
+    ], width);
   }
 }
 

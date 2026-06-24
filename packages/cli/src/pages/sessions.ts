@@ -107,24 +107,57 @@ export class SessionsPage implements Component {
 function formatSessionLabel(session: SessionInfo) {
   const phase = inferSessionPhase(session);
   const time = formatTime(session.modified ?? session.created);
-  const title = session.name || cleanFirstMessage(session.firstMessage) || "(empty session)";
+  const title = readableSessionTitle(session, phase);
   return `${time}  ${phase}  ${title}  ${session.id.slice(0, 8)}`;
 }
 
 function inferSessionPhase(session: SessionInfo) {
   const text = `${session.name ?? ""}\n${session.firstMessage ?? ""}\n${session.allMessagesText ?? ""}`.toLowerCase();
-  if (text.includes("repochan-painter") || text.includes("painter")) return "paint";
-  if (text.includes("repochan-art-director") || text.includes("foundation")) return "foundation";
-  if (text.includes("repochan-persona") || text.includes("persona")) return "persona";
-  if (text.includes("repochan-analysis") || text.includes("analysis")) return "analysis";
+  if (text.includes("repochan-painter") || text.includes("painter")) return "complete";
+  if (text.includes("repochan-art-director") || text.includes("foundation")) return "visual";
+  if (text.includes("repochan-persona") || text.includes("persona")) return "spiria";
+  if (text.includes("repochan-analysis") || text.includes("analysis")) return "profile";
   return "chat";
 }
 
-function cleanFirstMessage(message: string) {
+function readableSessionTitle(session: SessionInfo, phase: string) {
+  const candidates = [session.name, session.firstMessage, session.allMessagesText]
+    .map((value) => cleanSessionText(String(value ?? "")))
+    .filter(Boolean);
+  const candidate = candidates.find((text) => isReadableTitle(text));
+  return truncateTitle(candidate || fallbackSessionTitle(phase), 56);
+}
+
+function cleanSessionText(message: string) {
   return message
+    .replace(/<skill\b[^>]*>/gi, "")
+    .replace(/<\/skill>/gi, "")
     .replace(/^\/skill:repochan-[^\s]+/i, "")
-    .replace(/^CLI request:\s*/i, "")
+    .replace(/location="[^"]+"/gi, "")
+    .replace(/CLI request:\s*/gi, "")
+    .replace(/\s+/g, " ")
     .trim();
+}
+
+function isReadableTitle(title: string) {
+  if (!title) return false;
+  if (title.length < 4) return false;
+  if (/^Ref$/i.test(title)) return false;
+  if (title.includes("<skill")) return false;
+  if (title.includes("/packages/pi/skills/")) return false;
+  return true;
+}
+
+function fallbackSessionTitle(phase: string) {
+  if (phase === "complete") return t("sessions.fallback.complete");
+  if (phase === "visual") return t("sessions.fallback.visual");
+  if (phase === "spiria") return t("sessions.fallback.spiria");
+  if (phase === "profile") return t("sessions.fallback.profile");
+  return t("sessions.fallback.chat");
+}
+
+function truncateTitle(title: string, max: number) {
+  return title.length <= max ? title : `${title.slice(0, Math.max(0, max - 1))}…`;
 }
 
 function formatTime(date: Date) {

@@ -9,6 +9,8 @@ import { PromptInput } from "../components/prompt-input.js";
 import { checkPreconditions } from "../lib/precondition.js";
 import { readAnalysis } from "../lib/protocol.js";
 import { formatSessionSavedMessage, startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
+import { actionBar, appHeader, statusGrid } from "../ui/layout.js";
+import { keyValueRows, rawJson } from "../ui/detail.js";
 
 const theme = {
   accent: (s: string) => chalk.cyan(s),
@@ -29,6 +31,7 @@ export class AnalysisPage implements Component {
   private running: RunningRoleSession | null = null;
   private confirm: ConfirmList | null = null;
   private revisionInput: PromptInput | null = null;
+  private rawMode = false;
 
   constructor(private onBack: OnBack, private tuiRef: TuiRef) {
     void this.load();
@@ -156,6 +159,7 @@ export class AnalysisPage implements Component {
     }
     if (this.running) return;
     if (data === "r" || data === "R") { void this.load(); return; }
+    if ((data === "j" || data === "J") && this.analysis) { this.rawMode = !this.rawMode; this.tuiRef.requestRender(); return; }
     if ((data === "e" || data === "E") && this.analysis) { this.showRevisionInput(); return; }
     if (data === "u" || data === "U" || data === "\r") {
       if (this.analysis) this.showConfirm(); else void this.startRun();
@@ -168,8 +172,7 @@ export class AnalysisPage implements Component {
     if (this.phase === "revision" && this.revisionInput) return this.revisionInput.render(w);
 
     const lines: string[] = [];
-    lines.push(theme.accent(t("analysis.title")));
-    lines.push(theme.dim(t("analysis.subtitle")));
+    lines.push(...appHeader({ title: t("analysis.title"), subtitle: t("analysis.subtitle"), width: w }));
     lines.push("");
 
     if (this.agentStatus && this.phase === "running") {
@@ -182,13 +185,14 @@ export class AnalysisPage implements Component {
     } else if (this.phase === "error" && !this.agentStatus) {
       lines.push(theme.error(this.statusMsg || "Error"));
     } else if (!this.analysis) {
-      lines.push(theme.dim(t("analysis.empty")));
-      lines.push("");
-      lines.push(theme.success("  [Enter/u] Start analysis"));
+      lines.push(...statusGrid([
+        { label: t("analysis.state"), value: t("analysis.state.empty"), tone: "warn" },
+      ], w));
+    } else if (this.rawMode) {
+      lines.push(theme.accent(t("common.raw_json")));
+      lines.push(...rawJson(this.analysis, w, 40));
     } else {
       lines.push(...renderAnalysisSummary(this.analysis, w));
-      lines.push("");
-      lines.push(theme.success("  [Enter/u] Re-run analysis  [e] Edit analysis"));
     }
 
     if (this.warnings.length) {
@@ -204,7 +208,13 @@ export class AnalysisPage implements Component {
     }
 
     lines.push("");
-    lines.push(theme.dim(t("analysis.hint")));
+    lines.push(...actionBar([
+      { key: "Enter", label: this.analysis ? t("analysis.action.rerun") : t("analysis.action.start"), tone: "accent" },
+      ...(this.analysis ? [{ key: "e", label: t("analysis.action.edit") }] : []),
+      ...(this.analysis ? [{ key: "j", label: this.rawMode ? t("common.summary") : t("common.raw_json") }] : []),
+      { key: "r", label: t("wizard.action.refresh") },
+      { key: "Esc", label: t("guided.action.stop") },
+    ], w));
     return lines.map((l) => truncateToWidth(l, w, "…"));
   }
 }
@@ -258,7 +268,11 @@ function renderAnalysisSummary(analysis: any, width: number) {
 }
 
 function objectPreview(value: any, width: number) {
-  return JSON.stringify(value, null, 2).split("\n").slice(0, 8).map((line) => truncateToWidth(line, width - 4, "…"));
+  if (Array.isArray(value)) return value.slice(0, 8).map((item) => truncateToWidth(String(item), width - 4, "…"));
+  if (value && typeof value === "object") {
+    return keyValueRows(Object.entries(value).map(([label, rowValue]) => ({ label, value: rowValue })), width - 2);
+  }
+  return [truncateToWidth(String(value ?? ""), width - 4, "…")];
 }
 
 function wrap(text: string, width: number) {

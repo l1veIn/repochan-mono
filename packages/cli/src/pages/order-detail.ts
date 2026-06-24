@@ -9,6 +9,8 @@ import { AgentStatus } from "../components/agent-status.js";
 import { readOrder, setCurrentOrderResult, setOrderStatus, protocolRoot } from "@repochan/core";
 import { listOrderResults } from "../lib/protocol.js";
 import { formatSessionSavedMessage, startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
+import { actionBar, appHeader } from "../ui/layout.js";
+import { bulletList, keyValueRows, paragraph, rawJson } from "../ui/detail.js";
 
 const theme = {
   accent: (s: string) => chalk.cyan(s),
@@ -39,6 +41,7 @@ export class OrderDetailPage implements Component {
   private running: RunningRoleSession | null = null;
   private currentImageChild: Component | null = null;
   private lastPreviewKey: string | null = null;
+  private rawMode = false;
 
   constructor(private onBack: OnBack, private tuiRef: TuiRef, private orderId: string) {
     void this.load();
@@ -99,6 +102,7 @@ export class OrderDetailPage implements Component {
       return;
     }
     if (data === "r" || data === "R") void this.load();
+    if ((data === "j" || data === "J") && this.order) { this.rawMode = !this.rawMode; this.tuiRef.requestRender(); }
     if (data === "p" || data === "P") void this.runPainter();
     if ((data === "s" || data === "S") && this.versions.length) void this.switchVersion();
 
@@ -280,8 +284,7 @@ export class OrderDetailPage implements Component {
   render(width: number): string[] {
     const w = Math.max(40, width);
     const lines: string[] = [];
-    lines.push(theme.accent(t("orders.detail.title", { id: this.orderId })));
-    lines.push(theme.dim(t("orders.detail.subtitle")));
+    lines.push(...appHeader({ title: t("orders.detail.title", { id: this.orderId }), subtitle: t("orders.detail.subtitle"), width: w }));
     lines.push("");
 
     if (this.agentStatus) {
@@ -296,13 +299,14 @@ export class OrderDetailPage implements Component {
     if (this.error) lines.push(theme.error(this.error));
 
     if (this.order) {
-      lines.push(`${t("orders.status", { status: this.order.status || "?" })}  assetType: ${this.order.assetType || "?"}`);
-      if (this.order.requestType) lines.push(`requestType: ${this.order.requestType}`);
-      if (this.order.brief?.intent) lines.push(...wrap(`intent: ${this.order.brief.intent}`, w));
-      lines.push("");
-      lines.push(theme.accent(t("orders.detail.json")));
-      lines.push(...JSON.stringify(this.order, null, 2).split("\n").slice(0, 18).map((l) => truncateToWidth(`  ${l}`, w, "…")));
-      lines.push("");
+      if (this.rawMode) {
+        lines.push(theme.accent(t("common.raw_json")));
+        lines.push(...rawJson(this.order, w, 42));
+        lines.push("");
+      } else {
+        lines.push(...renderCreationTaskDetail(this.order, w));
+        lines.push("");
+      }
     }
 
     if (this.versions.length === 0) {
@@ -342,25 +346,41 @@ export class OrderDetailPage implements Component {
     }
 
     lines.push("");
-    lines.push(theme.dim(t("orders.detail.hint")));
+    lines.push(...actionBar([
+      { key: "↑↓", label: t("orders.detail.action.versions") },
+      { key: "p", label: t("orders.action.paint"), tone: "accent" },
+      { key: "s", label: t("orders.detail.switch_version") },
+      ...(this.order ? [{ key: "j", label: this.rawMode ? t("common.summary") : t("common.raw_json") }] : []),
+      { key: "r", label: t("wizard.action.refresh") },
+      { key: "Esc", label: t("guided.action.stop") },
+    ], w));
     return lines.map((l) => truncateToWidth(l, w, "…"));
   }
 }
 
 export { OrderDetailPage as OrderDetailHost };
 
-function wrap(text: string, width: number) {
-  const words = text.split(/\s+/);
+function renderCreationTaskDetail(order: any, width: number) {
   const lines: string[] = [];
-  let line = "";
-  for (const word of words) {
-    if ((line + " " + word).trim().length > width && line) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = (line + " " + word).trim();
-    }
-  }
-  if (line) lines.push(line);
-  return lines.slice(0, 5);
+  lines.push(...keyValueRows([
+    { label: t("orders.detail.field.status"), value: order.status || "draft" },
+    { label: t("orders.detail.field.asset_type"), value: order.assetType },
+    { label: t("orders.detail.field.request_type"), value: order.requestType },
+    { label: t("orders.detail.field.priority"), value: order.priority || "normal" },
+    { label: t("orders.detail.field.current"), value: order.currentVersion },
+  ], width));
+  lines.push("");
+  lines.push(...paragraph(t("orders.detail.field.intent"), order.brief?.intent, width));
+  lines.push(...bulletList(t("orders.detail.field.deliverables"), (order.deliverables ?? []).map((d: any) => describeDeliverable(d)), width));
+  lines.push(...bulletList(t("orders.detail.field.criteria"), order.acceptanceCriteria, width));
+  lines.push(...bulletList(t("orders.detail.field.must_include"), order.brief?.mustInclude, width));
+  lines.push(...bulletList(t("orders.detail.field.avoid"), order.brief?.avoid, width));
+  if (order.notes) lines.push(...paragraph(t("orders.detail.field.notes"), order.notes, width));
+  return lines;
+}
+
+function describeDeliverable(deliverable: any) {
+  const size = deliverable.width && deliverable.height ? ` ${deliverable.width}x${deliverable.height}` : deliverable.aspectRatio ? ` ${deliverable.aspectRatio}` : "";
+  const transparent = deliverable.transparentBackground ? " transparent" : "";
+  return `${deliverable.name ?? "asset"} · ${deliverable.format ?? "file"}${size}${transparent}`;
 }
