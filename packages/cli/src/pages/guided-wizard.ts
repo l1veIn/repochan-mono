@@ -4,6 +4,7 @@ import { Key, matchesKey, truncateToWidth, type Component } from "@earendil-work
 import { t } from "../i18n.js";
 import { type OnBack, type TuiRef } from "../types.js";
 import { AnalysisPage } from "./analysis.js";
+import { InterviewPage } from "./interview.js";
 import { PersonaPage } from "./persona.js";
 import { AddCreationTaskPage } from "./create-task.js";
 import { PaintPage } from "./paint.js";
@@ -52,6 +53,11 @@ export class GuidedWizardPage implements Component {
       return;
     }
     if (step === "analysis") this.enterSub(new AnalysisPage(() => this.exitSub(), this.tuiRef));
+    else if (step === "interview") this.enterSub(new InterviewPage(
+      () => this.exitSub(),
+      this.tuiRef,
+      { onSkip: () => this.enterSub(new PersonaPage(() => this.exitSub(), this.tuiRef)) },
+    ));
     else if (step === "persona") this.enterSub(new PersonaPage(() => this.exitSub(), this.tuiRef));
     else if (step === "foundation-order") this.enterSub(new AddCreationTaskPage(() => this.exitSub(), this.tuiRef));
     else this.enterSub(new PaintPage(() => this.exitSub(), this.tuiRef, this.progress?.foundationOrderId));
@@ -163,6 +169,7 @@ export class GuidedWizardPage implements Component {
     const tone = (done: boolean, step: OnboardingStep) => done ? "done" : current === step ? "current" : "waiting";
     return [
       { label: t("wizard.analysis.short"), description: progress.hasAnalysis ? t("home.status.ready") : t("home.status.missing"), tone: tone(progress.hasAnalysis && !this.restartMode, "analysis") },
+      { label: t("wizard.interview.short"), description: progress.hasInterview ? t("home.status.ready") : t("home.status.missing"), tone: tone(progress.hasInterview && !this.restartMode, "interview") },
       { label: t("wizard.persona.short"), description: progress.hasPersona ? t("home.status.ready") : t("home.status.missing"), tone: tone(progress.hasPersona && !this.restartMode, "persona") },
       { label: t("guided.step.foundation_order.short"), description: progress.hasFoundationOrder ? t("home.status.order_ready") : t("home.status.missing"), tone: tone(progress.hasFoundationOrder && !this.restartMode, "foundation-order") },
       { label: t("guided.step.foundation_paint.short"), description: progress.hasFoundationResult ? t("home.status.ready") : t("home.status.missing"), tone: tone(progress.hasFoundationResult && !this.restartMode, "foundation-paint") },
@@ -171,6 +178,7 @@ export class GuidedWizardPage implements Component {
 
   private stepTitle(step: OnboardingStep) {
     if (step === "analysis") return t("guided.step.analysis.title");
+    if (step === "interview") return t("guided.step.interview.title");
     if (step === "persona") return t("guided.step.persona.title");
     if (step === "foundation-order") return t("guided.step.foundation_order.title");
     if (step === "foundation-paint") return t("guided.step.foundation_paint.title");
@@ -179,6 +187,7 @@ export class GuidedWizardPage implements Component {
 
   private stepBody(step: OnboardingStep) {
     if (step === "analysis") return t("guided.step.analysis.body");
+    if (step === "interview") return t("guided.step.interview.body");
     if (step === "persona") return t("guided.step.persona.body");
     if (step === "foundation-order") return t("guided.step.foundation_order.body");
     if (step === "foundation-paint") return t("guided.step.foundation_paint.body");

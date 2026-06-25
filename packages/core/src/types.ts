@@ -177,3 +177,81 @@ export type AssetOrder = JsonObject & {
     meta?: JsonObject;
   };
 };
+
+// ---------------------------------------------------------------------------
+// Interview report
+// ---------------------------------------------------------------------------
+
+/**
+ * One question in an interview report.
+ *
+ * Designed to map 1:1 to the `ask_user_question` tool from rpiv-ask-user-question.
+ * Each question has structured options (when the LLM pre-designs them) and
+ * carries a `rationale` explaining which analysis signal prompted it.
+ */
+export type InterviewQuestion = {
+  /** Stable id within this report, e.g. "q1", "q2-tone". */
+  id: string;
+  /** Full question text, ends with "?". */
+  question: string;
+  /** Short chip label for UI display (≤16 chars). */
+  header?: string;
+  /** Category for downstream consumption. */
+  category: "tone" | "audience" | "style" | "naming" | "constraints" | "custom";
+  /** Why this question was asked — which analysis signal it derives from. */
+  rationale: string;
+  /** Pre-designed options. When omitted, the question is free-text only. */
+  options?: Array<{
+    /** 1-5 words, ≤60 chars. */
+    label: string;
+    /** Explains the choice / its trade-off. */
+    description: string;
+  }>;
+  multiSelect?: boolean;
+  /** If true, the user may skip this question. */
+  optional: boolean;
+};
+
+/**
+ * One user response in an interview report.
+ * Maps to the `details.answers` shape returned by `ask_user_question`.
+ */
+export type InterviewResponse = {
+  questionId: string;
+  kind: "option" | "custom" | "multi" | "skipped";
+  /** The primary answer text. Null when the user skipped. */
+  answer: string | null;
+  /** For multiSelect: the list of selected labels. */
+  selected?: string[];
+  /** Free-text note attached by the user. */
+  notes?: string;
+};
+
+/**
+ * Interview report — the output of the Interviewer role.
+ *
+ * Consumed by the Creative Writer (Persona) as **soft** input:
+ * `keyConstraints` are treated as hard creative constraints,
+ * `preferences` as things to honor when possible,
+ * `avoidList` as things the user explicitly does not want.
+ *
+ * On-disk protocol path: `.repochan/interview/current.json`
+ *                        `.repochan/interview/versions/<slug>.json`
+ */
+export type InterviewReport = JsonObject & {
+  schemaVersion?: "repochan.interview.v1";
+  generatedAt?: string;
+  provenance?: JsonObject;
+
+  questions: InterviewQuestion[];
+  responses: InterviewResponse[];
+
+  /** One-paragraph summary of user intent, synthesized by the Interviewer LLM. */
+  summary: string;
+  /** Hard constraints extracted from the interview — must be respected. */
+  keyConstraints: string[];
+  /** Soft preferences — honor when possible. */
+  preferences: string[];
+  /** Things the user explicitly does not want. */
+  avoidList: string[];
+};

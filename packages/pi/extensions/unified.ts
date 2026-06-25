@@ -21,6 +21,8 @@ import {
   createOrderResult as coreCreateOrderResult,
   createOrders as coreCreateOrders,
   createOrUpdatePersona as coreCreateOrUpdatePersona,
+  createOrUpdateInterview as coreCreateOrUpdateInterview,
+  appendToInterview as coreAppendToInterview,
   findFoundationSheet as coreFindFoundationSheet,
   listOrderResults as coreListOrderResults,
   listOrders as coreListOrders,
@@ -43,6 +45,9 @@ const ActionSchema = Type.Union([
   Type.Literal("persona.get"),
   Type.Literal("persona.create"),
   Type.Literal("persona.update"),
+  Type.Literal("interview.get"),
+  Type.Literal("interview.create"),
+  Type.Literal("interview.append"),
   Type.Literal("order.list"),
   Type.Literal("order.get"),
   Type.Literal("order.create"),
@@ -149,6 +154,16 @@ async function enrichAnalysis(ctx: ExtensionContext, params: JsonObject) {
 async function createOrUpdatePersona(ctx: ExtensionContext, params: JsonObject, mode: "create" | "update") {
   const { versionName, data } = await coreCreateOrUpdatePersona(ctx.cwd, params, mode);
   return ok(`Wrote persona current and persona/versions/${versionName}`, data);
+}
+
+async function createInterview(ctx: ExtensionContext, params: JsonObject) {
+  const { versionName, data } = await coreCreateOrUpdateInterview(ctx.cwd, params);
+  return ok(`Wrote interview current and interview/versions/${versionName}`, data);
+}
+
+async function appendInterview(ctx: ExtensionContext, params: JsonObject) {
+  const { versionName, data } = await coreAppendToInterview(ctx.cwd, params);
+  return ok(`Appended to interview and wrote interview/versions/${versionName}`, data);
 }
 
 async function createOrders(ctx: ExtensionContext, params: JsonObject) {
@@ -303,12 +318,12 @@ export function registerRepoChan(pi: ExtensionAPI) {
     name: "repochan",
     label: "RepoChan",
     description:
-      "Unified RepoChan management surface for all .repochan entities. This is the single public tool for deterministic analysis, persona artifacts, orders, order result versions, and protocol-safe reads/writes/versioning. Use action strings like 'analysis.run', 'persona.get', 'order.list', and 'order.create_result' with action-specific params.",
+      "Unified RepoChan management surface for all .repochan entities. This is the single public tool for deterministic analysis, interview reports, persona artifacts, orders, order result versions, and protocol-safe reads/writes/versioning. Use action strings like 'analysis.run', 'interview.create', 'persona.get', 'order.list', and 'order.create_result' with action-specific params.",
     promptSnippet:
-      "Manage all .repochan analysis, persona, order, order-result, and protocol artifacts through one action-based tool.",
+      "Manage all .repochan analysis, interview, persona, order, order-result, and protocol artifacts through one action-based tool.",
     promptGuidelines: [
       "Use repochan as the only RepoChan management tool. Do not look for repochan_protocol_helpers, repochan_analyze, repochan_generate_persona, repochan_create_orders, or repochan_manage_orders; those actions now live under this unified tool.",
-      "RepoChan pre-checks that skills describe in text should be performed through repochan itself: call action='protocol.inspect' for workspace state, action='analysis.get' to verify analysis, action='persona.get' to verify persona, action='order.list' or action='order.get' to verify order existence/status, and action='order.list_results' or action='order.get_result' to verify delivered order results.",
+      "RepoChan pre-checks that skills describe in text should be performed through repochan itself: call action='protocol.inspect' for workspace state, action='analysis.get' to verify analysis, action='interview.get' to verify an interview report exists (optional upstream for Persona), action='persona.get' to verify persona, action='order.list' or action='order.get' to verify order existence/status, and action='order.list_results' or action='order.get_result' to verify delivered order results.",
       "repochan is the single management surface for agents and future dashboards/panels. Prefer it over ad-hoc shell scripts for .repochan reads, writes, version lists, order status changes, revision capture, and deterministic repository analysis.",
       "Safety: repochan refuses blind overwrites. When an action has params.overwrite, set it to true only after explicit user approval. Mutating current artifacts archives prior state where appropriate; keep params.versionPrevious=true unless the user asks otherwise.",
       "Safety: keep provenance. persona.create/persona.update and order.create_result add provenance when absent; pass params.provenance when an external generator, dashboard, or human produced the artifact.",
@@ -321,6 +336,9 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "persona.get params: optional { versionId }. Without versionId, reads .repochan/persona/current.json. With versionId, reads .repochan/persona/versions/<versionId>.json (the .json suffix is optional). Use as the persona pre-flight before order or painter work.",
       "persona.create params: { persona, slug?, overwrite=false, versionPrevious=true, provenance? }. Requires analysis. Writes persona/current.json and a persona/versions/<timestamp>-<slug>.json copy. If current exists, ask before overwrite=true.",
       "persona.update params: { persona, slug?, overwrite=true, versionPrevious=true, provenance? }. Requires analysis and an existing persona/current.json. Archives previous current when versionPrevious is not false, then replaces current and writes a new version. Always obtain user approval before overwrite=true.",
+      "interview.get params: optional { versionId }. Without versionId, reads .repochan/interview/current.json. With versionId, reads .repochan/interview/versions/<versionId>.json (the .json suffix is optional). Use as the interview pre-flight before persona work. Fails if missing — the interview is optional upstream, so a failure here is not a hard blocker for the Persona role; treat missing as 'no interview conducted'.",
+      "interview.create params: { interview, slug?, overwrite=false, versionPrevious=true, provenance? }. Requires analysis. Writes interview/current.json and a interview/versions/<timestamp>-<slug>.json copy. The interview object must contain questions, responses, summary, keyConstraints, preferences, avoidList. If current exists, ask before overwrite=true. Used by the Interviewer role after collecting ask_user_question answers.",
+      "interview.append params: { questions?, responses?, summary, keyConstraints?, preferences?, avoidList?, slug?, provenance? }. Requires analysis and an existing interview/current.json. Archives the pre-append state, appends new questions/responses to the existing arrays, and REPLACES summary/keyConstraints/preferences/avoidList (so re-synthesize over ALL answers). summary is required because it is always replaced. Use for follow-up interview rounds.",
       "order.list params: {}. Lists .repochan/orders/<orderId>/order.json with orderId, status, assetType, priority, currentVersion, and result count. Use to choose orders and check approval state.",
       "order.get params: { orderId }. Reads .repochan/orders/<orderId>/order.json. Use before Painter execution to verify status and brief.",
       "order.create params: { order } or { orders: [...] }, optional { overwrite=false }. Requires analysis and persona. Normalizes schemaVersion, status=draft, priority=normal, timestamps. Multiple orders can be created at once by passing { orders: [...] }; each writes independently to orders/<orderId>/order.json. Use for Art Director outputs, not final image generation.",
@@ -376,6 +394,18 @@ export function registerRepoChan(pi: ExtensionAPI) {
           return createOrUpdatePersona(ctx, params, "create");
         case "persona.update":
           return createOrUpdatePersona(ctx, params, "update");
+        case "interview.get": {
+          const versionId = typeof params.versionId === "string" && params.versionId ? requireVersionId(params.versionId.replace(/\.json$/, "")) : undefined;
+          const file = versionId
+            ? path.join(root(ctx.cwd), "interview", "versions", `${versionId}.json`)
+            : path.join(root(ctx.cwd), "interview", "current.json");
+          const data = await readJson(file);
+          return ok(JSON.stringify(data, null, 2), data);
+        }
+        case "interview.create":
+          return createInterview(ctx, params);
+        case "interview.append":
+          return appendInterview(ctx, params);
         case "order.list":
           return listOrders(ctx);
         case "order.get": {

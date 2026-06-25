@@ -245,6 +245,78 @@ export const AnalysisUpdateParamsSchema = Type.Object({
   reason: Type.Optional(Type.String()),
 });
 
+// ── Interview ──
+
+const InterviewOptionSchema = Type.Object({
+  label: Type.String({ description: "1-5 words, ≤60 chars." }),
+  description: Type.String({ description: "Explains the choice / its trade-off." }),
+});
+
+const InterviewQuestionSchema = Type.Object({
+  id: Type.String({ description: "Stable id within this report, e.g. \"q1\"." }),
+  question: Type.String({ description: "Full question text, ends with \"?\"." }),
+  category: Type.Union([
+    Type.Literal("tone"),
+    Type.Literal("audience"),
+    Type.Literal("style"),
+    Type.Literal("naming"),
+    Type.Literal("constraints"),
+    Type.Literal("custom"),
+  ]),
+  rationale: Type.String({ description: "Which analysis signal prompted this question." }),
+  options: Type.Optional(Type.Array(InterviewOptionSchema)),
+  header: Type.Optional(Type.String({ description: "Short chip label ≤16 chars." })),
+  multiSelect: Type.Optional(Type.Boolean()),
+  optional: Type.Boolean(),
+});
+
+const InterviewResponseSchema = Type.Object({
+  questionId: Type.String(),
+  kind: Type.Union([
+    Type.Literal("option"),
+    Type.Literal("custom"),
+    Type.Literal("multi"),
+    Type.Literal("skipped"),
+  ]),
+  answer: Type.Union([Type.String(), Type.Null()]),
+  selected: Type.Optional(Type.Array(Type.String())),
+  notes: Type.Optional(Type.String()),
+});
+
+/**
+ * Interview artifact — the output of the Interviewer role.
+ */
+export const InterviewArtifactSchema = Type.Object({
+  summary: Type.String({ description: "One-paragraph summary of user intent." }),
+  keyConstraints: Type.Array(Type.String(), { description: "Hard constraints — must be respected by downstream." }),
+  preferences: Type.Optional(Type.Array(Type.String(), { description: "Soft preferences — honor when possible." })),
+  avoidList: Type.Optional(Type.Array(Type.String(), { description: "Things the user explicitly does not want." })),
+  questions: Type.Optional(Type.Array(InterviewQuestionSchema)),
+  responses: Type.Optional(Type.Array(InterviewResponseSchema)),
+  schemaVersion: Type.Optional(Type.String()),
+  generatedAt: Type.Optional(Type.String()),
+  provenance: Type.Optional(ProvenanceSchema),
+}, { description: "RepoChan interview report artifact." });
+
+export const InterviewCreateParamsSchema = Type.Object({
+  interview: InterviewArtifactSchema,
+  overwrite: Type.Optional(Type.Boolean()),
+  versionPrevious: Type.Optional(Type.Boolean()),
+  slug: Type.Optional(Type.String({ pattern: "^[a-z0-9-]+$" })),
+  provenance: Type.Optional(ProvenanceSchema),
+});
+
+export const InterviewAppendParamsSchema = Type.Object({
+  questions: Type.Optional(Type.Array(InterviewQuestionSchema)),
+  responses: Type.Optional(Type.Array(InterviewResponseSchema)),
+  summary: Type.String({ description: "Updated summary synthesizing all answers so far." }),
+  keyConstraints: Type.Optional(Type.Array(Type.String())),
+  preferences: Type.Optional(Type.Array(Type.String())),
+  avoidList: Type.Optional(Type.Array(Type.String())),
+  slug: Type.Optional(Type.String({ pattern: "^[a-z0-9-]+$" })),
+  provenance: Type.Optional(ProvenanceSchema),
+});
+
 // ---------------------------------------------------------------------------
 // Schema registry (for consumers that need the full list)
 // ---------------------------------------------------------------------------
@@ -252,6 +324,8 @@ export const AnalysisUpdateParamsSchema = Type.Object({
 export const WriteOpSchemas = {
   "persona.create": PersonaCreateParamsSchema,
   "persona.update": PersonaUpdateParamsSchema,
+  "interview.create": InterviewCreateParamsSchema,
+  "interview.append": InterviewAppendParamsSchema,
   "order.create": OrderCreateParamsSchema,
   "order.update": OrderUpdateParamsSchema,
   "order.set_status": OrderSetStatusParamsSchema,

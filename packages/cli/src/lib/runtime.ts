@@ -23,7 +23,7 @@ export const OUR_AGENT_DIR = path.join(os.homedir(), ".repochan", "pi");
 export const OUR_SESSION_DIR = path.join(OUR_AGENT_DIR, "sessions");
 
 export type RepoChanSessionMode = "new" | "continue" | "memory" | { kind: "open"; path: string };
-export type RepoChanPhase = "analysis" | "persona" | "orders" | "painter";
+export type RepoChanPhase = "analysis" | "interview" | "persona" | "orders" | "painter";
 
 export type CreateRepoChanRuntimeOptions = {
   cwd?: string;
@@ -61,6 +61,7 @@ export type RunPhaseArgs = {
 // roles are fully self-describing once their skill is activated.
 const PHASE_SKILL_COMMANDS: Record<RepoChanPhase, string> = {
   analysis: "/skill:repochan-analysis",
+  interview: "/skill:repochan-interviewer",
   persona: "/skill:repochan-persona",
   orders: "/skill:repochan-art-director",
   painter: "/skill:repochan-painter",

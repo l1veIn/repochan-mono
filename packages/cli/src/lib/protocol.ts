@@ -17,6 +17,10 @@ export async function readPersona(projectRoot: string) {
   return readJsonIfExists(path.join(protocolRoot(projectRoot), "persona", "current.json"));
 }
 
+export async function readInterview(projectRoot: string) {
+  return readJsonIfExists(path.join(protocolRoot(projectRoot), "interview", "current.json"));
+}
+
 export async function readProtocolOverview(projectRoot: string) {
   const protocol = await inspectProtocol(projectRoot);
   const orders = protocol.exists ? await listOrders(projectRoot) : { files: [], orders: [] };

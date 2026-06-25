@@ -63,6 +63,7 @@ export async function initProtocol(projectRoot: string) {
   const dirs = [
     r,
     path.join(r, "analysis", "versions"),
+    path.join(r, "interview", "versions"),
     path.join(r, "persona", "versions"),
     path.join(r, "orders"),
   ];
@@ -73,11 +74,17 @@ export async function inspectProtocol(projectRoot: string) {
   const r = protocolRoot(projectRoot);
   const summary: Record<string, unknown> = { exists: await exists(r), root: PROTOCOL_DIR };
   summary.analysis = await exists(path.join(r, "analysis", "current.json"));
+  summary.interview = await exists(path.join(r, "interview", "current.json"));
   summary.persona = await exists(path.join(r, "persona", "current.json"));
   try {
     summary.analysisVersions = (await fs.readdir(path.join(r, "analysis", "versions"))).filter((f) => f.endsWith(".json"));
   } catch {
     summary.analysisVersions = [];
+  }
+  try {
+    summary.interviewVersions = (await fs.readdir(path.join(r, "interview", "versions"))).filter((f) => f.endsWith(".json"));
+  } catch {
+    summary.interviewVersions = [];
   }
   try {
     summary.personaVersions = (await fs.readdir(path.join(r, "persona", "versions"))).filter((f) => f.endsWith(".json"));
@@ -166,4 +173,15 @@ export async function requireAnalysis(projectRoot: string) {
 export async function requirePersona(projectRoot: string) {
   const file = path.join(protocolRoot(projectRoot), "persona", "current.json");
   if (!(await exists(file))) throw new Error("Missing .repochan/persona/current.json. Run repochan action='persona.create' first.");
+}
+
+export async function requireInterview(projectRoot: string) {
+  const file = path.join(protocolRoot(projectRoot), "interview", "current.json");
+  if (!(await exists(file))) throw new Error("Missing .repochan/interview/current.json. Run repochan action='interview.create' first.");
+}
+
+/** Check whether an interview report exists, without throwing. */
+export async function hasInterview(projectRoot: string) {
+  const file = path.join(protocolRoot(projectRoot), "interview", "current.json");
+  return exists(file);
 }

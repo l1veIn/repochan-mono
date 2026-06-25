@@ -1,10 +1,11 @@
 import { FOUNDATION_ASSET_TYPES, findFoundationSheet, inspectProtocol, listOrders } from "@repochan/core";
 
-export type OnboardingStep = "analysis" | "persona" | "foundation-order" | "foundation-paint" | "complete";
+export type OnboardingStep = "analysis" | "interview" | "persona" | "foundation-order" | "foundation-paint" | "complete";
 
 export type OnboardingFacts = {
   hasProtocol: boolean;
   hasAnalysis: boolean;
+  hasInterview: boolean;
   hasPersona: boolean;
   hasFoundationOrder: boolean;
   hasFoundationResult: boolean;
@@ -22,7 +23,7 @@ export type OnboardingProgress = OnboardingFacts & {
 export function classifyOnboardingProgress(facts: OnboardingFacts): OnboardingProgress {
   let currentStep: OnboardingStep = "complete";
   if (!facts.hasProtocol || !facts.hasAnalysis) currentStep = "analysis";
-  else if (!facts.hasPersona) currentStep = "persona";
+  else if (!facts.hasPersona) currentStep = facts.hasInterview ? "persona" : "interview";
   else if (!facts.hasFoundationOrder) currentStep = "foundation-order";
   else if (!facts.hasFoundationResult) currentStep = "foundation-paint";
 
@@ -46,6 +47,7 @@ export async function readOnboardingProgress(projectRoot: string): Promise<Onboa
   return classifyOnboardingProgress({
     hasProtocol: Boolean(protocol.exists),
     hasAnalysis: Boolean((protocol as { analysis?: unknown }).analysis),
+    hasInterview: Boolean((protocol as { interview?: unknown }).interview),
     hasPersona: Boolean((protocol as { persona?: unknown }).persona),
     hasFoundationOrder,
     hasFoundationResult: Boolean(foundation),

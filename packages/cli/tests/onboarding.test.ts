@@ -7,6 +7,7 @@ describe("onboarding progress", () => {
     const progress = classifyOnboardingProgress({
       hasProtocol: false,
       hasAnalysis: false,
+      hasInterview: false,
       hasPersona: false,
       hasFoundationOrder: false,
       hasFoundationResult: false,
@@ -18,10 +19,27 @@ describe("onboarding progress", () => {
     expect(progress.currentStep).toBe("analysis");
   });
 
+  it("recommends interview after analysis but before persona", () => {
+    const progress = classifyOnboardingProgress({
+      hasProtocol: true,
+      hasAnalysis: true,
+      hasInterview: false,
+      hasPersona: false,
+      hasFoundationOrder: false,
+      hasFoundationResult: false,
+      orderCount: 0,
+      resultCount: 0,
+    });
+
+    expect(progress.complete).toBe(false);
+    expect(progress.currentStep).toBe("interview");
+  });
+
   it("is not complete until a foundation visual result exists", () => {
     const progress = classifyOnboardingProgress({
       hasProtocol: true,
       hasAnalysis: true,
+      hasInterview: true,
       hasPersona: true,
       hasFoundationOrder: true,
       hasFoundationResult: false,
@@ -37,6 +55,23 @@ describe("onboarding progress", () => {
     const progress = classifyOnboardingProgress({
       hasProtocol: true,
       hasAnalysis: true,
+      hasInterview: true,
+      hasPersona: true,
+      hasFoundationOrder: true,
+      hasFoundationResult: true,
+      orderCount: 1,
+      resultCount: 1,
+    });
+
+    expect(progress.complete).toBe(true);
+    expect(progress.currentStep).toBe("complete");
+  });
+
+  it("does not block completion when interview is skipped but persona/foundation exist", () => {
+    const progress = classifyOnboardingProgress({
+      hasProtocol: true,
+      hasAnalysis: true,
+      hasInterview: false,
       hasPersona: true,
       hasFoundationOrder: true,
       hasFoundationResult: true,
