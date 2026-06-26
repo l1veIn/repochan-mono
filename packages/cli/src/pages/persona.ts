@@ -231,12 +231,6 @@ function renderPersona(persona: any, width: number) {
   const lines: string[] = [];
   const name = persona.name?.primary ?? persona.name ?? "?";
   lines.push(`${theme.accent(t("persona.name"))}: ${name}`);
-  if (persona.language || persona.nativeLanguage) {
-    const parts = [];
-    if (persona.language) parts.push(`language: ${persona.language}`);
-    if (persona.nativeLanguage) parts.push(`native: ${persona.nativeLanguage}`);
-    lines.push(parts.join("  "));
-  }
   if (persona.coreConcept) lines.push(...paragraph(t("persona.concept"), persona.coreConcept, width));
   lines.push(...bulletList("Personality", persona.personality ?? persona.characterTraits, width));
   lines.push(...bulletList("Visual motifs", persona.visualMotifs ?? persona.appearance?.motifs, width));

@@ -111,10 +111,6 @@ export type PersonaData = {
   rolePrompt: string;
 
   // ── Meta ──────────────────────────────────────────────────
-  /** Document language used for narrative fields. rolePrompt is always English. */
-  language?: string;
-  /** Project mascot native/cultural language inferred from analysis. */
-  nativeLanguage?: string;
   generatedAt?: string;
   provenance?: JsonObject;
 };
@@ -197,7 +193,7 @@ export type InterviewQuestion = {
   /** Short chip label for UI display (≤16 chars). */
   header?: string;
   /** Category for downstream consumption. */
-  category: "tone" | "audience" | "style" | "naming" | "constraints" | "custom";
+  category: "tone" | "audience" | "weight" | "world" | "style" | "reference" | "naming" | "constraints" | "custom";
   /** Why this question was asked — which analysis signal it derives from. */
   rationale: string;
   /** Pre-designed options. When omitted, the question is free-text only. */

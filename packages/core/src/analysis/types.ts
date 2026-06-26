@@ -26,6 +26,17 @@ export type GitProfile = {
 export type AnalysisContext = {
   /** Basic repository facts: project_name, root_path, total_files, total_dirs, total_lines, readme/license/git flags. */
   basic: Record<string, unknown>;
+  /** Repo-derived creative identity signals. These may influence mascot naming and motifs. */
+  identity: {
+    namingSeeds: {
+      /** Strongest name sources: repository/product/package names. */
+      primary: string[];
+      /** Supporting name sources: README title terms and domain vocabulary. */
+      secondary: string[];
+      /** Why these seeds are present and how downstream roles should use them. */
+      rationale: string[];
+    };
+  };
   file_structure: Record<string, unknown>;
   inventory: Record<string, unknown>;
   tech_stack: Record<string, unknown>;
@@ -43,13 +54,6 @@ export type AnalysisResult = {
   schemaVersion: "repochan.analysis.v1";
   generatedAt: string;
   updatedAt?: string;
-  documentLanguage?: string;
-  languageSignals?: {
-    nativeLanguage: string;
-    confidence: number;
-    evidence: string[];
-    notes?: string;
-  };
   revisionReason?: string;
   context: AnalysisContext;
   persona: null;

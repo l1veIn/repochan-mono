@@ -79,6 +79,25 @@ describe("interview report", () => {
       expect(versions.length).toBeGreaterThanOrEqual(1);
     });
 
+    it("accepts questionnaire categories used by the interviewer skill", async () => {
+      const result = await createOrUpdateInterview(projectRoot, {
+        interview: {
+          ...validInterview,
+          questions: [
+            { ...validInterview.questions[0], id: "q-weight", category: "weight" },
+            { ...validInterview.questions[0], id: "q-world", category: "world" },
+            { ...validInterview.questions[0], id: "q-reference", category: "reference" },
+          ],
+        },
+      });
+
+      expect(result.data.questions.map((q) => q.category)).toEqual([
+        "weight",
+        "world",
+        "reference",
+      ]);
+    });
+
     it("rejects creation when analysis is missing", async () => {
       await fs.rm(path.join(projectRoot, ".repochan", "analysis", "current.json"));
       await expect(

@@ -47,6 +47,7 @@ interface BundledPackage {
 
 const BUNDLED_PACKAGE_NAMES = [
   "repochan-pi",
+  "@juicesharp/rpiv-ask-user-question",
   "@repochan/image-gen-pi",
 ];
 
@@ -58,8 +59,23 @@ function resolvePackageDir(packageName: string): string {
   // createRequire lets us resolve from the CLI's own location — works in both
   // dev (workspace symlink) and production (real node_modules) layouts.
   const require = createRequire(import.meta.url);
-  const pkgJsonPath = require.resolve(`${packageName}/package.json`);
-  return path.dirname(pkgJsonPath);
+  try {
+    const pkgJsonPath = require.resolve(`${packageName}/package.json`);
+    return path.dirname(pkgJsonPath);
+  } catch (error) {
+    const code = (error as { code?: string }).code;
+    if (code !== "ERR_PACKAGE_PATH_NOT_EXPORTED") throw error;
+    return findPackageRoot(require.resolve(packageName));
+  }
+}
+
+function findPackageRoot(resolvedEntry: string): string {
+  let dir = path.dirname(resolvedEntry);
+  while (dir !== path.dirname(dir)) {
+    if (fs.existsSync(path.join(dir, "package.json"))) return dir;
+    dir = path.dirname(dir);
+  }
+  throw new Error(`Could not find package.json for resolved entry ${resolvedEntry}`);
 }
 
 function collectBundledPackages(): BundledPackage[] {

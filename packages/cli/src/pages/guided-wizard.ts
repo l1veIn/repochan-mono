@@ -56,7 +56,9 @@ export class GuidedWizardPage implements Component {
     else if (step === "interview") this.enterSub(new InterviewPage(
       () => this.exitSub(),
       this.tuiRef,
-      { onSkip: () => this.enterSub(new PersonaPage(() => this.exitSub(), this.tuiRef)) },
+      {
+        onSkip: () => this.enterSub(new PersonaPage(() => this.exitSub(), this.tuiRef)),
+      },
     ));
     else if (step === "persona") this.enterSub(new PersonaPage(() => this.exitSub(), this.tuiRef));
     else if (step === "foundation-order") this.enterSub(new AddCreationTaskPage(() => this.exitSub(), this.tuiRef));

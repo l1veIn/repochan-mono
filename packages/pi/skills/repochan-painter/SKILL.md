@@ -130,10 +130,16 @@ Record material conflicts in the result notes or `meta` so the user can audit wh
 
 1. **Template guide** (if order has templateId): prepend the template's `guide` tags verbatim (e.g., "masterpiece, best quality").
 2. **Template constraints**: include all structural constraints from the template (grid layout, background, canvas rules). Template-required text labels, callouts, grids, and canvas rules override contradictory order avoid-list items.
-3. **Persona rolePrompt**: the character's visual identity — this is the core of your prompt. Read it from `persona.get`.
-4. **Persona precision fields**: supplement rolePrompt with `signaturePose`, `hairColor`, `eyeColor`, `outfit`, `accessories`, `keyMotifs`, `colorPalette` (main + secondary + accent), `designNotes` — weave these into the prompt with their hex values.
+3. **Persona rolePrompt**: the character's visual identity — this is the core of your prompt. Read it from `persona.get`. Do not add or preserve `language` / `nativeLanguage` concepts.
+4. **Persona precision fields**: supplement rolePrompt with `signaturePose`, `hairColor`, `eyeColor`, `outfit`, `accessories`, `keyMotifs`, `colorPalette` (main + secondary + accent), `designNotes` — weave these into the prompt with their hex values after applying the identity boundary below.
 5. **Order brief**: add intent-specific elements from `order.brief.mustInclude`, `order.brief.avoid`, `order.brief.creativeFreedom`, except where they conflict with the user request or template.
 6. **Reference images** (if available): resolved via `order.resolve_references` — pass as `referenceImageUrls`, not in the text prompt.
+
+### Identity boundary before prompting
+
+Before finalizing the prompt, scan persona/order terms for language-to-aesthetic leakage. Natural-language evidence from README/docs/commits/UI copy must not add culture-coded visual tokens to the image prompt. Terms like rice paper, scroll, seal, lantern, bamboo, jade, kimono, shrine, quill, castle, etc. are allowed only when explicitly requested, directly tied to the repository/product domain, or already locked by a user-approved reference image/foundation anchor.
+
+For foundation sheets with no reference image, be stricter: if a culture-coded prop only traces to document language, remove it or replace it with a repo-derived metaphor from `analysis.context.identity`, `preAnalysis`, `abstract`, color palette, product domain, or user request.
 
 Final prompt structure:
 ```

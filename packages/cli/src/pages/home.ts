@@ -7,6 +7,7 @@ import { ModelHost } from "./model.js";
 import { SettingsHost } from "./settings.js";
 import { t, getLanguage } from "../i18n.js";
 import { AnalysisPage } from "./analysis.js";
+import { InterviewPage } from "./interview.js";
 import { PersonaPage } from "./persona.js";
 import { CreationTasksPage } from "./orders.js";
 import { AddCreationTaskPage } from "./create-task.js";
@@ -16,7 +17,7 @@ import { readOnboardingProgress, type OnboardingProgress } from "../lib/onboardi
 import { actionBar, appHeader, pipelineList, statusGrid, type PipelineItem } from "../ui/layout.js";
 import { uiTheme } from "../ui/theme.js";
 
-type MenuRoute = "wizard" | "analysis" | "persona" | "create-task" | "orders" | "chat" | "sessions" | "model" | "settings";
+type MenuRoute = "wizard" | "analysis" | "interview" | "persona" | "create-task" | "orders" | "chat" | "sessions" | "model" | "settings";
 
 export class HomePage implements Component {
   private list: SelectList;
@@ -39,6 +40,7 @@ export class HomePage implements Component {
     const items: { value: MenuRoute; label: string }[] = p ? [
       { value: "wizard", label: `${t("home.guided")} ${this.badge(p.complete ? t("home.badge.complete") : t("home.badge.incomplete"))}` },
       { value: "analysis", label: `${t("wizard.analysis")} ${this.badge(p.hasAnalysis ? t("home.badge.ready") : t("home.badge.missing"))}` },
+      { value: "interview", label: `${t("wizard.interview")} ${this.badge(p.hasInterview ? t("home.badge.ready") : t("home.badge.optional"))}` },
       { value: "persona", label: `${t("wizard.persona")} ${this.badge(p.hasPersona ? t("home.badge.ready") : t("home.badge.missing"))}` },
       { value: "create-task", label: `${t("home.create_task")} ${this.badge(p.hasFoundationResult ? t("home.badge.ready") : p.hasFoundationOrder ? t("home.badge.order_ready") : t("home.badge.missing"))}` },
       { value: "orders", label: `${t("home.task_list")} ${this.badge(t("home.badge.orders", { count: p.orderCount }))}` },
@@ -49,6 +51,7 @@ export class HomePage implements Component {
     ] : [
       { value: "wizard", label: t("home.guided") },
       { value: "analysis", label: t("wizard.analysis") },
+      { value: "interview", label: t("wizard.interview") },
       { value: "persona", label: t("wizard.persona") },
       { value: "create-task", label: t("home.create_task") },
       { value: "orders", label: t("home.task_list") },
@@ -75,6 +78,7 @@ export class HomePage implements Component {
   private openRoute(value: MenuRoute) {
     if (value === "wizard") this.enterSub(new GuidedWizardPage(() => this.exitSub(), this.tuiRef, { allowRestartPrompt: true, onOpenHome: () => this.exitSub() }));
     else if (value === "analysis") this.enterSub(new AnalysisPage(() => this.exitSub(), this.tuiRef));
+    else if (value === "interview") this.enterSub(new InterviewPage(() => this.exitSub(), this.tuiRef));
     else if (value === "persona") this.enterSub(new PersonaPage(() => this.exitSub(), this.tuiRef));
     else if (value === "create-task") this.enterSub(new AddCreationTaskPage(() => this.exitSub(), this.tuiRef, {
       onChat: (initialMessage) => this.actions.onChat?.(initialMessage),
@@ -184,6 +188,7 @@ export class HomePage implements Component {
   private renderStatus(progress: OnboardingProgress, width: number) {
     const items: PipelineItem[] = [
       { label: t("wizard.analysis.short"), description: progress.hasAnalysis ? t("home.status.ready") : t("home.status.missing"), tone: progress.hasAnalysis ? "done" : "waiting" },
+      { label: t("wizard.interview.short"), description: progress.hasInterview ? t("home.status.ready") : t("home.status.optional"), tone: progress.hasInterview ? "done" : "waiting" },
       { label: t("wizard.persona.short"), description: progress.hasPersona ? t("home.status.ready") : t("home.status.missing"), tone: progress.hasPersona ? "done" : "waiting" },
       { label: t("wizard.foundation.short"), description: progress.hasFoundationResult ? t("home.status.ready") : progress.hasFoundationOrder ? t("home.status.order_ready") : t("home.status.missing"), tone: progress.hasFoundationResult ? "done" : "waiting" },
     ];

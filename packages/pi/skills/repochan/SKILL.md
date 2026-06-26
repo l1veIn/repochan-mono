@@ -21,7 +21,7 @@ Persistent state lives in `.repochan/` so outputs are inspectable, repeatable, a
 
 ```
 ① Analyst         → .repochan/analysis/current.json
-② Creative Writer  → .repochan/persona/current.json
+② Creative Team  → .repochan/persona/current.json
 ③ Art Director     → creates foundation_sheet order first
 ④ Painter          → executes foundation → visual anchor established
      ↳ foundation result becomes the reference for all downstream orders
@@ -37,7 +37,7 @@ Persistent state lives in `.repochan/` so outputs are inspectable, repeatable, a
 | Role | Skill | Consumes | Produces |
 |------|-------|----------|----------|
 | Analyst | `repochan-analysis` | git repo, source files, docs, assets | `.repochan/analysis/current.json` |
-| Creative Writer | `repochan-persona` | analysis | `.repochan/persona/current.json`, versions |
+| Creative Team | `repochan-persona` | analysis, interview (optional) | `.repochan/persona/current.json`, versions |
 | Art Director | `repochan-art-director` | analysis, persona, foundation status | foundation order + downstream orders (with references) |
 | Painter | `repochan-painter` | approved orders, resolved references, analysis, persona | `.repochan/orders/<order-id>/versions/<version-id>/` results |
 | Protocol Steward | `repochan-protocol` | existing workspace | validated `.repochan/` layout |

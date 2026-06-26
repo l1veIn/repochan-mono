@@ -23,6 +23,9 @@ importers:
       '@earendil-works/pi-tui':
         specifier: ^0.79.6
         version: 0.79.8
+      '@juicesharp/rpiv-ask-user-question':
+        specifier: ^1.20.0
+        version: 1.20.0(@earendil-works/pi-coding-agent@0.79.1(ws@8.21.0)(zod@4.4.3))(@earendil-works/pi-tui@0.79.8)(typebox@1.2.8)
       '@repochan/core':
         specifier: workspace:*
         version: link:../core
@@ -97,6 +100,9 @@ importers:
       '@earendil-works/pi-coding-agent':
         specifier: '*'
         version: 0.79.1(ws@8.21.0)(zod@4.4.3)
+      '@juicesharp/rpiv-ask-user-question':
+        specifier: ^1.20.0
+        version: 1.20.0(@earendil-works/pi-coding-agent@0.79.1(ws@8.21.0)(zod@4.4.3))(@earendil-works/pi-tui@0.79.2)(typebox@1.2.8)
       '@repochan/core':
         specifier: workspace:*
         version: link:../core
@@ -575,6 +581,22 @@ packages:
 
   '@jridgewell/sourcemap-codec@1.5.5':
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
+
+  '@juicesharp/rpiv-ask-user-question@1.20.0':
+    resolution: {integrity: sha512-nccqKqeKoMDO9EZtAotyA/OkHBj+tl2jJBBSpP+1Ndyf7fnU592AO8Ax2Xk9VywHOYVz2X/66d/wC3oFUekV5Q==}
+    peerDependencies:
+      '@earendil-works/pi-coding-agent': '*'
+      '@earendil-works/pi-tui': '*'
+      '@juicesharp/rpiv-i18n': '*'
+      typebox: '*'
+    peerDependenciesMeta:
+      '@juicesharp/rpiv-i18n':
+        optional: true
+
+  '@juicesharp/rpiv-config@1.20.0':
+    resolution: {integrity: sha512-eu/sEBDt/+9kP40yCtlu04kRUxkQNaG1APzNIgnt5dGsualcwruedLWX9vtt0Fg4NSCAlNx5b2r9VjcWgAJirQ==}
+    peerDependencies:
+      typebox: '*'
 
   '@kwsites/file-exists@1.1.1':
     resolution: {integrity: sha512-m9/5YGR18lIwxSFDwfE3oA7bWuq9kdau6ugN4H2rJeyhFQZcG9AgSHkQtSD15a8WvTgfz9aikZMrKPHvbpqFiw==}
@@ -1985,6 +2007,24 @@ snapshots:
       - utf-8-validate
 
   '@jridgewell/sourcemap-codec@1.5.5': {}
+
+  '@juicesharp/rpiv-ask-user-question@1.20.0(@earendil-works/pi-coding-agent@0.79.1(ws@8.21.0)(zod@4.4.3))(@earendil-works/pi-tui@0.79.2)(typebox@1.2.8)':
+    dependencies:
+      '@earendil-works/pi-coding-agent': 0.79.1(ws@8.21.0)(zod@4.4.3)
+      '@earendil-works/pi-tui': 0.79.2
+      '@juicesharp/rpiv-config': 1.20.0(typebox@1.2.8)
+      typebox: 1.2.8
+
+  '@juicesharp/rpiv-ask-user-question@1.20.0(@earendil-works/pi-coding-agent@0.79.1(ws@8.21.0)(zod@4.4.3))(@earendil-works/pi-tui@0.79.8)(typebox@1.2.8)':
+    dependencies:
+      '@earendil-works/pi-coding-agent': 0.79.1(ws@8.21.0)(zod@4.4.3)
+      '@earendil-works/pi-tui': 0.79.8
+      '@juicesharp/rpiv-config': 1.20.0(typebox@1.2.8)
+      typebox: 1.2.8
+
+  '@juicesharp/rpiv-config@1.20.0(typebox@1.2.8)':
+    dependencies:
+      typebox: 1.2.8
 
   '@kwsites/file-exists@1.1.1':
     dependencies:

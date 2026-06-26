@@ -28,4 +28,17 @@ describe("performAnalysis", () => {
     expect(analysis.context.file_structure.files).toContain("src/index.ts");
     expect(analysis.context.file_structure.files).not.toContain(".repochan/ignored.ts");
   });
+
+  it("derives naming seeds from repository identity instead of language identity", async () => {
+    const projectRoot = await tempProject();
+    const analysis = await performAnalysis(projectRoot, { includeFileLists: false });
+
+    expect("languageSignals" in analysis).toBe(false);
+    expect("documentLanguage" in analysis).toBe(false);
+    expect(analysis.context.identity.namingSeeds.primary).toContain(path.basename(projectRoot));
+    expect(analysis.context.identity.namingSeeds.secondary).toEqual(
+      expect.arrayContaining(["Sample", "sample", "project"]),
+    );
+    expect(analysis.context.identity.namingSeeds.rationale.join(" ")).toContain("Repository/product names are the primary naming source");
+  });
 });

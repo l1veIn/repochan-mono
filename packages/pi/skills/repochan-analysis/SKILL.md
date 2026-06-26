@@ -23,7 +23,7 @@ You are the Analyst. Your job is to understand the repository deeply enough that
    - Code sampling (desensitized)
    - Inventory counts
 
-   This is the **evidence base**. Do NOT skip it or replace it with ad-hoc scripts.
+   This is the **evidence base**. It includes `context.identity.namingSeeds`, derived from repository/product/package names and README/domain terms. Downstream creative roles use these seeds for mascot naming instead of language/culture buckets. Do NOT skip it or replace it with ad-hoc scripts.
 
 ### Phase 2: LLM enrichment (your intelligence)
 
@@ -85,44 +85,13 @@ Output as `abstract`:
 }
 ```
 
-#### Step 9: Language signals
-
-Infer the mascot's native/cultural language from the repository evidence. This is not the CLI UI locale. It is a creative signal for the project mascot's mother tongue and cultural atmosphere.
-
-Use concrete evidence such as:
-- README/documentation language
-- commit message language
-- comments, examples, sample data, UI copy
-- package names, domain vocabulary, target audience
-- repository origin or community signals when visible
-
-Also decide the analysis/persona document language:
-- If the CLI conductor or user explicitly provides a document language, use that as `documentLanguage`.
-- In Pi-only conversational usage, infer `documentLanguage` from the user's current conversation language.
-- Do not write or read a project config file for language.
-
-Output as:
-```json
-{
-  "documentLanguage": "English",
-  "languageSignals": {
-    "nativeLanguage": "Japanese",
-    "confidence": 0.72,
-    "evidence": ["README contains Japanese examples", "UI copy uses Japanese terminology"],
-    "notes": "Short optional explanation"
-  }
-}
-```
-
 #### Persist: Call `analysis.enrich`
 
 After completing all LLM steps, call `repochan` action `analysis.enrich` with params:
 ```json
 {
-  "documentLanguage": "English",
-  "languageSignals": { ... },
-  "preAnalysis": { ... },
-  "abstract": { ... }
+  \"preAnalysis\": { ... },
+  \"abstract\": { ... }
 }
 ```
 
@@ -135,8 +104,7 @@ This merges your LLM analysis into the deterministic `analysis/current.json`, ar
 3. **Anti-overfitting** — do NOT mechanically map tech stack to character traits (e.g., "Python → snake girl"). Surface deeper signals: workflow rhythm, emotional atmosphere, technical taste, community posture.
 4. **Score honestly** — a well-maintained project gets 0.8+; a messy prototype gets 0.3-0.5. Don't inflate.
 5. **The preAnalysis summary is product-focused** — what it does for users, not how it's built.
-6. **Abstract dimensions are design-relevant** — they feed the Creative Writer. Think "what personality traits would a mascot for THIS project have?"
-7. **Language signals are evidence-based** — nativeLanguage can be any human language string. Use confidence honestly and cite evidence.
+6. **Abstract dimensions are design-relevant** — they feed the Creative Team. Think "what personality traits would a mascot for THIS project have?"
 
 ## Consumes
 

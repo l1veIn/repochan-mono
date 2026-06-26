@@ -131,19 +131,14 @@ async function enrichAnalysis(ctx: ExtensionContext, params: JsonObject) {
   const versionFile = path.join(versionDir, `${versionStamp}-pre-enrich.json`);
   await writeJson(versionFile, existing, false);
 
-  // Merge LLM-generated fields
+  // Merge LLM-generated fields. Language/native-language fields are intentionally not accepted here:
+  // repository language is localization metadata, not mascot identity.
   const enriched = { ...existing };
   if (params.preAnalysis && isPlainObject(params.preAnalysis)) {
     enriched.preAnalysis = params.preAnalysis;
   }
   if (params.abstract && isPlainObject(params.abstract)) {
     enriched.abstract = params.abstract;
-  }
-  if (typeof params.documentLanguage === "string" && params.documentLanguage.trim()) {
-    enriched.documentLanguage = params.documentLanguage.trim();
-  }
-  if (params.languageSignals && isPlainObject(params.languageSignals)) {
-    enriched.languageSignals = params.languageSignals;
   }
   enriched.enrichedAt = new Date().toISOString();
 
@@ -329,8 +324,8 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "Safety: keep provenance. persona.create/persona.update and order.create_result add provenance when absent; pass params.provenance when an external generator, dashboard, or human produced the artifact.",
       "Safety: protocol paths are constrained to .repochan. protocol.write and protocol.append_version must not be used to bypass entity-specific preconditions unless the user explicitly asks for protocol-level maintenance/migration.",
       "analysis.run params: optional { analysis, overwrite=false, versionPrevious=true, corePaths, focusAreas, includeSections, maxSampleFiles, maxSampleChars, perFileSampleChars, colorScanLimit, includeFileLists=true }. Runs deterministic file walking, git profile, color extraction, tech-stack detection, docs summary, inventory counts, and desensitized code sampling, then writes .repochan/analysis/current.json. If analysis exists, ask before overwrite=true.",
-      "analysis.enrich params: { documentLanguage?, languageSignals?, preAnalysis, abstract }. Merges LLM-generated language signals, preAnalysis, and abstract dimension analysis into analysis/current.json. Archives the pre-enrichment version first. The Analyst must run analysis.run FIRST, then reason over the evidence, then call this action.",
-      "analysis.update params: { patch, overwrite=true, versionPrevious=true, reason? }. Deep-merges patch into .repochan/analysis/current.json, archives the previous current by default, and records updatedAt/revisionReason. Use this for user-requested analysis report revisions such as changing documentLanguage or languageSignals.",
+      "analysis.enrich params: { preAnalysis, abstract }. Merges LLM-generated preAnalysis and abstract dimension analysis into analysis/current.json. Archives the pre-enrichment version first. Do not pass documentLanguage, languageSignals, or nativeLanguage; repository language is localization metadata, not mascot identity. The Analyst must run analysis.run FIRST, then reason over the evidence, then call this action.",
+      "analysis.update params: { patch, overwrite=true, versionPrevious=true, reason? }. Deep-merges patch into .repochan/analysis/current.json, archives the previous current by default, and records updatedAt/revisionReason. Use this for user-requested factual analysis corrections. Do not add nativeLanguage or language-derived mascot identity fields.",
       "analysis.get params: {}. Reads .repochan/analysis/current.json. Use before persona work when you need the upstream analysis. Fails if missing.",
       "analysis.list_versions params: {}. Lists .repochan/analysis/versions/*.json and reports whether current analysis exists.",
       "persona.get params: optional { versionId }. Without versionId, reads .repochan/persona/current.json. With versionId, reads .repochan/persona/versions/<versionId>.json (the .json suffix is optional). Use as the persona pre-flight before order or painter work.",
@@ -353,7 +348,7 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "template.list params: optional { tag?, query? }. Lists all available templates (built-in + project-level .repochan/templates/). Each template returns id, label, assetType, aspectRatio, grid info, and tags. Use tag to filter (e.g., tag='sticker') or query to search.",
       "template.get params: { templateId }. Returns the full template definition including dimensions, grid layout, background type, guide tags, and structural constraints. The Painter uses this to know the 'canvas spec' before writing a prompt.",
       "Template system: Templates define OUTPUT SPECIFICATIONS (canvas size, grid layout, background type, quality prefix, structural constraints) — they are NOT prompt generators. The Painter reads persona + order + references + template, then writes the full prompt themselves. Templates ensure outputs have the right structure for downstream tools (e.g., a 3×3 grid can be auto-sliced into 9 tiles). The Art Director sets templateId on each order; the Painter reads it before generating.",
-      "Language awareness: UI locale is not part of the .repochan protocol. Analysis may contain documentLanguage (the report/persona document language) and languageSignals.nativeLanguage (the mascot's inferred native/cultural language). Creative roles should use those artifact fields and explicit user requests, not global config.",
+      "Identity boundary: analysis.context.identity.namingSeeds is the source for mascot naming. UI/documentation language must not imply a native language, cultural name, costume tradition, prop set, or visual era.",
       "order.resolve_references params: { references: [{ orderId, versionId?, role }] }. Resolves reference entries into absolute image file paths grouped by role. Used by the Painter before generation to get the actual reference image files to inject. role is one of: character, style, composition.",
       "Visual anchor system: A 'foundation sheet' (assetType 'foundation_sheet' or 'cover_sheet') is the project's first real image output — it contains the mascot's signature pose, chibi form, expressions, and color palette on a single sheet. Every downstream order SHOULD reference it via the order.references field: [{ orderId: '<foundation-order-id>', role: 'character' }]. This ensures visual consistency across all generated assets. The Art Director creates the foundation order first; once it has a delivered result, the Art Director auto-fills references on all subsequent orders.",
       "Order references field: Each order may include a `references` array of { orderId, versionId?, role } entries. When present, the Painter resolves them via action='order.resolve_references' and passes the resulting image files as reference images to the image generation tool. Orders with assetType 'foundation_sheet' or 'cover_sheet' do NOT need references — they ARE the anchor.",

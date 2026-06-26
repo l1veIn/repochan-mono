@@ -4,12 +4,10 @@ import chalk from "chalk";
 import { t } from "../i18n.js";
 import { type OnBack, type TuiRef } from "../types.js";
 import { AgentStatus } from "../components/agent-status.js";
-import { ConfirmList, type ConfirmChoice } from "../components/confirm-list.js";
-import { PromptInput } from "../components/prompt-input.js";
 import { checkPreconditions } from "../lib/precondition.js";
 import { readAnalysis, readInterview } from "../lib/protocol.js";
-import { formatSessionSavedMessage, startRoleSession, type RunningRoleSession } from "../lib/runtime.js";
-import { actionBar, appHeader, statusGrid } from "../ui/layout.js";
+import { formatSessionSavedMessage, startRoleSessionWithUi, type RunningRoleSession } from "../lib/runtime.js";
+import { actionBar, appHeader, statusGrid, callout } from "../ui/layout.js";
 import { bulletList, paragraph, rawJson } from "../ui/detail.js";
 
 const theme = {
@@ -20,7 +18,7 @@ const theme = {
   error: (s: string) => chalk.red(s),
 };
 
-type Phase = "loading" | "idle" | "confirm" | "revision" | "running" | "done" | "error";
+type Phase = "loading" | "idle" | "running" | "done" | "error";
 
 export class InterviewPage implements Component {
   private phase: Phase = "loading";
@@ -30,8 +28,6 @@ export class InterviewPage implements Component {
   private statusMsg: string | null = null;
   private agentStatus: AgentStatus | null = null;
   private running: RunningRoleSession | null = null;
-  private confirm: ConfirmList | null = null;
-  private revisionInput: PromptInput | null = null;
   private rawMode = false;
 
   constructor(
@@ -44,6 +40,7 @@ export class InterviewPage implements Component {
 
   private async load() {
     this.phase = "loading";
+    this.statusMsg = null;
     this.tuiRef.requestRender();
     try {
       this.hasAnalysis = Boolean(await readAnalysis(process.cwd()));
@@ -59,51 +56,7 @@ export class InterviewPage implements Component {
     }
   }
 
-  private showConfirm() {
-    const summary: string[] = [];
-    if (this.interview?.summary) summary.push(`Summary: ${this.interview.summary}`);
-    if (this.interview?.generatedAt) summary.push(`Generated: ${this.interview.generatedAt}`);
-
-    this.confirm = new ConfirmList({
-      title: t("interview.confirm_title"),
-      summary,
-      onSelect: (choice: ConfirmChoice) => {
-        this.confirm = null;
-        if (choice === "skip") { this.phase = "idle"; this.tuiRef.requestRender(); }
-        else if (choice === "version" || choice === "overwrite") void this.startRun();
-        else { this.phase = "idle"; this.tuiRef.requestRender(); }
-      },
-      onCancel: () => { this.confirm = null; this.phase = "idle"; this.tuiRef.requestRender(); },
-    });
-    this.phase = "confirm";
-    this.tuiRef.requestRender();
-  }
-
-  private showRevisionInput() {
-    this.revisionInput = new PromptInput({
-      title: "=== Revise Interview ===",
-      prompt: "Describe how to update .repochan/interview/current.json:",
-      placeholder: "e.g. Add a preference for blue-pink palette and avoid mecha elements",
-      onSubmit: (request) => {
-        this.revisionInput = null;
-        void this.startRun([
-          "Revise the current interview report according to this user request.",
-          "Read interview.current and analysis.current first, then call repochan action=\"interview.append\" with the additional questions/responses.",
-          `User request: ${request}`,
-        ].join("\n"));
-      },
-      onCancel: () => {
-        this.revisionInput = null;
-        this.phase = "idle";
-        this.tuiRef.requestRender();
-      },
-    });
-    this.phase = "revision";
-    this.tuiRef.setFocus(this);
-    this.tuiRef.requestRender();
-  }
-
-  private async startRun(goal?: string) {
+  private async startInterview() {
     if (this.running) return;
     if (!this.hasAnalysis) {
       this.statusMsg = t("interview.needs_analysis");
@@ -111,23 +64,25 @@ export class InterviewPage implements Component {
       this.tuiRef.requestRender();
       return;
     }
-    this.confirm = null;
-    this.revisionInput = null;
     this.phase = "running";
     this.statusMsg = null;
     this.agentStatus?.dispose();
     this.agentStatus = new AgentStatus({ role: "pm", onRequestRender: () => this.tuiRef.requestRender() });
     this.tuiRef.requestRender();
     try {
-      this.running = await startRoleSession({
-        phase: "interview", cwd: process.cwd(), newSession: true,
-        goal,
+      this.running = await startRoleSessionWithUi({
+        phase: "interview",
+        cwd: process.cwd(),
+        newSession: true,
+        tui: this.tuiRef.getTui(),
         onDone: () => void this.finishRun(),
         onError: (error: unknown) => this.failRun(error),
       });
       this.agentStatus.setSession(this.running.session);
       void this.running.done.catch(() => undefined);
-    } catch (e) { this.failRun(e); }
+    } catch (error) {
+      this.failRun(error);
+    }
   }
 
   private async finishRun() {
@@ -160,8 +115,6 @@ export class InterviewPage implements Component {
   invalidate(): void { this.agentStatus?.invalidate(); }
 
   handleInput(data: string): void {
-    if (this.phase === "confirm" && this.confirm) { this.confirm.handleInput(data); return; }
-    if (this.phase === "revision" && this.revisionInput) { this.revisionInput.handleInput(data); return; }
     if (matchesKey(data, Key.escape) || data === "q" || data === "Q") {
       if (this.running) void this.cancelRun(); else this.onBack();
       return;
@@ -169,19 +122,12 @@ export class InterviewPage implements Component {
     if (this.running) return;
     if (data === "r" || data === "R") { void this.load(); return; }
     if ((data === "j" || data === "J") && this.interview) { this.rawMode = !this.rawMode; this.tuiRef.requestRender(); return; }
-    if ((data === "e" || data === "E") && this.interview) { this.showRevisionInput(); return; }
     if (data === "s" || data === "S") { this.opts.onSkip?.(); return; }
-    if (data === "u" || data === "U" || data === "\r") {
-      if (!this.hasAnalysis) { this.statusMsg = t("interview.needs_analysis"); this.tuiRef.requestRender(); return; }
-      if (this.interview) this.showConfirm(); else void this.startRun();
-    }
+    if (data === "\r") void this.startInterview();
   }
 
   render(width: number): string[] {
-    const w = Math.max(40, width);
-    if (this.phase === "confirm" && this.confirm) return this.confirm.render(w);
-    if (this.phase === "revision" && this.revisionInput) return this.revisionInput.render(w);
-
+    const w = Math.max(48, width);
     const lines: string[] = [];
     lines.push(...appHeader({ title: t("interview.title"), subtitle: t("interview.subtitle"), width: w }));
     lines.push("");
@@ -189,22 +135,55 @@ export class InterviewPage implements Component {
     if (this.agentStatus && this.phase === "running") {
       lines.push(...this.agentStatus.render(w - 2));
       lines.push("");
+      lines.push(...callout({
+        title: t("interview.running_title"),
+        body: [t("interview.running_body")],
+        tone: "accent",
+        width: w,
+      }));
+      lines.push("");
     }
 
     if (this.phase === "loading") {
       lines.push(theme.dim(t("common.loading")));
     } else if (!this.hasAnalysis) {
-      lines.push(...statusGrid([{ label: t("interview.state"), value: t("interview.state.blocked"), tone: "error" }], w));
+      lines.push(...statusGrid([
+        { label: t("wizard.analysis"), value: t("home.status.missing"), tone: "error" },
+        { label: t("interview.title"), value: t("interview.state.blocked"), tone: "error" },
+      ], w));
+      lines.push("");
       lines.push(theme.error(t("interview.needs_analysis")));
     } else if (!this.interview) {
-      lines.push(...statusGrid([{ label: t("interview.state"), value: t("interview.state.empty"), tone: "warn" }], w));
+      lines.push(...statusGrid([
+        { label: t("wizard.analysis"), value: t("home.status.ready"), tone: "success" },
+        { label: t("interview.title"), value: t("interview.state.empty"), tone: "warn" },
+      ], w));
+      lines.push("");
+      lines.push(...callout({
+        title: t("interview.empty_title"),
+        body: [t("interview.empty_body"), t("interview.ask_user_question_hint")],
+        tone: "accent",
+        width: w,
+      }));
       lines.push("");
       lines.push(theme.warn(`  ${t("interview.skip_hint")}`));
     } else if (this.rawMode) {
       lines.push(theme.accent(t("common.raw_json")));
       lines.push(...rawJson(this.interview, w, 40));
     } else {
+      lines.push(...statusGrid([
+        { label: t("wizard.analysis"), value: t("home.status.ready"), tone: "success" },
+        { label: t("interview.title"), value: t("home.status.ready"), tone: "success" },
+      ], w));
+      lines.push("");
       lines.push(...renderInterview(this.interview, w));
+      lines.push("");
+      lines.push(...callout({
+        title: t("interview.continue_title"),
+        body: [t("interview.continue_body"), t("interview.ask_user_question_hint")],
+        tone: "accent",
+        width: w,
+      }));
     }
 
     if (this.warnings.length) {
@@ -221,8 +200,7 @@ export class InterviewPage implements Component {
 
     lines.push("");
     lines.push(...actionBar([
-      { key: "Enter", label: this.interview ? t("interview.action.regenerate") : t("interview.action.generate"), tone: "accent" },
-      ...(this.interview ? [{ key: "e", label: t("interview.action.edit") }] : []),
+      { key: "Enter", label: this.interview ? t("interview.action.continue") : t("interview.action.generate"), tone: "accent" },
       ...(this.interview ? [{ key: "j", label: this.rawMode ? t("common.summary") : t("common.raw_json") }] : []),
       { key: "s", label: t("interview.action.skip") },
       { key: "r", label: t("wizard.action.refresh") },

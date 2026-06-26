@@ -30,6 +30,7 @@
   "dependencies": {
     "@earendil-works/pi-coding-agent": "^0.79.1",
     "@earendil-works/pi-tui": "^0.79.6",
+    "@juicesharp/rpiv-ask-user-question": "^1.20.0",
     "@repochan/core": "workspace:*",
     "@repochan/image-gen-pi": "workspace:*",
     "chalk": "^5.6.2",

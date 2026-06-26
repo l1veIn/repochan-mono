@@ -79,7 +79,7 @@ export class AnalysisPage implements Component {
     this.revisionInput = new PromptInput({
       title: "=== Revise Analysis ===",
       prompt: "Describe how to update .repochan/analysis/current.json:",
-      placeholder: "e.g. Set documentLanguage to 中文 and adjust native language evidence",
+      placeholder: "e.g. Add repo-derived naming seeds or correct the product-level summary",
       onSubmit: (request) => {
         this.revisionInput = null;
         void this.startRun([
@@ -227,15 +227,16 @@ function renderAnalysisSummary(analysis: any, width: number) {
     if (analysis.repo.remote) lines.push(`  remote: ${analysis.repo.remote}`);
     if (analysis.repo.head) lines.push(`  head: ${analysis.repo.head}`);
   }
-  if (analysis.documentLanguage || analysis.languageSignals) {
+  const identity = analysis.context?.identity;
+  const namingSeeds = identity?.namingSeeds;
+  if (namingSeeds) {
     lines.push("");
-    lines.push(theme.accent("Language"));
-    if (analysis.documentLanguage) lines.push(`  document: ${analysis.documentLanguage}`);
-    const signals = analysis.languageSignals;
-    if (signals?.nativeLanguage) lines.push(`  native: ${signals.nativeLanguage}`);
-    if (typeof signals?.confidence === "number") lines.push(`  confidence: ${Math.round(signals.confidence * 100)}%`);
-    if (Array.isArray(signals?.evidence) && signals.evidence.length > 0) {
-      lines.push(`  evidence: ${signals.evidence.slice(0, 3).join("; ")}`);
+    lines.push(theme.accent("Identity"));
+    if (Array.isArray(namingSeeds.primary) && namingSeeds.primary.length > 0) {
+      lines.push(`  naming seeds: ${namingSeeds.primary.slice(0, 5).join(", ")}`);
+    }
+    if (Array.isArray(namingSeeds.secondary) && namingSeeds.secondary.length > 0) {
+      lines.push(`  secondary: ${namingSeeds.secondary.slice(0, 8).join(", ")}`);
     }
   }
   if (analysis.summary) {

@@ -42,37 +42,27 @@ describe("writeAnalysisArtifact", () => {
     const projectRoot = await tempProject();
     const first = await writeAnalysisArtifact(projectRoot, {
       includeFileLists: false,
-      analysis: {
-        documentLanguage: "English",
-        languageSignals: {
-          nativeLanguage: "English",
-          confidence: 0.5,
-          evidence: ["README.md"],
-        },
-      },
     });
 
     const updated = await updateAnalysisArtifact(projectRoot, {
       overwrite: true,
-      reason: "Set document language to Chinese",
+      reason: "Add model naming seed",
       patch: {
-        documentLanguage: "中文",
-        languageSignals: {
-          confidence: 0.8,
-          notes: "User asked for Chinese output.",
+        context: {
+          identity: {
+            namingSeeds: {
+              secondary: ["model", "schema"],
+            },
+          },
         },
       },
     });
 
     expect(updated.path).toBe(".repochan/analysis/current.json");
-    expect(updated.data.documentLanguage).toBe("中文");
-    expect(updated.data.languageSignals).toMatchObject({
-      nativeLanguage: "English",
-      confidence: 0.8,
-      evidence: ["README.md"],
-      notes: "User asked for Chinese output.",
-    });
-    expect(updated.data.revisionReason).toBe("Set document language to Chinese");
+    expect(updated.data.context.identity.namingSeeds.primary).toContain(path.basename(projectRoot));
+    expect(updated.data.context.identity.namingSeeds.secondary).toEqual(["model", "schema"]);
+    expect(updated.data.context.identity.namingSeeds.rationale.join(" ")).toContain("Repository/product names are the primary naming source");
+    expect(updated.data.revisionReason).toBe("Add model naming seed");
     expect(updated.data.updatedAt).toBeTruthy();
 
     const versionsDir = path.join(projectRoot, ".repochan", "analysis", "versions");

@@ -10,6 +10,50 @@ import { sampleCoreCode } from "./sample.js";
 import { buildSystem, detectFrameworks, detectProjectType, findEntryPoints, inferProjectCategory, packageManager } from "./tech-stack.js";
 import { collectLanguages, countLines, HARD_IGNORE_DIRS, rel, walkProject } from "./walk.js";
 
+function uniqueStrings(values: Array<string | undefined>): string[] {
+  return [...new Set(values.map((v) => v?.trim()).filter((v): v is string => Boolean(v)))];
+}
+
+function splitNameTerms(value: string): string[] {
+  return value
+    .replace(/^@[^/]+\//, "")
+    .split(/[^\p{L}\p{N}]+|(?<=[a-z])(?=[A-Z])/u)
+    .map((part) => part.trim())
+    .filter((part) => part.length >= 3 && !/^(the|and|for|with|repo|src|lib)$/i.test(part));
+}
+
+function deriveIdentitySignals(projectName: string, manifests: Record<string, unknown>, docsNarrative: Record<string, unknown>) {
+  const packageJson = manifests.package_json as { name?: unknown } | undefined;
+  const pyproject = manifests.pyproject as { project_name?: unknown } | undefined;
+  const packageName = typeof packageJson?.name === "string" ? packageJson.name : undefined;
+  const pythonProjectName = typeof pyproject?.project_name === "string" ? pyproject.project_name : undefined;
+  const headings = Array.isArray(docsNarrative.headings) ? docsNarrative.headings.filter((v): v is string => typeof v === "string") : [];
+  const opening = typeof docsNarrative.opening_excerpt === "string" ? docsNarrative.opening_excerpt : "";
+  const primary = uniqueStrings([projectName, packageName, pythonProjectName]);
+  const secondary = uniqueStrings([
+    ...primary.flatMap(splitNameTerms),
+    ...headings.slice(0, 5),
+    ...headings.slice(0, 5).flatMap(splitNameTerms),
+    ...opening
+      .split(/\s+/)
+      .map((word) => word.replace(/^[^A-Za-z]+|[^A-Za-z-]+$/g, ""))
+      .filter((word) => /^[A-Za-z][A-Za-z-]{2,}$/.test(word))
+      .slice(0, 20),
+  ]).slice(0, 40);
+
+  return {
+    namingSeeds: {
+      primary,
+      secondary,
+      rationale: [
+        "Repository/product names are the primary naming source for the mascot.",
+        "README headings and domain terms may provide secondary inspiration.",
+        "Documentation or commit-message language is localization metadata only; it must not imply a cultural name or visual era.",
+      ],
+    },
+  };
+}
+
 export async function performAnalysis(projectRoot: string, options: AnalyzeInput): Promise<AnalysisResult> {
   const { dirs, files } = await walkProject(projectRoot);
   const languages = collectLanguages(files);
@@ -19,6 +63,8 @@ export async function performAnalysis(projectRoot: string, options: AnalyzeInput
   const inventory = collectInventory(projectRoot, relFiles, dirs);
   const configFiles = relFiles.filter((f) => /(^|\/)(package\.json|pyproject\.toml|Cargo\.toml|go\.mod|tsconfig\.json|vite\.config\.|next\.config\.|Dockerfile|Makefile|ruff\.toml|eslint|prettier|biome)/.test(f));
   const git_profile = await analyzeGit(projectRoot);
+  const manifests = await detectDependencies(projectRoot);
+  const narrative = await docsNarrative(projectRoot, relFiles);
   const basic = {
     project_name: path.basename(projectRoot),
     root_path: projectRoot,
@@ -54,6 +100,7 @@ export async function performAnalysis(projectRoot: string, options: AnalyzeInput
   };
   const context: AnalysisContext = {
     basic,
+    identity: deriveIdentitySignals(basic.project_name, manifests, narrative),
     file_structure: fileStructure,
     inventory,
     tech_stack: {
@@ -62,11 +109,11 @@ export async function performAnalysis(projectRoot: string, options: AnalyzeInput
       frameworks,
       build_system: buildSystem(files),
       package_manager: packageManager(files),
-      manifests: await detectDependencies(projectRoot),
+      manifests,
     },
     pre_analysis,
     git_profile,
-    docs_narrative: await docsNarrative(projectRoot, relFiles),
+    docs_narrative: narrative,
     github_meta: {},
     color_palette: await extractThemeColors(projectRoot, files, options.colorScanLimit),
     core_samples: await sampleCoreCode(projectRoot, files, projectType, options),

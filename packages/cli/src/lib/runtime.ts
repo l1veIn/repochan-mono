@@ -1,5 +1,6 @@
 import path from "node:path";
 import os from "node:os";
+import type { TUI } from "@earendil-works/pi-tui";
 
 import {
   AuthStorage,
@@ -18,6 +19,7 @@ import {
   type ResourceLoader,
   type SessionInfo,
 } from "@earendil-works/pi-coding-agent";
+import { createRepoChanExtensionUIContext } from "./extension-ui.js";
 
 export const OUR_AGENT_DIR = path.join(os.homedir(), ".repochan", "pi");
 export const OUR_SESSION_DIR = path.join(OUR_AGENT_DIR, "sessions");
@@ -244,6 +246,30 @@ export function formatSessionSavedMessage(session?: Pick<RunningRoleSession, "se
 export async function startRoleSession(args: RunPhaseArgs & { cwd?: string; onDone?: () => void; onError?: (error: unknown) => void }): Promise<RunningRoleSession> {
   const runtimeResult = await createRunPhaseRuntime({ ...args, cwd: args.cwd ?? process.cwd(), newSession: args.newSession ?? true });
   const session = runtimeResult.runtime.session;
+  const done = session.prompt(buildSkillPrompt(args.phase, { orderId: args.orderId, goal: args.goal })).then(
+    () => { args.onDone?.(); },
+    (error: unknown) => { args.onError?.(error); throw error; },
+  );
+  return {
+    runtimeResult,
+    session,
+    sessionFile: session.sessionFile,
+    sessionId: session.sessionId,
+    done,
+    abort: async () => {
+      if (typeof session.abort === "function") await session.abort();
+      await runtimeResult.runtime.dispose();
+    },
+  };
+}
+
+export async function startRoleSessionWithUi(args: RunPhaseArgs & { cwd?: string; tui: TUI; onDone?: () => void; onError?: (error: unknown) => void }): Promise<RunningRoleSession> {
+  const runtimeResult = await createRunPhaseRuntime({ ...args, cwd: args.cwd ?? process.cwd(), newSession: args.newSession ?? true });
+  const session = runtimeResult.runtime.session;
+  await session.bindExtensions({
+    uiContext: createRepoChanExtensionUIContext(args.tui),
+    mode: "tui",
+  });
   const done = session.prompt(buildSkillPrompt(args.phase, { orderId: args.orderId, goal: args.goal })).then(
     () => { args.onDone?.(); },
     (error: unknown) => { args.onError?.(error); throw error; },

@@ -85,8 +85,6 @@ export const PersonaArtifactSchema = Type.Object({
   designNotes: Type.Optional(Type.String()),
 
   // ── Meta ──
-  language: Type.Optional(Type.String()),
-  nativeLanguage: Type.Optional(Type.String()),
   schemaVersion: Type.Optional(Type.String()),
   generatedAt: Type.Optional(Type.String()),
   provenance: Type.Optional(ProvenanceSchema),
@@ -258,7 +256,10 @@ const InterviewQuestionSchema = Type.Object({
   category: Type.Union([
     Type.Literal("tone"),
     Type.Literal("audience"),
+    Type.Literal("weight"),
+    Type.Literal("world"),
     Type.Literal("style"),
+    Type.Literal("reference"),
     Type.Literal("naming"),
     Type.Literal("constraints"),
     Type.Literal("custom"),
