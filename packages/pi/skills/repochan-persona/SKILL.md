@@ -280,17 +280,14 @@ Using world as foundation:
   "personality": "鲜明的真实人类性格...",
   "hobbies": ["爱好1", "爱好2", "爱好3"],
   "characterFlaws": ["缺点1", "缺点2"],
-  "catchphrase": "口头禅 — English version",
-  "catchphraseZh": "口头禅 — 中文版本",
-  "backstory": "背景设定 — English version (100-200 words)",
-  "backstoryZh": "背景设定 — 中文版本 (100-200字)",
+  "catchphrase": "口头禅",
+  "backstory": "背景设定 (100-200字)",
 
   "mainColor": "#8B5CF6",
   "secondaryColor": "#F5F0E8",
   "accentColors": ["#EC4899", "#6366F1"],
 
-  "appearance": "外貌描述 — English version",
-  "appearanceZh": "外貌描述 — 中文版本",
+  "appearance": "外貌描述",
   "hairColor": "发色描述",
   "eyeColor": "瞳色描述",
   "outfit": "服装分层描述",
@@ -301,8 +298,7 @@ Using world as foundation:
   "signatureAction": "叙事性动作描述",
 
   "abilities": ["二次元命名的能力1", "二次元命名的能力2"],
-  "designNotes": "给后续资产复用的视觉规范 — English version",
-  "designNotesZh": "给后续资产复用的视觉规范 — 中文版本",
+  "designNotes": "给后续资产复用的视觉规范",
 
   "rolePrompt": "ALWAYS English. 80-150 words. Comma-separated tag phrases. Order: appearance → outfit → accessories → signature pose. NO quality tags. NO background/scene/lighting. Only character visual features.",
 
