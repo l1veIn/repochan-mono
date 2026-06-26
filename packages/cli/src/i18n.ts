@@ -12,7 +12,7 @@ const locales: Record<Lang, Locale> = {
   zh,
 };
 
-let currentLang: Lang = 'en';
+let currentLang: Lang = 'zh';
 
 /**
  * Call this once at startup (before creating any pages).

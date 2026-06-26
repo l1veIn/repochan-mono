@@ -118,7 +118,7 @@ export class CreateTaskPage implements Component {
     try {
       this.running = await startRoleSession({
         phase: "orders",
-        goal: "Create the initial RepoChan visual anchor cover task for this repository. Create exactly one foundation-sheet or cover-sheet creation task that will become the setting cover / visual anchor. Do not propose additional downstream assets yet.",
+        goal: "为此仓库创建初始的 RepoChan 视觉锚点封面任务。只创建一个 foundation-sheet 或 cover-sheet 创作任务，它将成为设定集封面/视觉锚点。暂不提出额外的下游资产任务。",
         cwd: process.cwd(),
         newSession: true,
         onDone: () => void this.finishFoundationPlanner(),
@@ -158,7 +158,7 @@ export class CreateTaskPage implements Component {
     try {
       this.running = await startRoleSession({
         phase: "orders",
-        goal: "Create or regenerate RepoChan creation tasks based on the current repository profile, Spiria profile, and visual anchor. Prefer a small set of concrete, executable tasks.",
+        goal: "基于当前的仓库分析、Spiria 人设和视觉锚点，创建或重新生成 RepoChan 创作任务。优先少量具体、可执行的任务。",
         cwd: process.cwd(),
         newSession: true,
         onDone: () => void this.finishAutoPlanner(),
@@ -432,13 +432,13 @@ function buildManualOrder(draft: ManualDraft) {
     requestType: "new_asset" as const,
     assetType,
     brief: {
-      intent: draft.intent || "Create a RepoChan asset aligned with Spiria.",
+      intent: draft.intent || "创建一个与 Spiria 人设一致的 RepoChan 资产。",
       mustInclude: draft.mustInclude ?? [],
       avoid: draft.avoid ?? [],
-      creativeFreedom: ["Keep the result aligned with the current Spiria profile and visual anchor."],
+      creativeFreedom: ["保持结果与当前 Spiria 人设和视觉锚点一致。"],
     },
     deliverables: [deliverable],
-    acceptanceCriteria: draft.acceptanceCriteria?.length ? draft.acceptanceCriteria : ["Matches Spiria identity", "Usable as a RepoChan brand asset"],
+    acceptanceCriteria: draft.acceptanceCriteria?.length ? draft.acceptanceCriteria : ["符合 Spiria 身份", "可用作 RepoChan 品牌资产"],
     status: "draft" as const,
     priority: "normal" as const,
   };

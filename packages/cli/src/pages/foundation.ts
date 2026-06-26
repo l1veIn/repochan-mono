@@ -98,7 +98,7 @@ export class FoundationPage implements Component {
     try {
       this.running = await startRoleSession({
         phase: "orders",
-        goal: "Create foundation sheet order for this repository",
+        goal: "为此仓库创建设定集封面任务（foundation sheet order）。",
         cwd: process.cwd(),
         newSession: true,
         onDone: () => void this.finishRun(),

@@ -18,9 +18,9 @@ export type ConfirmOption = {
 };
 
 const DEFAULT_OPTIONS: ConfirmOption[] = [
-  { key: "1", label: "Use existing (skip)", value: "skip", tone: "dim" },
-  { key: "2", label: "Regenerate (archive old → new version)", value: "version", tone: "success" },
-  { key: "3", label: "Overwrite (no backup)", value: "overwrite", tone: "warn" },
+  { key: "1", label: "使用现有（跳过）", value: "skip", tone: "dim" },
+  { key: "2", label: "重新生成（归档旧版 → 新版本）", value: "version", tone: "success" },
+  { key: "3", label: "覆盖（不备份）", value: "overwrite", tone: "warn" },
 ];
 
 export type ConfirmListOpts = {

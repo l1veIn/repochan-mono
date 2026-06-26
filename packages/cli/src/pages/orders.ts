@@ -136,7 +136,7 @@ export class OrdersPage implements Component {
     try {
       this.running = await startRoleSession({
         phase: "orders",
-        goal: "Create or regenerate RepoChan creation tasks based on the current repository profile and Spiria profile.",
+        goal: "基于当前的仓库分析和 Spiria 人设，创建或重新生成 RepoChan 创作任务。",
         cwd: process.cwd(),
         newSession: true,
         onDone: () => void this.finishRun(),

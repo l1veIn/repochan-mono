@@ -44,7 +44,7 @@ export async function checkPreconditions(
   if (requirements.analysis && !analysis) {
     return {
       ok: false,
-      blockReason: "No analysis found. Run `repochan analyze` first.",
+      blockReason: "未找到分析报告。请先运行 `repochan analyze`。",
       warnings,
       analysis: null,
       persona,
@@ -57,7 +57,7 @@ export async function checkPreconditions(
   if (requirements.persona && !persona) {
     return {
       ok: false,
-      blockReason: "No persona found. Run `repochan persona` first.",
+      blockReason: "未找到人设。请先运行 `repochan persona`。",
       warnings,
       analysis,
       persona: null,
@@ -70,7 +70,7 @@ export async function checkPreconditions(
   if (requirements.foundation && !foundation) {
     return {
       ok: false,
-      blockReason: "No foundation sheet found. Run `repochan foundation` first.",
+      blockReason: "未找到设定集封面。请先运行 `repochan foundation`。",
       warnings,
       analysis,
       persona,
