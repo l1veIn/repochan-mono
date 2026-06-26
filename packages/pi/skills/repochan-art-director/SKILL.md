@@ -83,6 +83,17 @@ An Asset Order is a commissioning brief. It defines intent, constraints, success
 
 The `references` field is not optional decoration — it is the mechanism by which the Painter knows what the character looks like. Without it, every generation is a blind text-to-image call with no visual continuity.
 
+### Brief description discipline
+
+**Positive descriptions drive the image; `avoid` lists are guardrails, not steering wheels.**
+
+Image models do not understand "not X" as a boundary — they treat negation as a directional vector. Saying "not sci-fi" doesn't land at "contemporary"; it overshoots into "pre-electronic" or "grimy". Follow these rules when writing briefs:
+
+1. **Describe what you want, not what you don't.** Write "contemporary university laboratory, fluorescent lighting, pragmatic architecture" — not "not sci-fi, not cyberpunk".
+2. **`mustInclude` is the primary description vehicle.** Fill it with concrete, positive visual anchors: specific settings, materials, lighting, mood.
+3. **`avoid` is a lightweight trailing guardrail.** Use it sparingly for hard exclusions that genuinely can't be expressed positively (e.g., "busy backgrounds", "text labels"). Do NOT use `avoid` as a substitute for positive description — the Painter will transform or drop avoid items, so overloading it is wasted signal.
+4. **Prefer multi-word qualified phrases over single adjectives.** Single English adjectives carry oversized semantic radius in image models. "shabby" → 肮脏/廉价; "disheveled" → 蓬头垢面. Use "well-worn but maintained", "slightly tousled" instead.
+
 ### Identity boundary
 
 Do not convert natural-language evidence into visual requirements. README/docs/commit/UI language may affect how text is written to the user, but it must not create culture-coded `mustInclude` items such as scrolls, seals, lanterns, bamboo, jade, kimono, shrines, quills, castles, etc. Such items are allowed only if one of these is true:

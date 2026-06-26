@@ -130,10 +130,28 @@ Record material conflicts in the result notes or `meta` so the user can audit wh
 
 1. **Template guide** (if order has templateId): prepend the template's `guide` tags verbatim (e.g., "masterpiece, best quality").
 2. **Template constraints**: include all structural constraints from the template (grid layout, background, canvas rules). Template-required text labels, callouts, grids, and canvas rules override contradictory order avoid-list items.
-3. **Persona rolePrompt**: the character's visual identity — this is the core of your prompt. Read it from `persona.get`. Do not add or preserve `language` / `nativeLanguage` concepts.
-4. **Persona precision fields**: supplement rolePrompt with `signaturePose`, `hairColor`, `eyeColor`, `outfit`, `accessories`, `keyMotifs`, `colorPalette` (main + secondary + accent), `designNotes` — weave these into the prompt with their hex values after applying the identity boundary below.
-5. **Order brief**: add intent-specific elements from `order.brief.mustInclude`, `order.brief.avoid`, `order.brief.creativeFreedom`, except where they conflict with the user request or template.
-6. **Reference images** (if available): resolved via `order.resolve_references` — pass as `referenceImageUrls`, not in the text prompt.
+3. **Character name injection**: explicitly write the character's name at the start of the prompt as a direct name label: `Name: {persona.name}`. Do NOT rely on persona rolePrompt or key motifs to implicitly carry the name — image models will invent their own names if not told explicitly. If `persona.nameJa` exists and the art style is anime/manga, include it alongside: `Name: {persona.name} ({persona.nameJa})`.
+4. **Persona rolePrompt**: the character's visual identity — this is the core of your prompt. Read it from `persona.get`. Do not add or preserve `language` / `nativeLanguage` concepts.
+5. **Persona precision fields**: supplement rolePrompt with `signaturePose`, `hairColor`, `eyeColor`, `outfit`, `accessories`, `keyMotifs`, `colorPalette` (main + secondary + accent), `designNotes` — weave these into the prompt with their hex values after applying the identity boundary below.
+6. **Order brief**: add intent-specific elements from `order.brief.mustInclude`, `order.brief.avoid`, `order.brief.creativeFreedom`, except where they conflict with the user request or template. Apply the **avoid → positive transform** (see below).
+7. **Reference images** (if available): resolved via `order.resolve_references` — pass as `referenceImageUrls`, not in the text prompt.
+
+### Avoid → positive transform
+
+Image models treat "not X" as a directional push, not a wall. Each `avoid` entry must be either **converted to a positive anchor** or **dropped** before entering the prompt:
+
+| avoid entry | → positive replacement | or drop |
+|-------------|----------------------|---------|
+| not sci-fi / not cyberpunk | contemporary, modern-day | — |
+| not too clean | (keep — hard to express positively) | — |
+| not steampunk | present-day, 21st-century | — |
+| no text labels | — | ✅ drop (template may re-add) |
+
+Rules:
+1. **Convert first**: if the avoid item implies a desired positive state, write the positive state instead. "not shabby" → "well-maintained, tidy". "not futuristic" → "contemporary, modern era".
+2. **Drop if trivial**: hard exclusions like "no text labels" can be silently dropped unless they carry real risk. Template-required labels override them anyway.
+3. **Never pass raw negation into the prompt.** The final prompt must read as a string of positive, declarative visual descriptions. If a concept can only be expressed negatively, put it in `avoid` and let the positive replacement do the work.
+4. **Do not over-stack qualifiers.** 2-3 positive replacements max per avoid item — more causes adjective overload (see below).
 
 ### Identity boundary before prompting
 
@@ -143,14 +161,34 @@ For foundation sheets with no reference image, be stricter: if a culture-coded p
 
 Final prompt structure:
 ```
-{guide}, {template constraints}, {rolePrompt}, {signaturePose},
+{guide}, {template constraints},
+Name: {persona.name},
+{rolePrompt}, {signaturePose},
 {precision fields: hairColor, eyeColor, outfit, accessories},
 {color palette: main, secondary, accents},
-{key motifs}, {order-specific mustInclude},
-avoid: {order-specific avoid that does not conflict with the template + built-in safety}
+{key motifs}, {order-specific mustInclude}, {positive-transformed brief elements}
 ```
 
 **Do NOT describe layout positions** (no "TOP-LEFT:", "CENTER:"). Image models don't follow spatial instructions well. Instead, use comma-separated tags like the template constraints do.
+
+### Adjective precision control
+
+Single English adjectives carry oversized semantic radius in image models — far larger than Chinese intuition suggests. A word that means "slightly worn" to you can mean "decaying ruin" to the model.
+
+| risky single adjective | model interpretation | safer multi-word phrase |
+|----------------------|---------------------|------------------------|
+| shabby | dirty, cheap, abandoned | well-worn but maintained |
+| disheveled | unkempt, messy, wild | slightly tousled, casual |
+| worn | tattered, broken | with signs of everyday use |
+| aging building | century-old ruin | older building, established structure |
+| leather-bound notebook | medieval manuscript | professional leather notebook |
+| tuning fork + oscilloscope | 19th-century physics lab | modern measurement instruments |
+
+Rules:
+1. **Never use a single adjective where a 2-3 word phrase carries tighter meaning.** "worn" → "with signs of everyday use". "shabby" → "lived-in, well-maintained".
+2. **Anchor nouns to a contemporary frame by default.** "notebook" alone can drift to scroll/manuscript; "modern notebook" or "spiral-bound notebook" pins it down. "building" → "contemporary building".
+3. **Pair era-sensitive nouns with an era qualifier.** Any noun with historical range (building, instrument, book, tool, workshop, laboratory) gets a era word: "contemporary", "modern", "present-day", "21st-century".
+4. **When in doubt, describe function over aesthetic.** "measuring tool" is safer than "instrument" because the model has less room to wander into antique territory.
 
 ## Output spec resolution
 
