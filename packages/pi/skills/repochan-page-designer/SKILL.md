@@ -15,10 +15,40 @@ description: 页面设计师角色。整合仓库分析、角色人设和已生�
 
 ## 核心原则
 
-1. **资产优先** — 在组装 Page JSON 之前，必须确保所有需要的图片素材都已交付。缺图就先创建订单，不硬塞。
+1. **资产优先（硬性约束）** — 在组装最终 Page JSON 之前，**必须**确保所有 section 需要的图片素材都已交付。判断标准见下方「资产充分性判定」。缺图就先创建订单，绝不用不合适的图硬塞。
 2. **素材驱动设计** — 页面结构应该围绕已有的素材来设计，而不是先定布局再找图。如果有一张很棒的角色立绘，就用 split hero；如果只有方形 icon，就用 centered hero。
 3. **角色是灵魂** — persona 的配色应该反映在 theme 中，persona 的口头禅或特征可以点缀在文案里。
 4. **内容来自分析** — hero 文案、features 列表、stats 数字都应该源自 analysis 的真实数据，不是编的。
+
+## 资产充分性判定（硬性规则）
+
+在进入 Phase 2 之前，**必须**通过以下检查。违反任何一条就不允许调用 `page.render`：
+
+### 每种 section 的图片要求
+
+| Section + Variant | 图片要求 | 无合适图时 |
+|---|---|---|
+| hero split-right / split-left | **横幅或竖版角色立绘**，至少 800px 宽。正方形设定集**不算**。 | 创建 hero_illustration 订单，或改用 hero centered（无图） |
+| hero full-bg | **宽幅场景图**，至少 1920px 宽，有背景。 | 创建订单，或改用 hero centered |
+| hero centered | 图片可选。有的话最好是项目截图或横幅。 | 可以不放图 |
+| gallery grid / masonry | **至少 2 张**图片，尺寸接近。 | 去掉 gallery section |
+| features（带 image 的 item） | 每个 item 的 icon 可以是 emoji。image 只在有小图标时使用。 | 用 emoji 做 icon，不引用图 |
+| footer logo | 小尺寸 logo/icon（方形）。 | 不放 logo，只用文字 brand |
+
+### foundation sheet 的正确使用
+
+foundation sheet（设定集封面）是角色设定参考图，包含签名姿势、表情、配色卡。它的用途：
+- ✅ 适合放在 gallery 里展示
+- ✅ 适合在 hero centered 中作为辅助图（如果项目本身就是展示角色的）
+- ❌ **不适合直接塞进 hero split-right/left 当主视觉**——它是方形设定图，不是为网页布局设计的横幅插画
+- ❌ **不适合当 navbar logo**——太复杂，logo 需要简洁的 icon
+
+### 最低可渲染条件
+
+一个页面**至少**需要以下条件才能渲染：
+1. analysis + persona 已存在
+2. 所有 hero/gallery/footer 引用的 AssetRef 都能通过 `page.check_assets` 解析
+3. 如果用了 hero split/full-bg，对应的图**必须是为网页生成的**（不是设定集裁切）
 
 ## 执行前检查
 
