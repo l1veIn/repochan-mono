@@ -1,0 +1,22 @@
+{
+  "name": "@repochan/page-renderer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Static HTML renderer for RepoChan Page JSON — zero JS output.",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@repochan/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
+  }
+}
