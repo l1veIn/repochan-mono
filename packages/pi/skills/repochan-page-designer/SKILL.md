@@ -1,118 +1,175 @@
 ---
 name: repochan-page-designer
-description: 页面设计师角色。整合仓库分析、角色人设和已生成的图片素材，设计并生成可直接部署的项目落地页。两阶段流程：先审计资产、补齐缺失的图片订单，再组装 Page JSON 并渲染为零 JS 静态站点。
+description: 项目落地页设计师。为用户的 git 仓库设计项目主页，优先展示项目本身（README、技术栈、核心特性），角色素材作为 UI 视觉增强而非页面主角。两阶段流程：先设计内容结构、审计图片资产，再组装 Page JSON 并渲染。
 ---
 
 # RepoChan 页面设计师
 
 ## 角色定义
 
-你是 RepoChan 的页面设计师兼网页端美术指导。你的职责是把前面所有阶段的产出——仓库分析、角色人设、已交付的图片素材——整合为一份完整的项目落地页。
+你是**项目落地页设计师**。你的核心任务是为用户的 **git 仓库**设计一个项目主页——展示这个项目是什么、做什么、为什么值得关注。
 
-你产出的是一份 Page JSON（通过 `page.create` 保存），以及最终渲染的零 JS 静态 HTML（通过 `page.render` 输出）。
+你的首要内容来源是 **analysis 数据**和 **README**，不是角色设定图。
 
-你不是简单的模板填空工。你要像真正的美术指导一样思考：这个项目需要什么样的页面？hero 区放什么图？需要几个 section？gallery 里展示哪些素材？每一个布局决策都要有依据。
+角色素材（persona、foundation sheet、衍生插画）的作用是**为页面提供视觉增强**——配色方案、品牌氛围、装饰性插图。它们是调味料，不是主菜。
 
-## 核心原则
+### 你在设计谁的页面
 
-1. **资产优先（硬性约束）** — 在组装最终 Page JSON 之前，**必须**确保所有 section 需要的图片素材都已交付。判断标准见下方「资产充分性判定」。缺图就先创建订单，绝不用不合适的图硬塞。
-2. **素材驱动设计** — 页面结构应该围绕已有的素材来设计，而不是先定布局再找图。如果有一张很棒的角色立绘，就用 split hero；如果只有方形 icon，就用 centered hero。
-3. **角色是灵魂** — persona 的配色应该反映在 theme 中，persona 的口头禅或特征可以点缀在文案里。
-4. **内容来自分析** — hero 文案、features 列表、stats 数字都应该源自 analysis 的真实数据，不是编的。
+你在为**用户的仓库**设计页面。一个开源项目的落地页应该回答：
+- 这个项目是什么？（hero）
+- 它有什么功能？（features）
+- 有什么数据可以证明它的价值？（stats）
+- 怎么开始使用？（CTA）
+
+角色形象可以出现在 hero 区做视觉点缀、在 footer 做品牌标识，但页面**不是**角色展示页。
+
+## 内容优先级（严格顺序）
+
+页面内容的优先级从高到低：
+
+1. **项目信息**（必须）— 来自 analysis + README
+   - 项目名、一句话定位、核心功能、技术栈、项目数据
+2. **项目素材**（优先）— 项目截图、架构图、演示 GIF
+3. **角色衍生 UI 素材**（增强）— chibi 图标、配色方案、装饰性插画
+4. **角色设定图**（展示）— 仅在有 gallery section 且素材充分时展示
+
+### 绝对不要
+
+- ❌ 把 foundation sheet（设定集封面）直接塞进 hero 当主视觉——它是角色参考图，不是项目截图
+- ❌ 把页面设计成"角色介绍页"——这是项目落地页，角色只是品牌增强
+- ❌ 在 features/stats 里写角色的人设故事——这些 section 展示项目的功能和数据
+
+## analysis 数据使用指南
+
+analysis 是页面文案的**主要数据源**。读取以下字段：
+
+| analysis 字段 | 页面用途 |
+|---|---|
+| `context.basic.project_name` | navbar brand、title、hero headline |
+| `context.basic.total_files` / `total_lines` | stats items |
+| `context.basic.first_commit_date` | stats 或 footer 版权年份 |
+| `context.basic.readme_exists` | 如果有 README，读取它的内容提取 features |
+| `context.tech_stack.languages` | stats（如 "TypeScript 107 files"）或 features |
+| `context.tech_stack.frameworks` | features items |
+| `context.tech_stack.package_manager` | features 或 stats |
+| `context.inventory.docs` | navbar 链接（文档地址） |
+| `context.inventory.tests` | stats（测试数量） |
+| `preAnalysis.summary` | hero subheadline 或 description |
+| `preAnalysis.project_category` | 判断页面风格（creative_tool→playful, dev_tool→modern/minimal） |
+| `abstract.dimensions` | features items 的灵感来源（code_style, architecture 等） |
+| `abstract.overall_impression` | hero subheadline 候选 |
+
+### README 提取
+
+如果 `context.basic.readme_exists` 为 true，**必须读取项目根目录的 README.md**：
+- 从 README 的第一个 `##` 标题提取 features
+- 从 README 的安装/使用部分提取 CTA 文案
+- 从 README 的架构图/表格提取 stats 或 features
+
+## persona 的正确使用方式
+
+persona 为页面提供**视觉品牌**，不是页面内容：
+
+| persona 字段 | 页面用途 |
+|---|---|
+| `mainColor` / `secondaryColor` / `accentColors` | theme 配色 |
+| `name` | 可以作为 footer 的 brand（但 navbar brand 用项目名） |
+| `catchphrase` | 可以作为 CTA 区的点缀文案（不是 hero headline） |
+| `characterFlaws` / `hobbies` / `backstory` | **不用于页面文案** |
+
+## 角色素材的正确使用方式
+
+| 素材类型 | 正确用途 | 错误用途 |
+|---|---|---|
+| foundation sheet（设定集） | gallery 展示 | ❌ hero 主视觉 |
+| chibi / 表情图 | features icon、gallery | ❌ stats 背景 |
+| 专属 hero 插画（16:9） | hero split/full-bg | — |
+| app icon / logo | navbar、footer | ❌ hero 大图 |
+
+**如果只有 foundation sheet 没有专属 hero 插画**：
+- hero 用 `centered`（无图），或用 `split-right` 配项目截图
+- **不要**把设定集当 hero 图
 
 ## 资产充分性判定（硬性规则）
 
-在进入 Phase 2 之前，**必须**通过以下检查。违反任何一条就不允许调用 `page.render`：
+在调用 `page.render` 之前，**必须**通过以下检查：
 
 ### 每种 section 的图片要求
 
 | Section + Variant | 图片要求 | 无合适图时 |
 |---|---|---|
-| hero split-right / split-left | **横幅或竖版角色立绘**，至少 800px 宽。正方形设定集**不算**。 | 创建 hero_illustration 订单，或改用 hero centered（无图） |
-| hero full-bg | **宽幅场景图**，至少 1920px 宽，有背景。 | 创建订单，或改用 hero centered |
-| hero centered | 图片可选。有的话最好是项目截图或横幅。 | 可以不放图 |
-| gallery grid / masonry | **至少 2 张**图片，尺寸接近。 | 去掉 gallery section |
-| features（带 image 的 item） | 每个 item 的 icon 可以是 emoji。image 只在有小图标时使用。 | 用 emoji 做 icon，不引用图 |
-| footer logo | 小尺寸 logo/icon（方形）。 | 不放 logo，只用文字 brand |
-
-### foundation sheet 的正确使用
-
-foundation sheet（设定集封面）是角色设定参考图，包含签名姿势、表情、配色卡。它的用途：
-- ✅ 适合放在 gallery 里展示
-- ✅ 适合在 hero centered 中作为辅助图（如果项目本身就是展示角色的）
-- ❌ **不适合直接塞进 hero split-right/left 当主视觉**——它是方形设定图，不是为网页布局设计的横幅插画
-- ❌ **不适合当 navbar logo**——太复杂，logo 需要简洁的 icon
+| hero split-right / split-left | **项目截图**或**专属 hero 插画**（横幅，至少 800px 宽）。设定集不算。 | 改用 hero centered（无图），或创建 hero_illustration 订单 |
+| hero full-bg | **项目截图**或**专属场景图**（宽幅）。 | 改用 hero centered |
+| hero centered | 图片可选。有项目截图更好。 | 可以不放图 |
+| gallery grid / masonry | **至少 2 张**图片，尺寸接近。可以是角色衍生图（chibi、表情）或项目截图。 | 去掉 gallery section |
+| features（image item） | emoji 做 icon 最简单。image 只在有专属小图标时使用。 | 用 emoji |
+| footer logo | 小尺寸 icon/logo（方形、简洁）。 | 不放 logo |
 
 ### 最低可渲染条件
 
-一个页面**至少**需要以下条件才能渲染：
-1. analysis + persona 已存在
-2. 所有 hero/gallery/footer 引用的 AssetRef 都能通过 `page.check_assets` 解析
-3. 如果用了 hero split/full-bg，对应的图**必须是为网页生成的**（不是设定集裁切）
-
-## 执行前检查
-
-1. 调用 `action: "protocol.inspect"` 检查项目状态。
-2. 确认 `.repochan/analysis/current.json` 存在——这是页面文案的数据源。
-3. 确认 `.repochan/persona/current.json` 存在——角色配色和名字是 theme 的来源。
-4. 调用 `action: "order.list"` 查看所有已交付的图片素材。
-5. 确定用户的页面用途：项目首页？GitHub Pages 展示？产品落地页？
+1. analysis 已存在
+2. persona 已存在（用于配色）
+3. 所有 AssetRef 都能通过 `page.check_assets` 解析
+4. hero 用的图（如果有）是**为网页设计的**，不是设定集裁切
 
 ## 两阶段工作流
 
-### Phase 1：设计 + 资产审计
+### Phase 1：内容设计 + 资产审计
 
-#### 步骤 1：盘点已有素材
+#### 步骤 1：读取项目信息（首要）
 
-读取所有已交付的 orders，了解手里有什么图：
+```
+repochan action="analysis.get" params={}
+```
+
+从 analysis 提取：
+- 项目名、定位、技术栈
+- 项目数据（文件数、测试数等）
+- README 内容（如果存在，读取 `<projectRoot>/README.md`）
+
+然后读取 persona 获取配色：
+```
+repochan action="persona.get" params={}
+```
+
+#### 步骤 2：盘点可用素材
 
 ```
 repochan action="order.list" params={}
 ```
 
-对每个 delivered 的 order，读取其 result files，了解图片尺寸和内容：
-
+对每个 delivered order，读取 result 了解图片：
 ```
 repochan action="order.get_result" params={ "orderId": "ord-xxx" }
 ```
 
-分类整理：
-- **角色立绘**：全身图、半身图、签名姿势 → hero 候选
-- **表情/Q版**：差分表情、chibi → gallery 候选
-- **icon/logo**：项目图标 → navbar/footer 候选
-- **场景图**：带背景的插图 → hero full-bg 候选
-- **设定集**：foundation sheet → gallery 候选
+#### 步骤 3：设计页面结构
 
-#### 步骤 2：设计页面结构
+基于项目类型和可用素材，设计 section 结构。
 
-根据素材情况和项目类型，决定页面包含哪些 section。以下是一个常见的开源项目落地页结构：
+**标准项目落地页（推荐）：**
+1. **Navbar** — 项目名 + GitHub 链接 + CTA
+2. **Hero** — 项目名 + 一句话定位 + CTA（+ 项目截图或专属插画如果有）
+3. **Stats** — 文件数、测试数、技术栈统计
+4. **Features** — 从 README 提取的核心功能
+5. **CTA** — GitHub Star / 开始使用 / 查看文档
+6. **Footer** — 版权 + 链接
 
-1. **Navbar** — 品牌名 + 导航链接
-2. **Hero** — 项目名称 + 一句话描述 + CTA + 角色立绘
-3. **Stats** — 关键数字（star 数、实验次数、支持的平台等）
-4. **Features** — 3-4 个核心特性卡片
-5. **Gallery** — 角色素材展示（设定集、表情、变体）
-6. **CTA** — 行动号召（GitHub、文档、试用）
-7. **Footer** — 版权 + 链接
+**有角色衍生素材时追加：**
+7. **Gallery** — chibi、表情差分、衍生插画（不是设定集本身）
 
-设计决策依据：
-- 有角色立绘？→ hero 用 `split-right` 或 `split-left`
-- 只有方形 icon？→ hero 用 `centered`，配 features grid
-- 有 3+ 张角色素材？→ 加 gallery section
-- 有具体数字可展示？→ 加 stats section
+#### 步骤 4：资产审计
 
-#### 步骤 3：资产审计
-
-列出渲染页面需要的所有图片，对照已有素材，标记缺失项。先创建一个草稿 Page JSON，然后检查：
+创建草稿 Page JSON，检查资产：
 
 ```
 repochan action="page.create" params={ "page": <草稿>, "overwrite": true }
 repochan action="page.check_assets" params={}
 ```
 
-#### 步骤 4：创建缺失的订单
+#### 步骤 5：创建缺失的订单（如果需要）
 
-对于缺失的图片，使用 Art Director 的 order 系统创建订单。**你可以直接调用 `order.create`**：
+如果设计了需要图片的 section 但没有合适的素材，创建订单：
 
 ```
 repochan action="order.create" params={
@@ -122,127 +179,67 @@ repochan action="order.create" params={
     "assetType": "hero_illustration",
     "references": [{ "orderId": "ord-foundation-001", "role": "character" }],
     "brief": {
-      "intent": "网页 hero 区主视觉——角色招牌动作，面向受众",
-      "mustInclude": ["角色全身或 3/4 身", "项目主色调氛围"],
-      "avoid": ["文字水印", "复杂前景遮挡"],
-      "composition": "right-aligned character, left half negative space for text overlay",
-      "creativeFreedom": ["背景光影氛围"]
+      "intent": "项目落地页 hero 区主视觉——角色以适合网页横幅的方式呈现",
+      "mustInclude": ["项目主色调氛围", "适合横幅布局的构图"],
+      "avoid": ["文字水印"],
+      "composition": "16:9 横幅，角色偏一侧，留白可叠加文字",
+      "creativeFreedom": ["光影氛围"]
     },
-    "deliverables": [{
-      "name": "hero-main",
-      "format": "png",
-      "width": 1200,
-      "height": 800
-    }],
-    "acceptanceCriteria": [
-      "角色面部清晰可见",
-      "左侧 40% 区域视觉干净，可叠加白色文字"
-    ]
+    "deliverables": [{ "name": "hero-banner", "format": "png", "width": 1200, "height": 800 }],
+    "acceptanceCriteria": ["构图适合网页 hero 区"]
   }]
 }
 ```
 
-常见需要的页面素材订单：
-- **hero_illustration**：hero 区主视觉（宽幅，1200×800 或 16:9）
-- **og_image**：社交媒体分享预览图（1200×630）
-- **gallery_expressions**：gallery 区的表情/变体图（方形，1024×1024）
-- **app_icon**：navbar/footer logo（512×512，透明背景）
+请用户批准后，移交 Painter 出图。
 
-创建订单后，请用户批准，然后移交给 Painter skill 出图。
+**如果不想等出图**，可以直接用 hero centered（无图）或用项目截图。
 
-#### 检查点：资产齐全
+#### 检查点
 
-**在进入 Phase 2 之前，必须确认所有图片都已交付。** 重新检查：
-
-```
-repochan action="page.check_assets" params={}
-```
-
-如果有 missing，回到步骤 4 继续补。只有 `ok=true` 才能进入 Phase 2。
+只有 `page.check_assets` 返回 `ok=true` 才能进入 Phase 2。
 
 ---
 
 ### Phase 2：组装 + 渲染
 
-#### 步骤 5：确定 theme
+#### 步骤 6：确定 theme
 
-从 persona 中提取配色：
+从 persona 提取配色，结合项目类型选 style：
 
 ```json
 {
   "theme": {
-    "primary": "<persona.mainColor 或项目主色>",
-    "secondary": "<persona.secondaryColor 或辅色>",
-    "accent": "<persona.accentColors[0] 或强调色>",
+    "primary": "<persona.mainColor>",
+    "secondary": "<persona.secondaryColor>",
+    "accent": "<persona.accentColors[0]>",
     "background": "#FFFFFF",
-    "style": "modern",
+    "style": "<根据项目类型选择>",
     "darkMode": false
   }
 }
 ```
 
 style 选择：
-- `modern` — 默认，适合大多数技术项目
-- `minimal` — 适合工具类、CLI 项目
-- `playful` — 适合社区向、创意项目
-- `techy` — 适合硬核技术项目
-- `elegant` — 适合品牌展示
+- `modern` — 技术项目默认
+- `minimal` — 工具类、CLI 项目
+- `playful` — 创意类、社区项目
+- `techy` — 硬核技术项目
+- `elegant` — 品牌展示
 
-#### 步骤 6：填充文案
+#### 步骤 7：填充文案
 
-从 analysis 中提取：
-- **title**：项目名 + 简短定位
-- **description**：analysis.abstract 或项目一句话描述
-- **hero headline**：项目名 + 核心价值主张
-- **hero subheadline**：更详细的一句话描述
-- **features items**：从 analysis 的 techStack 或核心功能提炼
-- **stats items**：从 analysis 提取数字（star、commit、实验数等）
+**从 analysis 填充（主要来源）：**
+- `title`：`context.basic.project_name` + 简短定位
+- `description`：`preAnalysis.summary`
+- `hero headline`：项目名 + 核心价值
+- `hero subheadline`：`preAnalysis.summary` 或 `abstract.overall_impression`
+- `features items`：从 README `##` 标题 + `tech_stack.frameworks` 提炼
+- `stats items`：`total_files`、`total_lines`、测试数量、技术栈统计
 
-从 persona 中提取：
-- **navbar brand**：persona.name 或项目名
-- **hero headline 点缀**：persona.catchphrase（如果合适）
-- **footer brand**：项目名或 persona.name
-
-#### 步骤 7：组装最终 Page JSON
-
-把所有内容组装成完整的 Page JSON，每个 section 的 AssetRef 指向已交付的 order result 文件：
-
-```json
-{
-  "title": "项目名 — 一句话定位",
-  "description": "页面 meta description",
-  "theme": { ... },
-  "sections": [
-    {
-      "type": "navbar",
-      "variant": "with-cta",
-      "content": {
-        "brand": "项目名",
-        "links": [
-          { "label": "文档", "href": "#" },
-          { "label": "GitHub", "href": "https://github.com/..." }
-        ],
-        "cta": { "label": "开始使用", "href": "#" }
-      }
-    },
-    {
-      "type": "hero",
-      "variant": "split-right",
-      "content": {
-        "headline": "项目核心价值",
-        "subheadline": "更详细的描述",
-        "primaryCta": { "label": "开始使用", "href": "#" },
-        "secondaryCta": { "label": "查看文档", "href": "#" },
-        "image": {
-          "orderId": "ord-page-hero-001",
-          "file": "hero-main.png",
-          "alt": "角色名 — 项目看板娘"
-        }
-      }
-    }
-  ]
-}
-```
+**从 persona 填充（仅限视觉）：**
+- theme 配色
+- `footer brand`：persona.name（navbar brand 用项目名）
 
 #### 步骤 8：保存 + 渲染
 
@@ -251,36 +248,30 @@ repochan action="page.create" params={ "page": <完整 Page JSON>, "overwrite": 
 repochan action="page.render" params={}
 ```
 
-输出在 `.repochan/pages/site/index.html`。这是零 JS 静态页面，可以直接部署到 GitHub Pages / Netlify / Vercel / 任何静态托管。
-
-## AssetRef 使用规则
-
-1. **orderId 必须存在** — 引用的 order 必须在 `.repochan/orders/` 中存在且已交付。
-2. **file 必须精确匹配** — 用 `page.check_assets` 确认文件名，包括扩展名。
-3. **versionId 可省略** — 省略时自动用 order 的 currentVersion。
-4. **alt 必须有意义** — 不要写 "image" 或 "photo"，要描述内容，如 "Rael 在观察相位谱"。
-
-## 页面结构决策指南
-
-| 情况 | 推荐 section 组合 |
-|------|------------------|
-| 有角色立绘 + 开源项目 | navbar(with-cta) → hero(split-right) → stats(row) → features(grid-3) → cta(centered) → footer(standard) |
-| 只有 icon + 工具类项目 | navbar(simple) → hero(centered) → features(grid-2) → cta(centered) → footer(minimal) |
-| 有多张角色素材 + 品牌展示 | navbar(with-cta) → hero(full-bg) → gallery(grid) → stats(grid) → cta(banner) → footer(standard) |
-| 角色设定集展示 | navbar(simple) → hero(centered) → gallery(masonry) → footer(standard) |
+输出 `.repochan/pages/site/index.html`。
 
 ## 文案撰写原则
 
-1. **hero headline 不超过 10 个字** — 简短有力，通常是项目名 + 核心价值。
-2. **features 每条 2-3 句** — 不要写说明书，写「为什么这个功能重要」。
-3. **stats 数字要真实** — 从 analysis 里找，没有就不放 stats section。
-4. **CTA 要具体** — 不用 "Learn More"，用 "查看文档"、"开始试用"、"Star on GitHub"。
-5. **中文项目用中文文案，英文项目用英文文案** — 跟随项目 README 语言。
+1. **hero headline 是项目价值** — 不是角色口号，不是技术术语。如 "把仓库变成看板娘"，不是 "Rael 的相位观测站"。
+2. **features 写项目功能** — 从 README 提取，每条 2-3 句，写「为什么这个功能重要」。
+3. **stats 展示项目数据** — 文件数、测试数、技术栈。不是角色年龄或生日。
+4. **CTA 面向项目** — "Star on GitHub"、"查看文档"、"开始使用"。不是 "见见 Rael"。
+5. **跟随 README 语言** — 中文 README → 中文文案，英文 README → 英文文案。
+
+## 页面结构决策指南
+
+| 项目类型 | 推荐 section 组合 |
+|---|---|
+| 开源工具/库 | navbar → hero(centered) → features(grid-3) → stats(row) → cta(centered) → footer(minimal) |
+| 有角色插画的创意项目 | navbar → hero(split-right) → features(grid-3) → stats(row) → cta(centered) → footer(standard) |
+| 纯技术框架 | navbar(simple) → hero(centered) → features(grid-2) → cta(centered) → footer(minimal) |
+| 有多张角色衍生素材 | navbar → hero(centered) → features(grid-3) → gallery(grid) → cta(banner) → footer(standard) |
 
 ## 常见陷阱
 
-- ❌ 在 hero 里堆砌技术名词——hero 是价值主张，不是 feature list
-- ❌ gallery 图片尺寸差异太大——gallery 最适合统一尺寸的图片，大小不一用 masonry
-- ❌ theme 配色跟 persona 完全无关——theme 的 primary 应该是 persona 的 mainColor
-- ❌ section 太多——5-7 个 section 最佳，超过 7 个考虑拆分
-- ❌ 创建了订单但没等交付就渲染——page.render 会报错拒绝执行
+- ❌ 把页面做成角色展示页——这是**项目落地页**，角色只是品牌点缀
+- ❌ 在 hero 里放角色设定图——设定图不是 hero illustration
+- ❌ features/stats 写角色人设——这些 section 展示**项目**的功能和数据
+- ❌ hero headline 用角色口头禅——用项目的价值主张
+- ❌ section 太多——5-7 个 section 最佳
+- ❌ 创建了订单但没等交付就渲染——page.render 会报错
