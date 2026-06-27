@@ -34,6 +34,34 @@ const ASPECT_TO_SIZE: Record<string, string> = {
   portrait: "1024x1536",
 };
 
+/**
+ * Codex/OpenAI gpt-image models only accept these exact sizes.
+ * Given desired width/height, snap to the closest supported size.
+ */
+const SUPPORTED_SIZES = [
+  { w: 1024, h: 1024, label: "1024x1024" },   // square
+  { w: 1536, h: 1024, label: "1536x1024" },   // landscape
+  { w: 1024, h: 1536, label: "1024x1536" },   // portrait
+];
+
+function resolveSize(width?: number, height?: number, aspectRatio?: string): string {
+  if (width && height) {
+    // Find closest supported size by comparing aspect ratios
+    const targetRatio = width / height;
+    let best = SUPPORTED_SIZES[0];
+    let bestDiff = Infinity;
+    for (const s of SUPPORTED_SIZES) {
+      const diff = Math.abs(s.w / s.h - targetRatio);
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        best = s;
+      }
+    }
+    return best.label;
+  }
+  return ASPECT_TO_SIZE[aspectRatio ?? "square"] ?? "1024x1024";
+}
+
 // ---------------------------------------------------------------------------
 // Model catalog
 // ---------------------------------------------------------------------------
@@ -256,7 +284,7 @@ export class CodexOAuthProvider implements ImageGenProvider {
 
       const accountId = extractChatGptAccountId(token);
       const outputFormat = params.outputFormat ?? "png";
-      const size = ASPECT_TO_SIZE[params.aspectRatio] ?? "1024x1024";
+      const size = resolveSize(params.width, params.height, params.aspectRatio);
 
       // --- Build input content (text + optional reference images) ---
       const content: Array<Record<string, unknown>> = [

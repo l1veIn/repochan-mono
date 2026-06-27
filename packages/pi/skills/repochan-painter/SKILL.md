@@ -192,12 +192,29 @@ Rules:
 
 ## 输出规格解析
 
-在调用 `image_generate` 前解析输出规格：
+在调用 `image_generate` 前解析输出规格，**必须同时传递精确尺寸和宽高比**：
 
 1. 如果用户为本次执行给出了明确的尺寸/宽高比指令，使用它（除非不安全或不可能）。
 2. 否则如果有模板，使用模板的 `width`、`height`、和 `aspectRatio`/`aspect_ratio`。
-3. 否则使用任务第一个 deliverable 的 `aspectRatio`；如果没有，从 `width` 和 `height` 推断。
-4. 将解析出的宽高比映射到 `image_generate.aspectRatio`：`1:1` 或宽高相等 → `square`；宽大于高 → `landscape`；高大于宽 → `portrait`。
+3. 否则使用任务第一个 deliverable 的 `width`、`height`、`aspectRatio`。
+4. 将解析出的尺寸映射到 `image_generate` 参数：
+   - `width` 和 `height`：精确像素值（如 `1024`、`1200`、`800`）。**两个都传。**
+   - `aspectRatio`：`1:1` 或宽高相等 → `square`；宽大于高 → `landscape`；高大于宽 → `portrait`。**也必须传，作为不支持精确尺寸的 provider 的降级。**
+
+**关键：必须同时传 width+height 和 aspectRatio。** 原因：
+- FAL 等 provider 支持任意精确尺寸，直接用 width/height → 输出比例精确匹配
+- OpenAI/Codex/xAI 不支持任意尺寸，但有 width/height 时会自动 snap 到最接近的支持尺寸（比只传 aspectRatio 更准确）
+- 如果只传 aspectRatio 不传 width/height，只有 3 档粗粒度选择（landscape=3:2, square=1:1, portrait=2:3）
+
+调用示例：
+```json
+{
+  "prompt": "<组装的 prompt>",
+  "width": 1024,
+  "height": 1024,
+  "aspectRatio": "square"
+}
+```
 
 不要为设定集封面发明特殊宽高比规则。设定集封面和所有其他任务一样遵循其模板。
 
@@ -239,6 +256,8 @@ Rules:
 ```json
 {
   "prompt": "<你组装的 persona + order + template prompt>",
+  "width": <解析出的宽度>,
+  "height": <解析出的高度>,
   "aspectRatio": "landscape" | "square" | "portrait"
 }
 ```
