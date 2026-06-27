@@ -1,6 +1,6 @@
 ---
 name: repochan-protocol
-description: `.repochan` 工作区协议详细规范，涵盖分析、人设、任务、任务结果版本及安全更新规则。
+description: ".repochan 工作区协议详细规范，涵盖分析、人设、任务、任务结果版本及安全更新规则。"
 ---
 
 # `.repochan/` 协议
