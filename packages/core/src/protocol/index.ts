@@ -66,6 +66,7 @@ export async function initProtocol(projectRoot: string) {
     path.join(r, "interview", "versions"),
     path.join(r, "persona", "versions"),
     path.join(r, "orders"),
+    path.join(r, "pages", "versions"),
   ];
   await Promise.all(dirs.map((dir) => fs.mkdir(dir, { recursive: true })));
 }
@@ -115,6 +116,12 @@ export async function inspectProtocol(projectRoot: string) {
   } catch {
     summary.orders = [];
     summary.orderVersions = {};
+  }
+  summary.page = await exists(path.join(r, "pages", "current.json"));
+  try {
+    summary.pageVersions = (await fs.readdir(path.join(r, "pages", "versions"))).filter((f) => f.endsWith(".json"));
+  } catch {
+    summary.pageVersions = [];
   }
   summary.assets = [];
   return summary;
@@ -183,5 +190,16 @@ export async function requireInterview(projectRoot: string) {
 /** Check whether an interview report exists, without throwing. */
 export async function hasInterview(projectRoot: string) {
   const file = path.join(protocolRoot(projectRoot), "interview", "current.json");
+  return exists(file);
+}
+
+export async function requirePage(projectRoot: string) {
+  const file = path.join(protocolRoot(projectRoot), "pages", "current.json");
+  if (!(await exists(file))) throw new Error("Missing .repochan/pages/current.json. Use action='page.create' first.");
+}
+
+/** Check whether a page artifact exists, without throwing. */
+export async function hasPage(projectRoot: string) {
+  const file = path.join(protocolRoot(projectRoot), "pages", "current.json");
   return exists(file);
 }
