@@ -9,7 +9,7 @@ import {
   listOrderResults,
   readOrderResult,
   setOrderStatus,
-} from '../src/entities.js';
+} from '../src/entities/index.js';
 import { initProtocol } from '../src/protocol/index.js';
 
 describe('entities (core business operations)', () => {

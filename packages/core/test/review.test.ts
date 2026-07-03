@@ -3,11 +3,11 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 
-import { createReview } from '../src/entities.js';
-import { createOrders, setOrderStatus, createOrderResult } from '../src/entities.js';
+import { createReview } from '../src/entities/index.js';
+import { createOrders, setOrderStatus, createOrderResult } from '../src/entities/index.js';
 import { initProtocol } from '../src/protocol/index.js';
 import { reviewJsonPath } from '../src/protocol/index.js';
-import { readOrder } from '../src/entities.js';
+import { readOrder } from '../src/entities/index.js';
 
 describe('review entity', () => {
   let tmpRoot: string;

@@ -7,8 +7,8 @@ import {
   checkPageAssets,
   collectAssetRefs,
   readPage,
-} from '../src/entities.js';
-import { createOrders, setOrderStatus, createOrderResult } from '../src/entities.js';
+} from '../src/entities/index.js';
+import { createOrders, setOrderStatus, createOrderResult } from '../src/entities/index.js';
 import { initProtocol } from '../src/protocol/index.js';
 import type { PageData } from '../src/types.js';
 

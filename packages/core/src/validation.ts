@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { listOrders, listOrderResults } from "./entities.js";
+import { listOrders, listOrderResults } from "./entities/index.js";
 import { exists, inspectProtocol, orderJsonPath, orderVersionDir, protocolRoot, readJson } from "./protocol/index.js";
 import { isPlainObject, isValidOrderStatus, validateOrderId } from "./utils/index.js";
 

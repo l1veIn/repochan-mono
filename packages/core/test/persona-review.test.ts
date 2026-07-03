@@ -3,7 +3,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 
-import { createPersonaReview } from '../src/entities.js';
+import { createPersonaReview } from '../src/entities/index.js';
 import { initProtocol } from '../src/protocol/index.js';
 import { personaReviewPath, personaReviewVersionsDir } from '../src/protocol/index.js';
 

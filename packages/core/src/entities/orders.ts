@@ -1,45 +1,33 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import type { AssetOrder, AssetRef, InterviewQuestion, InterviewReport, InterviewResponse, JsonObject, OrderReference, OrderResultVersion, OrderStatus, PageData, PageSection, PersonaReviewArtifact, PersonaReviewVerdict, ReviewArtifact, ReviewVerdict, VersionRole } from "./types.js";
+import type { AssetOrder, JsonObject, OrderReference, OrderResultVersion, OrderStatus, VersionRole } from "../types.js";
 import {
   exists,
   initProtocol,
   orderJsonPath,
   orderVersionDir,
   orderVersionsDir,
-  personaReviewPath,
-  personaReviewVersionsDir,
   protocolRoot,
   readJson,
   readJsonIfExists,
   relativeProtocolPath,
   requireAnalysis,
   requirePersona,
-  requirePage,
-  reviewJsonPath,
-  reviewVersionsDir,
   stamp,
   stampForPath,
   writeJson,
-} from "./protocol/index.js";
-import { validateInput } from "./validate.js";
+} from "../protocol/index.js";
+import { validateInput } from "../validate.js";
 import {
-  InterviewAppendParamsSchema,
-  InterviewCreateParamsSchema,
+  OrderAddRevisionParamsSchema,
+  OrderCreateCandidateParamsSchema,
   OrderCreateParamsSchema,
   OrderCreateResultParamsSchema,
-  OrderCreateCandidateParamsSchema,
   OrderPromoteCandidateParamsSchema,
-  OrderAddRevisionParamsSchema,
   OrderSetCurrentResultParamsSchema,
   OrderSetStatusParamsSchema,
   OrderUpdateParamsSchema,
-  PageCreateParamsSchema,
-  PersonaCreateParamsSchema,
-  PersonaReviewCreateParamsSchema,
-  PersonaUpdateParamsSchema,
-  ReviewCreateParamsSchema,
-} from "./schemas/index.js";
+} from "../schemas/index.js";
 import {
   deepMerge,
   isFoundationAssetType,
@@ -51,136 +39,8 @@ import {
   requireValidStatus,
   validateOrderId,
   validateVersionId,
-} from "./utils/index.js";
-
-export async function readOrder(projectRoot: string, orderId: string) {
-  return readJson(orderJsonPath(projectRoot, validateOrderId(orderId)));
-}
-
-export async function ensureOrderApprovedForExecution(projectRoot: string, orderId: string, allowUnapproved: boolean) {
-  const id = validateOrderId(orderId);
-  const order = await readOrder(projectRoot, id);
-  if (!allowUnapproved && !["approved", "in_progress"].includes(String(order.status ?? ""))) {
-    throw new Error(
-      `Order ${id} is not approved/in_progress (status=${order.status ?? "missing"}). ` +
-        "Call repochan action='order.get' or 'order.list' for the pre-check, then obtain user approval or pass allowUnapprovedOrder=true only after explicit approval.",
-    );
-  }
-  return order;
-}
-
-export async function createOrUpdatePersona(projectRoot: string, params: JsonObject, mode: "create" | "update") {
-  const schemaName = mode === "create" ? "persona.create" : "persona.update";
-  validateInput(schemaName, mode === "create" ? PersonaCreateParamsSchema : PersonaUpdateParamsSchema, params);
-  await initProtocol(projectRoot);
-  await requireAnalysis(projectRoot);
-  if (!isPlainObject(params.persona)) throw new Error("params.persona is required and must be an object.");
-  const current = path.join(protocolRoot(projectRoot), "persona", "current.json");
-  const currentExists = await exists(current);
-  const overwrite = params.overwrite === true;
-  const versionPrevious = params.versionPrevious !== false;
-  if (mode === "create" && currentExists && !overwrite) {
-    throw new Error(".repochan/persona/current.json already exists. Use persona.get, or ask the user before persona.create with overwrite=true.");
-  }
-  if (mode === "update") {
-    if (!currentExists) throw new Error("Missing .repochan/persona/current.json. Use persona.create first.");
-    if (!overwrite) throw new Error("persona.update replaces current persona and requires params.overwrite=true after explicit user approval.");
-  }
-  const ts = stampForPath();
-  if (currentExists && overwrite && versionPrevious) {
-    await writeJson(path.join(protocolRoot(projectRoot), "persona", "versions", `${ts}-previous.json`), await readJson(current), false);
-  }
-  const provenance = params.persona.provenance ?? params.provenance ?? { tool: "repochan", action: `persona.${mode}` };
-  const data = { ...params.persona, schemaVersion: "repochan.persona.v1", generatedAt: stamp(), provenance };
-  const slug = typeof params.slug === "string" ? params.slug : "persona";
-  if (!/^[a-z0-9-]+$/.test(slug)) throw new Error("slug must match ^[a-z0-9-]+$.");
-  const versionName = `${ts}-${slug}.json`;
-  await writeJson(path.join(protocolRoot(projectRoot), "persona", "versions", versionName), data, false);
-  await writeJson(current, data, currentExists || overwrite);
-  return { versionName, data };
-}
-
-// ---------------------------------------------------------------------------
-// Interview report
-// ---------------------------------------------------------------------------
-
-export async function createOrUpdateInterview(projectRoot: string, params: JsonObject) {
-  validateInput("interview.create", InterviewCreateParamsSchema, params);
-  await initProtocol(projectRoot);
-  await requireAnalysis(projectRoot);
-  if (!isPlainObject(params.interview)) throw new Error("params.interview is required and must be an object.");
-  const current = path.join(protocolRoot(projectRoot), "interview", "current.json");
-  const currentExists = await exists(current);
-  const overwrite = params.overwrite === true;
-  const versionPrevious = params.versionPrevious !== false;
-  if (currentExists && !overwrite) {
-    throw new Error(".repochan/interview/current.json already exists. Use interview.get, or ask the user before interview.create with overwrite=true.");
-  }
-  const ts = stampForPath();
-  if (currentExists && overwrite && versionPrevious) {
-    await writeJson(path.join(protocolRoot(projectRoot), "interview", "versions", `${ts}-previous.json`), await readJson(current), false);
-  }
-  const provenance = params.interview.provenance ?? params.provenance ?? { tool: "repochan", action: "interview.create" };
-  const data: InterviewReport = {
-    ...(params.interview as InterviewReport),
-    schemaVersion: "repochan.interview.v1",
-    generatedAt: stamp(),
-    provenance,
-  };
-  const slug = typeof params.slug === "string" ? params.slug : "interview";
-  if (!/^[a-z0-9-]+$/.test(slug)) throw new Error("slug must match ^[a-z0-9-]+$.");
-  const versionName = `${ts}-${slug}.json`;
-  await writeJson(path.join(protocolRoot(projectRoot), "interview", "versions", versionName), data, false);
-  await writeJson(current, data, currentExists || overwrite);
-  return { versionName, data };
-}
-
-export async function appendToInterview(projectRoot: string, params: JsonObject) {
-  validateInput("interview.append", InterviewAppendParamsSchema, params);
-  await initProtocol(projectRoot);
-  await requireAnalysis(projectRoot);
-  const current = path.join(protocolRoot(projectRoot), "interview", "current.json");
-  if (!(await exists(current))) throw new Error("Missing .repochan/interview/current.json. Use interview.create first.");
-
-  const existing = (await readJson(current)) as InterviewReport;
-  const ts = stampForPath();
-
-  // Archive the pre-append state
-  const slug = typeof params.slug === "string" ? params.slug : "appended";
-  if (!/^[a-z0-9-]+$/.test(slug)) throw new Error("slug must match ^[a-z0-9-]+$.");
-  const archiveName = `${ts}-${slug}-previous.json`;
-  await writeJson(path.join(protocolRoot(projectRoot), "interview", "versions", archiveName), existing, false);
-
-  // Merge: append questions/responses, replace summary fields
-  const merged: InterviewReport = {
-    ...existing,
-    questions: [
-      ...(existing.questions ?? []),
-      ...((Array.isArray(params.questions) ? params.questions : []) as InterviewQuestion[]),
-    ],
-    responses: [
-      ...(existing.responses ?? []),
-      ...((Array.isArray(params.responses) ? params.responses : []) as InterviewResponse[]),
-    ],
-    summary: typeof params.summary === "string" ? params.summary : existing.summary,
-    keyConstraints: Array.isArray(params.keyConstraints)
-      ? (params.keyConstraints as string[])
-      : existing.keyConstraints ?? [],
-    preferences: Array.isArray(params.preferences)
-      ? (params.preferences as string[])
-      : existing.preferences ?? [],
-    avoidList: Array.isArray(params.avoidList)
-      ? (params.avoidList as string[])
-      : existing.avoidList ?? [],
-    generatedAt: stamp(),
-    provenance: params.provenance ?? { tool: "repochan", action: "interview.append" },
-  };
-
-  const versionName = `${ts}-${slug}.json`;
-  await writeJson(path.join(protocolRoot(projectRoot), "interview", "versions", versionName), merged, false);
-  await writeJson(current, merged, true);
-  return { versionName, data: merged };
-}
+} from "../utils/index.js";
+import { readOrder, ensureOrderApprovedForExecution, IMAGE_EXTENSIONS } from "./shared.js";
 
 export async function createOrders(projectRoot: string, params: JsonObject) {
   validateInput("order.create", OrderCreateParamsSchema, params);
@@ -584,8 +444,6 @@ export async function setCurrentOrderResult(projectRoot: string, orderId: string
 // Visual anchor (foundation sheet) + reference resolution
 // ---------------------------------------------------------------------------
 
-const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"];
-
 /**
  * Find the project's foundation sheet order — the visual anchor for all
  * downstream assets. Returns the first delivered order whose assetType is a
@@ -648,317 +506,4 @@ export async function resolveOrderReferences(
     resolved.push({ role: ref.role, orderId: ref.orderId, versionId, files });
   }
   return resolved;
-}
-
-// ---------------------------------------------------------------------------
-// Page entity (static page generation)
-// ---------------------------------------------------------------------------
-
-export async function createOrUpdatePage(projectRoot: string, params: JsonObject) {
-  validateInput("page.create", PageCreateParamsSchema, params);
-  await initProtocol(projectRoot);
-  await requireAnalysis(projectRoot);
-
-  if (!isPlainObject(params.page)) throw new Error("params.page is required and must be an object.");
-  const current = path.join(protocolRoot(projectRoot), "pages", "current.json");
-  const currentExists = await exists(current);
-  const overwrite = params.overwrite === true;
-  const versionPrevious = params.versionPrevious !== false;
-  if (currentExists && !overwrite) {
-    throw new Error(".repochan/pages/current.json already exists. Use page.get, or ask the user before page.create with overwrite=true.");
-  }
-
-  const ts = stampForPath();
-  if (currentExists && overwrite && versionPrevious) {
-    await writeJson(path.join(protocolRoot(projectRoot), "pages", "versions", `${ts}-previous.json`), await readJson(current), false);
-  }
-
-  const provenance = params.page.provenance ?? params.provenance ?? { tool: "repochan", action: "page.create" };
-  const data: PageData = {
-    ...(params.page as PageData),
-    schemaVersion: "repochan.page.v1",
-    generatedAt: stamp(),
-    provenance,
-  };
-
-  const slug = typeof params.slug === "string" ? params.slug : "page";
-  if (!/^[a-z0-9-]+$/.test(slug)) throw new Error("slug must match ^[a-z0-9-]+$.");
-  const versionName = `${ts}-${slug}.json`;
-  await writeJson(path.join(protocolRoot(projectRoot), "pages", "versions", versionName), data, false);
-  await writeJson(current, data, currentExists || overwrite);
-  return { versionName, data };
-}
-
-// ---------------------------------------------------------------------------
-// Page asset reference checking
-// ---------------------------------------------------------------------------
-
-export type AssetResolution = {
-  ref: AssetRef;
-  exists: boolean;
-  resolvedPath?: string;
-  error?: string;
-};
-
-export type AssetCheckResult = {
-  ok: boolean;
-  total: number;
-  resolved: AssetResolution[];
-  missing: AssetResolution[];
-};
-
-/**
- * Extract all AssetRefs from a page's sections.
- * Walks every section type and collects image references.
- */
-export function collectAssetRefs(sections: PageSection[]): AssetRef[] {
-  const refs: AssetRef[] = [];
-  for (const s of sections) {
-    switch (s.type) {
-      case "hero":
-        if (s.content.image) refs.push(s.content.image);
-        break;
-      case "gallery":
-        refs.push(...s.content.images);
-        break;
-      case "features":
-        for (const item of s.content.items) {
-          if (item.image) refs.push(item.image);
-        }
-        break;
-      case "footer":
-        if (s.content.logo) refs.push(s.content.logo);
-        break;
-    }
-  }
-  return refs;
-}
-
-/**
- * Check whether all image assets referenced by a page are resolvable.
- *
- * For each AssetRef:
- *  1. Read the referenced order
- *  2. Determine versionId (explicit or currentVersion)
- *  3. Check the version directory exists
- *  4. Check the specific file exists in that directory
- *
- * Returns ok=false if any asset is missing, with detailed error messages
- * that include available files for guided correction.
- */
-export async function checkPageAssets(
-  projectRoot: string,
-  page: PageData,
-): Promise<AssetCheckResult> {
-  const refs = collectAssetRefs(page.sections);
-  const resolved: AssetResolution[] = [];
-  const missing: AssetResolution[] = [];
-
-  for (const ref of refs) {
-    // 1. Read order
-    const order = await readOrder(projectRoot, ref.orderId).catch(() => null);
-    if (!order) {
-      missing.push({
-        ref,
-        exists: false,
-        error: `order '${ref.orderId}' not found`,
-      });
-      continue;
-    }
-
-    // 2. Resolve versionId
-    const versionId = ref.versionId ?? order.currentVersion;
-    if (!versionId) {
-      missing.push({
-        ref,
-        exists: false,
-        error: `order '${ref.orderId}' has no currentVersion and no versionId specified`,
-      });
-      continue;
-    }
-
-    // 3. Check version directory exists
-    const dir = orderVersionDir(projectRoot, ref.orderId, versionId);
-    if (!(await exists(dir))) {
-      missing.push({
-        ref,
-        exists: false,
-        error: `order '${ref.orderId}' has no result version '${versionId}'`,
-      });
-      continue;
-    }
-
-    // 4. Check file exists in version directory
-    const filePath = path.join(dir, ref.file);
-    if (!(await exists(filePath))) {
-      const available = (await fs.readdir(dir).catch(() => []))
-        .filter((f) => IMAGE_EXTENSIONS.includes(path.extname(f).toLowerCase()));
-      missing.push({
-        ref,
-        exists: false,
-        error: `file '${ref.file}' not found in ${ref.orderId}/${versionId}/. Available image files: [${available.join(", ")}]`,
-      });
-      continue;
-    }
-
-    resolved.push({ ref, exists: true, resolvedPath: filePath });
-  }
-
-  return {
-    ok: missing.length === 0,
-    total: refs.length,
-    resolved,
-    missing,
-  };
-}
-
-/**
- * Read the current page artifact.
- */
-export async function readPage(projectRoot: string): Promise<PageData | undefined> {
-  const file = path.join(protocolRoot(projectRoot), "pages", "current.json");
-  if (!(await exists(file))) return undefined;
-  return readJson(file) as Promise<PageData>;
-}
-
-// ---------------------------------------------------------------------------
-// Review — post-hoc evaluation of a delivered order result version.
-// Non-blocking: created AFTER delivery, never before. A revise/reject verdict
-// pushes a delivered order back to needs_revision.
-// ---------------------------------------------------------------------------
-
-/**
- * Check whether an order result version exists (either as a directory under
- * versions/ or embedded in order.orderAsset.versions). Used by createReview
- * to refuse reviewing a non-existent delivery.
- */
-async function orderResultExists(projectRoot: string, orderId: string, order: AssetOrder, versionId: string): Promise<boolean> {
-  // Fast path: check embedded versions first (createOrderResult stores them here)
-  const embedded = order.orderAsset?.versions;
-  if (Array.isArray(embedded) && embedded.some((v: any) => v.versionId === versionId)) return true;
-  // Fallback: check filesystem
-  return exists(orderVersionDir(projectRoot, orderId, versionId));
-}
-
-export async function createReview(projectRoot: string, params: JsonObject) {
-  validateInput("review.create", ReviewCreateParamsSchema, params);
-  await initProtocol(projectRoot);
-  await requireAnalysis(projectRoot);
-
-  const orderId = validateOrderId(String(params.orderId ?? ""));
-  const versionId = validateVersionId(String(params.versionId ?? ""));
-  const verdict = String(params.verdict ?? "") as ReviewVerdict;
-
-  // The order must exist.
-  const orderFile = orderJsonPath(projectRoot, orderId);
-  if (!(await exists(orderFile))) {
-    throw new Error(`Cannot review: order ${orderId} does not exist.`);
-  }
-  const order: AssetOrder = await readJson(orderFile);
-
-  // The reviewed version must exist — can't review a non-existent delivery.
-  if (!(await orderResultExists(projectRoot, orderId, order, versionId))) {
-    throw new Error(
-      `Cannot review: order ${orderId} has no result version '${versionId}'. ` +
-        "Only delivered result versions can be reviewed.",
-    );
-  }
-
-  // Overwrite guard — mirror the page/persona pattern.
-  const reviewFile = reviewJsonPath(projectRoot, orderId, versionId);
-  const reviewExists = await exists(reviewFile);
-  const overwrite = params.overwrite === true;
-  if (reviewExists && !overwrite) {
-    throw new Error(
-      `Review for ${orderId}/${versionId} already exists. Use protocol.read to view it, or pass overwrite=true to replace (the prior review will be archived).`,
-    );
-  }
-
-  // Archive prior review before overwriting (versionPrevious defaults to true).
-  const ts = stampForPath();
-  if (reviewExists && overwrite) {
-    const archivePath = path.join(reviewVersionsDir(projectRoot, orderId), `${ts}-${versionId}-previous.json`);
-    await writeJson(archivePath, await readJson(reviewFile), false);
-  }
-
-  // Build the review artifact.
-  const provenance = params.provenance ?? { tool: "repochan", action: "review.create" };
-  const data: ReviewArtifact = {
-    orderId,
-    versionId,
-    verdict,
-    ...(Array.isArray(params.criteriaResults) ? { criteriaResults: params.criteriaResults } : {}),
-    ...(typeof params.notes === "string" ? { notes: params.notes } : {}),
-    ...(typeof params.reviewerRole === "string" ? { reviewerRole: params.reviewerRole } : {}),
-    schemaVersion: "repochan.review.v1",
-    generatedAt: stamp(),
-    provenance,
-  };
-  await writeJson(reviewFile, data, reviewExists ? overwrite : false);
-
-  // Verdict side-effect: a non-pass verdict on a DELIVERED order pushes it
-  // back to needs_revision, mirroring how addRevision works. Other statuses
-  // (draft/in_progress/cancelled) are left untouched — they haven't been
-  // "finalized" yet, so a review can't unwind them.
-  const next: AssetOrder = { ...order };
-  let statusChanged = false;
-  if (verdict !== "pass" && String(next.status ?? "") === "delivered") {
-    next.revisions = Array.isArray(next.revisions) ? next.revisions : [];
-    const reason = typeof params.notes === "string" && params.notes.trim()
-      ? params.notes.trim()
-      : `Review verdict: ${verdict} for version ${versionId}`;
-    next.revisions.push({ requestedAt: stamp(), request: reason, status: "draft" });
-    next.status = "needs_revision";
-    next.updatedAt = stamp();
-    statusChanged = true;
-    await writeJson(orderFile, next, true);
-  }
-
-  return { review: data, order: next, statusChanged };
-}
-
-// ---------------------------------------------------------------------------
-// Persona review — feedback on the current persona.
-// Persona has no state machine, so this is a pure feedback record. The creative
-// team reads it and re-runs persona generation when verdict=revise.
-// ---------------------------------------------------------------------------
-
-export async function createPersonaReview(projectRoot: string, params: JsonObject) {
-  validateInput("persona.review", PersonaReviewCreateParamsSchema, params);
-  await initProtocol(projectRoot);
-  await requireAnalysis(projectRoot);
-  await requirePersona(projectRoot);
-
-  const verdict = String(params.verdict ?? "") as PersonaReviewVerdict;
-  const notes = typeof params.notes === "string" ? params.notes.trim() : "";
-  if (!notes) throw new Error("persona.review: notes is required and must be non-empty.");
-
-  const reviewFile = personaReviewPath(projectRoot);
-  const reviewExists = await exists(reviewFile);
-  const overwrite = params.overwrite === true;
-  if (reviewExists && !overwrite) {
-    throw new Error(
-      "Persona review already exists. Use protocol.read to view it (artifactPath='persona/reviews/current.json'), or pass overwrite=true to replace (the prior review will be archived).",
-    );
-  }
-
-  // Archive prior review before overwriting.
-  const ts = stampForPath();
-  if (reviewExists && overwrite) {
-    const archivePath = path.join(personaReviewVersionsDir(projectRoot), `${ts}-previous.json`);
-    await writeJson(archivePath, await readJson(reviewFile), false);
-  }
-
-  const provenance = params.provenance ?? { tool: "repochan", action: "persona.review" };
-  const data: PersonaReviewArtifact = {
-    verdict,
-    notes,
-    ...(typeof params.reviewerRole === "string" ? { reviewerRole: params.reviewerRole } : {}),
-    schemaVersion: "repochan.persona-review.v1",
-    generatedAt: stamp(),
-    provenance,
-  };
-  await writeJson(reviewFile, data, reviewExists ? overwrite : false);
-
-  return { review: data };
 }

@@ -11,8 +11,8 @@ import {
   promoteCandidate,
   listOrderResults,
   readOrder,
-} from '../src/entities.js';
-import { createReview } from '../src/entities.js';
+} from '../src/entities/index.js';
+import { createReview } from '../src/entities/index.js';
 import { initProtocol } from '../src/protocol/index.js';
 
 describe('candidate state', () => {

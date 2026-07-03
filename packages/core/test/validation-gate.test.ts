@@ -9,7 +9,7 @@ import {
   addOrderRevision,
   createOrderResult,
   setCurrentOrderResult,
-} from "../src/entities.js";
+} from "../src/entities/index.js";
 import { initProtocol } from "../src/protocol/index.js";
 import { validateInput, ValidationError } from "../src/validate.js";
 import { PersonaCreateParamsSchema, OrderSetStatusParamsSchema } from "../src/schemas/index.js";
