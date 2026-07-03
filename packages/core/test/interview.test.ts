@@ -5,7 +5,7 @@ import os from "node:os";
 import {
   createOrUpdateInterview,
   appendToInterview,
-} from "../src/entities.js";
+} from "../src/entities/index.js";
 import { initProtocol } from "../src/protocol/index.js";
 import { hasInterview, requireInterview } from "../src/protocol/index.js";
 

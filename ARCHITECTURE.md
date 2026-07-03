@@ -1,7 +1,7 @@
 # RepoChan 架构说明
 
 > 本文档定义 RepoChan 的架构本质、分层结构、与同类系统的关系，以及已知的架构缺口。
-> 它是后续所有功能决策（候选态、评审 artifact、失效传播等）的共同前提。
+> 它是后续所有功能决策（候选态、评审 artifact 等）的共同前提。
 > 所有论断都落到具体代码引用上，便于核对。
 
 ---
@@ -150,7 +150,7 @@ RepoChan 的数据模型是 production tracking 系统的本地化、LLM-native 
 
 **RepoChan 做得更精细的地方**：同时保存原始 prompt 和修订 prompt，相当于 render manifest。这是 LLM-native 管线特有的，传统 production tracking 只存最终文件。
 
-**RepoChan 目前缺失的（见第五节）**：候选态（多 version 并行 review）、评审 artifact（review session）、失效传播（dependency graph）。
+**RepoChan 目前缺失的（见第五节）**：失效传播（dependency graph，已评估为刻意不解决——见第五节）。
 
 ---
 
@@ -224,15 +224,13 @@ cli ──┬──> pi ──┬──> core
 
 ### 剩余缺口
 
-#### 缺口 3：失效传播（stale propagation）缺失
+#### 已知边界：失效传播（stale propagation）— 刻意不解决
 
-**现状**：persona 改了 → 依赖它的 order brief 可能过时 → page 又引用了 order 的 result。`collectAssetRefs` / `checkPageAssets`（`entities.ts:607` / `642`）能正向解析 page 对 order result 的引用，但**没有反向 stale 标记**——改上游不会让下游自动失效。
+**场景**：persona 改了 → 依赖它的 order brief 可能过时 → page 又引用了 order 的 result。`collectAssetRefs` / `checkPageAssets`（`entities.ts:607` / `642`）能正向解析 page 对 order result 的引用，但**没有反向 stale 标记**——改上游不会让下游自动失效。
 
-**问题**：长期项目累积"幽灵不一致"。用户以为下游是最新的，其实引用了过时上游。
+**工业界解法**：ShotGrid 用显式 dependency graph + cross-project asset linking，改上游触发下游 stale 标记。
 
-**工业界解法**：ShotGrid 用显式 dependency graph + cross-project asset linking，改上游触发下游 stale 标记。RepoChan 的 `collectAssetRefs`（`entities.ts:607`）能正向解析引用，但缺反向失效标记。
-
-**技术选型待定**：当前 versions/ 存的是快照（整个 JSON），要实现 stale 传播，可能需要从 snapshot 模型升级到 event log 模型（事件溯源），否则只能 diff 两个大 JSON，语义模糊。这是较大的架构演进，需单独设计。
+**刻意不解决的理由**：RepoChan 是**本地优先、单 agent、用户主导**的系统，不是多人协作、长期运行的大型管线。"幽灵不一致"在那种场景里是致命问题，但在 RepoChan 的规模下用户自己能看见上游变化、手动重跑下游。实现 stale 传播需要从 snapshot 模型升级到 event log 模型（事件溯源），成本远超收益。如果未来 RepoChan 演进到多 agent 并行或 CI 集成场景，可重新评估。
 
 #### 缺口 4：Schema 的表达力天花板
 

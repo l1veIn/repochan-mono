@@ -7,7 +7,6 @@ import {
   initProtocol,
   inspectProtocol,
   listJsonFiles,
-  protocolVersionPath,
   readJson,
   relativeProtocolPath,
   root,
@@ -33,7 +32,6 @@ import {
   readOrderResult as coreReadOrderResult,
   readPage as coreReadPage,
   resolveOrderReferences as coreResolveOrderReferences,
-  setCurrentOrderResult as coreSetCurrentOrderResult,
   setOrderStatus as coreSetOrderStatus,
   addOrderRevision as coreAddOrderRevision,
   updateOrder as coreUpdateOrder,
@@ -66,7 +64,6 @@ const ActionSchema = Type.Union([
   Type.Literal("order.add_revision"),
   Type.Literal("order.create_result"),
   Type.Literal("order.list_results"),
-  Type.Literal("order.set_current_result"),
   Type.Literal("order.get_result"),
   Type.Literal("order.resolve_references"),
   Type.Literal("foundation.find"),
@@ -75,7 +72,6 @@ const ActionSchema = Type.Union([
   Type.Literal("protocol.inspect"),
   Type.Literal("protocol.read"),
   Type.Literal("protocol.write"),
-  Type.Literal("protocol.append_version"),
   Type.Literal("page.create"),
   Type.Literal("page.get"),
   Type.Literal("page.check_assets"),
@@ -84,7 +80,8 @@ const ActionSchema = Type.Union([
   Type.Literal("order.create_candidate"),
   Type.Literal("order.promote_candidate"),
   Type.Literal("persona.review"),
-]);
+])
+
 
 const RepoChanSchema = Type.Object({
   action: ActionSchema,
@@ -251,13 +248,6 @@ async function listOrderResults(ctx: ExtensionContext, params: JsonObject) {
     result.results.length ? result.results.map((v) => `${v.versionId}\t${v.createdAt ?? ""}\t${v.files?.length ?? 0} file(s)`).join("\n") : "No order results found.",
     result,
   );
-}
-
-async function setCurrentOrderResult(ctx: ExtensionContext, params: JsonObject) {
-  const orderId = requireOrderId(params);
-  const versionId = requireVersionId(requireString(params, "versionId"));
-  const order = await coreSetCurrentOrderResult(ctx.cwd, orderId, versionId);
-  return ok(`Set ${orderId} currentVersion to ${versionId}.`, order);
 }
 
 async function getOrderResult(ctx: ExtensionContext, params: JsonObject) {
@@ -443,18 +433,6 @@ async function protocolRead(ctx: ExtensionContext, params: JsonObject) {
   return ok(JSON.stringify(data, null, 2), data);
 }
 
-async function protocolAppendVersion(ctx: ExtensionContext, params: JsonObject) {
-  await initProtocol(ctx.cwd);
-  const artifactPath = requireString(params, "artifactPath");
-  const stripped = artifactPath.startsWith(".repochan")
-    ? artifactPath.slice(".repochan".length).replace(/^[/\\]+/, "")
-    : artifactPath.replace(/^[/\\]+/, "");
-  const data = params.data === undefined ? await readJson(safeProtocolPath(ctx.cwd, artifactPath)) : params.data;
-  const versionFile = safeProtocolPath(ctx.cwd, protocolVersionPath(stripped));
-  await writeJson(versionFile, data, false);
-  return ok(`Wrote version ${relativeProtocolPath(ctx.cwd, versionFile)}`, { versionFile: relativeProtocolPath(ctx.cwd, versionFile), data });
-}
-
 export function registerRepoChan(pi: ExtensionAPI) {
   pi.registerTool({
     name: "repochan",
@@ -469,7 +447,7 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "repochan is the single management surface for agents and future dashboards/panels. Prefer it over ad-hoc shell scripts for .repochan reads, writes, version lists, order status changes, revision capture, and deterministic repository analysis.",
       "Safety: repochan refuses blind overwrites. When an action has params.overwrite, set it to true only after explicit user approval. Mutating current artifacts archives prior state where appropriate; keep params.versionPrevious=true unless the user asks otherwise.",
       "Safety: keep provenance. persona.create/persona.update and order.create_result add provenance when absent; pass params.provenance when an external generator, dashboard, or human produced the artifact.",
-      "Safety: protocol paths are constrained to .repochan. protocol.write and protocol.append_version must not be used to bypass entity-specific preconditions unless the user explicitly asks for protocol-level maintenance/migration.",
+      "Safety: protocol paths are constrained to .repochan. protocol.write must not be used to bypass entity-specific preconditions unless the user explicitly asks for protocol-level maintenance/migration.",
       "analysis.run params: optional { analysis, overwrite=false, versionPrevious=true, corePaths, focusAreas, includeSections, maxSampleFiles, maxSampleChars, perFileSampleChars, colorScanLimit, includeFileLists=true }. Runs deterministic file walking, git profile, color extraction, tech-stack detection, docs summary, inventory counts, and desensitized code sampling, then writes .repochan/analysis/current.json. If analysis exists, ask before overwrite=true.",
       "analysis.enrich params: { preAnalysis, abstract }. Merges LLM-generated preAnalysis and abstract dimension analysis into analysis/current.json. Archives the pre-enrichment version first. Do not pass documentLanguage, languageSignals, or nativeLanguage; repository language is localization metadata, not mascot identity. The Analyst must run analysis.run FIRST, then reason over the evidence, then call this action.",
       "analysis.update params: { patch, overwrite=true, versionPrevious=true, reason? }. Deep-merges patch into .repochan/analysis/current.json, archives the previous current by default, and records updatedAt/revisionReason. Use this for user-requested factual analysis corrections. Do not add nativeLanguage or language-derived mascot identity fields.",
@@ -490,7 +468,6 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "order.create_result params: { orderId, files?, versionId?, tool?, promptBrief?, generationPrompt?, revisedPrompt?, notes?, meta?, provenance?, setCurrent=true, overwrite=false, allowUnapprovedOrder=false, markDelivered=true }. Requires analysis, persona, and an approved/in_progress order unless allowUnapprovedOrder=true was explicitly approved. Creates orders/<orderId>/versions/<versionId>/meta.json, copies provided files into that version directory when possible, updates order.currentVersion, and normally marks the order delivered. generationPrompt must be the exact full prompt sent to image_generate; revisedPrompt should be the provider revised prompt when returned. Never store absolute filesystem paths (e.g. image-gen cache paths) in meta — only portable fields like referenceImagesUsed, references, templateId.",
       "order.list_results params: { orderId }. Lists result versions under .repochan/orders/<orderId>/versions/.",
       "order.get_result params: { orderId, versionId? }. Reads a result version meta/files. Without versionId, reads order.currentVersion.",
-      "order.set_current_result params: { orderId, versionId }. Requires an existing result version. Updates order.currentVersion in place.",
       "foundation.find params: {}. Searches for a foundation/cover sheet order (assetType 'foundation_sheet' or 'cover_sheet') that has a delivered result with image files. Returns { orderId, versionId, assetType, files } or null. The Art Director and Painter use this to check whether the project already has a visual anchor before creating or executing downstream orders.",
       "template.list params: optional { tag?, query? }. Lists all available templates (built-in + project-level .repochan/templates/). Each template returns id, label, assetType, aspectRatio, grid info, and tags. Use tag to filter (e.g., tag='sticker') or query to search.",
       "template.get params: { templateId }. Returns the full template definition including dimensions, grid layout, background type, guide tags, and structural constraints. The Painter uses this to know the 'canvas spec' before writing a prompt.",
@@ -502,7 +479,6 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "protocol.inspect params: {}. Inspects .repochan existence, current analysis/persona, analysis/persona versions, order directories, and order result versions without creating or mutating files.",
       "protocol.read params: { artifactPath }. Safely reads a JSON artifact inside .repochan. artifactPath may be '.repochan/analysis/current.json' or a path relative to .repochan.",
       "protocol.write params: { artifactPath, data, overwrite=false }. Safely writes JSON inside .repochan, creating parent directories. Use entity actions first; use protocol.write only for migrations, manifests, or user-directed maintenance. Ask before overwrite=true.",
-      "protocol.append_version params: { artifactPath, data? }. Writes data to the conventional version location for artifactPath. If data is omitted, reads artifactPath and snapshots its current JSON. Never overwrites existing version files.",
       "page.create params: { page, slug?, overwrite=false, versionPrevious=true, provenance? }. Requires analysis. Creates or replaces .repochan/pages/current.json with a Page JSON artifact and writes a versioned copy to pages/versions/. The page object must contain: title, description, theme { primary, secondary, accent, background, style }, and sections (an array of section objects with type+variant+content). If page exists, ask before overwrite=true.",
       "page.get params: optional { versionId }. Without versionId, reads .repochan/pages/current.json. With versionId, reads pages/versions/<versionId>.json.",
       "page.check_assets params: optional { page? }. Without params.page, reads the current page and checks whether all image AssetRefs across all sections are resolvable to actual files in .repochan/orders/. Returns ok=true if all resolved, or lists missing assets with available file suggestions. Use this BEFORE page.render to verify the page is ready.",
@@ -577,8 +553,6 @@ export function registerRepoChan(pi: ExtensionAPI) {
           return createOrderResult(ctx, params);
         case "order.list_results":
           return listOrderResults(ctx, params);
-        case "order.set_current_result":
-          return setCurrentOrderResult(ctx, params);
         case "order.get_result":
           return getOrderResult(ctx, params);
         case "order.resolve_references":
@@ -602,8 +576,6 @@ export function registerRepoChan(pi: ExtensionAPI) {
           await writeJson(file, params.data ?? {}, optionalBoolean(params, "overwrite", false));
           return ok(`Wrote ${artifactPath}`, { artifactPath, path: relativeProtocolPath(ctx.cwd, file) });
         }
-        case "protocol.append_version":
-          return protocolAppendVersion(ctx, params);
         case "page.create":
           return createPage(ctx, params);
         case "page.get":

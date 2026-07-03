@@ -7,8 +7,6 @@ import {
   requireValidStatus,
   validateOrderId,
   validateVersionId,
-  orderIdsFromParams,
-  areOrdersApprovedForExecution,
   ORDER_STATUSES,
 } from '../src/utils/index.js';
 import type { AssetOrder, OrderStatus } from '../src/types.js';
@@ -55,16 +53,5 @@ describe('utils (pure)', () => {
     expect(validateOrderId('ord-abc-123')).toBe('ord-abc-123');
 
     expect(validateVersionId('v1')).toBe('v1');
-  });
-
-  it('orderIdsFromParams collects and validates ids from various param shapes', () => {
-    const ids = orderIdsFromParams({ orderId: 'ord-1', orderIds: ['ord-2', 'ord-3'] });
-    expect(ids).toEqual(['ord-1', 'ord-2', 'ord-3']);
-  });
-
-  it('areOrdersApprovedForExecution respects allowUnapproved', () => {
-    const orders = [{ status: 'approved' }, { status: 'draft' }];
-    expect(areOrdersApprovedForExecution(orders, false)).toBe(false);
-    expect(areOrdersApprovedForExecution(orders, true)).toBe(true);
   });
 });

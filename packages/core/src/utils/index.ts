@@ -72,32 +72,11 @@ export function validateVersionId(versionId: string) {
   return versionId;
 }
 
-export const validateResultVersionId = validateVersionId;
-
-export function orderIdsFromParams(params: JsonObject) {
-  const ids = new Set<string>();
-  if (typeof params.orderId === "string") ids.add(validateOrderId(params.orderId));
-  if (Array.isArray(params.orderIds)) {
-    for (const id of params.orderIds) {
-      if (typeof id === "string") ids.add(validateOrderId(id));
-    }
-  }
-  return [...ids];
-}
-
-export function areOrdersApprovedForExecution(orders: JsonObject[], allowUnapproved: boolean) {
-  return allowUnapproved || orders.every((order) => ["approved", "in_progress"].includes(String(order.status ?? "")));
-}
-
-export function stampProvenance(existing: unknown, fallback: JsonObject) {
-  return existing ?? fallback;
-}
-
 export function isFoundationAssetType(assetType: string): boolean {
   return (FOUNDATION_ASSET_TYPES as readonly string[]).includes(assetType);
 }
 
-export function normalizeReference(ref: unknown): OrderReference {
+function normalizeReference(ref: unknown): OrderReference {
   if (!isPlainObject(ref)) throw new Error("Each reference must be an object with orderId and role.");
   const orderId = ref.orderId;
   const role = ref.role;
