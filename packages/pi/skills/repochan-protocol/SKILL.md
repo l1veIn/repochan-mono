@@ -30,6 +30,9 @@ description: ".repochan 工作区协议详细规范，涵盖分析、人设、�
   persona/
     current.json
     versions/
+    reviews/                〔可选〕persona 评审反馈
+      current.json
+      versions/
   orders/
     <order-id>/
       order.json
@@ -37,13 +40,23 @@ description: ".repochan 工作区协议详细规范，涵盖分析、人设、�
         <version-id>/
           meta.json
           hero.png
+      reviews/              〔可选〕该 order 的按版本评审
+        <version-id>.json
+        versions/
   pages/                    〔可选〕
     current.json
     versions/
     site/                   渲染产物（index.html + assets/）
 ```
 
-`order.json` 包含完整的任务数据、`status` 和 `currentVersion`。结果文件直接保存在所选任务的 `versions/<version-id>/` 目录中。`interview/` 和 `pages/` 是可选产物——只有用户运行相应角色时才会创建。
+`order.json` 包含完整的任务数据、`status` 和 `currentVersion`。结果文件直接保存在所选任务的 `versions/<version-id>/` 目录中。`interview/` 和 `pages/` 是可选产物——只有用户运行相应角色时才会创建。`reviews/` 在首次评审时自动创建。
+
+**version 的 role 字段**：每个 order result version 在 `meta.json` 和 `order.json > orderAsset.versions[]` 中有一个可选的 `role` 字段：
+- `current` — 当前选定的版本（`currentVersion` 指向它），任何时刻只有一个
+- `candidate` — 并存的候选草稿，未被 promote，不改变 order 状态
+- `snapshot` — 被 promote 取代的前任 current，已退役
+
+旧数据无 `role` 字段时按 `current` 处理。
 
 ## 产物依赖
 
@@ -138,6 +151,49 @@ description: ".repochan 工作区协议详细规范，涵盖分析、人设、�
 ```
 
 section 的 `type` × `variant` 组合由 `@repochan/page-renderer` 的模板表定义（navbar/hero/features/stats/gallery/cta/footer，共 7 类 20 个变体）。图片通过 `AssetRef`（`orderId + file + versionId?`）引用已交付的 order 结果，渲染前由 `page.check_assets` 校验是否存在。
+
+### Order 评审（可选）
+
+针对某个 order result version 的事后评审，存放在 `orders/<orderId>/reviews/<versionId>.json`：
+
+```json
+{
+  "orderId": "ord-foundation-001",
+  "versionId": "v1",
+  "verdict": "pass",                    // pass | revise | reject
+  "criteriaResults": [                  // 可选：逐条对照 acceptanceCriteria
+    { "criterion": "角色可识别", "passed": true }
+  ],
+  "notes": "Looks good.",
+  "reviewerRole": "art-director",
+  "schemaVersion": "repochan.review.v1"
+}
+```
+
+评审是**非阻塞的**——在交付之后创建，从不阻塞交付。`verdict=revise/reject` 会把 `delivered` 状态的 order 推回 `needs_revision`（追加一条 revision 记录）；其他状态不受影响。
+
+### Persona 评审（可选）
+
+针对当前 persona 的反馈，存放在 `persona/reviews/current.json`：
+
+```json
+{
+  "verdict": "revise",                  // pass | revise（无 reject——persona 没有"交付物"概念）
+  "notes": "角色再成熟一些",
+  "reviewerRole": "user",
+  "schemaVersion": "repochan.persona-review.v1"
+}
+```
+
+persona 没有状态机——`verdict=revise` 不触发状态流转，纯粹是 creative team 读取后主动重做的反馈记录。
+
+### 候选态 version role
+
+order result version 的 `role` 字段（见上方目录布局说明）区分三种角色：
+
+- `order.create_candidate` — 写入 `role=candidate` 的 version，不 promote、不交付
+- `order.promote_candidate` — 把 candidate 提升为 current，原 current 降为 snapshot
+- `order.create_result` — 正常交付，version 默认无 role（视为 current）
 
 ## 示例预检响应
 
