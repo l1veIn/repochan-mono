@@ -191,29 +191,40 @@ cli ──┬──> pi ──┬──> core
 
 ---
 
-## 五、已知的架构缺口
+## 五、架构演进：已落地与剩余缺口
 
-这些是当前架构的边界，按对工业界解法的借鉴顺序列出。每一条都是未来功能的候选入口。
+### 已落地的能力增强
 
-### 缺口 1：候选态（candidate / branching）缺失
+#### Review（评审）— 已落地
 
-**现状**：artifact 是单值的——一个 `persona/current.json`、一个 order 的 `currentVersion` 指针。`versions/` 存的是**时间维度的快照**，不是**候选维度的分支**。
+**设计决策**：review 是**纯事后、可选、不阻塞交付**的能力。result 交付后才发起 review；verdict 不通过时推回重做。bypass 模式零摩擦——状态机不新增状态，`markDelivered` 现有行为不变。
 
-**问题**：创作工作流天然需要"给我三个 persona 草稿让我选"。当前协议处理 A/B 选择很别扭。
+**Order review**（`entities.ts` → `createReview`）：
+- 存储在 `orders/<orderId>/reviews/<versionId>.json`，绑定到具体 version。
+- `verdict=revise/reject` 把 `delivered` order 推回 `needs_revision`（复用现有状态，不加新状态）。
+- 画师 skill 自动完成回路：用户反馈 → 判 verdict → 创建 review → 图生图重绘。
 
-**工业界解法**：ShotGrid 用 Playlist + 多 Version 并行 review。RepoChan 需要引入"候选维度"概念——可能是 `persona/candidates/<id>/` 或 order 下多个未指定 current 的 version 同时存在，由用户显式 promote 一个为 current。
+**Persona review**（`entities.ts` → `createPersonaReview`）：
+- 存储在 `persona/reviews/current.json`，单值式（persona 是单值 artifact）。
+- persona 没有状态机——`verdict=revise` 不触发状态流转，纯粹是 creative team 读取后主动重做的反馈记录。
+- creative team skill 自动完成回路：用户反馈 → 判 verdict → 创建 review → 重做 persona。
 
-**用户决策已记录**：图像 order 因成本高，候选态由用户显式控制开启与否；persona 档案支持多草稿候选（创意团队设计多个差异化人设供用户选择）。
+**分层体现**：core 的 `createReview`/`createPersonaReview` 只做结构化写入（确定性），verdict 判断和 notes 提炼留在 skill 层（LLM）。CLI 不碰 review 创建——它路由用户进画师/creative team 会话。
 
-### 缺口 2：评审 artifact（review）缺失
+#### Candidate（候选态）— 已落地（order 范围）
 
-**现状**：Art Director 存在（skill 层），但 review 是纯 prompt 行为，不是协议行为。agent **可以跳过 review 直接 deliver**——`order.create_result` 只要求 order 是 approved，不要求存在已批准的 review。
+**设计决策**：显式 candidate 模式。version 新增 `role` 字段（`current | candidate | snapshot`）。一个 order 可以同时挂多个 candidate draft，用户/AD 选定后 promote 一个为 current，原 current 降为 snapshot。任何时刻只有一个 current。
 
-**问题**：质量审查没有硬锚点。deliver 的质量完全依赖 Painter 自觉和 prompt 约束。
+- `order.create_candidate` — 写入 `role=candidate` 的 version，不 promote、不改状态。
+- `order.promote_candidate` — candidate → current，原 current → snapshot。
+- 文件系统零改动——`versions/<versionId>/` 已是扁平同级目录，多 draft 天然共存。
+- review 兼容——`orderResultExists` 走文件系统 fallback，能找到未 promote 的 candidate。
 
-**工业界解法**：ShotGrid 用 Notes + Approval 流转。RepoChan 应引入 `review` artifact（评审报告 schema），让 `markDelivered` 前要求一个已批准的 review。这把审查从软约束升级成硬约束。
+**persona candidate 未落地**：persona 的存储是 `current.json` 单值，没有 order 那种多 version 指针机制。persona candidate 需要发明新存储（candidates 目录 + 指针），是独立的后续工作。
 
-### 缺口 3：失效传播（stale propagation）缺失
+### 剩余缺口
+
+#### 缺口 3：失效传播（stale propagation）缺失
 
 **现状**：persona 改了 → 依赖它的 order brief 可能过时 → page 又引用了 order 的 result。`collectAssetRefs` / `checkPageAssets`（`entities.ts:607` / `642`）能正向解析 page 对 order result 的引用，但**没有反向 stale 标记**——改上游不会让下游自动失效。
 
@@ -223,19 +234,27 @@ cli ──┬──> pi ──┬──> core
 
 **技术选型待定**：当前 versions/ 存的是快照（整个 JSON），要实现 stale 传播，可能需要从 snapshot 模型升级到 event log 模型（事件溯源），否则只能 diff 两个大 JSON，语义模糊。这是较大的架构演进，需单独设计。
 
-### 缺口 4：Schema 的表达力天花板
+#### 缺口 4：Schema 的表达力天花板
 
 **现状**：`PageArtifactSchema` 能保证 sections 结构合法，但保证不了页面"好看"或命中 brief 的 `emotionalGoal`。
 
-**性质**：这是 schema 的固有局限，**不是 bug**。schema 是合格线，不是优秀线。这层 gap 永远无法用 schema 消除，只能靠 Art Director skill（软约束）+ 人类审批（缺口 2 的 review artifact）补。
+**性质**：这是 schema 的固有局限，**不是 bug**。schema 是合格线，不是优秀线。这层 gap 永远无法用 schema 消除，只能靠 Art Director skill（软约束）+ review artifact（已落地，见上）补。
 
 **原则**：别试图把质量塞进 schema——那是死路。质量靠审查流程，不靠形状校验。
 
-### 缺口 5：状态机的刚性反噬
+#### 缺口 5：状态机的刚性反噬
 
 **现状**：强状态机能拦非法跳变，但遇到"用户就是想跳过 analysis 直接画测试图"时变阻力。`allowUnapprovedOrder=true` 这个 escape hatch（`entities.ts:52`）是对模式纯粹性的妥协。
 
 **性质**：每个 escape hatch 都是对"理想模型"的承认——现实比状态机脏。这类缺口通过提供显式 escape hatch（并要求显式确认）来缓解，而非拆除状态机。
+
+#### 缺口 6：Orchestrator / bypass 模式（auto-chain）
+
+**现状**：当前架构核心约束是"roles never auto-chain"（每个 role 用户显式触发）。但 bypass 模式——"一键生成全套"——是确定的产品方向。用户不会每张图都看，更需要批量自动化。
+
+**本质**：bypass 就是按顺序执行多个 skill，每个产物自动发布。不需要独立的编排引擎——它可以就是一个 skill（如 `repochan-orchestrator`），负责调起其他 skill 的流程 + 跳过确认。
+
+**依赖**：orchestrator 调用 review（质量兜底）和 candidate（多方案选择）作为子能力。review 和 candidate 已落地，orchestrator 可以随时搭建。
 
 ---
 
@@ -263,4 +282,7 @@ cli ──┬──> pi ──┬──> core
 | 破坏性操作确认 | `packages/core/src/entities.ts`（多处 `overwrite=true` 检查） |
 | 可复现性强制 | `packages/core/src/entities.ts` → `createOrderResult` 的 generationPrompt 检查 |
 | 引用解析（正向） | `packages/core/src/entities.ts` → `collectAssetRefs` / `checkPageAssets` |
+| Order review | `packages/core/src/entities.ts` → `createReview`（`reviews/<versionId>.json`） |
+| Persona review | `packages/core/src/entities.ts` → `createPersonaReview`（`persona/reviews/current.json`） |
+| 候选态 role | `packages/core/src/entities.ts` → `createOrderCandidate` / `promoteCandidate` |
 | 角色技能（软约束） | `packages/pi/skills/*/SKILL.md` |

@@ -42,6 +42,7 @@ import {
   promoteCandidate as corePromoteCandidate,
   createPersonaReview as coreCreatePersonaReview,
   type OrderStatus,
+  type PageData,
 } from "@repochan/core";
 import { renderPage as rendererRenderPage, assetKey as rendererAssetKey } from "@repochan/page-renderer";
 
@@ -312,9 +313,9 @@ async function getPage(ctx: ExtensionContext, params: JsonObject) {
 
 async function checkPageAssets(ctx: ExtensionContext, params: JsonObject) {
   // Accept either a page object directly, or read current.json
-  let page;
+  let page: PageData;
   if (isPlainObject(params.page)) {
-    page = params.page;
+    page = params.page as PageData;
   } else {
     const current = await coreReadPage(ctx.cwd);
     if (!current) throw new Error("No page found. Use action='page.create' first, or pass params.page.");
@@ -333,7 +334,7 @@ async function checkPageAssets(ctx: ExtensionContext, params: JsonObject) {
 
 async function renderPageToDisk(ctx: ExtensionContext, params: JsonObject) {
   // 1. Read page (current or from params)
-  const page = isPlainObject(params.page) ? params.page : await coreReadPage(ctx.cwd);
+  const page: PageData | undefined = isPlainObject(params.page) ? (params.page as PageData) : await coreReadPage(ctx.cwd);
   if (!page) throw new Error("No page found. Use action='page.create' first, or pass params.page.");
 
   // 2. Check assets first — refuse to render if missing
