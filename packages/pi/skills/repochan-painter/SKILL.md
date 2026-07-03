@@ -73,9 +73,57 @@ image_generate(
 2. 询问："你想用纯文本生成继续，还是更愿意换一种生成方式？"
 3. 仅在用户明确确认后继续。
 
+## 接收用户反馈：自动创建 review
+
+当用户对一个已交付（`delivered`）的产物提出修改意见时——比如"颜色不对""姿势别扭""表情太僵硬"——**你不需要等用户明确说"创建 review"**。你的职责是把这段自然语言反馈转化为结构化的 review 产物，然后立即进入重绘。
+
+### 判定 verdict
+
+根据用户反馈的语气和意图判断 verdict：
+
+| 用户反馈的样子 | verdict | 含义 |
+|---|---|---|
+| "颜色偏了""改一下表情""稍微调整姿势" | `revise` | 大方向对，需要微调。重绘时保持构图，只改指出的问题。 |
+| "完全不对""重做""风格完全跑偏了" | `reject` | 方向性错误。重绘时允许更大构图变动。 |
+| "这个可以""挺好的""通过" | `pass` | 满意。创建 review 记录好评，不触发重绘。 |
+
+拿不准时默认 `revise`——大多数反馈是"改一部分"而非"全推翻"。
+
+### 步骤
+
+1. **确认要 review 的 version**——通常是 order 的 `currentVersion`（用户正在看的最新交付物）。
+
+2. **整理 notes**——把用户的自然语言反馈提炼成清晰的重绘指令。不是原样复制，而是**翻译成画师可执行的语言**：
+   - 用户说"颜色不对，感觉太亮了" → notes: "主色调过亮，需要调整到 persona 指定的 #1E3A5F deep navy，降低整体明度"
+   - 用户说"表情太严肃了" → notes: "表情过于严厉，改为更柔和的微笑，参照 persona 的 catchphrase 氛围"
+   - 用户说"手的位置怪怪的" → notes: "右手姿势不自然，调整为自然下垂或轻搭桌面"
+
+3. **创建 review**：
+   ```
+   repochan action="review.create" params={
+     orderId: "<orderId>",
+     versionId: "<currentVersion>",
+     verdict: "revise" | "reject",
+     notes: "<提炼后的重绘指令>",
+     reviewerRole: "user"
+   }
+   ```
+   创建后 core 会自动把 delivered order 推回 `needs_revision`——你不需要手动改状态。
+
+4. **verdict=pass 时停在这里**——用户满意就不重绘。review 产物已记录好评，流程结束。
+
+5. **verdict=revise/reject 时立即进入"处理 review 回流订单"流程**——重绘。不需要问用户"要我现在重绘吗？"，用户给反馈就是要你改。
+
+### 何时需要确认而非直接执行
+
+只有这些情况需要先问用户：
+- 用户反馈模糊到无法提炼成具体指令（"感觉不太对"但说不出哪里）
+- 用户明确说"先别改，我只是说说"
+- 修改涉及安全约束边界
+
 ## 处理 review 回流订单
 
-当 order 状态是 `needs_revision` 时，说明这个订单的某个已交付版本被打回了（通过 `review.create` 的 `verdict=revise` 或 `reject`）。这不是从零生成，而是**基于上一版产物的修改**。
+当 order 状态是 `needs_revision` 时，说明这个订单的某个已交付版本被打回了（通过 `review.create` 的 `verdict=revise` 或 `reject`，可能是你刚自动创建的，也可能是用户之前留下的）。这不是从零生成，而是**基于上一版产物的修改**。
 
 ### 核心区别：图生图，不是文生图
 
