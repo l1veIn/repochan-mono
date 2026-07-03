@@ -25,6 +25,29 @@ const ASPECT_TO_SIZE: Record<string, string> = {
   portrait: "1024x1536",
 };
 
+const SUPPORTED_SIZES = [
+  { w: 1024, h: 1024, label: "1024x1024" },
+  { w: 1536, h: 1024, label: "1536x1024" },
+  { w: 1024, h: 1536, label: "1024x1536" },
+];
+
+function resolveSize(width?: number, height?: number, aspectRatio?: string): string {
+  if (width && height) {
+    const targetRatio = width / height;
+    let best = SUPPORTED_SIZES[0];
+    let bestDiff = Infinity;
+    for (const s of SUPPORTED_SIZES) {
+      const diff = Math.abs(s.w / s.h - targetRatio);
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        best = s;
+      }
+    }
+    return best.label;
+  }
+  return ASPECT_TO_SIZE[aspectRatio ?? "square"] ?? "1024x1024";
+}
+
 const MODELS: ModelOption[] = [
   {
     id: "xai:grok-2-image",
@@ -76,7 +99,7 @@ export class XaiProvider implements ImageGenProvider {
     }
 
     try {
-      const size = ASPECT_TO_SIZE[params.aspectRatio] ?? "1024x1024";
+      const size = resolveSize(params.width, params.height, params.aspectRatio);
 
       ctx.onProgress?.(`Requesting image generation via xAI (${model})…`, {
         provider: this.name,

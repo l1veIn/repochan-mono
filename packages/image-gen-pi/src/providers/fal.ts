@@ -201,7 +201,10 @@ export class FalProvider implements ImageGenProvider {
     }
 
     try {
-      const dims = ASPECT_TO_DIMENSIONS[params.aspectRatio] ?? ASPECT_TO_DIMENSIONS.square;
+      // Use explicit dimensions if provided, otherwise map from aspectRatio
+      const dims = (params.width && params.height)
+        ? { width: params.width, height: params.height }
+        : (ASPECT_TO_DIMENSIONS[params.aspectRatio] ?? ASPECT_TO_DIMENSIONS.square);
       const hasSourceImage = !!params.imageUrl?.trim();
       const caps = this.capabilities(model);
 

@@ -1,23 +1,23 @@
 ---
 name: repochan-protocol
-description: Detailed .repochan workspace protocol specification for RepoChan artifacts, including analysis, persona, orders, order result versions, and safe update rules.
+description: ".repochan 工作区协议详细规范，涵盖分析、人设、任务、任务结果版本及安全更新规则。"
 ---
 
-# `.repochan/` Protocol
+# `.repochan/` 协议
 
-## Role definition
+## 角色定义
 
-You are the Protocol Steward. Ensure RepoChan state is durable, inspectable, versioned, and safe to revise. Use this skill whenever creating, validating, migrating, or explaining `.repochan/` artifacts.
+你是协议管家。确保 RepoChan 状态是持久、可检查、可版本化、可安全修订的。每当创建、验证、迁移或解释 `.repochan/` 产物时，都应使用此 skill。
 
-## Pre-execution checks
+## 执行前检查
 
-1. Inspect whether `.repochan/` exists.
-2. List known artifacts and schema versions.
-3. Detect missing upstream artifacts for the requested role.
-4. Ask before destructive changes.
-5. Prefer additive, versioned writes.
+1. 检查 `.repochan/` 是否存在。
+2. 列出已知产物和 schema 版本。
+3. 检测所请求角色缺少的上游产物。
+4. 破坏性操作前询问确认。
+5. 优先增量、版本化写入。
 
-## Directory layout
+## 目录布局
 
 ```text
 .repochan/
@@ -36,41 +36,41 @@ You are the Protocol Steward. Ensure RepoChan state is durable, inspectable, ver
           hero.png
 ```
 
-`order.json` contains the full order data, `status`, and `currentVersion`. Result files live directly inside the selected order's `versions/<version-id>/` directory.
+`order.json` 包含完整的任务数据、`status` 和 `currentVersion`。结果文件直接保存在所选任务的 `versions/<version-id>/` 目录中。
 
-## Artifact dependencies
+## 产物依赖
 
-- Analysis has no upstream `.repochan/` dependency.
-- Persona requires analysis.
-- Orders require analysis and persona.
-- Painter delivery requires analysis, persona, and an approved/in_progress order.
-- Revisions should be new orders that reference the prior order/result and explain the requested delta.
+- 分析没有上游 `.repochan/` 依赖。
+- 人设需要分析。
+- 任务需要分析和人设。
+- Painter 交付需要分析、人设、和一个已批准/进行中的任务。
+- 修订应作为新任务，引用先前的任务/结果，并说明请求的差异。
 
-## Safe write rules
+## 安全写入规则
 
-- Do not overwrite without user approval.
-- Archive current JSON files into a nearby `versions/` path before replacement.
-- Add timestamps, `schemaVersion`, and provenance fields where practical.
-- Keep user revision requests verbatim where practical.
-- Store large binary outputs under order result version folders; `meta.json` references them.
+- 不要在未经用户批准的情况下覆盖。
+- 将当前 JSON 文件归档到附近的 `versions/` 路径后再替换。
+- 尽可能添加时间戳、`schemaVersion`、和 provenance（来源）字段。
+- 尽可能保留用户修订请求的原文。
+- 大型二进制输出存储在任务结果版本文件夹中；`meta.json` 引用它们。
 
-## Minimal schemas
+## 最小 schema
 
-### Analysis
+### 分析
 
 ```json
 { "schemaVersion": "repochan.analysis.v1", "repo": {}, "summary": "", "creativeSignals": {} }
 ```
 
-### Persona
+### 人设
 
 ```json
 { "schemaVersion": "repochan.persona.v1", "coreConcept": "", "visualIdentity": {}, "usageGuidelines": {} }
 ```
 
-### Asset Order
+### 创作任务
 
-Important fields:
+重要字段：
 
 - `orderId`
 - `requestType`
@@ -84,22 +84,22 @@ Important fields:
 - `deliverables`
 - `acceptanceCriteria`
 
-### Order result version
+### 任务结果版本
 
 ```json
 {
   "versionId": "v2026-06-12-001",
   "createdAt": "ISO-8601",
-  "tool": "image package, native model capability, or user-provided",
+  "tool": "图像包、原生模型能力、或用户提供的",
   "files": ["hero.png"],
-  "promptBrief": "short generation summary",
-  "generationPrompt": "exact full prompt sent to the image generation tool",
-  "revisedPrompt": "provider revised prompt, if returned",
+  "promptBrief": "简短的生成摘要",
+  "generationPrompt": "发送给图像生成工具的完整精确 prompt",
+  "revisedPrompt": "供应商修订后的 prompt（如有返回）",
   "notes": "",
   "provenance": { "tool": "repochan", "action": "order.create_result" }
 }
 ```
 
-## Example pre-flight response
+## 示例预检响应
 
-“`.repochan/analysis/current.json` exists and persona current exists. There are three draft orders and one delivered README hero result. For a new illustration I can create a new order; for changes to the hero I should create a revision order. Which do you prefer?”
+"`.repochan/analysis/current.json` 存在，persona 当前文件也存在。有三个草稿任务和一个已交付的 README 主视觉结果。对于新插画，我可以创建新任务；对于主视觉的修改，我应该创建修订任务。你倾向哪个？"

@@ -79,16 +79,16 @@ export class PersonaPage implements Component {
 
   private showRevisionInput() {
     this.revisionInput = new PromptInput({
-      title: "=== Revise Persona ===",
-      prompt: "Describe how to update .repochan/persona/current.json:",
-      placeholder: "e.g. Rewrite the persona document in Chinese with blue-pink colors",
+      title: "=== 修订人设 ===",
+      prompt: "描述如何更新 .repochan/persona/current.json：",
+      placeholder: "例如：用蓝粉配色重写人设文档",
       onSubmit: (request) => {
         this.revisionInput = null;
         void this.startRun([
-          "Revise the current persona artifact according to this user request.",
-          "Read current analysis and persona first, then call repochan action=\"persona.update\" with a complete updated persona object and overwrite=true.",
-          "Keep rolePrompt in English image-generation tags regardless of the persona document language.",
-          `User request: ${request}`,
+          "根据此用户请求修订当前的人设产物。",
+          "先读取当前分析和人设，然后调用 repochan action=\"persona.update\" 传入完整更新的人设对象和 overwrite=true。",
+          "无论人设文档使用什么语言，rolePrompt 必须保持英文图像生成标签格式。",
+          `用户请求：${request}`,
         ].join("\n"));
       },
       onCancel: () => {

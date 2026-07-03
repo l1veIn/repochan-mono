@@ -95,6 +95,22 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  packages/page-renderer:
+    dependencies:
+      '@repochan/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.13.2
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@24.13.2)
+
   packages/pi:
     dependencies:
       '@earendil-works/pi-coding-agent':
@@ -106,6 +122,9 @@ importers:
       '@repochan/core':
         specifier: workspace:*
         version: link:../core
+      '@repochan/page-renderer':
+        specifier: workspace:*
+        version: link:../page-renderer
       typebox:
         specifier: ^1.0.55
         version: 1.2.8

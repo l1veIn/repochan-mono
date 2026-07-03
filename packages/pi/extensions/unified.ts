@@ -18,16 +18,20 @@ import {
   updateAnalysisArtifact,
   writeAnalysisArtifact,
   isPlainObject,
+  checkPageAssets as coreCheckPageAssets,
+  collectAssetRefs as coreCollectAssetRefs,
   createOrderResult as coreCreateOrderResult,
   createOrders as coreCreateOrders,
   createOrUpdatePersona as coreCreateOrUpdatePersona,
   createOrUpdateInterview as coreCreateOrUpdateInterview,
+  createOrUpdatePage as coreCreateOrUpdatePage,
   appendToInterview as coreAppendToInterview,
   findFoundationSheet as coreFindFoundationSheet,
   listOrderResults as coreListOrderResults,
   listOrders as coreListOrders,
   readOrder as coreReadOrder,
   readOrderResult as coreReadOrderResult,
+  readPage as coreReadPage,
   resolveOrderReferences as coreResolveOrderReferences,
   setCurrentOrderResult as coreSetCurrentOrderResult,
   setOrderStatus as coreSetOrderStatus,
@@ -35,6 +39,7 @@ import {
   updateOrder as coreUpdateOrder,
   type OrderStatus,
 } from "@repochan/core";
+import { renderPage as rendererRenderPage, assetKey as rendererAssetKey } from "@repochan/page-renderer";
 
 const ActionSchema = Type.Union([
   Type.Literal("analysis.run"),
@@ -66,6 +71,10 @@ const ActionSchema = Type.Union([
   Type.Literal("protocol.read"),
   Type.Literal("protocol.write"),
   Type.Literal("protocol.append_version"),
+  Type.Literal("page.create"),
+  Type.Literal("page.get"),
+  Type.Literal("page.check_assets"),
+  Type.Literal("page.render"),
 ]);
 
 const RepoChanSchema = Type.Object({
@@ -239,6 +248,106 @@ async function findFoundation(ctx: ExtensionContext) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Page actions
+// ---------------------------------------------------------------------------
+
+async function createPage(ctx: ExtensionContext, params: JsonObject) {
+  const { versionName, data } = await coreCreateOrUpdatePage(ctx.cwd, params);
+  return ok(`Wrote page current and page/versions/${versionName}`, data);
+}
+
+async function getPage(ctx: ExtensionContext, params: JsonObject) {
+  const versionId = typeof params.versionId === "string" && params.versionId
+    ? params.versionId.replace(/\.json$/, "")
+    : undefined;
+
+  if (versionId) {
+    const file = path.join(root(ctx.cwd), "pages", "versions", `${versionId}.json`);
+    const data = await readJson(file);
+    return ok(JSON.stringify(data, null, 2), data);
+  }
+
+  const data = await coreReadPage(ctx.cwd);
+  if (!data) throw new Error("No page found. Use action='page.create' first.");
+  return ok(JSON.stringify(data, null, 2), data);
+}
+
+async function checkPageAssets(ctx: ExtensionContext, params: JsonObject) {
+  // Accept either a page object directly, or read current.json
+  let page;
+  if (isPlainObject(params.page)) {
+    page = params.page;
+  } else {
+    const current = await coreReadPage(ctx.cwd);
+    if (!current) throw new Error("No page found. Use action='page.create' first, or pass params.page.");
+    page = current;
+  }
+
+  const result = await coreCheckPageAssets(ctx.cwd, page);
+
+  if (result.ok) {
+    return ok(`All ${result.total} asset(s) resolved.`, result);
+  }
+
+  const lines = result.missing.map((m) => `  ✗ ${m.ref.orderId}/${m.ref.versionId ?? "current"}/${m.ref.file}: ${m.error}`);
+  return ok(`Missing ${result.missing.length} of ${result.total} asset(s):\n${lines.join("\n")}`, result);
+}
+
+async function renderPageToDisk(ctx: ExtensionContext, params: JsonObject) {
+  // 1. Read page (current or from params)
+  const page = isPlainObject(params.page) ? params.page : await coreReadPage(ctx.cwd);
+  if (!page) throw new Error("No page found. Use action='page.create' first, or pass params.page.");
+
+  // 2. Check assets first — refuse to render if missing
+  const assetCheck = await coreCheckPageAssets(ctx.cwd, page);
+  if (!assetCheck.ok) {
+    const missing = assetCheck.missing
+      .map((m) => `  ${m.ref.orderId}/${m.ref.versionId ?? "current"}/${m.ref.file}: ${m.error}`)
+      .join("\n");
+    throw new Error(
+      `Cannot render: ${assetCheck.missing.length} of ${assetCheck.total} asset(s) are missing.\n${missing}\n\n` +
+      "Fix these first: create orders via action='order.create', generate images via Painter, then re-render.",
+    );
+  }
+
+  // 3. Build resolved assets map
+  const resolvedAssets = new Map<string, string>();
+  for (const r of assetCheck.resolved) {
+    const key = rendererAssetKey(r.ref);
+    resolvedAssets.set(key, `assets/${r.ref.file}`);
+  }
+
+  // 4. Render
+  const result = rendererRenderPage(page, resolvedAssets);
+
+  // 5. Write output files
+  const outputDir = params.outputDir
+    ? path.resolve(ctx.cwd, params.outputDir as string)
+    : path.join(root(ctx.cwd), "pages", "site");
+
+  const { promises: fs } = await import("node:fs");
+  await fs.mkdir(path.join(outputDir, "assets"), { recursive: true });
+
+  // Write index.html
+  await fs.writeFile(path.join(outputDir, "index.html"), result.html, "utf8");
+
+  // Copy asset files
+  const copied: string[] = [];
+  for (const r of assetCheck.resolved) {
+    const dest = path.join(outputDir, "assets", r.ref.file);
+    await fs.copyFile(r.resolvedPath!, dest);
+    copied.push(`assets/${r.ref.file}`);
+  }
+
+  return ok(
+    `Rendered page to ${path.relative(ctx.cwd, outputDir) || outputDir}\n` +
+    `  index.html (${result.html.length} bytes)\n` +
+    `  assets/ (${copied.length} files: ${copied.join(", ")})`,
+    { outputDir, html: result.html.length, assets: copied },
+  );
+}
+
 function getBuiltinTemplatesDir(): string {
   return path.resolve(path.dirname(new URL(import.meta.url).pathname), "..", "templates");
 }
@@ -313,7 +422,7 @@ export function registerRepoChan(pi: ExtensionAPI) {
     name: "repochan",
     label: "RepoChan",
     description:
-      "Unified RepoChan management surface for all .repochan entities. This is the single public tool for deterministic analysis, interview reports, persona artifacts, orders, order result versions, and protocol-safe reads/writes/versioning. Use action strings like 'analysis.run', 'interview.create', 'persona.get', 'order.list', and 'order.create_result' with action-specific params.",
+      "Unified RepoChan management surface for all .repochan entities. This is the single public tool for deterministic analysis, interview reports, persona artifacts, orders, order result versions, protocol-safe reads/writes/versioning, and static page generation. Use action strings like 'analysis.run', 'interview.create', 'persona.get', 'order.list', 'order.create_result', and 'page.render' with action-specific params.",
     promptSnippet:
       "Manage all .repochan analysis, interview, persona, order, order-result, and protocol artifacts through one action-based tool.",
     promptGuidelines: [
@@ -356,6 +465,13 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "protocol.read params: { artifactPath }. Safely reads a JSON artifact inside .repochan. artifactPath may be '.repochan/analysis/current.json' or a path relative to .repochan.",
       "protocol.write params: { artifactPath, data, overwrite=false }. Safely writes JSON inside .repochan, creating parent directories. Use entity actions first; use protocol.write only for migrations, manifests, or user-directed maintenance. Ask before overwrite=true.",
       "protocol.append_version params: { artifactPath, data? }. Writes data to the conventional version location for artifactPath. If data is omitted, reads artifactPath and snapshots its current JSON. Never overwrites existing version files.",
+      "page.create params: { page, slug?, overwrite=false, versionPrevious=true, provenance? }. Requires analysis. Creates or replaces .repochan/pages/current.json with a Page JSON artifact and writes a versioned copy to pages/versions/. The page object must contain: title, description, theme { primary, secondary, accent, background, style }, and sections (an array of section objects with type+variant+content). If page exists, ask before overwrite=true.",
+      "page.get params: optional { versionId }. Without versionId, reads .repochan/pages/current.json. With versionId, reads pages/versions/<versionId>.json.",
+      "page.check_assets params: optional { page? }. Without params.page, reads the current page and checks whether all image AssetRefs across all sections are resolvable to actual files in .repochan/orders/. Returns ok=true if all resolved, or lists missing assets with available file suggestions. Use this BEFORE page.render to verify the page is ready.",
+      "page.render params: optional { page?, outputDir? }. Renders the page to static HTML. Without params.page, reads current page. Checks assets first — REFUSES to render if any are missing (run page.check_assets first). Output goes to outputDir (default: .repochan/pages/site/). Produces index.html + copies of all referenced image files to assets/. The output is a zero-JS static site that can be deployed anywhere.",
+      "Page section types: navbar (simple, with-cta), hero (centered, split-right, split-left, full-bg), features (grid-2, grid-3, grid-4), stats (row, grid), gallery (grid, masonry), cta (centered, banner), footer (standard, minimal). Each section has a content object whose shape depends on type+variant.",
+      "Page AssetRef: { orderId, versionId?, file, alt? }. References an image file inside .repochan/orders/<orderId>/versions/<versionId>/. When versionId is omitted, uses the order's currentVersion. The renderer copies referenced files to the output assets/ directory.",
+      "Page Designer two-phase workflow: Phase 1 — design page structure + audit assets (use page.check_assets); create orders for missing images via order.create, generate via Painter. Phase 2 — when all assets are delivered, assemble final Page JSON via page.create, then render via page.render.",
     ],
     parameters: RepoChanSchema,
     async execute(_toolCallId, input: RepoChanInput, _signal, _onUpdate, ctx) {
@@ -446,6 +562,14 @@ export function registerRepoChan(pi: ExtensionAPI) {
         }
         case "protocol.append_version":
           return protocolAppendVersion(ctx, params);
+        case "page.create":
+          return createPage(ctx, params);
+        case "page.get":
+          return getPage(ctx, params);
+        case "page.check_assets":
+          return checkPageAssets(ctx, params);
+        case "page.render":
+          return renderPageToDisk(ctx, params);
         default:
           throw new Error(`Unknown RepoChan action: ${(input as JsonObject).action}`);
       }

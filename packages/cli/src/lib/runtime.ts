@@ -188,15 +188,15 @@ export async function createRepoChanRuntime(options: CreateRepoChanRuntimeOption
 export async function createRunPhaseRuntime(options: RunPhaseArgs & { cwd?: string; agentDir?: string }) {
   const initialSession: RepoChanSessionMode = options.newSession ? "new" : "continue";
   const sessionModeNote = initialSession === "new"
-    ? "Start a new phase session."
-    : "Continue the latest RepoChan session.";
+    ? "启动一个新的阶段会话。"
+    : "继续最近的 RepoChan 会话。";
   const phaseNote = [
-    `RepoChan CLI single-phase mode for phase '${options.phase}'. ${sessionModeNote}`,
-    "This is a task execution run, not an open-ended chat.",
-    "Do not ask optional clarification questions. Optional preferences, style direction, naming taste, and creative constraints are not blockers.",
-    "If hard preconditions are satisfied, use your judgment for unspecified choices, complete this phase, and save the expected RepoChan artifact or order/result through the repochan tool.",
-    "Stop only when the requested phase is complete or blocked by a hard precondition such as a missing required upstream artifact, unavailable tool, invalid order, or required explicit overwrite/destructive approval.",
-    "Do not auto-chain into any other phase.",
+    `RepoChan CLI 单阶段模式，阶段 '${options.phase}'。${sessionModeNote}`,
+    "这是一次任务执行运行，不是开放式聊天。",
+    "不要问可选的澄清问题。可选的偏好、风格方向、命名品味和创意约束不是阻塞条件。",
+    "如果硬性前置条件已满足，用你的判断处理未指定的选择，完成本阶段，并通过 repochan 工具保存预期的 RepoChan 产物或任务/结果。",
+    "仅在所请求的阶段完成、或被硬性前置条件阻塞（如缺少必需的上游产物、工具不可用、任务无效、或需要明确的覆盖/破坏性批准）时停止。",
+    "不要自动串联到任何其他阶段。",
   ].join("\n");
   return createRepoChanRuntime({
     cwd: options.cwd ?? process.cwd(),

@@ -1,6 +1,8 @@
 # @repochan/image-gen-pi
 
-Multi-provider image generation [Pi](https://pi.dev/) package. Registers `image_generate` tool and `/image_model` command.
+Multi-provider image generation [Pi](https://pi.dev/) package. Registers the `image_generate` tool and the `/image_model` command.
+
+This package is **independent of the `.repochan/` protocol** — it only generates images and saves them to a configurable directory. Protocol-level orchestration (commissioning an order, attaching results, versioning) is handled by the `repochan-pi` Painter role, which calls `image_generate` and then writes the result into `.repochan/orders/<id>/versions/`. See the monorepo [`ARCHITECTURE.md`](../../ARCHITECTURE.md) for where this package sits in the layer model.
 
 ## Providers
 

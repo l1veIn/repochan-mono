@@ -77,16 +77,16 @@ export class AnalysisPage implements Component {
 
   private showRevisionInput() {
     this.revisionInput = new PromptInput({
-      title: "=== Revise Analysis ===",
-      prompt: "Describe how to update .repochan/analysis/current.json:",
-      placeholder: "e.g. Add repo-derived naming seeds or correct the product-level summary",
+      title: "=== 修订分析 ===",
+      prompt: "描述如何更新 .repochan/analysis/current.json：",
+      placeholder: "例如：添加仓库衍生命名种子或修正产品级摘要",
       onSubmit: (request) => {
         this.revisionInput = null;
         void this.startRun([
-          "Revise the current analysis artifact according to this user request.",
-          "Read analysis.current first, then call repochan action=\"analysis.update\" with overwrite=true and a minimal deep-merge patch.",
-          "Do not re-run full repository analysis unless the request explicitly needs fresh evidence.",
-          `User request: ${request}`,
+          "根据此用户请求修订当前的分析产物。",
+          "先读取 analysis.current，然后调用 repochan action=\"analysis.update\" 传入 overwrite=true 和最小化的深度合并补丁。",
+          "除非请求明确需要新证据，否则不要重新运行完整的仓库分析。",
+          `用户请求：${request}`,
         ].join("\n"));
       },
       onCancel: () => {

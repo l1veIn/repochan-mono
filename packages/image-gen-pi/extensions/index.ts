@@ -41,7 +41,19 @@ const TOOL_PARAMS = Type.Object({
   }),
   aspectRatio: Type.Optional(
     StringEnum(ASPECT_RATIOS, {
-      description: "Aspect ratio: landscape (3:2), square (1:1), or portrait (2:3). Defaults to landscape.",
+      description: "Aspect ratio: landscape (3:2), square (1:1), or portrait (2:3). Defaults to landscape. Ignored when width+height are both provided.",
+    }),
+  ),
+  width: Type.Optional(
+    Type.Number({
+      description:
+        "Exact output width in pixels. When both width and height are provided, takes precedence over aspectRatio. Providers that support arbitrary sizes (FAL) use these directly; others snap to the closest supported size.",
+    }),
+  ),
+  height: Type.Optional(
+    Type.Number({
+      description:
+        "Exact output height in pixels. When both width and height are provided, takes precedence over aspectRatio.",
     }),
   ),
   imageUrl: Type.Optional(
@@ -150,6 +162,8 @@ export default function imageGenExtension(pi: ExtensionAPI) {
       const generateParams: GenerateParams = {
         prompt: params.prompt,
         aspectRatio: params.aspectRatio ?? config.aspectRatio ?? "landscape",
+        width: typeof params.width === "number" ? params.width : undefined,
+        height: typeof params.height === "number" ? params.height : undefined,
         outputFormat: params.outputFormat ?? config.outputFormat ?? "png",
         imageUrl: params.imageUrl,
         referenceImageUrls: params.referenceImageUrls,

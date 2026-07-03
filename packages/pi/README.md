@@ -1,8 +1,10 @@
 # RepoChan
 
-RepoChan is a Pi package for a manual, multi-role creative workflow that turns git repositories into rich, consistent visual brand assets: RepoChan mascot personas, illustration briefs, asset orders, and order result versions.
+RepoChan is a Pi package for a manual, multi-role creative workflow that turns git repositories into rich, consistent visual brand assets: RepoChan mascot personas, illustration briefs, asset orders, order result versions, and landing pages.
 
 RepoChan follows Pi's philosophy: small impact, explicit user control, progressive disclosure, and extensible tools. It does **not** auto-chain roles in v1. Each role checks the `.repochan/` workspace protocol before it works and asks the user before overwriting existing outputs.
+
+**Architectural role**: this package owns the *soft* layer of RepoChan's three-layer design — Pi runtime integration (tool registration, `/order_panel`) and role prompts (skills). All reusable protocol, schema, and business-rule code is imported from [`@repochan/core`](../core/README.md); page rendering is delegated to [`@repochan/page-renderer`](../page-renderer/README.md). See the monorepo [`ARCHITECTURE.md`](../../ARCHITECTURE.md) for the full layer breakdown.
 
 ## Install (for end users)
 
@@ -45,28 +47,41 @@ Remember to run `pnpm install` from the monorepo root first.
 
 ## Skills
 
-- `repochan` — overview, recommended manual workflow, role map.
-- `repochan-analysis` — Analyst role; deep 8-step repository analysis.
-- `repochan-persona` — Creative Writer role; RepoChanPersona generation with anti-overfit rules.
-- `repochan-art-director` — Art Director/Product Manager role; structured Asset Orders.
-- `repochan-painter` — Painter role; professional commissioning mindset and order-result delivery.
-- `repochan-protocol` — `.repochan/` protocol specification.
+Eight skills live under `skills/`. Six are creative roles, two are support docs.
 
-Use explicitly, for example:
+**Roles** (each produces a schema-validated artifact under `.repochan/`):
+
+- `repochan-analysis` — Analyst role; deterministic scan + LLM enrichment → `.repochan/analysis/current.json`.
+- `repochan-interviewer` — Interviewer role; asks 7–14 structured questions across 8 dimensions, distills answers into `.repochan/interview/current.json`.
+- `repochan-persona` — Creative Team role; three-agent collaboration (world architect + character designer + consistency guardian) → `.repochan/persona/current.json`.
+- `repochan-art-director` — Art Director / PM role; foundation-sheet-first Asset Orders → `.repochan/orders/<id>/order.json`.
+- `repochan-painter` — Painter role; executes approved orders, resolves references, saves result versions under `orders/<id>/versions/<vid>/`.
+- `repochan-page-designer` — Landing-page designer; two-phase flow (content structure + asset audit, then Page JSON assembly + render) → `.repochan/pages/current.json`.
+
+**Support**:
+
+- `repochan` — overview, recommended manual workflow, role map.
+- `repochan-protocol` — `.repochan/` on-disk protocol specification.
+
+Roles never auto-chain in v1 — each is user-invoked. Use explicitly:
 
 ```text
-/skill:repochan-analysis analyze this repo and write .repochan/analysis.json
-/skill:repochan-persona create a persona from the current analysis
+/skill:repochan-analysis analyze this repo and write .repochan/analysis/current.json
+/skill:repochan-interviewer interview me about the project tone and audience
+/skill:repochan-persona create a persona from the current analysis + interview
 /skill:repochan-art-director create a batch of asset orders for a README hero and icon set
 /skill:repochan-painter execute order ord-hero-001, using an available image package if installed
+/skill:repochan-page-designer design a project landing page from the current analysis
 ```
 
 ## Manual workflow
 
-1. **Analyst** inspects the repository and writes `.repochan/analysis.json`.
-2. **Creative Writer** consumes analysis and writes `.repochan/persona/current.json` plus versioned profiles.
-3. **Art Director** consumes analysis/persona and writes `.repochan/orders/<order-id>/order.json`.
-4. **Painter** consumes approved orders, delegates actual image generation to installed image tools/packages when available, then saves result versions under `.repochan/orders/<order-id>/versions/<version-id>/` and updates `order.json.currentVersion`.
+1. **Analyst** inspects the repository and writes `.repochan/analysis/current.json`.
+2. **Interviewer** (optional) asks the user structured questions and writes `.repochan/interview/current.json`.
+3. **Creative Team** consumes analysis (+ optional interview) and writes `.repochan/persona/current.json`.
+4. **Art Director** consumes analysis/persona and writes `.repochan/orders/<order-id>/order.json` (foundation sheet first, then downstream orders).
+5. **Painter** consumes approved orders, delegates actual image generation to installed image tools/packages when available, then saves result versions under `.repochan/orders/<order-id>/versions/<version-id>/` and updates `order.json.currentVersion`.
+6. **Page Designer** (optional) consumes analysis + delivered order assets and writes `.repochan/pages/current.json`, rendered to static HTML via `@repochan/page-renderer`.
 
 ## Extension tool
 

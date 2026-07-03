@@ -24,7 +24,7 @@ export class PromptInput implements Component {
     this.input.onSubmit = (value) => {
       const trimmed = value.trim();
       if (!trimmed) {
-        this.error = "Input cannot be empty.";
+        this.error = "输入不能为空。";
         return;
       }
       this.options.onSubmit(trimmed);

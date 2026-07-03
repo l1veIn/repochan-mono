@@ -21,6 +21,14 @@ export interface ProviderContext {
 export interface GenerateParams {
   prompt: string;
   aspectRatio: "landscape" | "square" | "portrait";
+  /**
+   * Optional explicit output dimensions. When provided, these take precedence
+   * over aspectRatio for providers that support arbitrary sizes (FAL).
+   * Providers with fixed size tables (OpenAI, Codex, xAI) will snap to the
+   * closest supported size.
+   */
+  width?: number;
+  height?: number;
   outputFormat?: "png" | "jpeg" | "webp";
   /** Source image for image-to-image / editing. */
   imageUrl?: string;

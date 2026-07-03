@@ -31,6 +31,47 @@ const ASPECT_TO_SIZE: Record<string, string> = {
   portrait: "1024x1536",
 };
 
+/**
+ * gpt-image-1 supports: 1024x1024, 1536x1024, 1024x1536.
+ * dall-e-3 supports: 1024x1024, 1792x1024, 1024x1792.
+ * Given desired width/height, snap to the closest supported size for the model.
+ */
+const GPT_IMAGE_SIZES = [
+  { w: 1024, h: 1024, label: "1024x1024" },
+  { w: 1536, h: 1024, label: "1536x1024" },
+  { w: 1024, h: 1536, label: "1024x1536" },
+];
+
+const DALLE3_SIZES = [
+  { w: 1024, h: 1024, label: "1024x1024" },
+  { w: 1792, h: 1024, label: "1792x1024" },
+  { w: 1024, h: 1792, label: "1024x1792" },
+];
+
+function resolveSize(model: string, width?: number, height?: number, aspectRatio?: string): string {
+  const supported = model.includes("dall-e-3") ? DALLE3_SIZES : GPT_IMAGE_SIZES;
+  if (width && height) {
+    const targetRatio = width / height;
+    let best = supported[0];
+    let bestDiff = Infinity;
+    for (const s of supported) {
+      const diff = Math.abs(s.w / s.h - targetRatio);
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        best = s;
+      }
+    }
+    return best.label;
+  }
+  // Map aspectRatio to supported size, falling back for dall-e-3's different sizes
+  if (model.includes("dall-e-3")) {
+    if (aspectRatio === "landscape") return "1792x1024";
+    if (aspectRatio === "portrait") return "1024x1792";
+    return "1024x1024";
+  }
+  return ASPECT_TO_SIZE[aspectRatio ?? "square"] ?? "1024x1024";
+}
+
 const MODELS: ModelOption[] = [
   {
     id: "openai:gpt-image-1",
@@ -91,7 +132,7 @@ export class OpenAIApiProvider implements ImageGenProvider {
     }
 
     try {
-      const size = ASPECT_TO_SIZE[params.aspectRatio] ?? "1024x1024";
+      const size = resolveSize(model, params.width, params.height, params.aspectRatio);
       const hasSourceImage = !!params.imageUrl?.trim();
       const headers: Record<string, string> = {
         Authorization: `Bearer ${this.apiKey}`,

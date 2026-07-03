@@ -1,29 +1,43 @@
 # RepoChan Monorepo
 
-[English](./README.md)
+[English](./README.md) · [架构说明](./ARCHITECTURE.md)
 
-RepoChan 将 git 仓库转化为鲜活的看板娘人格和一致的视觉品牌资产（主视觉图、图标、贴纸等）。它遵循**手动、用户主导**的创意管线：Analyst → Creative Writer → Art Director → Painter。每个角色是独立的 Pi skill，执行前会检查前置条件，覆盖前会请求用户确认。
+RepoChan 是一个 **LLM-native、本地优先的创意生产管线追踪系统**。它把 git 仓库转化为鲜活的看板娘人格和一致的视觉品牌资产（主视觉图、图标、贴纸、落地页）。它遵循**手动、用户主导**的创意管线：Analyst → Creative Writer → Art Director → Painter。每个角色是独立的 Pi skill，执行前会检查前置条件，覆盖前会请求用户确认。
 
-此 monorepo 包含四个共享 `.repochan/` 磁盘协议的包。
+架构上，RepoChan 采用 **artifact-centric**（以产物为中心）设计：每个角色的目标不是"说一段话"，而是"产出一个经 schema 校验、版本化、落盘在 `.repochan/` 下的产物"。LLM 的自由度被约束在"从一个合法节点走向下一个合法节点"，而非"自由发挥"。完整设计理念、三层结构（schema / protocol / business rules）、已知架构缺口见 [`ARCHITECTURE.md`](./ARCHITECTURE.md)。
+
+此 monorepo 包含**五个**共享 `.repochan/` 磁盘协议的包。
 
 ## 架构
 
 ```
 packages/
-├── core        @repochan/core        纯 TS 库 — 协议、schema、实体、确定性分析。零 Pi 依赖。
-├── pi          repochan-pi           Pi 包 — 统一 `repochan` 工具、`/order_panel` 命令、6 个角色 skill。
-├── image-gen-pi @repochan/image-gen-pi Pi 包 — 多供应商图片生成（Codex OAuth, FAL.ai, OpenAI, xAI）。
-└── cli         repochan              面向用户的 TUI — 向导、Agent 驱动的角色页面、CLI 命令。
+├── core            @repochan/core              纯 TS 库 — protocol、schema、entity、business rules、确定性分析。零 Pi 依赖。
+├── pi              repochan-pi                 Pi 包 — 统一 `repochan` 工具、`/order_panel` 命令、8 个 skill（6 角色 + 总览 + protocol）。
+├── image-gen-pi    @repochan/image-gen-pi      Pi 包 — 多供应商图片生成（Codex OAuth, FAL.ai, OpenAI, xAI）。
+├── page-renderer   @repochan/page-renderer     Page JSON → 零-JS 静态 HTML 渲染器。
+└── cli             repochan                    面向用户的 TUI — 向导、Agent 驱动的角色页面、CLI 命令、i18n（中/英）。
 ```
+
+### 依赖方向
+
+```
+cli ──┬──> pi ──┬──> core
+      │         └──> page-renderer ──> core
+      └──> image-gen-pi
+```
+
+`core` 是叶子节点——绝不 import Pi 或 agent prompt 逻辑。`pi` 从 `core` 复用 protocol/schema/rule 代码，自身只做 Pi 运行时集成和 prompt。完整分层职责矩阵见 [`ARCHITECTURE.md`](./ARCHITECTURE.md) 第四节。
 
 ### 包之间的关系
 
 | 层 | 功能 | 加载方式 |
 |------|------|-----------|
-| `core` | `.repochan/` 读写、`listOrders`、`createOrderResult`、确定性分析引擎 | 一切（纯 JS 库） |
-| `pi` | `repochan` 工具（action 式 API）、6 个角色 skill、`/order_panel` | Pi agent，通过 `settings.json`（由 `repochan setup` 写入） |
+| `core` | `.repochan/` 读写、schema、entity 操作（状态机、依赖门）、确定性分析引擎 | 一切（纯 JS 库） |
+| `pi` | `repochan` 工具（action 式 API）、8 个 skill、`/order_panel` | Pi agent，通过 `settings.json`（由 `repochan setup` 写入） |
 | `image-gen-pi` | `image_generate` 工具、`/image_model` 命令 | Pi agent（同一个 settings） |
-| `cli` | TUI 向导、`repochan analyze/persona/foundation/paint`、`repochan validate` | 终端用户 |
+| `page-renderer` | 把 Page JSON 渲染成静态 HTML（供 `page.create` 使用） | `pi`（库依赖） |
+| `cli` | TUI 向导、`repochan analyze/persona/foundation/paint`、`repochan validate`、i18n | 终端用户 |
 
 ## `.repochan/` 协议
 
@@ -49,7 +63,7 @@ packages/
 - `orders/<id>/order.json` — 委托简报（Art Director 产出）
 - `orders/<id>/versions/<vid>/` — 交付的图片结果（Painter 产出）
 
-完整规范：`docs/protocol.md`。
+完整规范：[`packages/pi/skills/repochan-protocol/SKILL.md`](./packages/pi/skills/repochan-protocol/SKILL.md)。架构说明：[`ARCHITECTURE.md`](./ARCHITECTURE.md)。
 
 ## 角色管线
 
@@ -120,6 +134,8 @@ repochan order list [--json]     # 列出所有订单
 repochan order get <id> [--json] # 读取某个订单
 repochan model                   # 在 TUI 中打开模型/登录设置
 ```
+
+CLI 支持 **i18n（中文 / English）**。首次启动时选择语言并写入设置，之后可在 TUI 内的语言页修改。语言资源位于 `packages/cli/src/locales/{en,zh}.ts`。
 
 ---
 
@@ -269,10 +285,11 @@ pnpm --filter repochan run build
 | `packages/core` | `@repochan/core` | `dist/index.js`（编译） | 所有 |
 | `packages/pi` | `repochan-pi` | `extensions/repochan.ts`（jiti） | Pi agent |
 | `packages/image-gen-pi` | `@repochan/image-gen-pi` | `extensions/index.ts`（jiti） | Pi agent |
+| `packages/page-renderer` | `@repochan/page-renderer` | `dist/index.js`（编译） | `pi`（库依赖） |
 | `packages/cli` | `repochan` | `dist/index.js`（编译） | 终端用户 |
 
-## 协议文档
+## 文档
 
-- 完整规范：`docs/protocol.md`
-- 从 Python 原型迁移的笔记：`docs/from-reponyan-to-repochan.md`
-- 最小示例（无需运行 AI 即可查看）：`examples/minimal`
+- [`ARCHITECTURE.md`](./ARCHITECTURE.md) — 架构设计、三层结构、已知缺口、决策原则。
+- [`packages/pi/skills/repochan-protocol/SKILL.md`](./packages/pi/skills/repochan-protocol/SKILL.md) — `.repochan/` 磁盘协议规范。
+- [`examples/minimal`](./examples/minimal) — 最小示例（无需运行 AI 即可查看）。

@@ -251,3 +251,108 @@ export type InterviewReport = JsonObject & {
   /** Things the user explicitly does not want. */
   avoidList: string[];
 };
+
+// ---------------------------------------------------------------------------
+// Static page generation
+// ---------------------------------------------------------------------------
+
+/** Reference to an image asset stored in .repochan/orders/. */
+export type AssetRef = {
+  /** orderId, e.g. "ord-foundation-001". */
+  orderId: string;
+  /** Specific version. If omitted, uses the order's currentVersion. */
+  versionId?: string;
+  /** Filename within the version directory, e.g. "mascot-hero.png". */
+  file: string;
+  /** Alt text for accessibility. */
+  alt?: string;
+};
+
+/** A link with label and href. */
+export type PageLink = {
+  label: string;
+  href: string;
+};
+
+/** Theme configuration controlling visual appearance. */
+export type PageTheme = {
+  primary: string;
+  secondary: string;
+  accent: string;
+  background: string;
+  style: "modern" | "playful" | "minimal" | "techy" | "elegant";
+  darkMode?: boolean;
+  fontFamily?: string;
+};
+
+/** Content shapes for each section type. */
+
+export type NavbarContent = {
+  brand: string;
+  links?: PageLink[];
+  cta?: PageLink;
+};
+
+export type HeroContent = {
+  headline: string;
+  subheadline: string;
+  primaryCta: PageLink;
+  secondaryCta?: PageLink;
+  image?: AssetRef;
+};
+
+export type FeaturesContent = {
+  heading?: string;
+  subheading?: string;
+  items: Array<{
+    icon?: string;
+    title: string;
+    description: string;
+    image?: AssetRef;
+  }>;
+};
+
+export type StatsContent = {
+  items: Array<{ value: string; label: string }>;
+};
+
+export type GalleryContent = {
+  heading?: string;
+  images: AssetRef[];
+};
+
+export type CtaContent = {
+  heading: string;
+  subheading?: string;
+  buttonText: string;
+  buttonHref: string;
+};
+
+export type FooterContent = {
+  brand: string;
+  copyright?: string;
+  links?: PageLink[];
+  socials?: Array<{ platform: string; href: string }>;
+  logo?: AssetRef;
+};
+
+/** Discriminated union of all section types. */
+export type PageSection =
+  | { type: "navbar"; variant: "simple" | "with-cta"; content: NavbarContent }
+  | { type: "hero"; variant: "centered" | "split-right" | "split-left" | "full-bg"; content: HeroContent }
+  | { type: "features"; variant: "grid-2" | "grid-3" | "grid-4"; content: FeaturesContent }
+  | { type: "stats"; variant: "row" | "grid"; content: StatsContent }
+  | { type: "gallery"; variant: "grid" | "masonry"; content: GalleryContent }
+  | { type: "cta"; variant: "centered" | "banner"; content: CtaContent }
+  | { type: "footer"; variant: "standard" | "minimal"; content: FooterContent };
+
+/** The complete page artifact stored as .repochan/pages/current.json. */
+export type PageData = JsonObject & {
+  schemaVersion?: "repochan.page.v1";
+  title: string;
+  description: string;
+  theme: PageTheme;
+  sections: PageSection[];
+  generatedAt?: string;
+  provenance?: JsonObject;
+};
