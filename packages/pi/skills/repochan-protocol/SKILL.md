@@ -24,6 +24,9 @@ description: ".repochan 工作区协议详细规范，涵盖分析、人设、�
   analysis/
     current.json
     versions/
+  interview/                〔可选〕
+    current.json
+    versions/
   persona/
     current.json
     versions/
@@ -34,17 +37,23 @@ description: ".repochan 工作区协议详细规范，涵盖分析、人设、�
         <version-id>/
           meta.json
           hero.png
+  pages/                    〔可选〕
+    current.json
+    versions/
+    site/                   渲染产物（index.html + assets/）
 ```
 
-`order.json` 包含完整的任务数据、`status` 和 `currentVersion`。结果文件直接保存在所选任务的 `versions/<version-id>/` 目录中。
+`order.json` 包含完整的任务数据、`status` 和 `currentVersion`。结果文件直接保存在所选任务的 `versions/<version-id>/` 目录中。`interview/` 和 `pages/` 是可选产物——只有用户运行相应角色时才会创建。
 
 ## 产物依赖
 
 - 分析没有上游 `.repochan/` 依赖。
-- 人设需要分析。
+- 访谈是可选前置环节，需要分析。
+- 人设需要分析（可选消费访谈）。
 - 任务需要分析和人设。
 - Painter 交付需要分析、人设、和一个已批准/进行中的任务。
 - 修订应作为新任务，引用先前的任务/结果，并说明请求的差异。
+- 页面需要分析，可选引用已交付的 order 结果作为素材。
 
 ## 安全写入规则
 
@@ -66,6 +75,20 @@ description: ".repochan 工作区协议详细规范，涵盖分析、人设、�
 
 ```json
 { "schemaVersion": "repochan.persona.v1", "coreConcept": "", "visualIdentity": {}, "usageGuidelines": {} }
+```
+
+### 访谈（可选）
+
+```json
+{
+  "schemaVersion": "repochan.interview.v1",
+  "summary": "用户意图的一段话总结",
+  "keyConstraints": ["硬约束——下游必须遵守"],
+  "preferences": ["软偏好——尽量满足"],
+  "avoidList": ["用户明确不想要的"],
+  "questions": [{ "id": "q1", "question": "...", "category": "tone", "rationale": "...", "optional": false }],
+  "responses": [{ "questionId": "q1", "kind": "option", "answer": "..." }]
+}
 ```
 
 ### 创作任务
@@ -99,6 +122,22 @@ description: ".repochan 工作区协议详细规范，涵盖分析、人设、�
   "provenance": { "tool": "repochan", "action": "order.create_result" }
 }
 ```
+
+### 页面（可选）
+
+```json
+{
+  "title": "项目名",
+  "description": "一句话项目描述",
+  "theme": { "primary": "#3B82F6", "secondary": "...", "accent": "...", "background": "...", "style": "modern" },
+  "sections": [
+    { "type": "navbar", "variant": "simple", "content": { "brand": "..." } },
+    { "type": "hero", "variant": "centered", "content": { "headline": "...", "subheadline": "...", "primaryCta": { "label": "...", "href": "..." } } }
+  ]
+}
+```
+
+section 的 `type` × `variant` 组合由 `@repochan/page-renderer` 的模板表定义（navbar/hero/features/stats/gallery/cta/footer，共 7 类 20 个变体）。图片通过 `AssetRef`（`orderId + file + versionId?`）引用已交付的 order 结果，渲染前由 `page.check_assets` 校验是否存在。
 
 ## 示例预检响应
 
