@@ -37,6 +37,7 @@ import {
   setOrderStatus as coreSetOrderStatus,
   addOrderRevision as coreAddOrderRevision,
   updateOrder as coreUpdateOrder,
+  createReview as coreCreateReview,
   type OrderStatus,
 } from "@repochan/core";
 import { renderPage as rendererRenderPage, assetKey as rendererAssetKey } from "@repochan/page-renderer";
@@ -75,6 +76,7 @@ const ActionSchema = Type.Union([
   Type.Literal("page.get"),
   Type.Literal("page.check_assets"),
   Type.Literal("page.render"),
+  Type.Literal("review.create"),
 ]);
 
 const RepoChanSchema = Type.Object({
@@ -204,6 +206,16 @@ async function createOrderResult(ctx: ExtensionContext, params: JsonObject) {
   const orderId = requireOrderId(params);
   const result = await coreCreateOrderResult(ctx.cwd, { ...params, orderId });
   return ok(`Created order result ${orderId}/${result.version.versionId}.`, result);
+}
+
+async function createReview(ctx: ExtensionContext, params: JsonObject) {
+  const orderId = requireOrderId(params);
+  const versionId = requireVersionId(requireString(params, "versionId"));
+  const result = await coreCreateReview(ctx.cwd, { ...params, orderId, versionId });
+  const verdictLine = result.statusChanged
+    ? ` Order pushed back to needs_revision (verdict=${result.review.verdict}).`
+    : "";
+  return ok(`Reviewed ${orderId}/${versionId}: ${result.review.verdict}.${verdictLine}`, result);
 }
 
 async function listOrderResults(ctx: ExtensionContext, params: JsonObject) {
@@ -472,6 +484,7 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "Page section types: navbar (simple, with-cta), hero (centered, split-right, split-left, full-bg), features (grid-2, grid-3, grid-4), stats (row, grid), gallery (grid, masonry), cta (centered, banner), footer (standard, minimal). Each section has a content object whose shape depends on type+variant.",
       "Page AssetRef: { orderId, versionId?, file, alt? }. References an image file inside .repochan/orders/<orderId>/versions/<versionId>/. When versionId is omitted, uses the order's currentVersion. The renderer copies referenced files to the output assets/ directory.",
       "Page Designer two-phase workflow: Phase 1 — design page structure + audit assets (use page.check_assets); create orders for missing images via order.create, generate via Painter. Phase 2 — when all assets are delivered, assemble final Page JSON via page.create, then render via page.render.",
+      "review.create params: { orderId, versionId, verdict: 'pass'|'revise'|'reject', criteriaResults?, notes?, reviewerRole?, provenance?, overwrite=false }. Requires analysis. Creates a post-hoc review of a delivered order result version at orders/<orderId>/reviews/<versionId>.json. The versionId must reference an existing result version of the order. verdict='revise' or 'reject' pushes a DELIVERED order back to needs_revision (appends a revision record); verdict='pass' leaves status unchanged. Reviews are non-blocking — they are created AFTER delivery and never block it. To read an existing review, use protocol.read with artifactPath='orders/<orderId>/reviews/<versionId>.json'. If a review already exists for that version, pass overwrite=true to replace it (the prior review is archived).",
     ],
     parameters: RepoChanSchema,
     async execute(_toolCallId, input: RepoChanInput, _signal, _onUpdate, ctx) {
@@ -570,6 +583,8 @@ export function registerRepoChan(pi: ExtensionAPI) {
           return checkPageAssets(ctx, params);
         case "page.render":
           return renderPageToDisk(ctx, params);
+        case "review.create":
+          return createReview(ctx, params);
         default:
           throw new Error(`Unknown RepoChan action: ${(input as JsonObject).action}`);
       }

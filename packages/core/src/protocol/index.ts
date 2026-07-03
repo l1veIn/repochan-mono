@@ -164,6 +164,16 @@ export function orderVersionDir(projectRoot: string, orderId: string, versionId:
   return path.join(orderVersionsDir(projectRoot, orderId), validateVersionIdForPath(versionId));
 }
 
+/** Path to the review file for a specific order result version: orders/<orderId>/reviews/<versionId>.json */
+export function reviewJsonPath(projectRoot: string, orderId: string, versionId: string) {
+  return path.join(orderDir(projectRoot, orderId), "reviews", `${validateVersionIdForPath(versionId)}.json`);
+}
+
+/** Directory for archived review snapshots: orders/<orderId>/reviews/versions/ */
+export function reviewVersionsDir(projectRoot: string, orderId: string) {
+  return path.join(orderDir(projectRoot, orderId), "reviews", "versions");
+}
+
 export async function listJsonFiles(dir: string) {
   try {
     return (await fs.readdir(dir)).filter((file) => file.endsWith(".json")).sort();

@@ -20,11 +20,12 @@ description: 画师角色。执行已批准的创作任务：解析视觉引用�
 1. 要求 `.repochan/analysis/current.json` 存在。
 2. 要求 `.repochan/persona/current.json` 存在。
 3. 要求已选定的 `.repochan/orders/<order-id>/order.json`，状态为 `approved`，或有用户明确许可执行 draft。
-4. **检查任务是否有 `references`。** 如果有，解析它们。
-5. **读取任务的 `templateId`**（如果有）：`repochan action="template.get" params={ templateId: order.templateId }`。这给你权威的输出规格（画布大小、网格布局、约束、guide 标签）。
-6. **如果任务没有引用且不是设定集封面，警告用户**（见下方边界情况）。
-7. 检查相关的现有任务结果版本。
-8. 更改 `currentVersion` 前先询问。优先添加新版本。
+4. **如果状态是 `needs_revision`，这是 review 回流订单。** 进入"处理 review 回流"流程（见下方专节）——读取 review notes，用上一版产物做图生图，而非从零文生图。
+5. **检查任务是否有 `references`。** 如果有，解析它们。
+6. **读取任务的 `templateId`**（如果有）：`repochan action="template.get" params={ templateId: order.templateId }`。这给你权威的输出规格（画布大小、网格布局、约束、guide 标签）。
+7. **如果任务没有引用且不是设定集封面，警告用户**（见下方边界情况）。
+8. 检查相关的现有任务结果版本。
+9. 更改 `currentVersion` 前先询问。优先添加新版本。
 
 ## 引用解析流程
 
@@ -67,10 +68,64 @@ image_generate(
 
 ### 步骤 4：如果当前 image_generate 工具不支持参考图
 
-如果可用的图像生成能力不接受参考图：
+如果可用的图像生成能力接受参考图：
 1. 告诉用户："当前的图像生成工具不支持参考图。设定集封面将不会作为本次生成的视觉锚点。角色一致性可能降低。"
 2. 询问："你想用纯文本生成继续，还是更愿意换一种生成方式？"
 3. 仅在用户明确确认后继续。
+
+## 处理 review 回流订单
+
+当 order 状态是 `needs_revision` 时，说明这个订单的某个已交付版本被打回了（通过 `review.create` 的 `verdict=revise` 或 `reject`）。这不是从零生成，而是**基于上一版产物的修改**。
+
+### 核心区别：图生图，不是文生图
+
+review 回流订单**必须用图生图（image-to-image）**，而非从零文生图。上一版产物就是你的底图——你要在它的基础上修改，而不是重新生成一张可能风格漂移的全新图。
+
+### 步骤
+
+1. **读取 review notes**——这是用户/AD 给你的重绘指令：
+   ```
+   repochan action="protocol.read" params={ artifactPath: "orders/<orderId>/reviews/<versionId>.json" }
+   ```
+   review 的 `versionId` = 被打回的那个版本（即 order 的 `currentVersion`）。读取后关注：
+   - `notes`——主要的重绘指令（如"主色调偏了，重新用 #1E3A5F"）
+   - `criteriaResults`——逐条对照 `acceptanceCriteria` 的不通过项，每条 `note` 是具体问题
+   - `verdict`——`revise`（微调）vs `reject`（重做），决定修改幅度
+
+2. **读取上一版产物作为底图**——被 review 的版本目录下有交付的图像文件：
+   ```
+   repochan action="order.get_result" params={ orderId, versionId: <被打回的versionId> }
+   ```
+   返回的 `files` 就是图生图的底图路径。
+
+3. **组装修改型 prompt**——和正常 prompt 构建流程相同，但要**叠加 review notes 的修正指令**：
+   - 正常组装 persona + order brief + template prompt
+   - 在 prompt 中明确加入 review 指向的修改："adjust main color to #1E3A5F, keep existing composition and pose"
+   - 如果是 `reject`（重做），允许更大的构图变动；如果是 `revise`（微调），保持构图和姿势不变，只改 review 指出的部分
+
+4. **调用图生图**——用 `imageUrl` 传底图，而非 `referenceImageUrls`：
+   ```json
+   {
+     "prompt": "<叠加了 review 修正的 prompt>",
+     "imageUrl": "<上一版产物的文件路径>",
+     "width": <解析出的宽度>,
+     "height": <解析出的高度>,
+     "aspectRatio": "square"
+   }
+   ```
+   **关键**：`imageUrl`（图生图底图）和 `referenceImageUrls`（风格参考）是不同的参数。review 回流用 `imageUrl`。如果 order 同时有 `references`（如设定集封面），两者可以同时传——`imageUrl` 是要修改的底图，`referenceImageUrls` 是身份锚点。
+
+5. **保存为新版本**（如 v2），`notes` 中记录"基于 review 反馈修改 v1"：
+   ```
+   order.create_result params={
+     orderId, versionId: "v2",
+     files: ["<生成图像路径>"],
+     generationPrompt: "<完整 prompt>",
+     notes: "Review revision of v1. Review notes: <摘要>.",
+     setCurrent: true
+   }
+   ```
+   保存后 order 会回到 `delivered` 状态（`markDelivered` 默认行为），用户可以再次 review v2。
 
 ## 约稿 mindset
 
@@ -329,4 +384,42 @@ Rules:
      notes: "使用设定集封面 ord-foundation-001/v1 作为角色参考。",
      setCurrent: true
    }
+```
+
+### Review 回流（图生图修改）
+
+```
+1. order.get → 读取任务 ord-foundation-001
+   → status: "needs_revision", currentVersion: "v1"
+   → 进入 review 回流流程
+
+2. protocol.read → 读取 review
+   params={ artifactPath: "orders/ord-foundation-001/reviews/v1.json" }
+   → verdict: "revise", notes: "主色调偏蓝了，persona 要求 #1E3A5F deep navy"
+   → criteriaResults: [{ criterion: "配色一致", passed: false, note: "实际偏 #2B4A7B" }]
+
+3. order.get_result → 读取被打回版本的产物文件
+   params={ orderId: "ord-foundation-001", versionId: "v1" }
+   → files: ["/abs/path/.repochan/orders/ord-foundation-001/versions/v1/sheet.png"]
+
+4. 正常组装 prompt + 叠加 review 修正指令：
+   "...adjust main hair/coat color to #1E3A5F deep navy, keep existing composition, pose, and layout unchanged..."
+
+5. 调用图生图（imageUrl = 上一版底图）：
+   image_generate(
+     prompt=<叠加了 review 修正的 prompt>,
+     imageUrl="/abs/path/.repochan/orders/ord-foundation-001/versions/v1/sheet.png",
+     width=1024, height=1024, aspectRatio="square"
+   )
+
+6. 保存为新版本：
+   order.create_result params={
+     orderId: "ord-foundation-001",
+     versionId: "v2",
+     files: ["<生成图像路径>"],
+     generationPrompt: "<完整 prompt>",
+     notes: "Review revision of v1: 主色调修正为 #1E3A5F。",
+     setCurrent: true
+   }
+   → order 回到 delivered，用户可再次 review v2
 ```
