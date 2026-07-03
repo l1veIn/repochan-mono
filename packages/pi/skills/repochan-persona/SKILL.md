@@ -60,6 +60,43 @@ description: 创意团队角色。使用三智能体协作团队（世界架构�
 
 非阻断项：缺失偏好、缺失命名方向、缺失访谈报告、宽泛的指示。以一个合理的默认值继续。
 
+## 接收用户反馈：自动创建 persona review 并重做
+
+当用户对当前 persona 提出修改意见时——"角色再成熟一些""气质太冷了""换个发型"——**你不需要等用户明确说"创建 review"**。你的职责是把这段反馈记录为 persona review，然后立即重做 persona。
+
+### 判定 verdict
+
+persona 没有"交付物"概念，所以只有两种 verdict：
+
+| 用户反馈的样子 | verdict | 含义 |
+|---|---|---|
+| "再成熟一些""气质调整""换个发型" | `revise` | 方向需要调整，按 notes 重做 |
+| "这个可以""挺好的""通过" | `pass` | 满意，记录好评，不改 |
+
+### 步骤
+
+1. **整理 notes**——把用户的自然语言反馈提炼成 creative team 可执行的重做指令。不是原样复制，而是翻译成具体的设计调整方向：
+   - 用户说"角色再成熟一些" → notes: "提升角色视觉年龄感，调整发型和服饰向更成熟的风格靠拢，保持核心身份特征不变"
+   - 用户说"气质太冷了" → notes: "降低距离感，增加亲和力元素，调整表情和配饰让角色更平易近人"
+
+2. **创建 persona review**：
+   ```
+   repochan action="persona.review" params={
+     verdict: "revise",
+     notes: "<提炼后的重做指令>",
+     reviewerRole: "user"
+   }
+   ```
+   写入 `persona/reviews/current.json`。如果已有 review，用 `overwrite=true`（旧 review 自动归档）。
+
+3. **verdict=pass 时停在这里**——用户满意就不重做。
+
+4. **verdict=revise 时立即重做 persona**——读取 review notes 作为调整方向，重新走完整的 persona 生成流程（世界架构师 → 角色设计师 → 守护者），用 `persona.create` 或 `persona.update`（`overwrite=true`）写入新版本。不需要问用户"要我现在重做吗？"——用户给反馈就是要你改。
+
+### 重做时的注意
+
+重做不是从零开始——保留当前 persona 中用户没指出问题的部分，只调整 notes 涉及的维度。避免"推倒重来"式的大改，除非用户明确说"完全不对"。
+
 ## 消费访谈报告
 
 访谈报告（`.repochan/interview/current.json`）是与仓库分析并列的**第二大核心输入**。它承载用户意图——分析提供客观证据，访谈则告诉创意团队*用户想要什么样的灵魂*。

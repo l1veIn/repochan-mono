@@ -174,6 +174,16 @@ export function reviewVersionsDir(projectRoot: string, orderId: string) {
   return path.join(orderDir(projectRoot, orderId), "reviews", "versions");
 }
 
+/** Path to the current persona review: persona/reviews/current.json */
+export function personaReviewPath(projectRoot: string) {
+  return path.join(protocolRoot(projectRoot), "persona", "reviews", "current.json");
+}
+
+/** Directory for archived persona reviews: persona/reviews/versions/ */
+export function personaReviewVersionsDir(projectRoot: string) {
+  return path.join(protocolRoot(projectRoot), "persona", "reviews", "versions");
+}
+
 export async function listJsonFiles(dir: string) {
   try {
     return (await fs.readdir(dir)).filter((file) => file.endsWith(".json")).sort();
