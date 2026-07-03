@@ -356,3 +356,43 @@ export type PageData = JsonObject & {
   generatedAt?: string;
   provenance?: JsonObject;
 };
+
+// ── Review ──
+
+/** Outcome of a review. `pass` leaves order status unchanged; `revise`/`reject` push a delivered order back to needs_revision. */
+export type ReviewVerdict = "pass" | "revise" | "reject";
+
+/** A single criterion evaluation within a review. Maps to an order's acceptanceCriteria entry. */
+export type CriterionResult = {
+  /** The criterion text (typically from order.acceptanceCriteria[i]). */
+  criterion: string;
+  /** Whether this criterion was met. */
+  passed: boolean;
+  /** Optional reviewer note explaining the judgment. */
+  note?: string;
+};
+
+/**
+ * Review artifact — a post-hoc evaluation of a delivered order result version.
+ *
+ * Stored at `.repochan/orders/<orderId>/reviews/<versionId>.json`. Reviews are
+ * non-blocking: they are created AFTER delivery, never before. A `revise` or
+ * `reject` verdict pushes a `delivered` order back to `needs_revision`.
+ */
+export type ReviewArtifact = JsonObject & {
+  /** The order being reviewed. */
+  orderId: string;
+  /** The specific result version being reviewed. */
+  versionId: string;
+  /** The review outcome. */
+  verdict: ReviewVerdict;
+  /** Optional per-criterion evaluation, mapping to the order's acceptanceCriteria. */
+  criteriaResults?: CriterionResult[];
+  /** Free-form reviewer notes. */
+  notes?: string;
+  /** Who/what produced this review, e.g. "art-director", "user". */
+  reviewerRole?: string;
+  schemaVersion?: "repochan.review.v1";
+  generatedAt?: string;
+  provenance?: JsonObject;
+};

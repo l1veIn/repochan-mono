@@ -459,6 +459,50 @@ export const PageCreateParamsSchema = Type.Object({
   provenance: Type.Optional(ProvenanceSchema),
 });
 
+// ── Review ──
+
+export const ReviewVerdictSchema = Type.Union([
+  Type.Literal("pass"),
+  Type.Literal("revise"),
+  Type.Literal("reject"),
+]);
+
+const CriterionResultSchema = Type.Object({
+  criterion: Type.String({ description: "The criterion text (typically from order.acceptanceCriteria)." }),
+  passed: Type.Boolean(),
+  note: Type.Optional(Type.String()),
+});
+
+/**
+ * Review artifact — a post-hoc evaluation of a delivered order result version.
+ *
+ * Stored at `.repochan/orders/<orderId>/reviews/<versionId>.json`. Reviews are
+ * non-blocking: they are created AFTER delivery, never before. A `revise` or
+ * `reject` verdict pushes a `delivered` order back to `needs_revision`.
+ */
+export const ReviewArtifactSchema = Type.Object({
+  orderId: OrderIdSchema,
+  versionId: VersionIdSchema,
+  verdict: ReviewVerdictSchema,
+  criteriaResults: Type.Optional(Type.Array(CriterionResultSchema)),
+  notes: Type.Optional(Type.String()),
+  reviewerRole: Type.Optional(Type.String({ description: "Who/what produced this review, e.g. 'art-director', 'user'." })),
+  schemaVersion: Type.Optional(Type.String()),
+  generatedAt: Type.Optional(Type.String()),
+  provenance: Type.Optional(ProvenanceSchema),
+}, { description: "RepoChan review artifact — post-hoc evaluation of a delivered order result." });
+
+export const ReviewCreateParamsSchema = Type.Object({
+  orderId: OrderIdSchema,
+  versionId: VersionIdSchema,
+  verdict: ReviewVerdictSchema,
+  criteriaResults: Type.Optional(Type.Array(CriterionResultSchema)),
+  notes: Type.Optional(Type.String()),
+  reviewerRole: Type.Optional(Type.String()),
+  provenance: Type.Optional(ProvenanceSchema),
+  overwrite: Type.Optional(Type.Boolean()),
+});
+
 // ---------------------------------------------------------------------------
 // Schema registry (for consumers that need the full list)
 // ---------------------------------------------------------------------------
@@ -477,4 +521,5 @@ export const WriteOpSchemas = {
   "analysis.run": AnalysisRunParamsSchema,
   "analysis.update": AnalysisUpdateParamsSchema,
   "page.create": PageCreateParamsSchema,
+  "review.create": ReviewCreateParamsSchema,
 } satisfies Record<string, TSchema>;
