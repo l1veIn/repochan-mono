@@ -97,6 +97,43 @@ persona 没有"交付物"概念，所以只有两种 verdict：
 
 重做不是从零开始——保留当前 persona 中用户没指出问题的部分，只调整 notes 涉及的维度。避免"推倒重来"式的大改，除非用户明确说"完全不对"。
 
+## 候选态工作流：多人设方案生成
+
+正常流程下，persona 是单值的——一个 `current.json`。但有时用户想看**几个不同方向的人设**再决定——"给我一个成熟风的和一个活泼风的，我选一个"。
+
+这种场景用候选态：每个方案写成 `persona/candidates/<slug>.json`，不覆盖 current，用户选定后 promote 一个。
+
+### 何时使用
+
+- **用户明确要求多个方案**——"试几个不同方向""给我两个选项"。
+- **项目早期探索品牌方向**——还没有定稿 persona，想并行探索。
+
+不要主动提议候选态。只在用户要求时使用。
+
+### 流程
+
+1. **用 `persona.create_candidate` 生成每个方案**（而非 `persona.create`）：
+   ```
+   repochan action="persona.create_candidate" params={
+     persona: { name: "Reyna", rolePrompt: "...", ... },
+     slug: "mature"
+   }
+   ```
+   每个 candidate 用不同的 slug（如 mature、playful）。它们不会覆盖 `current.json`——只是并行存在的草案。
+
+2. **用户选定后，promote 一个为 current**：
+   ```
+   repochan action="persona.promote_candidate" params={ slug: "mature" }
+   ```
+   被选中的 candidate 复制到 `current.json`（如果已有 current，旧值自动归档到 `versions/`），candidate 文件被删除。其余 candidate 保留。
+
+3. **未选中的 candidate 怎么处理**：留着。用户可能改主意，或想从中提取某些元素融合到选定方案里。
+
+### 候选态 vs review 回流
+
+- **候选态**：还没有定稿 persona，生成多个方案让用户**初选**。
+- **review 回流**：已有定稿 persona，用户反馈后**调整**（重做）。
+
 ## 消费访谈报告
 
 访谈报告（`.repochan/interview/current.json`）是与仓库分析并列的**第二大核心输入**。它承载用户意图——分析提供客观证据，访谈则告诉创意团队*用户想要什么样的灵魂*。

@@ -5,7 +5,7 @@
 export { readOrder, ensureOrderApprovedForExecution } from "./shared.js";
 export type { } from "./shared.js";
 
-export { createOrUpdatePersona } from "./persona.js";
+export { createOrUpdatePersona, createPersonaCandidate, promotePersonaCandidate, listPersonaCandidates } from "./persona.js";
 
 export { createOrUpdateInterview, appendToInterview } from "./interview.js";
 
