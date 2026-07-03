@@ -539,6 +539,30 @@ export const ReviewCreateParamsSchema = Type.Object({
   overwrite: Type.Optional(Type.Boolean()),
 });
 
+// ── Persona review ──
+
+export const PersonaReviewVerdictSchema = Type.Union([
+  Type.Literal("pass"),
+  Type.Literal("revise"),
+]);
+
+export const PersonaReviewArtifactSchema = Type.Object({
+  verdict: PersonaReviewVerdictSchema,
+  notes: Type.String({ description: "Re-generation guidance for the creative team." }),
+  reviewerRole: Type.Optional(Type.String()),
+  schemaVersion: Type.Optional(Type.String()),
+  generatedAt: Type.Optional(Type.String()),
+  provenance: Type.Optional(ProvenanceSchema),
+}, { description: "RepoChan persona review artifact — feedback on the current persona." });
+
+export const PersonaReviewCreateParamsSchema = Type.Object({
+  verdict: PersonaReviewVerdictSchema,
+  notes: Type.String({ minLength: 1, description: "Non-empty feedback / re-generation guidance." }),
+  reviewerRole: Type.Optional(Type.String()),
+  provenance: Type.Optional(ProvenanceSchema),
+  overwrite: Type.Optional(Type.Boolean()),
+});
+
 // ---------------------------------------------------------------------------
 // Schema registry (for consumers that need the full list)
 // ---------------------------------------------------------------------------
@@ -560,4 +584,5 @@ export const WriteOpSchemas = {
   "analysis.update": AnalysisUpdateParamsSchema,
   "page.create": PageCreateParamsSchema,
   "review.create": ReviewCreateParamsSchema,
+  "persona.review": PersonaReviewCreateParamsSchema,
 } satisfies Record<string, TSchema>;

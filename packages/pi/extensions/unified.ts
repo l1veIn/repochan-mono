@@ -40,6 +40,7 @@ import {
   createReview as coreCreateReview,
   createOrderCandidate as coreCreateOrderCandidate,
   promoteCandidate as corePromoteCandidate,
+  createPersonaReview as coreCreatePersonaReview,
   type OrderStatus,
 } from "@repochan/core";
 import { renderPage as rendererRenderPage, assetKey as rendererAssetKey } from "@repochan/page-renderer";
@@ -81,6 +82,7 @@ const ActionSchema = Type.Union([
   Type.Literal("review.create"),
   Type.Literal("order.create_candidate"),
   Type.Literal("order.promote_candidate"),
+  Type.Literal("persona.review"),
 ]);
 
 const RepoChanSchema = Type.Object({
@@ -234,6 +236,11 @@ async function promoteCandidateAction(ctx: ExtensionContext, params: JsonObject)
   const result = await corePromoteCandidate(ctx.cwd, orderId, versionId);
   const prevLine = result.previousCurrent ? ` Previous current ${result.previousCurrent.versionId} demoted to snapshot.` : "";
   return ok(`Promoted ${orderId}/${versionId} to current.${prevLine}`, result);
+}
+
+async function createPersonaReviewAction(ctx: ExtensionContext, params: JsonObject) {
+  const result = await coreCreatePersonaReview(ctx.cwd, params);
+  return ok(`Persona review: ${result.review.verdict}.`, result);
 }
 
 async function listOrderResults(ctx: ExtensionContext, params: JsonObject) {
@@ -505,6 +512,7 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "review.create params: { orderId, versionId, verdict: 'pass'|'revise'|'reject', criteriaResults?, notes?, reviewerRole?, provenance?, overwrite=false }. Requires analysis. Creates a post-hoc review of a delivered order result version at orders/<orderId>/reviews/<versionId>.json. The versionId must reference an existing result version of the order. verdict='revise' or 'reject' pushes a DELIVERED order back to needs_revision (appends a revision record); verdict='pass' leaves status unchanged. Reviews are non-blocking — they are created AFTER delivery and never block it. To read an existing review, use protocol.read with artifactPath='orders/<orderId>/reviews/<versionId>.json'. If a review already exists for that version, pass overwrite=true to replace it (the prior review is archived).",
       "order.create_candidate params: { orderId, files?, versionId?, tool?, promptBrief?, generationPrompt?, revisedPrompt?, notes?, meta?, provenance?, overwrite?, allowUnapprovedOrder? }. Creates a parallel draft version with role=candidate. Unlike order.create_result, a candidate does NOT become currentVersion and does NOT mark the order delivered. Multiple candidates can coexist on one order. Use this when the user wants several alternative drafts to choose from. Image generation is expensive — only create candidates when the user explicitly asks for options. Each candidate can be reviewed via review.create before selection.",
       "order.promote_candidate params: { orderId, versionId }. Promotes a candidate version to current: sets currentVersion, changes the candidate's role to 'current', and demotes the previous current version (if any) to role='snapshot'. Only candidate-role versions can be promoted. At most one version is current at any time. Use after the user has reviewed candidates and chosen one.",
+      "persona.review params: { verdict: 'pass'|'revise', notes, reviewerRole?, provenance?, overwrite=false }. Requires analysis and an existing persona. Creates a feedback review at persona/reviews/current.json. Unlike order reviews, persona has NO state machine — a 'revise' verdict does NOT trigger a status transition. It is a feedback record that the creative team reads and acts on by re-running persona generation (persona.create with overwrite=true or persona.update). notes is the re-generation guidance (e.g. 'make the character feel more mature'). To read the review, use protocol.read with artifactPath='persona/reviews/current.json'.",
     ],
     parameters: RepoChanSchema,
     async execute(_toolCallId, input: RepoChanInput, _signal, _onUpdate, ctx) {
@@ -609,6 +617,8 @@ export function registerRepoChan(pi: ExtensionAPI) {
           return createOrderCandidateAction(ctx, params);
         case "order.promote_candidate":
           return promoteCandidateAction(ctx, params);
+        case "persona.review":
+          return createPersonaReviewAction(ctx, params);
         default:
           throw new Error(`Unknown RepoChan action: ${(input as JsonObject).action}`);
       }

@@ -401,3 +401,30 @@ export type ReviewArtifact = JsonObject & {
   generatedAt?: string;
   provenance?: JsonObject;
 };
+
+// ── Persona review ──
+
+/**
+ * Outcome of a persona review. Persona has no state machine, so a `revise`
+ * verdict does NOT trigger a status transition — it is a feedback record that
+ * the creative team reads and acts on by re-running persona generation.
+ */
+export type PersonaReviewVerdict = "pass" | "revise";
+
+/**
+ * Persona review artifact — feedback on the current persona, stored at
+ * `.repochan/persona/reviews/current.json`. When verdict is `revise`, the
+ * creative team reads `notes` as re-generation guidance and produces a new
+ * persona via persona.create (overwrite=true) or persona.update.
+ */
+export type PersonaReviewArtifact = JsonObject & {
+  /** The review outcome. `pass` = satisfied; `revise` = redo with adjustments. */
+  verdict: PersonaReviewVerdict;
+  /** Re-generation guidance for the creative team (e.g. "make the character feel more mature"). */
+  notes: string;
+  /** Who/what produced this review, e.g. "user", "art-director". */
+  reviewerRole?: string;
+  schemaVersion?: "repochan.persona-review.v1";
+  generatedAt?: string;
+  provenance?: JsonObject;
+};
