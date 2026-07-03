@@ -115,6 +115,9 @@ export type PersonaData = {
   provenance?: JsonObject;
 };
 
+/** Role of a result version within its order. `current` = the active/promoted version; `candidate` = a parallel draft awaiting selection; `snapshot` = a retired former current. */
+export type VersionRole = "current" | "candidate" | "snapshot";
+
 export type OrderResultVersion = JsonObject & {
   versionId: string;
   createdAt: string;
@@ -124,6 +127,8 @@ export type OrderResultVersion = JsonObject & {
   generationPrompt?: string;
   revisedPrompt?: string;
   notes?: string;
+  /** Distinguishes parallel candidates from the promoted current and retired snapshots. Omitted on legacy data is treated as "current". */
+  role?: VersionRole;
   provenance?: JsonObject;
   meta?: JsonObject;
 };

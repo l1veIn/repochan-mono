@@ -1,6 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import type { AssetOrder, AssetRef, InterviewQuestion, InterviewReport, InterviewResponse, JsonObject, OrderReference, OrderResultVersion, OrderStatus, PageData, PageSection, ReviewArtifact, ReviewVerdict } from "./types.js";
+import type { AssetOrder, AssetRef, InterviewQuestion, InterviewReport, InterviewResponse, JsonObject, OrderReference, OrderResultVersion, OrderStatus, PageData, PageSection, ReviewArtifact, ReviewVerdict, VersionRole } from "./types.js";
 import {
   exists,
   initProtocol,
@@ -26,6 +26,8 @@ import {
   InterviewCreateParamsSchema,
   OrderCreateParamsSchema,
   OrderCreateResultParamsSchema,
+  OrderCreateCandidateParamsSchema,
+  OrderPromoteCandidateParamsSchema,
   OrderAddRevisionParamsSchema,
   OrderSetCurrentResultParamsSchema,
   OrderSetStatusParamsSchema,
@@ -386,6 +388,105 @@ export async function createOrderResult(projectRoot: string, params: JsonObject)
 
   await writeJson(orderJsonPath(projectRoot, orderId), next, true);
   return { order: next, version, checkedOrder: order };
+}
+
+/**
+ * Create a candidate draft version — a parallel draft that is NOT promoted to
+ * current and does NOT mark the order delivered. Reuses createOrderResult's
+ * file-copy and meta-writing logic, then overrides the role to "candidate".
+ *
+ * Multiple candidates can coexist on one order. The user/AD later calls
+ * promoteCandidate to select one as current; the rest stay as candidates.
+ */
+export async function createOrderCandidate(projectRoot: string, params: JsonObject) {
+  validateInput("order.create_candidate", OrderCreateCandidateParamsSchema, params);
+  // Delegate to createOrderResult with flags that prevent promotion + delivery.
+  // allowUnapprovedOrder: candidates are typically added AFTER the order has been
+  // delivered (user wants alternatives) — the approval gate would block that.
+  // This is safe because candidates don't promote or change status.
+  const result = await createOrderResult(projectRoot, {
+    ...params,
+    setCurrent: false,             // do NOT point currentVersion at this candidate
+    markDelivered: false,          // do NOT change order status — candidates aren't deliveries
+    allowUnapprovedOrder: true,    // candidates can be added to delivered orders
+  });
+
+  // Override the role on the written version meta + the embedded orderAsset entry.
+  const { order, version } = result;
+  version.role = "candidate" as VersionRole;
+
+  // Rewrite meta.json with role=candidate
+  const versionDir = orderVersionDir(projectRoot, order.orderId, version.versionId);
+  await writeJson(path.join(versionDir, "meta.json"), version, true);
+
+  // Update the embedded orderAsset.versions entry + persist order.json
+  if (order.orderAsset && Array.isArray(order.orderAsset.versions)) {
+    const idx = order.orderAsset.versions.findIndex((v: any) => v.versionId === version.versionId);
+    if (idx >= 0) order.orderAsset.versions[idx].role = "candidate";
+  }
+  await writeJson(orderJsonPath(projectRoot, order.orderId), order, true);
+
+  return { order, version, checkedOrder: result.checkedOrder };
+}
+
+/**
+ * Promote a candidate version to current. The previous current version (if any)
+ * is demoted to snapshot. At most one version is "current" at any time.
+ */
+export async function promoteCandidate(projectRoot: string, orderId: string, versionId: string) {
+  validateInput("order.promote_candidate", OrderPromoteCandidateParamsSchema, { orderId, versionId });
+  await initProtocol(projectRoot);
+  const id = validateOrderId(orderId);
+  const vid = validateVersionId(versionId);
+
+  const file = orderJsonPath(projectRoot, id);
+  if (!(await exists(file))) throw new Error(`Order ${id} does not exist.`);
+  const order: AssetOrder = await readJson(file);
+
+  if (!order.orderAsset || !Array.isArray(order.orderAsset.versions)) {
+    throw new Error(`Order ${id} has no result versions. Create a candidate first.`);
+  }
+
+  const versions = order.orderAsset.versions as OrderResultVersion[];
+  const target = versions.find((v) => v.versionId === vid);
+  if (!target) {
+    throw new Error(`Order ${id} has no version '${vid}'. Cannot promote.`);
+  }
+  if (target.role === "current") {
+    throw new Error(`Version ${vid} is already the current version of order ${id}.`);
+  }
+  if (target.role === "snapshot") {
+    throw new Error(`Version ${vid} is a snapshot (retired). Only candidate versions can be promoted.`);
+  }
+
+  // Demote the previous current (if any) to snapshot.
+  let previousCurrent: OrderResultVersion | undefined;
+  const prevCurrentId = order.currentVersion;
+  if (prevCurrentId) {
+    const prev = versions.find((v) => v.versionId === prevCurrentId);
+    if (prev && prev.versionId !== vid) {
+      prev.role = "snapshot" as VersionRole;
+      previousCurrent = { ...prev };
+      // Rewrite its meta.json too, for on-disk consistency.
+      const prevDir = orderVersionDir(projectRoot, id, prev.versionId);
+      if (await exists(path.join(prevDir, "meta.json"))) {
+        await writeJson(path.join(prevDir, "meta.json"), prev, true);
+      }
+    }
+  }
+
+  // Promote the target.
+  target.role = "current" as VersionRole;
+  order.currentVersion = vid;
+  order.orderAsset.currentVersion = vid;
+  order.updatedAt = stamp();
+
+  // Rewrite the promoted version's meta.json.
+  const targetDir = orderVersionDir(projectRoot, id, vid);
+  await writeJson(path.join(targetDir, "meta.json"), target, true);
+
+  await writeJson(file, order, true);
+  return { order, promotedVersion: target, previousCurrent };
 }
 
 export async function listOrderResults(projectRoot: string, orderId: string) {

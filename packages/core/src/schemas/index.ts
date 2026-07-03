@@ -24,6 +24,12 @@ const ProvenanceSchema = Type.Record(Type.String(), JsonValueSchema, { descripti
 // Entity schemas (on-disk artifact shapes)
 // ---------------------------------------------------------------------------
 
+export const VersionRoleSchema = Type.Union([
+  Type.Literal("current"),
+  Type.Literal("candidate"),
+  Type.Literal("snapshot"),
+]);
+
 export const OrderResultVersionSchema = Type.Object({
   versionId: VersionIdSchema,
   createdAt: Type.String(),
@@ -33,6 +39,7 @@ export const OrderResultVersionSchema = Type.Object({
   generationPrompt: Type.Optional(Type.String()),
   revisedPrompt: Type.Optional(Type.String()),
   notes: Type.Optional(Type.String()),
+  role: Type.Optional(VersionRoleSchema),
   provenance: Type.Optional(ProvenanceSchema),
   meta: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
 });
@@ -220,6 +227,35 @@ export const OrderCreateResultParamsSchema = Type.Object({
 });
 
 export const OrderSetCurrentResultParamsSchema = Type.Object({
+  orderId: OrderIdSchema,
+  versionId: VersionIdSchema,
+});
+
+// ── Candidate ──
+
+/**
+ * Create a candidate draft version. Same payload shape as create_result, but
+ * the version is written with role="candidate" — it does NOT become currentVersion
+ * and does NOT mark the order delivered. Used when the user wants multiple
+ * parallel drafts to choose from before promoting one.
+ */
+export const OrderCreateCandidateParamsSchema = Type.Object({
+  orderId: OrderIdSchema,
+  files: Type.Optional(Type.Array(Type.String())),
+  versionId: Type.Optional(VersionIdSchema),
+  tool: Type.Optional(Type.String()),
+  promptBrief: Type.Optional(Type.String()),
+  generationPrompt: Type.Optional(Type.String()),
+  revisedPrompt: Type.Optional(Type.String()),
+  notes: Type.Optional(Type.String()),
+  meta: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
+  provenance: Type.Optional(ProvenanceSchema),
+  overwrite: Type.Optional(Type.Boolean()),
+  allowUnapprovedOrder: Type.Optional(Type.Boolean()),
+});
+
+/** Promote a candidate version to current. The previous current (if any) is demoted to snapshot. */
+export const OrderPromoteCandidateParamsSchema = Type.Object({
   orderId: OrderIdSchema,
   versionId: VersionIdSchema,
 });
@@ -518,6 +554,8 @@ export const WriteOpSchemas = {
   "order.add_revision": OrderAddRevisionParamsSchema,
   "order.create_result": OrderCreateResultParamsSchema,
   "order.set_current_result": OrderSetCurrentResultParamsSchema,
+  "order.create_candidate": OrderCreateCandidateParamsSchema,
+  "order.promote_candidate": OrderPromoteCandidateParamsSchema,
   "analysis.run": AnalysisRunParamsSchema,
   "analysis.update": AnalysisUpdateParamsSchema,
   "page.create": PageCreateParamsSchema,
