@@ -1,29 +1,43 @@
 # RepoChan Monorepo
 
-[中文文档](./README_zh.md)
+[中文文档](./README_zh.md) · [架构说明](./ARCHITECTURE.md)
 
-RepoChan turns a git repository into a living mascot persona and consistent visual brand assets (hero images, icons, stickers, etc.). It follows a **manual, user-controlled** creative pipeline: Analyst → Creative Writer → Art Director → Painter. Each role is a separate Pi skill that checks prerequisites before it works and asks before overwriting.
+RepoChan is an **LLM-native, local-first creative production tracking system**. It turns a git repository into a living mascot persona and consistent visual brand assets (hero images, icons, stickers, landing pages). It follows a **manual, user-controlled** creative pipeline: Analyst → Creative Writer → Art Director → Painter. Each role is a separate Pi skill that checks prerequisites before it works and asks before overwriting.
 
-This monorepo contains four packages that share a stable `.repochan/` on-disk protocol.
+Architecturally, RepoChan uses an **artifact-centric** design: every role's goal is not "say something" but "produce a schema-validated, versioned, on-disk artifact under `.repochan/`". LLM freedom is constrained to "move from one valid node to the next", not "freestyle". See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full design rationale, the three-layer structure (schema / protocol / business rules), and known architectural gaps.
+
+This monorepo contains **five packages** that share a stable `.repochan/` on-disk protocol.
 
 ## Architecture
 
 ```
 packages/
-├── core        @repochan/core        Pure TS library — protocol, schemas, entities, deterministic analysis. Zero Pi deps.
-├── pi          repochan-pi           Pi package — unified `repochan` tool, `/order_panel` command, 6 role skills.
-├── image-gen-pi @repochan/image-gen-pi Pi package — multi-provider image generation (Codex OAuth, FAL.ai, OpenAI, xAI).
-└── cli         repochan              User-facing TUI — wizard, agent-driven role pages, CLI commands.
+├── core            @repochan/core              Pure TS library — protocol, schemas, entities, business rules, deterministic analysis. Zero Pi deps.
+├── pi              repochan-pi                 Pi package — unified `repochan` tool, `/order_panel` command, 8 skills (6 roles + overview + protocol).
+├── image-gen-pi    @repochan/image-gen-pi      Pi package — multi-provider image generation (Codex OAuth, FAL.ai, OpenAI, xAI).
+├── page-renderer   @repochan/page-renderer     Page JSON → zero-JS static HTML renderer.
+└── cli             repochan                    User-facing TUI — wizard, agent-driven role pages, CLI commands, i18n (en/zh).
 ```
+
+### Dependency direction
+
+```
+cli ──┬──> pi ──┬──> core
+      │         └──> page-renderer ──> core
+      └──> image-gen-pi
+```
+
+`core` is the leaf — it never imports Pi or agent-prompt logic. `pi` reuses protocol/schema/rule code from `core` and owns only Pi runtime integration + prompts. See [`ARCHITECTURE.md`](./ARCHITECTURE.md) §四 for the full layer-responsibility matrix.
 
 ### How they connect
 
 | Layer | What | Loaded by |
 |-------|------|-----------|
-| `core` | `.repochan/` reads/writes, `listOrders`, `createOrderResult`, deterministic analysis engine | Everything (pure JS lib) |
-| `pi` | `repochan` tool (action-based API), 6 role skills, `/order_panel` | Pi agent via `settings.json` (written by `repochan setup`) |
+| `core` | `.repochan/` reads/writes, schemas, entity operations (state machine, dependency gates), deterministic analysis engine | Everything (pure JS lib) |
+| `pi` | `repochan` tool (action-based API), 8 skills, `/order_panel` | Pi agent via `settings.json` (written by `repochan setup`) |
 | `image-gen-pi` | `image_generate` tool, `/image_model` command | Pi agent (same settings) |
-| `cli` | TUI wizard, `repochan analyze/persona/foundation/paint`, `repochan validate` | End users at the terminal |
+| `page-renderer` | Renders Page JSON to static HTML (used by `page.create`) | `pi` (library dependency) |
+| `cli` | TUI wizard, `repochan analyze/persona/foundation/paint`, `repochan validate`, i18n | End users at the terminal |
 
 ## The `.repochan/` protocol
 
@@ -49,7 +63,7 @@ packages/
 - `orders/<id>/order.json` — commissioning briefs (Art Director)
 - `orders/<id>/versions/<vid>/` — delivered image results (Painter)
 
-Full spec: `docs/protocol.md`.
+Full spec: [`packages/pi/skills/repochan-protocol/SKILL.md`](./packages/pi/skills/repochan-protocol/SKILL.md). Architectural rationale: [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 
 ## Role pipeline
 
@@ -120,6 +134,8 @@ repochan order list [--json]     # List all orders
 repochan order get <id> [--json] # Read one order
 repochan model                   # Open model/login setup in TUI
 ```
+
+The CLI supports **i18n (English / 中文)**. Language is selected on first launch and stored in settings; it can be changed later via the in-TUI language page. Locale sources live at `packages/cli/src/locales/{en,zh}.ts`.
 
 ---
 
@@ -269,10 +285,11 @@ pnpm --filter repochan run build
 | `packages/core` | `@repochan/core` | `dist/index.js` (compiled) | Everything |
 | `packages/pi` | `repochan-pi` | `extensions/repochan.ts` (jiti) | Pi agent |
 | `packages/image-gen-pi` | `@repochan/image-gen-pi` | `extensions/index.ts` (jiti) | Pi agent |
+| `packages/page-renderer` | `@repochan/page-renderer` | `dist/index.js` (compiled) | `pi` (library) |
 | `packages/cli` | `repochan` | `dist/index.js` (compiled) | Terminal users |
 
-## Protocol docs
+## Docs
 
-- Full spec: `docs/protocol.md`
-- Migration from Python prototype: `docs/from-reponyan-to-repochan.md`
-- Minimal fixture (inspectable without running AI): `examples/minimal`
+- [`ARCHITECTURE.md`](./ARCHITECTURE.md) — architectural design, three-layer structure, known gaps, decision principles.
+- [`packages/pi/skills/repochan-protocol/SKILL.md`](./packages/pi/skills/repochan-protocol/SKILL.md) — `.repochan/` on-disk protocol spec.
+- [`examples/minimal`](./examples/minimal) — minimal fixture (inspectable without running AI).
