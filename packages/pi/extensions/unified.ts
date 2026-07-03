@@ -39,6 +39,8 @@ import {
   createOrderCandidate as coreCreateOrderCandidate,
   promoteCandidate as corePromoteCandidate,
   createPersonaReview as coreCreatePersonaReview,
+  createPersonaCandidate as coreCreatePersonaCandidate,
+  promotePersonaCandidate as corePromotePersonaCandidate,
   type OrderStatus,
   type PageData,
 } from "@repochan/core";
@@ -80,6 +82,8 @@ const ActionSchema = Type.Union([
   Type.Literal("order.create_candidate"),
   Type.Literal("order.promote_candidate"),
   Type.Literal("persona.review"),
+  Type.Literal("persona.create_candidate"),
+  Type.Literal("persona.promote_candidate"),
 ])
 
 
@@ -239,6 +243,18 @@ async function promoteCandidateAction(ctx: ExtensionContext, params: JsonObject)
 async function createPersonaReviewAction(ctx: ExtensionContext, params: JsonObject) {
   const result = await coreCreatePersonaReview(ctx.cwd, params);
   return ok(`Persona review: ${result.review.verdict}.`, result);
+}
+
+async function createPersonaCandidateAction(ctx: ExtensionContext, params: JsonObject) {
+  const result = await coreCreatePersonaCandidate(ctx.cwd, params);
+  return ok(`Created persona candidate '${result.slug}' (not promoted).`, result);
+}
+
+async function promotePersonaCandidateAction(ctx: ExtensionContext, params: JsonObject) {
+  const slug = requireString(params, "slug");
+  const result = await corePromotePersonaCandidate(ctx.cwd, slug);
+  const prevLine = result.previousArchived ? " Previous persona archived." : "";
+  return ok(`Promoted persona candidate '${slug}' to current.${prevLine}`, result);
 }
 
 async function listOrderResults(ctx: ExtensionContext, params: JsonObject) {
@@ -490,6 +506,8 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "order.create_candidate params: { orderId, files?, versionId?, tool?, promptBrief?, generationPrompt?, revisedPrompt?, notes?, meta?, provenance?, overwrite?, allowUnapprovedOrder? }. Creates a parallel draft version with role=candidate. Unlike order.create_result, a candidate does NOT become currentVersion and does NOT mark the order delivered. Multiple candidates can coexist on one order. Use this when the user wants several alternative drafts to choose from. Image generation is expensive — only create candidates when the user explicitly asks for options. Each candidate can be reviewed via review.create before selection.",
       "order.promote_candidate params: { orderId, versionId }. Promotes a candidate version to current: sets currentVersion, changes the candidate's role to 'current', and demotes the previous current version (if any) to role='snapshot'. Only candidate-role versions can be promoted. At most one version is current at any time. Use after the user has reviewed candidates and chosen one.",
       "persona.review params: { verdict: 'pass'|'revise', notes, reviewerRole?, provenance?, overwrite=false }. Requires analysis and an existing persona. Creates a feedback review at persona/reviews/current.json. Unlike order reviews, persona has NO state machine — a 'revise' verdict does NOT trigger a status transition. It is a feedback record that the creative team reads and acts on by re-running persona generation (persona.create with overwrite=true or persona.update). notes is the re-generation guidance (e.g. 'make the character feel more mature'). To read the review, use protocol.read with artifactPath='persona/reviews/current.json'.",
+      "persona.create_candidate params: { persona, slug, provenance?, overwrite? }. Requires analysis. Creates a parallel persona draft at persona/candidates/<slug>.json that does NOT replace current.json. Multiple candidates can coexist (each identified by slug, e.g. 'mature', 'playful'). Use when the user wants multiple persona concepts to choose from before committing. To read a candidate, use protocol.read with artifactPath='persona/candidates/<slug>.json'.",
+      "persona.promote_candidate params: { slug }. Promotes a persona candidate to current: copies it to persona/current.json, archives the old current to versions/, and deletes the candidate file. Other candidates are left untouched. Use after the user has chosen their preferred persona draft.",
     ],
     parameters: RepoChanSchema,
     async execute(_toolCallId, input: RepoChanInput, _signal, _onUpdate, ctx) {
@@ -592,6 +610,10 @@ export function registerRepoChan(pi: ExtensionAPI) {
           return promoteCandidateAction(ctx, params);
         case "persona.review":
           return createPersonaReviewAction(ctx, params);
+        case "persona.create_candidate":
+          return createPersonaCandidateAction(ctx, params);
+        case "persona.promote_candidate":
+          return promotePersonaCandidateAction(ctx, params);
         default:
           throw new Error(`Unknown RepoChan action: ${(input as JsonObject).action}`);
       }

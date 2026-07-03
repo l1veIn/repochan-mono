@@ -563,6 +563,21 @@ export const PersonaReviewCreateParamsSchema = Type.Object({
   overwrite: Type.Optional(Type.Boolean()),
 });
 
+// ── Persona candidate ──
+
+/** Create a persona candidate draft — a parallel persona that is NOT promoted to current. */
+export const PersonaCandidateCreateParamsSchema = Type.Object({
+  persona: PersonaArtifactSchema,
+  slug: Type.String({ pattern: "^[a-z0-9-]+$", description: "Candidate slug, e.g. 'mature', 'playful'." }),
+  provenance: Type.Optional(ProvenanceSchema),
+  overwrite: Type.Optional(Type.Boolean()),
+});
+
+/** Promote a persona candidate to current — copies it to persona/current.json, archives the old current, deletes the candidate. */
+export const PersonaCandidatePromoteParamsSchema = Type.Object({
+  slug: Type.String({ pattern: "^[a-z0-9-]+$" }),
+});
+
 // ---------------------------------------------------------------------------
 // Schema registry (for consumers that need the full list)
 // ---------------------------------------------------------------------------
@@ -585,4 +600,6 @@ export const WriteOpSchemas = {
   "page.create": PageCreateParamsSchema,
   "review.create": ReviewCreateParamsSchema,
   "persona.review": PersonaReviewCreateParamsSchema,
+  "persona.create_candidate": PersonaCandidateCreateParamsSchema,
+  "persona.promote_candidate": PersonaCandidatePromoteParamsSchema,
 } satisfies Record<string, TSchema>;

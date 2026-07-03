@@ -184,6 +184,17 @@ export function personaReviewVersionsDir(projectRoot: string) {
   return path.join(protocolRoot(projectRoot), "persona", "reviews", "versions");
 }
 
+/** Directory for persona candidates: persona/candidates/ */
+export function personaCandidatesDir(projectRoot: string) {
+  return path.join(protocolRoot(projectRoot), "persona", "candidates");
+}
+
+/** Path to a specific persona candidate: persona/candidates/<slug>.json */
+export function personaCandidatePath(projectRoot: string, slug: string) {
+  if (!/^[a-z0-9-]+$/.test(slug)) throw new Error("candidate slug must match ^[a-z0-9-]+$.");
+  return path.join(protocolRoot(projectRoot), "persona", "candidates", `${slug}.json`);
+}
+
 export async function listJsonFiles(dir: string) {
   try {
     return (await fs.readdir(dir)).filter((file) => file.endsWith(".json")).sort();

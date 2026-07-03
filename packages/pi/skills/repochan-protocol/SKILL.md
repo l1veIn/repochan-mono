@@ -33,6 +33,8 @@ description: ".repochan 工作区协议详细规范，涵盖分析、人设、�
     reviews/                〔可选〕persona 评审反馈
       current.json
       versions/
+    candidates/             〔可选〕并行人设候选草案
+      <slug>.json
   orders/
     <order-id>/
       order.json
