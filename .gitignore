@@ -12,3 +12,5 @@ coverage/
 output/
 .pi/
 .codegraph/
+test-repos/
+test/

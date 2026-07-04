@@ -283,8 +283,8 @@ review 回流订单**必须用图生图（image-to-image）**，而非从零文�
 1. **Template guide**（如果任务有 templateId）：原样前置模板的 `guide` 标签（如 "masterpiece, best quality"）。
 2. **Template constraints**：包含模板的所有结构约束（网格布局、背景、画布规则）。模板要求的文字标签、标注、网格、画布规则覆盖矛盾的任务 avoid 列表项。
 3. **角色名注入**：在 prompt 开头明确写出角色名字作为直接名称标签：`Name: {persona.name}`。不要依赖 persona rolePrompt 或 keyMotifs 来隐式携带名字——如果不明说，图像模型会自己编名字。如果存在 `persona.nameJa` 且美术风格是 anime/manga，一并写入：`Name: {persona.name} ({persona.nameJa})`。
-4. **Persona rolePrompt**：角色的视觉身份——这是你 prompt 的核心。从 `persona.get` 读取。不要添加或保留 `language` / `nativeLanguage` 概念。
-5. **Persona precision fields**: supplement rolePrompt with `signaturePose`, `hairColor`, `eyeColor`, `outfit`, `accessories`, `keyMotifs`, `colorPalette` (main + secondary + accent), `designNotes` — weave these into the prompt with their hex values after applying the identity boundary below. **These fields are stored in Chinese (中文). You MUST translate them into English Danbooru-style tag phrases before injecting into `generationPrompt`.** 翻译规则：将中文视觉描述转换为简洁的英文逗号分隔标签短语（如「黑色短发，微乱」→ `short black hair, slightly tousled`；「蜡布田野夹克，深绿色，多口袋」→ `waxed canvas field jacket, forest green, multiple pockets`）。保持颜色十六进制值不变。翻译时保留原始描述的精度和细节层次，不要简化或遗漏。`generationPrompt` 最终必须是全英文。
+4. **Persona rolePrompt**：角色的视觉身份——这是你 prompt 的核心。从 `persona.get` 读取。不要添加或保留 `language` / `nativeLanguage` 概念。**性别锚点检查**：rolePrompt 应含明确的女性锚点（`1girl`/`female character`/`girl`）——RepoChan 默认仓库娘（女性）。若 rolePrompt 缺失性别锚点，且 order/interview 未显式要求其他性别，在 prompt 开头补 `1girl,` 以锚定女性。仅当用户显式要求男性/其他性别时才用 `1boy`/其他。
+5. **Persona precision fields**: supplement rolePrompt with `signaturePose`, `signatureAction`, `hairColor`, `eyeColor`, `outfit`, `accessories`, `keyMotifs`, `colorPalette` (main + secondary + accent), `designNotes` — assemble these into structured labeled blocks (see Final prompt structure below). **这些字段以中文存储时，采用「英文骨架 + 中文血肉」的混排策略**（codex image-2 等现代图像模型对中文描述的理解力很强，中文能保留更丰富的细节语义）。混排规则见下方「中英文混排策略」。`signatureAction` 字段（角色的标志性叙事动作）必须单独注入为 `show signature action as a small visual cue:` 块——不要和 signaturePose 混为一谈，pose 是静态姿势，action 是动态能力展示。
 6. **Order brief**: add intent-specific elements from `order.brief.mustInclude`, `order.brief.avoid`, `order.brief.creativeFreedom`, except where they conflict with the user request or template. Apply the **avoid → positive transform** (see below).
 7. **Reference images** (if available): resolved via `order.resolve_references` — pass as `referenceImageUrls`, not in the text prompt.
 
@@ -297,13 +297,12 @@ Image models treat "not X" as a directional push, not a wall. Each `avoid` entry
 | not sci-fi / not cyberpunk | contemporary, modern-day | — |
 | not too clean | (保留 — 难以正向表达) | — |
 | not steampunk | present-day, 21st-century | — |
-| no text labels | — | ✅ drop (模板可能会重新加入) |
 
 规则：
 1. **优先转化**：如果 avoid 项暗示了期望的正向状态，直接写正向状态。"not shabby" → "well-maintained, tidy"。"not futuristic" → "contemporary, modern era"。
-2. **琐碎的直接丢弃**：如"no text labels"这类硬排除可以静默丢弃，除非它们确实有风险。模板要求的标签无论如何会覆盖。
-3. **绝不把原始否定传进 prompt。** 最终 prompt 必须读起来是一串正向的、陈述性的视觉描述。如果一个概念只能用否定表达，把它留在 `avoid` 里，让正向替换去做事。
-4. **不要过度堆叠限定词。** 每个 avoid 项最多 2-3 个正向替换——更多会导致形容词过载（见下方）。
+2. **绝不把原始否定传进 prompt。** 最终 prompt 必须读起来是一串正向的、陈述性的视觉描述。如果一个概念只能用否定表达，把它留在 `avoid` 里，让正向替换去做事。
+3. **不要过度堆叠限定词。** 每个 avoid 项最多 2-3 个正向替换——更多会导致形容词过载（见下方）。
+4. **禁止生成"避免文字"类约束（重要）**：永远不要在 `avoid:` 块里写"no text"、"avoid text labels"、"除角色名外不要文字"、"no words/letters"或任何类似的文字禁令。现代图像模型（尤其 codex image-2）渲染文字的能力很强，设定图上的 callout 标签、配色卡文字、元素说明文字是**正向价值**（让图更像专业设定图），不应回避。非 codex 模型本就不擅长文字、不会主动渲染，无需用 avoid 抑制。如果 order/persona 的 avoid 列表里出现这类条目，**静默丢弃，不要传入 prompt**，更不要自己发明新的文字禁令。
 
 ### Identity boundary before prompting
 
@@ -311,17 +310,64 @@ Before finalizing the prompt, scan persona/order terms for language-to-aesthetic
 
 For foundation sheets with no reference image, be stricter: if a culture-coded prop only traces to document language, remove it or replace it with a repo-derived metaphor from `analysis.context.identity`, `preAnalysis`, `abstract`, color palette, product domain, or user request.
 
-Final prompt structure:
+Final prompt structure (structured labeled blocks — proven to produce higher-quality, more specific images than flat tag lists):
+
 ```
 {guide}, {template constraints},
-Name: {persona.name},
-{rolePrompt}, {signaturePose},
-{precision fields: hairColor, eyeColor, outfit, accessories},
-{color palette: main, secondary, accents},
-{key motifs}, {order-specific mustInclude}, {positive-transformed brief elements}
+Name: {persona.name} ({persona.nameJa} if anime/manga),
+{rolePrompt},
+main illustration must use signature pose: {signaturePose — action verb + body part + prop interaction + emotion, e.g. "right foot raised on toes, body leaning forward, left fist clenched at chest, right hand extended palm-up supporting a swirling golden data stream, confident slight smile, sharp gaze"},
+show signature action as a small visual cue: {signatureAction — a separate narrative mini-scene depicting the character's signature ability/behavior},
+hair color: {hairColor with hex},
+eye color: {eyeColor with hex},
+outfit: {outfit — layered garment description, each layer with material + color + structural detail},
+accessories: {accessories — each named prop with its function/material},
+key motif callouts: {keyMotifs — named symbols with parenthetical gloss, e.g. "caduceus (simplified), terminal cursor (▌), memory crystal (hexahedron)"},
+expression direction: {personality mapped to expression — how the character's inner state reads on their face},
+color palette: {main, secondary, accents with hex},
+design notes: {stylistic fusion guidance, e.g. "classical heraldry elements fused with modern flat/tech aesthetic; keep clean lines, avoid excess ornament"},
+avoid: {explicit negative list — over-youngified (<16), overly revealing clothing, cluttered background, dark/horror tone, realistic oil-painting style},
+{order-specific mustInclude}, {positive-transformed brief elements}
 ```
 
-**Do NOT describe layout positions** (no "TOP-LEFT:", "CENTER:"). Image models don't follow spatial instructions well. Instead, use comma-separated tags like the template constraints do.
+**Structured blocks rationale**: Labeled blocks (`outfit:`, `accessories:`, `signature pose:`) give the image model anchored semantic context for each component, producing more coherent and specific renders than undifferentiated comma-separated tag lists. Each block should be a complete, descriptive phrase — do not abbreviate.
+
+### 中英文混排策略（English skeleton + Chinese flesh）
+
+现代图像模型（如 codex image-2）对中文描述的理解力很强。**不要把所有中文细节都翻译成英文 tag——中英文混排能保留更丰富的语义，生成质量更高。** 参考这个经过验证的混排模式：
+
+**用英文的部分（骨架——画风/构图/角色身份 tag）：**
+- 质量与风格标签：`masterpiece, best quality, anime style, detailed hair, dynamic pose`
+- 构图与布局：`single clean character concept sheet layout, full-body, chibi, expression headshots`
+- 角色身份骨架 tag：`1girl, long golden hair fading to silver gray, amber eyes`（发色/瞳色/性别等核心 tag 用英文，因为 Danbooru tag 体系对这些有精确映射）
+- 颜色 hex 值：`#FFD700`、`#1E293B`（与语言无关）
+
+**可以用中文的部分（血肉——细节描述/姿势/心理/设计说明）：**
+- 角色名：`character name: 赫米亚`（中文名直接用，比音译保留更多身份感）
+- 年龄外观：`age appearance: 18`
+- 整体外貌细节：`overall appearance: 身高165cm，纤细匀称，姿态干练...`（中文描述比英文 tag 能承载更多细节层次）
+- 姿势动作：`main illustration must use signature pose: 右脚微踮，身体前倾，左手握拳在胸前，右手向前伸展...`（动作的连贯叙事用中文更精准）
+- 表情心理：`expression direction: 严谨可靠的外表下藏着灵活的思维...`
+- 设计说明：`design notes: 古典信使元素与现代扁平/科技感融合...`
+- avoid 列表：`avoid: 过度幼态, 暴露服装, 杂乱背景...`
+
+**原则**：tag 类信息（短、离散、有 Danbooru 映射）用英文；描述类信息（长、连贯、有叙事性）用中文。如果一个信息既能用英文 tag 又能用中文描述，优先中文描述——它承载的细节更丰富。最终 prompt 是中英混合的自然文本，不是纯英文 tag 列表，也不是纯中文。
+
+**Pose writing technique** (critical for dynamic images): a good pose names 3-4 body parts + a facial/emotional cue, and **聚焦一只手的主要动作**。
+
+**关键原则：单手聚焦，避免多手任务堆叠（防三只手）。** 实测证实：当一个 pose 描述里**两只手各有独立复杂任务**时（如"右手食指点下巴 + 左手抱胸 + 左手夹笔"），模型为了满足所有约束会"长出"第三只甚至第四只手。根因是模型把复合动作拆解成独立任务后无法用两只手完成。
+
+规则：
+- **一只手做"主要动作"**（拿道具/施法/指向/托举），描述要具体（手型 + 道具 + 位置）。
+- **另一只手做"自然状态"**（垂在体侧/轻搭桌面/自然摆放），描述要模糊简短。
+- **绝不让两只手都拿不同道具或都做精细动作。**
+- BAD: "右手食指轻点下巴，左手环抱胸前，指尖夹一支银色钢笔"（双手都精细 + 抱胸与夹笔被拆成两个动作 → 三只手）
+- GOOD: "右手持银色钢笔悬于脸颊旁作思考状，左手自然垂在体侧"（单手聚焦 → 双手正常）
+- GOOD: "右脚微踮，身体前倾，右手向前伸展掌心向上托起一团旋转的金色数据流，左手自然握拳轻搭腰侧，嘴角含笑"（主手拿数据流，副手简短状态）
+
+BAD: "standing at a workbench". Always convert static verbs ("standing", "sitting") into kinetic descriptions——但动态描述也要遵循上面的单手聚焦原则。
+
+**Do NOT describe layout positions** (no "TOP-LEFT:", "CENTER:"). Image models don't follow spatial instructions well — use descriptive tags for content, not spatial coordinates.
 
 ### Adjective precision control
 
@@ -341,6 +387,8 @@ Rules:
 2. **Anchor nouns to a contemporary frame by default.** "notebook" alone can drift to scroll/manuscript; "modern notebook" or "spiral-bound notebook" pins it down. "building" → "contemporary building".
 3. **Pair era-sensitive nouns with an era qualifier.** Any noun with historical range (building, instrument, book, tool, workshop, laboratory) gets an era word: "contemporary", "modern", "present-day", "21st-century".
 4. **When in doubt, describe function over aesthetic.** "measuring tool" is safer than "instrument" because the model has less room to wander into antique territory.
+
+**重要平衡（不要过度压缩）**：上面的规则是为了避免**单个模糊形容词**漂移，**不是**让你把所有描述压缩成最简短语。对于**角色定义要素**（signature pose、signature action、key motif callouts、expression direction、核心道具的功能叙事），要写得**丰富、具体、有画面感**——多个精确短语的组合远好于一个干瘪标签。压缩只针对**有漂移风险的模糊形容词**（shabby/worn/disheveled 这类），不是针对所有描述。判断标准：pose 和 action 块应该读起来像一段电影分镜，而不是一个标签。
 
 ## 输出规格解析
 
@@ -415,6 +463,22 @@ Rules:
 ```
 
 工具返回保存的文件路径。在 `order.create_result` 中使用该路径。
+
+### 生成后自检：解剖学错误的处理
+
+图像生成模型（包括 gpt-image-2）会产生解剖学错误——多指、三只手、肢体错位、漂浮的手等。这类错误有**两个主要诱因**：
+
+1. **多手任务堆叠（可在 prompt 层预防，见上方 Pose writing technique 的"单手聚焦"原则）**——这是**最主要、最可避免**的诱因。当 prompt 给两只手各分配独立复杂任务时，模型会"长出"额外的手。遵守单手聚焦原则可以从源头大幅降低三只手发生率。
+2. **模型的固有概率错误（无法在 prompt 层消除）**——即使 prompt 完美，仍偶发多指/肢体错位。这是 diffusion 模型的固有性质。
+
+**不要在 prompt 里堆 "no extra hands / correct anatomy" 类否定约束**来消除概率错误——实测表明这类约束效果不稳定，反而引入新问题（让模型过度关注"手"，产生其他异常）。
+
+**处理机制**（按优先级）：
+1. **预防（最有效）**：写 pose 时遵守"单手聚焦"原则，从源头避免多手任务堆叠。
+2. **交付前自检**：拿到图后，如果模型有多模态能力就用 `read` 看一眼；如果肉眼明显有解剖学错误（且你确信 prompt 没有多手堆叠），**重生成一次**——概率错误重跑通常修复。如果 prompt 确有多手堆叠，先改 prompt 再重跑。
+3. **交付后由用户/AD review**：用户指出解剖学问题时，按"处理 review 回流订单"流程走图生图重绘。
+
+简言之：**多手堆叠用 prompt 预防，概率错误用重跑/review 解决，永远不用否定约束。**
 
 ## 协议保存规则
 
