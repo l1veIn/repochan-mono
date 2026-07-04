@@ -24,7 +24,7 @@ import type {
   ProviderContext,
 } from "../types.js";
 
-const OPENAI_BASE = "https://api.openai.com/v1";
+const DEFAULT_OPENAI_BASE = "https://api.openai.com/v1";
 const ASPECT_TO_SIZE: Record<string, string> = {
   landscape: "1536x1024",
   square: "1024x1024",
@@ -97,10 +97,12 @@ export class OpenAIApiProvider implements ImageGenProvider {
 
   private apiKey: string | undefined;
   private modelOverride: string | undefined;
+  private baseUrl: string = DEFAULT_OPENAI_BASE;
 
   configure(config?: ProviderConfig): void {
     this.apiKey = config?.apiKey || process.env.OPENAI_API_KEY;
     this.modelOverride = config?.model;
+    this.baseUrl = config?.baseUrl || DEFAULT_OPENAI_BASE;
   }
 
   async isAvailable(_ctx: ProviderContext): Promise<boolean> {
@@ -150,7 +152,7 @@ export class OpenAIApiProvider implements ImageGenProvider {
         formData.append("size", size);
         formData.append("n", "1");
 
-        const response = await fetch(`${OPENAI_BASE}/images/edits`, {
+        const response = await fetch(`${this.baseUrl}/images/edits`, {
           method: "POST",
           headers,
           body: formData,
@@ -177,7 +179,7 @@ export class OpenAIApiProvider implements ImageGenProvider {
         body.response_format = "b64_json";
       }
 
-      const response = await fetch(`${OPENAI_BASE}/images/generations`, {
+      const response = await fetch(`${this.baseUrl}/images/generations`, {
         method: "POST",
         headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify(body),

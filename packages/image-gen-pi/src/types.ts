@@ -91,6 +91,8 @@ export type AspectRatio = "landscape" | "square" | "portrait";
 export interface ProviderConfig {
   model?: string;
   apiKey?: string;
+  /** Custom base URL for OpenAI-compatible relay/proxy stations (openai provider only). */
+  baseUrl?: string;
 }
 
 export interface ImageGenConfig {
