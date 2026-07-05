@@ -12,3 +12,6 @@ coverage/
 output/
 .pi/
 .codegraph/
+test-repos/
+test/
+test-repos-archive-*/

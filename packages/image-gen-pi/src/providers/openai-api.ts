@@ -24,7 +24,7 @@ import type {
   ProviderContext,
 } from "../types.js";
 
-const OPENAI_BASE = "https://api.openai.com/v1";
+const DEFAULT_OPENAI_BASE = "https://api.openai.com/v1";
 const ASPECT_TO_SIZE: Record<string, string> = {
   landscape: "1536x1024",
   square: "1024x1024",
@@ -36,12 +36,6 @@ const ASPECT_TO_SIZE: Record<string, string> = {
  * dall-e-3 supports: 1024x1024, 1792x1024, 1024x1792.
  * Given desired width/height, snap to the closest supported size for the model.
  */
-const GPT_IMAGE_SIZES = [
-  { w: 1024, h: 1024, label: "1024x1024" },
-  { w: 1536, h: 1024, label: "1536x1024" },
-  { w: 1024, h: 1536, label: "1024x1536" },
-];
-
 const DALLE3_SIZES = [
   { w: 1024, h: 1024, label: "1024x1024" },
   { w: 1792, h: 1024, label: "1792x1024" },
@@ -49,27 +43,37 @@ const DALLE3_SIZES = [
 ];
 
 function resolveSize(model: string, width?: number, height?: number, aspectRatio?: string): string {
-  const supported = model.includes("dall-e-3") ? DALLE3_SIZES : GPT_IMAGE_SIZES;
-  if (width && height) {
-    const targetRatio = width / height;
-    let best = supported[0];
-    let bestDiff = Infinity;
-    for (const s of supported) {
-      const diff = Math.abs(s.w / s.h - targetRatio);
-      if (diff < bestDiff) {
-        bestDiff = diff;
-        best = s;
-      }
-    }
-    return best.label;
-  }
-  // Map aspectRatio to supported size, falling back for dall-e-3's different sizes
+  // dall-e-3 only supports fixed sizes — must snap.
   if (model.includes("dall-e-3")) {
+    const supported = DALLE3_SIZES;
+    if (width && height) {
+      const targetRatio = width / height;
+      let best = supported[0];
+      let bestDiff = Infinity;
+      for (const s of supported) {
+        const diff = Math.abs(s.w / s.h - targetRatio);
+        if (diff < bestDiff) {
+          bestDiff = diff;
+          best = s;
+        }
+      }
+      return best.label;
+    }
     if (aspectRatio === "landscape") return "1792x1024";
     if (aspectRatio === "portrait") return "1024x1792";
     return "1024x1024";
   }
-  return ASPECT_TO_SIZE[aspectRatio ?? "square"] ?? "1024x1024";
+  // gpt-image-1 / gpt-image-2 support arbitrary sizes — pass through exact
+  // dimensions when provided. Clamp to a sane range to avoid API rejection.
+  if (width && height) {
+    const w = Math.max(256, Math.min(4096, Math.round(width)));
+    const h = Math.max(256, Math.min(4096, Math.round(height)));
+    return `${w}x${h}`;
+  }
+  // Fall back to aspectRatio → standard gpt-image sizes.
+  if (aspectRatio === "landscape") return "1536x1024";
+  if (aspectRatio === "portrait") return "1024x1536";
+  return "1024x1024";
 }
 
 const MODELS: ModelOption[] = [
@@ -97,10 +101,12 @@ export class OpenAIApiProvider implements ImageGenProvider {
 
   private apiKey: string | undefined;
   private modelOverride: string | undefined;
+  private baseUrl: string = DEFAULT_OPENAI_BASE;
 
   configure(config?: ProviderConfig): void {
     this.apiKey = config?.apiKey || process.env.OPENAI_API_KEY;
     this.modelOverride = config?.model;
+    this.baseUrl = config?.baseUrl || DEFAULT_OPENAI_BASE;
   }
 
   async isAvailable(_ctx: ProviderContext): Promise<boolean> {
@@ -134,23 +140,49 @@ export class OpenAIApiProvider implements ImageGenProvider {
     try {
       const size = resolveSize(model, params.width, params.height, params.aspectRatio);
       const hasSourceImage = !!params.imageUrl?.trim();
+      const hasReferenceImages = !!(params.referenceImageUrls && params.referenceImageUrls.length > 0);
       const headers: Record<string, string> = {
         Authorization: `Bearer ${this.apiKey}`,
       };
 
-      // --- Image-to-image: use /v1/images/edits ---
-      if (hasSourceImage && !model.includes("dall-e-3")) {
-        ctx.onProgress?.(`Requesting image edit via OpenAI API (${model})…`, { provider: this.name, model });
+      // --- Image-to-image / multi-reference: use /v1/images/edits ---
+      // gpt-image-1/gpt-image-2 edits endpoint accepts reference images.
+      // imageUrl = primary source (img2img base); referenceImageUrls = additional character/style refs.
+      // Both are sent as "image" form fields (OpenAI multi-image edit format).
+      if ((hasSourceImage || hasReferenceImages) && !model.includes("dall-e-3")) {
+        ctx.onProgress?.(
+          `Requesting image edit via OpenAI API (${model}, ${hasSourceImage ? "1 source" : "0 source"} + ${params.referenceImageUrls?.length ?? 0} refs)…`,
+          { provider: this.name, model },
+        );
 
         const formData = new FormData();
-        const imageBuffer = readFileSync(resolve(params.imageUrl!.trim()));
-        formData.append("image", new Blob([imageBuffer]), "source.png");
+        // Primary source image (imageUrl) if present
+        if (hasSourceImage) {
+          const imageBuffer = readFileSync(resolve(params.imageUrl!.trim()));
+          formData.append("image", new Blob([imageBuffer]), "source.png");
+        }
+        // Reference images (character/style anchors) — sent as additional "image" fields
+        if (params.referenceImageUrls) {
+          for (const refUrl of params.referenceImageUrls) {
+            const trimmed = refUrl.trim();
+            if (trimmed) {
+              try {
+                const refBuffer = readFileSync(resolve(trimmed));
+                formData.append("image", new Blob([refBuffer]), "reference.png");
+              } catch {
+                // Skip unreadable reference files rather than failing the whole request
+              }
+            }
+          }
+        }
+        // If only referenceImageUrls (no imageUrl), the first reference becomes the required "image"
+        // FormData naturally handles this — at least one "image" field is present.
         formData.append("prompt", params.prompt);
         formData.append("model", model);
         formData.append("size", size);
         formData.append("n", "1");
 
-        const response = await fetch(`${OPENAI_BASE}/images/edits`, {
+        const response = await fetch(`${this.baseUrl}/images/edits`, {
           method: "POST",
           headers,
           body: formData,
@@ -177,7 +209,7 @@ export class OpenAIApiProvider implements ImageGenProvider {
         body.response_format = "b64_json";
       }
 
-      const response = await fetch(`${OPENAI_BASE}/images/generations`, {
+      const response = await fetch(`${this.baseUrl}/images/generations`, {
         method: "POST",
         headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify(body),

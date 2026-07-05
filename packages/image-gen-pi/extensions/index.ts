@@ -64,7 +64,7 @@ const TOOL_PARAMS = Type.Object({
   ),
   referenceImageUrls: Type.Optional(
     Type.Array(Type.String(), {
-      description: "Additional reference image paths for style/composition. Only Codex OAuth and FAL nano-banana-pro.",
+      description: "Additional reference image paths for character/style consistency (e.g. foundation sheet). Supported by Codex OAuth, OpenAI API (gpt-image-1/gpt-image-2 via /images/edits), and FAL nano-banana-pro.",
     }),
   ),
   save: Type.Optional(
@@ -80,6 +80,12 @@ const TOOL_PARAMS = Type.Object({
   outputFormat: Type.Optional(
     StringEnum(OUTPUT_FORMATS, {
       description: "Output format. Defaults to 'png'.",
+    }),
+  ),
+  orderContext: Type.Optional(
+    Type.Object({
+      orderId: Type.Optional(Type.String({ description: "The repochan order this generation is for (if any)." })),
+      hasOrderReferences: Type.Optional(Type.Boolean({ description: "True if the order has foundation/character references that should be passed as referenceImageUrls. When true, the tool will refuse to generate if referenceImageUrls is empty — to prevent character inconsistency across assets." })),
     }),
   ),
 });
@@ -129,6 +135,24 @@ export default function imageGenExtension(pi: ExtensionAPI) {
           onUpdate?.({ content: [{ type: "text", text: message }], details });
         },
       };
+
+      // --- Reference image guard (prevents character inconsistency) ---
+      // If the caller indicates this generation is for a repochan order that has
+      // character/foundation references, but no referenceImageUrls were passed,
+      // refuse to generate. This forces the agent to resolve_references first,
+      // preventing the common bug of generating downstream assets without the
+      // foundation anchor → character inconsistency.
+      if (params.orderContext?.hasOrderReferences) {
+        const hasRefs = params.referenceImageUrls && params.referenceImageUrls.length > 0;
+        if (!hasRefs) {
+          throw new Error(
+            `Reference image guard: order '${params.orderContext.orderId ?? "(unknown)"}' has references (foundation/character) but no referenceImageUrls were passed to image_generate.\n` +
+              "Generating without the foundation anchor will likely cause character inconsistency.\n" +
+              "Fix: call repochan action='order.resolve_references' first, then pass the resolved image paths as referenceImageUrls to image_generate.\n" +
+              "If you intentionally want to generate without references (e.g. this IS a foundation_sheet), set orderContext.hasOrderReferences=false or omit orderContext.",
+          );
+        }
+      }
 
       // --- Resolve provider + model ---
       const resolved = await resolveProvider(config, providerCtx);

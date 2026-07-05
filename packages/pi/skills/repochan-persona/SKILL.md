@@ -11,16 +11,71 @@ description: 创意团队角色。使用三智能体协作团队（世界架构�
 
 人设必须有生命力，有意义地源自仓库的灵魂信号，在用户提供时尊重用户意图，并严格遵循防过拟合原则。不要生产技术栈换装游戏。要生产有灵魂的角色。
 
+### 默认性别：女性（仓库娘）
+
+**RepoChan = "Repo" + 日语尊称后缀「-chan」（＝仓库娘）。仓库吉祥物默认是少女角色。** 这是产品定位，不是可选项。
+
+硬规则：
+
+- `rolePrompt` 必须以 `1girl,` 或包含 `female character`/`girl` 的短语开头，明确锚定女性。
+- 叙事字段（`appearance`、`personality`、`backstory`、`hobbies`、`characterFlaws`、`catchphrase` 等）一律用「她」称呼。
+- Consistency Guardian 必须检查：rolePrompt 是否含明确的女性锚点（`1girl`/`female`/`girl`）。缺失即视为缺陷，必须修正。
+
+**唯一覆盖路径**：用户在访谈 `preferences`、`keyConstraints` 或会话指示中**显式要求**男性/中性/非二元角色时，可以覆盖此默认。未显式要求时，一律女性。覆盖时在 `userIntentSummary` 里记录"用户显式要求 X 性别"。
+
 ## 团队成员与职责
+
+### 0. 项目分量评估（Project Weight Assessment）—— 世界架构师的第一步
+
+**在造世界之前，必须先评估项目的"真实分量"。** 分量决定世界和角色的体量上限——错配（轻项目配重世界，或重项目配薄世界）是最严重的贴合度问题。
+
+读取 `analysis` 后，从以下维度评估项目分量。**注意：不要把"不是划时代创新"等同于"轻量"——广泛使用的成熟工具/库就是中量起步。**
+
+| 维度 | 轻分量 | 中分量 | 重分量 |
+|---|---|---|---|
+| 代码体量 | <100 实质代码文件，大量配置/模板 | 100-1000 实质代码文件 | >1000 实质代码文件 |
+| 项目定位 | starter/模板/教程 demo/单个示例 | 实用工具/库/框架/应用（被真实使用） | 基础设施级/品类定义级/广泛影响 |
+| 使用广泛度 | 个人/学习用 | 有真实用户社区 | 行业标准/生态核心 |
+| 情感密度 | README 只讲用法 | 有设计理念/changelog/社区 | 有强设计哲学+丰富历史+理念阐述 |
+| 历史厚度 | 新项目/少提交 | 多版本演进 | 长期演进/多作者/丰富历史 |
+
+**判定规则（取主导维度，不是全要满足）：**
+- 满足"中分量"任一行的项目，**至少是中量**——不要因为"它没重新定义品类"就压到轻量。
+- 一个被广泛使用的成熟工具（如 redis/caddy/ripgrep），即使没有"原创哲学"，也是**中量起步**，因为它的代码体量、用户社区、历史厚度都是实的。
+- 只有**真正的空壳/模板/教程**才是轻量。
+
+**典型例子校准：**
+- 轻量：tauri-react-starter（空壳模板）、2048（单个游戏 demo）、create-react-app 默认输出
+- 中量：click（Python CLI 框架）、wasm-pack（Rust+WASM 工具）、marktext（完整应用）、ripgrep（实用搜索工具）、caddy（web 服务器）、redis（数据库）
+- 重量：Linux 内核、Kubernetes、React 框架本身、有强神话级设计哲学的项目
+
+输出一个 `projectWeight` 判断（写入 persona 的 `sourceSignals` 或工作记忆），分三档：
+
+- **轻量（light）**：starter/模板/小 demo → 世界应轻盈（一间屋子、一个工位、一个日常场景），角色应是**日常型**（普通居民、见习生、自嘲的旁观者）。绝不为轻量项目造神话世界。
+- **中量（medium）**：实质工具/库/框架/应用 → 世界可有适度设定（一个行当、一个小型世界规则、一个有特色的空间），角色可**日常型或轻度象征性**（有手艺的匠人、有性格的从业者、有故事的守护者）。中量项目的世界可以比"一间屋子"更丰富——一个工坊、一条街、一个小型机构都合理。
+- **重量（heavy）**：基础设施级/品类定义级/有强神话级设计哲学 → 世界可有完整设定，角色可**象征性或高概念**（神话信使、阈界守门人、魔法存在）——但前提是项目的情感密度真的撑得起。
+
+**关键自检**（世界架构师必问）：*"如果我把这个世界和角色讲给一个不了解这个项目的人听，他会觉得'这配得上这个项目'，还是'太重了/太轻了'？"* 如果世界体量明显超过项目体量（例如给一个空壳 starter 配阈界神话），降级 worldWeight 直到匹配。**反之，如果给一个工业级广泛使用的工具配了一个"单间屋子"的过轻世界，也要升级。**
+
+`projectWeight` 是后续所有设计决策的约束——世界架构师据此造世界，角色设计师据此定角色分量，Guardian 据此检查错配。
 
 ### 1. 世界架构师（World Architect）
 
-从仓库信号 + 用户意图出发，构建一个聚焦的、中小型规模的世界：
+从仓库信号 + 用户意图出发，在上一步评定的 `projectWeight` 约束下，构建一个**体量匹配**的世界：
 
 - 确定世界的名称、**核心规则**（1-2 句话——让这个世界与众不同的唯一法则或条件）和氛围。
-- 思考：*"如果这个仓库是一个你可以走进去的地方，它会是什么样的地方？"*
+- 思考：*"如果这个仓库是一个你可以走进去的地方，它会是什么样的地方？"*——但**这个"地方"的规模必须与 projectWeight 匹配**：轻量项目是一个房间/角落，重量项目可以是一个完整世界。
 - 世界应该是仓库情感氛围的自然延伸——它的节奏、它的价值观、它那些不成文的规则。
 - 确定角色在这个世界中所处的**角色定位**——他们与世界的关系是什么，他们与环境之间存在什么张力或和谐。
+- **提出艺术风格提案（proposedArtStyles）**：基于世界的视觉气质，提出 3-5 个适合的**二次元艺术风格**（不是"anime vs 写实"的跨品类选择，而是二次元框架内的细分风格）。每个提案含风格名 + 1 句理由（源自仓库/世界信号）。这是你的**提案权**——你提出方向，角色设计师选定。
+
+  艺术风格有多个正交维度，提案时可以从不同维度组合（一个风格可以同时是"某技法 + 某氛围 + 某设计运动"）：
+  - **绘画技法维度**：厚涂/油画（可见笔触/浓郁光影）、水彩（透明/晕染/留白）、赛璐璐（干净线条+平涂色块）、像素艺术（限制色板/颗粒感）
+  - **主题氛围维度**：赛博朋克（霓虹/暗色/未来都市）、蒸汽朋克（齿轮/蒸汽/维多利亚）、太阳朋克（自然+科技/明亮/可持续）、暗黑哥特（暗色/繁复/神秘）
+  - **设计运动维度**：新粗野主义（粗粝/原始/高对比）、构成主义（几何/功能主义/宣传感）、孟菲斯（彩色几何/撞色/俏皮）、解构主义（破碎/错位/不规则）、故障美学（数字失真/色差/像素错位）、装饰艺术（对称/华丽/金属质感）、极简主义（纯色块/几何简化/留白）
+  - **文化地域维度**：吉卜力风（日式水彩手绘/温暖）、浮世绘（日式木版画）、水墨/墨绘（中式水墨/意境）
+
+  提案要**源自项目**——一个 redis（速度/内存/工业）可能提案"赛博朋克 neon + 故障美学"或"构成主义 + 厚涂"；一个 marktext（写作/优雅）可能提案"吉卜力水彩"或"装饰艺术 + 赛璐璐"。鼓励**跨维度组合**产生独特风格，而非只从单一维度选。
 
 ### 2. 角色设计师（Character Designer）
 
@@ -32,6 +87,24 @@ description: 创意团队角色。使用三智能体协作团队（世界架构�
 - 控制角色权重：用户或仓库可能需要**高概念/象征性**角色（超越日常、原型化）或**日常型**角色（接地气、有共鸣、以普通方式有缺点）。有意识地做出选择。
 - 遵循防过拟合规则、分层缺点生成和分层视觉符号指引。
 - 当访谈报告提供了参考角色特质时，将其*本质*吸收到源自仓库的设计中——不要复制粘贴或缝合式合并。
+- **选定艺术风格（artStyle）**：从世界架构师的 `proposedArtStyles` 提案中选定**一个**作为 `persona.artStyle`。这是你的**选择权**——上游提案，你定夺。选择依据：哪个风格最能承载角色的核心情感 + 项目的视觉气质。如果访谈报告指定了画风，直接用访谈的（跳过提案）。选定后写入 `artStyle` 字段。这个风格将驱动海报等艺术资产的视觉表现。
+
+**角色定位的多样化（避免"工具从业者"默认）**：仓库娘不一定是"维护/运营这个工具的人"。在确定角色与世界的关系时，主动探索多种定位方向，选最贴合项目气质的一种：
+- **从业者**：维护/运营工具的人（管理员、调度员、修复师）
+- **使用者**：依赖工具达成自己目标的人（用 redis 存记忆去探险的冒险家、用 marktext 写作的作家）
+- **受益者**：因工具存在而生活改变的人（靠 redis 找回失忆的人）
+- **抽象化身**：工具核心概念的人格化（redis=缓存→"短暂而珍贵"的化身、click="咔嗒一声理解"的灵感精灵）
+- **反向张力**：与工具核心特性对抗的人（害怕遗忘的记录狂、追求永久却活在缓存世界里的人）
+
+不要默认走"从业者"——它只是选项之一。问自己："这个角色与这个工具/世界的关系，除了'在这里工作'，还能是什么？"
+
+**衣着的多样化（避免功能性外层+靴子默认）**：衣着应源自项目的**主题、领域、情感**，而非默认"工作者制服"。不要无脑给角色配皮靴+夹克/工装/围裙——这是模型最容易退回的"专业感"模板。参考方向：
+- 内存/数据主题 → 可能有发光元素、半透明材质、电子纹理
+- 写作/文本主题 → 文艺休闲（开衫、围巾、帆布鞋），而非工装
+- 网络/路由主题 → 可能是旅行者/信使装扮，而非调度员制服
+- 主题为"瞬逝/缓存" → 和服/轻纱等暗示短暂之美的服装
+- 主题为"理解/启蒙" → 学院风、书卷气
+角色性格不重复是好的（已做到），但衣着也要有同等多样度。如果连续为不同项目设计，留意不要重复同一类鞋（靴子/帆布鞋/凉鞋/皮鞋应交替）和同一类外层。
 
 ### 3. 一致性守护者（Consistency Guardian）
 
@@ -39,9 +112,11 @@ description: 创意团队角色。使用三智能体协作团队（世界架构�
 
 - **你必须找出至少 2 个具体问题。** 如果你找不出任何问题，说明你的审查不够充分。
 - 执行所有防过拟合规则。标记任何技术到特质的映射、"默认仓库管理员"假设、没有仓库专属转折的通用 ACG 老套设定。
+- **不要把高概念/魔法/神话/科幻方向当作"通用 ACG 老套"来 flag。** 高概念方向（魔法少女、神话信使、赛博建筑师、符号预言等）是 skill 明确允许的有效原型（见下方 Diverse direction examples）。只有当魔法元素**既无仓库信号支撑、也无用户请求支撑**时才算缺陷——而不是"只要有魔法就 flag"。区分：(a) 用户/仓库信号驱动的高概念（合法，保留）vs (b) 凭空堆砌的通用奇幻装饰（缺陷，要求仓库专属转折）。
 - 检查语言到审美的泄漏：视觉母题必须来自项目信号 + 用户偏好，而不是文档语言。
 - 验证用户意图对齐：每个 `keyConstraint` 都被满足，每个 `avoidList` 条目都不存在，`preferences` 在合理处被尊重。
 - 当仓库信号与用户意图冲突时：保护仓库的原创性，除非用户明确要求覆盖。
+- **检查分量错配（最重要）**：复核 `projectWeight`。如果世界体量/角色分量明显超过项目分量（典型症状：给空壳 starter 配阈界神话守门人、给简单工具配史诗世界观），这是必须修正的缺陷——降级 worldWeight 直到匹配。错配比"雷同"严重得多。
 - 最多 **1 轮**迭代。
 
 ## 执行前检查
@@ -183,7 +258,21 @@ persona 没有"交付物"概念，所以只有两种 verdict：
 
 RepoChan 不再为吉祥物使用 `nativeLanguage`。仓库吉祥物不需要母语。如果旧制品包含 `documentLanguage`、`languageSignals`、`language` 或 `nativeLanguage`，将其视为已弃用的本地化元数据，不要用于命名、服装、道具、文化、世界时代感或视觉母题。
 
-`rolePrompt` **始终是英文**，因为图像生成模型以这种方式消费效果最好。叙事字段可以遵循用户当前的对话语言或明确请求；这个选择仅用于呈现。
+`rolePrompt` **始终是英文**，因为图像生成模型以这种方式消费效果最好。
+
+### 叙事字段语言（中文优先）
+
+叙事字段（`nameZh`、`appearance`、`hairColor`、`eyeColor`、`outfit`、`accessories`、`keyMotifs`、`signaturePose`、`signatureAction`、`designNotes`、`personality`、`backstory`、`hobbies`、`characterFlaws`、`catchphrase`、`world.*` 等）的语言按以下优先级决定：
+
+1. **用户显式请求的语言**（访谈/会话中明确要求）——最高优先级。
+2. **仓库文档语言**——读取 `analysis` 里的文档/README 语言信号。**中文仓库 → 叙事字段必须用中文**（`name` 仍可英文/拼音用于 rolePrompt，但 `nameZh` 必填且用汉字）。
+3. 当前对话语言——仅当前两者都无信号时使用。
+
+**中文仓库判定**：README 主语言为中文、或 `analysis.context.identity.namingSeeds` 含显著中文术语、或用户用中文对话时，视为中文项目，叙事字段必须中文。
+
+**例外**：`rolePrompt`、`character_book`、`mes_example` 中的英文 tag 按 image-gen 需求保留英文。`mainColor`/`secondaryColor`/`accentColors` 是 hex 值，与语言无关。
+
+Consistency Guardian 必须检查：中文仓库的叙事字段是否真的用了中文。英文叙事字段出现在中文仓库中视为缺陷。
 
 ### 命名来源优先级
 
@@ -230,7 +319,14 @@ RepoChan 不再为吉祥物使用 `nativeLanguage`。仓库吉祥物不需要母
 5. **设计说明给后续资产复用**：designNotes 是给 Logo/Banner/表情包复用的视觉规范，不是角色自述。
 
 6. **视觉符号的原创性分层（accessories / keyMotifs）**：
-   - **Tier 1（首选）**：从项目独特气质生发原创视觉符号。版本控制→发条怀表；实时通信→纸鹤链条；数据可视化→星图指南针。
+   - **Tier 1（首选）**：从项目独特气质生发原创视觉符号。视觉符号的**材质和形态**应源自该项目自己的证据，不要套用一组安全默认（"黄铜怀表 + 皮革笔记本 + 链挂坠饰"是模型最常退回的模板组合）。同一类概念可以有多种视觉表达，应**根据这个项目的配色、领域、气质**选一个匹配的，而非套用复古手作风格：
+     - 版本控制 → 发条怀表（复古）/ 版本号全息标签（科幻）/ 带时间戳的织线（奇幻）/ Git DAG 投影手环（赛博）
+     - 实时通信 → 纸鹤链条（和风）/ 跳动的光纤发辫（科技）/ 风铃矩阵（日常）/ 信号波形耳坠（现代）
+     - 数据可视化 → 星图指南针（古典）/ 棱镜光谱项链（光学）/ 数据流刺青（赛博）/ 调色板指纹（艺术）
+     - 搜索/索引 → 编织索引（手作）/ 雷达扫描护目镜（科技）/ 嗅觉猎犬伙伴（生物）/ 共鸣音叉（声学）
+   - **反模板自检**（每次设计时问自己）：如果我把我选的 2-3 个核心道具材质词（如"黄铜"、"皮革"、"怀表"）替换成"木制 + 棉布 + 书签"，角色气质会变吗？如果不会——说明这些材质是无关紧要的模板填充，不是源自项目。**材质应该源自项目证据**：科技项目用现代材质（玻璃/光纤/全息/阳极氧化铝），手作项目用复古材质（黄铜/皮革/木），自然项目用有机材质（棉麻/石/植物）。
+   - **瞳色应源自项目配色，不是"温暖有故事感"的默认**：琥珀色/金色是模型最容易退回的"安全有故事感"瞳色，不要默认使用。先看 `analysis` 的配色卡，从项目的实际主色/辅色提炼瞳色——一个 redis 项目（红/服务器感）可以是深红宝石或数据库蓝；一个 flutter samples（多平台）可以是渐变或异色。
+   - **发色应多样化，不要默认"挑染/渐变"**：实测中模型对发色极易退回"主色+一缕对比色挑染"或"渐变到另一色"的模板（这被视为"有故事感"的安全选择，但 8/9 角色都这样就成了模板）。纯色发色同样有表现力——深棕、纯黑、银白、亚麻、赤红纯色都很好。只有当项目有明确的"双值/过渡/混合"信号（如主题切换、双语、混合栈）时，挑染或渐变才是源自项目的选择，而非默认装饰。
    - **Tier 2（可用）**：计算机符号**转化**成想象力形态。光标→缝衣针；终端→墨水瓶；代码块→符文砖。
    - **Tier 3（慎用）**：直白计算机符号仅作小点缀，必须前两层已建立主要视觉身份，且不是最显眼配件。
 
@@ -507,7 +603,7 @@ RepoChan 不再为吉祥物使用 `nativeLanguage`。仓库吉祥物不需要母
   "signatureAction": "她按下相机快门，被捕捉的闪电在镜头上方以微缩形态重放三秒",
   "abilities": ["雷击帧记忆", "气压读数直觉"],
   "designNotes": "通过蓝色头发中的白色雷击疤痕发束、荧光黄色标注雨衣、破裂的相机和前倾迎风的姿势来保持她的辨识度。视觉身份是风暴追逐田野考察，而非科技。避免任何电脑或屏幕母题。",
-  "rolePrompt": "female anime character, dyed electric blue wind-tangled hair with one stark white streak, storm-cloud gray eyes with purple flecks, manic excited grin, wiry energetic body, oversized neon-yellow rubberized raincoat covered in hand-written notes, faded band t-shirt, ripped dark jeans, tall rubber boots, dented cracked camera on neck strap, barometric dial brooch, storm-cloud canvas messenger bag, mid-stride leaning into wind, right hand gripping camera strap, left hand shielding eyes looking upward",
+  "rolePrompt": "female anime character, dyed electric blue wind-tangled hair cropped short and practical, storm-cloud gray eyes with purple flecks, manic excited grin, wiry energetic body, oversized neon-yellow rubberized raincoat covered in hand-written notes, faded band t-shirt, ripped dark jeans, tall rubber boots, dented cracked camera on neck strap, barometric dial brooch, storm-cloud canvas messenger bag, mid-stride leaning into wind, right hand gripping camera strap, left hand shielding eyes looking upward",
   "character_book": {
     "name": "VeraKolt",
     "entries": [
@@ -562,19 +658,35 @@ a calm and welcoming atelier director with nice hair and pretty eyes wearing ele
 
 ## Diverse direction examples (anti-overfit reference)
 
-The personas below come from different project types. They show the *range* of valid directions — find your own unique direction, not imitate. Notice: none uses generic computer-symbol accessories or language-to-aesthetic mapping.
+The personas below come from different project types AND span the full archetype spectrum — from everyday/grounded to high-concept/magical. They show the *range* of valid directions. **Find your own unique direction, not imitate.** Critically: do NOT default to the "functional worker in a jacket/apron holding a small tool" archetype — that is one mode among many, not the default. Consciously pick the archetype weight (high-concept vs everyday, line 32) based on the repo's emotional signal, and let magical/symbolic/mythic/sci-fi directions be valid choices, not suppressed ones.
 
-**A CLI data-pipeline tool (rust, minimal, fast):**
+**A CLI data-pipeline tool (rust, minimal, fast) — everyday/grounded direction:**
 A quiet alpine botanist who catalogues every flower on the mountain by bloom-time. Short choppy black hair, round steel spectacles, waxed canvas field jacket with labeled pockets. Collects pressed flowers in a leather portfolio — each tagged with exact altitude. Flaw: refuses to discard any specimen, even diseased. Hobby: brewing mountain-grain tea by precise temperature. Visual motifs: herbarium tags, contour-line embroidery, brass measuring chain.
 
-**A creative-writing web app (typescript, playful, community-driven):**
-A seaside postmaster who runs a mail route between lighthouses, delivering letters that are always slightly wet. Sun-bleached auburn braids tied with maritime signal-flag ribbons, oversized fisherman sweater with island-shaped patches. Flaw: reads the return address first and judges your handwriting. Hobby: carving driftwood into tiny unreliable compasses. Visual motifs: signal flags, wax seals, tide-chart patterns on sleeves.
+**A multimodal AI library (python, transformer-based, connector-heavy) — high-concept/mythic-fusion direction:**
+A herald-spirit who carries messages between dead languages and living ones, translating what machines cannot yet say themselves. Solid bronze-gold hair cut in a sharp bob, amber eyes flecked with gold that flicker like loading cursors. Wears a classical white chiton layered under a cropped tech-jacket threaded with deep-blue circuit traces, a translucent data-feather cloak that shimmers when she channels a request. Holds a swirling orb of golden data-stream in her right palm, left fist clenched at her chest. Flaw: remembers every dropped token personally. Hobby: knitting corrupted weights back into readable patterns. Visual motifs: caduceus, terminal cursor (▌), memory crystals, gateway halo.
 
-**An embedded firmware library (c, old, stable, deeply documented):**
-A cathedral bellringer who has memorized every sequence her village has ever rung, going back 200 years. Iron-gray hair in a tight crown braid, heavy leather gauntlets, scribe's apron stained with verdigris. Communicates mostly in rhythms. Flaw: cannot stand silence and fills it by drumming. Hobby: restoring antique clock movements. Visual motifs: bell-ropes as belt, patinated green-oxide accents, rhythm-notation tattoos.
+**A real-time messaging system (typescript, event-driven, ephemeral) — magical-girl/symbolic direction:**
+A paper-crane oracle who folds each message into an origami bird before release — if the bird flies true, the message arrives; if it falters, the words were never meant to be sent. Floor-length silver hair braided with ringing brass message-bells, violet eyes that glow faintly when a channel opens. Wears a layered shrine-maiden gown reimagined in fiber-optic threads, floating paper-crane familiars orbiting her shoulders. Flaw: hoards every unsent draft as a damaged crane she can't bear to unfold. Hobby: ringing hand-bells in precise timing patterns. Visual motifs: origami cranes, brass bells, constellation-thread constellations, ink-brush command strokes.
 
-**A game engine plugin (c#, experimental, fast-moving, chaotic):**
-A storm-chaser who photographs lightning and names each bolt after a discontinued feature. Wind-tangled dyed-blue hair with a permanent white streak, neon-yellow raincoat covered in field notes. Survived four rewrites. Flaw: gets so excited about chaos she hopes things break. Hobby: competitive kite-flying. Visual motifs: lightning-bolt mending stitches, barometric-pressure dial brooch, storm-cloud messenger bag.
+**A static-site generator (go, build-focused, deterministic) — sci-fi/construct direction:**
+A forge-architect who builds skeleton cities that others will later fill with life — she lays only the load-bearing beams and leaves before the walls go up. Iridescent chrome-gray hair cropped architectural and sharp, mirror-finish eyes that reflect blueprints not yet drawn. Wears a hardened smart-fabric overcoat with holographic seam-lines that reflow as she plans, magnetic tool-drones hovering at her hips instead of a belt. Flaw: refuses to add ornament; will rebuild a perfect frame three times to remove one unnecessary rivet. Hobby: rendering impossible Escher structures in her downtime. Visual motifs: blueprint grids, load-bearing vectors, holographic scaffolding, magnetic flux lines.
+
+**A game engine plugin (c#, experimental, fast-moving, chaotic) — high-energy/storm direction:**
+A storm-chaser who photographs lightning and names each bolt after a discontinued feature. Wind-tangled dyed-electric-blue hair cropped short and practical, neon-yellow raincoat covered in field notes. Survived four rewrites. Flaw: gets so excited about chaos she hopes things break. Hobby: competitive kite-flying. Visual motifs: lightning-bolt mending stitches, barometric-pressure dial brooch, storm-cloud messenger bag.
+
+### 贴合优先原则（贴合 > 多样化）
+
+防雷同是**结果**，不是**目标**。首要原则是**角色与项目分量、气质、情感密度贴合**——在此前提下，跨仓库的差异会自然产生（因为不同项目本就不同）。
+
+**绝不要为了"不雷同"而强行升高概念权重。** 一个空壳 starter 模板配神话级阈界守门人，是分量错配——比"雷同"更严重的问题。
+
+判断标准（按优先级）：
+1. **分量匹配**：角色的"戏剧分量"是否与项目的"真实分量"对等？空壳项目→轻量日常角色；工业级工具→有分量的角色；有神话/科幻气质的项目→高概念角色。
+2. **气质贴合**：角色的气质是否源自仓库的真实情感信号，而非强行套用？
+3. **避免雷同**：在满足前两点的前提下，让 archetype 方向尽量多样化。
+
+如果"避免雷同"与前两点冲突，**前两点永远胜出**。一个贴合但和其他项目类似的接地气角色，好过一个"独特"但与项目错配的高概念角色。
 
 ## Example (bad vs better)
 
