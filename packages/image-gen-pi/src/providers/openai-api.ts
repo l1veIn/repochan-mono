@@ -36,12 +36,6 @@ const ASPECT_TO_SIZE: Record<string, string> = {
  * dall-e-3 supports: 1024x1024, 1792x1024, 1024x1792.
  * Given desired width/height, snap to the closest supported size for the model.
  */
-const GPT_IMAGE_SIZES = [
-  { w: 1024, h: 1024, label: "1024x1024" },
-  { w: 1536, h: 1024, label: "1536x1024" },
-  { w: 1024, h: 1536, label: "1024x1536" },
-];
-
 const DALLE3_SIZES = [
   { w: 1024, h: 1024, label: "1024x1024" },
   { w: 1792, h: 1024, label: "1792x1024" },
@@ -49,27 +43,37 @@ const DALLE3_SIZES = [
 ];
 
 function resolveSize(model: string, width?: number, height?: number, aspectRatio?: string): string {
-  const supported = model.includes("dall-e-3") ? DALLE3_SIZES : GPT_IMAGE_SIZES;
-  if (width && height) {
-    const targetRatio = width / height;
-    let best = supported[0];
-    let bestDiff = Infinity;
-    for (const s of supported) {
-      const diff = Math.abs(s.w / s.h - targetRatio);
-      if (diff < bestDiff) {
-        bestDiff = diff;
-        best = s;
-      }
-    }
-    return best.label;
-  }
-  // Map aspectRatio to supported size, falling back for dall-e-3's different sizes
+  // dall-e-3 only supports fixed sizes — must snap.
   if (model.includes("dall-e-3")) {
+    const supported = DALLE3_SIZES;
+    if (width && height) {
+      const targetRatio = width / height;
+      let best = supported[0];
+      let bestDiff = Infinity;
+      for (const s of supported) {
+        const diff = Math.abs(s.w / s.h - targetRatio);
+        if (diff < bestDiff) {
+          bestDiff = diff;
+          best = s;
+        }
+      }
+      return best.label;
+    }
     if (aspectRatio === "landscape") return "1792x1024";
     if (aspectRatio === "portrait") return "1024x1792";
     return "1024x1024";
   }
-  return ASPECT_TO_SIZE[aspectRatio ?? "square"] ?? "1024x1024";
+  // gpt-image-1 / gpt-image-2 support arbitrary sizes — pass through exact
+  // dimensions when provided. Clamp to a sane range to avoid API rejection.
+  if (width && height) {
+    const w = Math.max(256, Math.min(4096, Math.round(width)));
+    const h = Math.max(256, Math.min(4096, Math.round(height)));
+    return `${w}x${h}`;
+  }
+  // Fall back to aspectRatio → standard gpt-image sizes.
+  if (aspectRatio === "landscape") return "1536x1024";
+  if (aspectRatio === "portrait") return "1024x1536";
+  return "1024x1024";
 }
 
 const MODELS: ModelOption[] = [
