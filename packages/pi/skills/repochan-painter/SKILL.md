@@ -69,6 +69,7 @@ image_generate(
 - `referenceImageUrls`——来自解析引用的绝对文件路径数组
 - `imageUrl`——用于编辑现有图像（如果任务是修订）
 - `aspectRatio`——landscape / square / portrait，基于解析出的输出规格
+- `orderContext`——**当为 repochan order 生图时必须传**：`{ orderId, hasOrderReferences }`。如果 order 有 references（foundation/character），`hasOrderReferences=true`，且必须同时传 `referenceImageUrls`——否则工具会**拒绝生图**并要求你先 resolve_references。这是防止跨资产角色不一致的硬约束。只有 foundation_sheet（无上游引用）才传 `hasOrderReferences=false` 或省略 orderContext。
 
 ### 步骤 3.5：有参考图时精简 prompt（避免外形重述导致 AI 混乱）
 
