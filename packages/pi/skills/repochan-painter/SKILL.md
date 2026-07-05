@@ -48,6 +48,10 @@ repochan action="order.resolve_references" params={ references: order.references
 - `style`——美术风格参考
 - `composition`——构图/布局参考
 
+**硬约束（非 foundation 资产必读）**：如果 order 有 `references` 但 `resolve_references` 返回空（解析失败），**必须停下报错，不能只用文本 prompt 生成**。没有参考图的生成必然导致跨资产角色不一致——这是 bug，不是可接受的降级。处理方式：检查引用的 foundation order 是否已 `delivered`、versionId 是否正确，修复后再生成。
+
+**同样，绝不能跳过 resolve_references 步骤**——即使你认为文本 prompt 足够描述角色，也必须调用 resolve_references 并把结果作为 `referenceImageUrls` 传给 `image_generate`。参考图是跨资产一致性的核心机制，文本描述无法替代。
+
 ### 步骤 3：注入引用到生成调用
 
 将解析出的图像文件路径作为参考图传给图像生成工具：
