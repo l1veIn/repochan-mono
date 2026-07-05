@@ -90,6 +90,11 @@ export const PersonaArtifactSchema = Type.Object({
   // ── Optional visual — design ──
   abilities: Type.Optional(Type.Array(Type.String())),
   designNotes: Type.Optional(Type.String()),
+  artStyle: Type.Optional(Type.String({ description: "Selected art style (e.g. 'cyberpunk neon', 'ghibli watercolor', 'thick paint', 'minimalist flat'). Drives poster and other artistic assets. Always within the anime/2D framework — this is a sub-style, not a switch to realistic/oil painting." })),
+  proposedArtStyles: Type.Optional(Type.Array(Type.Object({
+    style: Type.String({ description: "Art style name, e.g. 'cyberpunk neon'." }),
+    reason: Type.String({ description: "Why this style fits the project (1 sentence, derived from repo signals)." }),
+  }), { description: "Art style proposals from the World Architect (upstream). The Character Designer selects one as artStyle." })),
 
   // ── Meta ──
   schemaVersion: Type.Optional(Type.String()),

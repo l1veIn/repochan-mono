@@ -313,6 +313,18 @@ review 回流订单**必须用图生图（image-to-image）**，而非从零文�
 5. **Persona precision fields**: supplement rolePrompt with `signaturePose`, `signatureAction`, `hairColor`, `eyeColor`, `outfit`, `accessories`, `keyMotifs`, `colorPalette` (main + secondary + accent), `designNotes` — assemble these into structured labeled blocks (see Final prompt structure below). **这些字段以中文存储时，采用「英文骨架 + 中文血肉」的混排策略**（codex image-2 等现代图像模型对中文描述的理解力很强，中文能保留更丰富的细节语义）。混排规则见下方「中英文混排策略」。`signatureAction` 字段（角色的标志性叙事动作）必须单独注入为 `show signature action as a small visual cue:` 块——不要和 signaturePose 混为一谈，pose 是静态姿势，action 是动态能力展示。
 6. **Order brief**: add intent-specific elements from `order.brief.mustInclude`, `order.brief.avoid`, `order.brief.creativeFreedom`, except where they conflict with the user request or template. Apply the **avoid → positive transform** (see below).
 7. **Reference images** (if available): resolved via `order.resolve_references` — pass as `referenceImageUrls`, not in the text prompt.
+8. **Art style injection（海报必读，其他资产可选）**：如果 `persona.artStyle` 有值，将其注入 prompt 作为画风驱动。**海报（assetType=poster）必须注入 artStyle 且尽情释放**——海报没有设定集的结构约束（不需要全身+chibi+配色卡），是纯艺术表现，要让 artStyle 主导视觉。其他资产（foundation/banner/icon 等）默认保持标准 anime 风（信息载体需要清晰），除非 artStyle 与信息展示不冲突（如"极简 flat"可以用于 icon）。
+
+### 海报资产特殊引导（assetType=poster）
+
+海报是**艺术释放型资产**——和设定集（信息载体）完全不同。海报的目标是一张有视觉冲击力的角色主视觉，不是展示角色信息。
+
+**海报必须**：
+- **读 persona.artStyle 并让它主导**：如果 artStyle 是"赛博朋克 neon"，prompt 要含霓虹光晕/暗色背景/发光线；如果是"吉卜力水彩"，含柔和手绘/温暖光/水彩质感；如果是"厚涂"，含可见笔触/浓郁光影。
+- **构图自由**：动态姿势、戏剧性角度、环境叙事都鼓励。不受"全身立绘"约束——可以是特写、半身、俯仰角。
+- **背景要有氛围**：不是白底，是与 artStyle + 项目气质匹配的环境。
+- **不含设定集元素**：绝不出现 chibi、表情网格、配色卡、callout 标签。
+- **引用 foundation 保证角色一致**（仍传 referenceImageUrls），但艺术风格由 artStyle 决定，不受 foundation 的画风束缚。
 
 ### Avoid → positive transform
 
