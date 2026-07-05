@@ -316,6 +316,7 @@ Consistency Guardian 必须检查：中文仓库的叙事字段是否真的用�
      - 搜索/索引 → 编织索引（手作）/ 雷达扫描护目镜（科技）/ 嗅觉猎犬伙伴（生物）/ 共鸣音叉（声学）
    - **反模板自检**（每次设计时问自己）：如果我把我选的 2-3 个核心道具材质词（如"黄铜"、"皮革"、"怀表"）替换成"木制 + 棉布 + 书签"，角色气质会变吗？如果不会——说明这些材质是无关紧要的模板填充，不是源自项目。**材质应该源自项目证据**：科技项目用现代材质（玻璃/光纤/全息/阳极氧化铝），手作项目用复古材质（黄铜/皮革/木），自然项目用有机材质（棉麻/石/植物）。
    - **瞳色应源自项目配色，不是"温暖有故事感"的默认**：琥珀色/金色是模型最容易退回的"安全有故事感"瞳色，不要默认使用。先看 `analysis` 的配色卡，从项目的实际主色/辅色提炼瞳色——一个 redis 项目（红/服务器感）可以是深红宝石或数据库蓝；一个 flutter samples（多平台）可以是渐变或异色。
+   - **发色应多样化，不要默认"挑染/渐变"**：实测中模型对发色极易退回"主色+一缕对比色挑染"或"渐变到另一色"的模板（这被视为"有故事感"的安全选择，但 8/9 角色都这样就成了模板）。纯色发色同样有表现力——深棕、纯黑、银白、亚麻、赤红纯色都很好。只有当项目有明确的"双值/过渡/混合"信号（如主题切换、双语、混合栈）时，挑染或渐变才是源自项目的选择，而非默认装饰。
    - **Tier 2（可用）**：计算机符号**转化**成想象力形态。光标→缝衣针；终端→墨水瓶；代码块→符文砖。
    - **Tier 3（慎用）**：直白计算机符号仅作小点缀，必须前两层已建立主要视觉身份，且不是最显眼配件。
 
@@ -592,7 +593,7 @@ Consistency Guardian 必须检查：中文仓库的叙事字段是否真的用�
   "signatureAction": "她按下相机快门，被捕捉的闪电在镜头上方以微缩形态重放三秒",
   "abilities": ["雷击帧记忆", "气压读数直觉"],
   "designNotes": "通过蓝色头发中的白色雷击疤痕发束、荧光黄色标注雨衣、破裂的相机和前倾迎风的姿势来保持她的辨识度。视觉身份是风暴追逐田野考察，而非科技。避免任何电脑或屏幕母题。",
-  "rolePrompt": "female anime character, dyed electric blue wind-tangled hair with one stark white streak, storm-cloud gray eyes with purple flecks, manic excited grin, wiry energetic body, oversized neon-yellow rubberized raincoat covered in hand-written notes, faded band t-shirt, ripped dark jeans, tall rubber boots, dented cracked camera on neck strap, barometric dial brooch, storm-cloud canvas messenger bag, mid-stride leaning into wind, right hand gripping camera strap, left hand shielding eyes looking upward",
+  "rolePrompt": "female anime character, dyed electric blue wind-tangled hair cropped short and practical, storm-cloud gray eyes with purple flecks, manic excited grin, wiry energetic body, oversized neon-yellow rubberized raincoat covered in hand-written notes, faded band t-shirt, ripped dark jeans, tall rubber boots, dented cracked camera on neck strap, barometric dial brooch, storm-cloud canvas messenger bag, mid-stride leaning into wind, right hand gripping camera strap, left hand shielding eyes looking upward",
   "character_book": {
     "name": "VeraKolt",
     "entries": [
@@ -653,7 +654,7 @@ The personas below come from different project types AND span the full archetype
 A quiet alpine botanist who catalogues every flower on the mountain by bloom-time. Short choppy black hair, round steel spectacles, waxed canvas field jacket with labeled pockets. Collects pressed flowers in a leather portfolio — each tagged with exact altitude. Flaw: refuses to discard any specimen, even diseased. Hobby: brewing mountain-grain tea by precise temperature. Visual motifs: herbarium tags, contour-line embroidery, brass measuring chain.
 
 **A multimodal AI library (python, transformer-based, connector-heavy) — high-concept/mythic-fusion direction:**
-A herald-spirit who carries messages between dead languages and living ones, translating what machines cannot yet say themselves. Long golden hair fading to silver at the tips like a signal degrading over distance, amber eyes flecked with gold that flicker like loading cursors. Wears a classical white chiton layered under a cropped tech-jacket threaded with deep-blue circuit traces, a translucent data-feather cloak that shimmers when she channels a request. Holds a swirling orb of golden data-stream in her right palm, left fist clenched at her chest. Flaw: remembers every dropped token personally. Hobby: knitting corrupted weights back into readable patterns. Visual motifs: caduceus, terminal cursor (▌), memory crystals, gateway halo.
+A herald-spirit who carries messages between dead languages and living ones, translating what machines cannot yet say themselves. Solid bronze-gold hair cut in a sharp bob, amber eyes flecked with gold that flicker like loading cursors. Wears a classical white chiton layered under a cropped tech-jacket threaded with deep-blue circuit traces, a translucent data-feather cloak that shimmers when she channels a request. Holds a swirling orb of golden data-stream in her right palm, left fist clenched at her chest. Flaw: remembers every dropped token personally. Hobby: knitting corrupted weights back into readable patterns. Visual motifs: caduceus, terminal cursor (▌), memory crystals, gateway halo.
 
 **A real-time messaging system (typescript, event-driven, ephemeral) — magical-girl/symbolic direction:**
 A paper-crane oracle who folds each message into an origami bird before release — if the bird flies true, the message arrives; if it falters, the words were never meant to be sent. Floor-length silver hair braided with ringing brass message-bells, violet eyes that glow faintly when a channel opens. Wears a layered shrine-maiden gown reimagined in fiber-optic threads, floating paper-crane familiars orbiting her shoulders. Flaw: hoards every unsent draft as a damaged crane she can't bear to unfold. Hobby: ringing hand-bells in precise timing patterns. Visual motifs: origami cranes, brass bells, constellation-thread constellations, ink-brush command strokes.
@@ -662,7 +663,7 @@ A paper-crane oracle who folds each message into an origami bird before release 
 A forge-architect who builds skeleton cities that others will later fill with life — she lays only the load-bearing beams and leaves before the walls go up. Iridescent chrome-gray hair cropped architectural and sharp, mirror-finish eyes that reflect blueprints not yet drawn. Wears a hardened smart-fabric overcoat with holographic seam-lines that reflow as she plans, magnetic tool-drones hovering at her hips instead of a belt. Flaw: refuses to add ornament; will rebuild a perfect frame three times to remove one unnecessary rivet. Hobby: rendering impossible Escher structures in her downtime. Visual motifs: blueprint grids, load-bearing vectors, holographic scaffolding, magnetic flux lines.
 
 **A game engine plugin (c#, experimental, fast-moving, chaotic) — high-energy/storm direction:**
-A storm-chaser who photographs lightning and names each bolt after a discontinued feature. Wind-tangled dyed-blue hair with a permanent white streak, neon-yellow raincoat covered in field notes. Survived four rewrites. Flaw: gets so excited about chaos she hopes things break. Hobby: competitive kite-flying. Visual motifs: lightning-bolt mending stitches, barometric-pressure dial brooch, storm-cloud messenger bag.
+A storm-chaser who photographs lightning and names each bolt after a discontinued feature. Wind-tangled dyed-electric-blue hair cropped short and practical, neon-yellow raincoat covered in field notes. Survived four rewrites. Flaw: gets so excited about chaos she hopes things break. Hobby: competitive kite-flying. Visual motifs: lightning-bolt mending stitches, barometric-pressure dial brooch, storm-cloud messenger bag.
 
 ### 贴合优先原则（贴合 > 多样化）
 

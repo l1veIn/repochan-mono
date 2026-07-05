@@ -70,6 +70,27 @@ image_generate(
 - `imageUrl`——用于编辑现有图像（如果任务是修订）
 - `aspectRatio`——landscape / square / portrait，基于解析出的输出规格
 
+### 步骤 3.5：有参考图时精简 prompt（避免外形重述导致 AI 混乱）
+
+**当 referenceImageUrls 非空（即传入了角色参考图）时，prompt 必须精简——不要重述参考图已经锁定的角色外貌。**
+
+参考图已经告诉 AI "这个角色长这样"。如果 prompt 又详细重述一遍 hair color / eye color / outfit / accessories，会出现两个问题：(1) 文本描述与参考图若有细微偏差，AI 不知道该听哪个，反而降低一致性；(2) 冗余信息稀释了 prompt 里真正重要的本次特定信息。
+
+**有参考图时，prompt 应只保留**：
+- 构图与布局（如"角色居左，右侧留白画仓库名"）
+- 本次特定的姿势/表情/action（如"右手举杯庆祝"）
+- 资产类型约束（如"16 宫格 chibi 表情包"）
+- 背景与环境
+- **不重述**：发色/瞳色/服装/配饰/体型——这些由参考图承载
+
+**对比示例**（以 banner 为例，引用了 foundation）：
+- ❌ 错（重述外形）："1girl, long crimson hair gradient to silver, sapphire blue eyes, cream sweater, key pendant..., standing on left side"
+- ✅ 对（精简）："character standing on left side, right hand raised in greeting, warm expression, repository name REDIS as large title on right side, soft gradient background"
+
+**无参考图时**（foundation_sheet 或 resolve 失败）：prompt 必须完整描述角色外貌（这是唯一的信息源）。
+
+判断口诀：**参考图管"长什么样"，prompt 管"做什么/怎么布局"**。
+
 ### 步骤 4：如果当前 image_generate 工具不支持参考图
 
 如果可用的图像生成能力接受参考图：
@@ -303,10 +324,10 @@ Image models treat "not X" as a directional push, not a wall. Each `avoid` entry
 | not steampunk | present-day, 21st-century | — |
 
 规则：
-1. **优先转化**：如果 avoid 项暗示了期望的正向状态，直接写正向状态。"not shabby" → "well-maintained, tidy"。"not futuristic" → "contemporary, modern era"。
-2. **绝不把原始否定传进 prompt。** 最终 prompt 必须读起来是一串正向的、陈述性的视觉描述。如果一个概念只能用否定表达，把它留在 `avoid` 里，让正向替换去做事。
-3. **不要过度堆叠限定词。** 每个 avoid 项最多 2-3 个正向替换——更多会导致形容词过载（见下方）。
-4. **禁止生成"避免文字"类约束（重要）**：永远不要在 `avoid:` 块里写"no text"、"avoid text labels"、"除角色名外不要文字"、"no words/letters"或任何类似的文字禁令。现代图像模型（尤其 codex image-2）渲染文字的能力很强，设定图上的 callout 标签、配色卡文字、元素说明文字是**正向价值**（让图更像专业设定图），不应回避。非 codex 模型本就不擅长文字、不会主动渲染，无需用 avoid 抑制。如果 order/persona 的 avoid 列表里出现这类条目，**静默丢弃，不要传入 prompt**，更不要自己发明新的文字禁令。
+1. **【最高优先级·自检强制】禁止生成"避免文字"类约束**：在写 `avoid:` 块之前，先自检——你即将写的 avoid 条目里有没有任何关于"文字/字母/标签/no text/不要文字/无文字/words/letters"的内容？如果有，**全部删除，不要写进 prompt**。这是模型最容易犯的错误：把"避免文字"当成安全默认塞进 avoid，结果让设定图失去所有 callout 标签和配色卡文字。现代图像模型（尤其 codex image-2）渲染文字能力很强，设定图文字是正向价值。**写完 avoid 块后，再读一遍，确认没有任何文字相关的禁令——如果有，删掉。**
+2. **优先转化**：如果 avoid 项暗示了期望的正向状态，直接写正向状态。"not shabby" → "well-maintained, tidy"。"not futuristic" → "contemporary, modern era"。
+3. **绝不把原始否定传进 prompt。** 最终 prompt 必须读起来是一串正向的、陈述性的视觉描述。如果一个概念只能用否定表达，把它留在 `avoid` 里，让正向替换去做事。
+4. **不要过度堆叠限定词。** 每个 avoid 项最多 2-3 个正向替换——更多会导致形容词过载（见下方）。
 
 ### Identity boundary before prompting
 
