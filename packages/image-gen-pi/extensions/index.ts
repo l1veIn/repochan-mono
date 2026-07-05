@@ -64,7 +64,7 @@ const TOOL_PARAMS = Type.Object({
   ),
   referenceImageUrls: Type.Optional(
     Type.Array(Type.String(), {
-      description: "Additional reference image paths for style/composition. Only Codex OAuth and FAL nano-banana-pro.",
+      description: "Additional reference image paths for character/style consistency (e.g. foundation sheet). Supported by Codex OAuth, OpenAI API (gpt-image-1/gpt-image-2 via /images/edits), and FAL nano-banana-pro.",
     }),
   ),
   save: Type.Optional(

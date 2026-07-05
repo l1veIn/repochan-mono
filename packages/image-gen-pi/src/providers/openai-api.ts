@@ -140,17 +140,43 @@ export class OpenAIApiProvider implements ImageGenProvider {
     try {
       const size = resolveSize(model, params.width, params.height, params.aspectRatio);
       const hasSourceImage = !!params.imageUrl?.trim();
+      const hasReferenceImages = !!(params.referenceImageUrls && params.referenceImageUrls.length > 0);
       const headers: Record<string, string> = {
         Authorization: `Bearer ${this.apiKey}`,
       };
 
-      // --- Image-to-image: use /v1/images/edits ---
-      if (hasSourceImage && !model.includes("dall-e-3")) {
-        ctx.onProgress?.(`Requesting image edit via OpenAI API (${model})…`, { provider: this.name, model });
+      // --- Image-to-image / multi-reference: use /v1/images/edits ---
+      // gpt-image-1/gpt-image-2 edits endpoint accepts reference images.
+      // imageUrl = primary source (img2img base); referenceImageUrls = additional character/style refs.
+      // Both are sent as "image" form fields (OpenAI multi-image edit format).
+      if ((hasSourceImage || hasReferenceImages) && !model.includes("dall-e-3")) {
+        ctx.onProgress?.(
+          `Requesting image edit via OpenAI API (${model}, ${hasSourceImage ? "1 source" : "0 source"} + ${params.referenceImageUrls?.length ?? 0} refs)…`,
+          { provider: this.name, model },
+        );
 
         const formData = new FormData();
-        const imageBuffer = readFileSync(resolve(params.imageUrl!.trim()));
-        formData.append("image", new Blob([imageBuffer]), "source.png");
+        // Primary source image (imageUrl) if present
+        if (hasSourceImage) {
+          const imageBuffer = readFileSync(resolve(params.imageUrl!.trim()));
+          formData.append("image", new Blob([imageBuffer]), "source.png");
+        }
+        // Reference images (character/style anchors) — sent as additional "image" fields
+        if (params.referenceImageUrls) {
+          for (const refUrl of params.referenceImageUrls) {
+            const trimmed = refUrl.trim();
+            if (trimmed) {
+              try {
+                const refBuffer = readFileSync(resolve(trimmed));
+                formData.append("image", new Blob([refBuffer]), "reference.png");
+              } catch {
+                // Skip unreadable reference files rather than failing the whole request
+              }
+            }
+          }
+        }
+        // If only referenceImageUrls (no imageUrl), the first reference becomes the required "image"
+        // FormData naturally handles this — at least one "image" field is present.
         formData.append("prompt", params.prompt);
         formData.append("model", model);
         formData.append("size", size);
