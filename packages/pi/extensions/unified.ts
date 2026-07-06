@@ -41,6 +41,8 @@ import {
   createPersonaReview as coreCreatePersonaReview,
   createPersonaCandidate as coreCreatePersonaCandidate,
   promotePersonaCandidate as corePromotePersonaCandidate,
+  sliceOrderResult as coreSliceOrderResult,
+  extractStickers as coreExtractStickers,
   type OrderStatus,
   type PageData,
 } from "@repochan/core";
@@ -68,6 +70,8 @@ const ActionSchema = Type.Union([
   Type.Literal("order.list_results"),
   Type.Literal("order.get_result"),
   Type.Literal("order.resolve_references"),
+  Type.Literal("order.slice"),
+  Type.Literal("order.extract_stickers"),
   Type.Literal("foundation.find"),
   Type.Literal("template.list"),
   Type.Literal("template.get"),
@@ -442,6 +446,95 @@ async function getTemplate(ctx: ExtensionContext, params: JsonObject) {
   return ok(JSON.stringify(tmpl, null, 2), { template: tmpl });
 }
 
+/**
+ * Compute slicing coordinates for a grid-image order result and write them into
+ * the version's meta.json.tiles. The grid spec (rows/cols/sliceable) is read
+ * from the order's templateId — core never parses templates, so pi resolves
+ * the grid here and passes plain numbers to core.sliceOrderResult.
+ *
+ * This is coordinates-only: it does NOT generate per-cell PNG files and does
+ * NOT assess whether the equal split is clean (irregular AI grids may need a
+ * separate grid-line-detection step in the future).
+ */
+async function sliceOrder(ctx: ExtensionContext, params: JsonObject) {
+  const orderId = requireOrderId(params);
+  const order = await coreReadOrder(ctx.cwd, orderId);
+  const templateId = typeof order.templateId === "string" && order.templateId ? order.templateId : undefined;
+  if (!templateId) {
+    throw new Error(
+      `order.slice: order ${orderId} has no templateId. Slicing requires a sliceable grid template (e.g. official/chibi-grid-4x4).`,
+    );
+  }
+  const builtinDir = getBuiltinTemplatesDir();
+  const all = await loadAllTemplates(builtinDir, ctx.cwd);
+  const tmpl = all.find((t) => t.id === templateId || t.assetType === templateId);
+  if (!tmpl) throw new Error(`order.slice: template '${templateId}' (on order ${orderId}) not found.`);
+  if (!tmpl.grid || !tmpl.grid.sliceable) {
+    throw new Error(
+      `order.slice: template '${templateId}' is not a sliceable grid (grid=${JSON.stringify(tmpl.grid)}). ` +
+        "Slicing only applies to templates with grid.sliceable=true.",
+    );
+  }
+  const versionId = typeof params.versionId === "string" && params.versionId ? params.versionId : undefined;
+  const result = await coreSliceOrderResult(ctx.cwd, {
+    orderId,
+    versionId,
+    rows: tmpl.grid.rows,
+    cols: tmpl.grid.cols,
+  });
+  return ok(
+    `Sliced ${orderId}/${result.versionId} into ${result.tiles.rows}×${result.tiles.cols} (${result.tiles.cells.length} tiles). ` +
+      `Source: ${result.sourceFile} (${result.tiles.width}×${result.tiles.height}). Coordinates written to meta.json.tiles.`,
+    { tiles: result.tiles, sourceFile: result.sourceFile, versionId: result.versionId, orderId },
+  );
+}
+
+/**
+ * Extract transparent-background sticker PNGs from a grid image via ML matting.
+ * Runs ISNet (@imgly/background-removal-node) on the WHOLE grid once, then
+ * slices the transparent result into rows×cols cells. Works on ANY background
+ * (plain/illustrated/gradient) because ISNet is a general foreground
+ * segmenter — no plain-bg guard needed. Only requires the template to be a
+ * sliceable grid.
+ *
+ * Pipeline order matters: mat-first (whole grid) is ~10× faster than
+ * slice-then-mat-each, and gives more consistent quality (global context).
+ */
+async function extractStickersAction(ctx: ExtensionContext, params: JsonObject) {
+  const orderId = requireOrderId(params);
+  const order = await coreReadOrder(ctx.cwd, orderId);
+  const templateId = typeof order.templateId === "string" && order.templateId ? order.templateId : undefined;
+  if (!templateId) {
+    throw new Error(
+      `order.extract_stickers: order ${orderId} has no templateId. Requires a sliceable grid template (e.g. official/chibi-grid-4x4).`,
+    );
+  }
+  const builtinDir = getBuiltinTemplatesDir();
+  const all = await loadAllTemplates(builtinDir, ctx.cwd);
+  const tmpl = all.find((t) => t.id === templateId || t.assetType === templateId);
+  if (!tmpl) throw new Error(`order.extract_stickers: template '${templateId}' (on order ${orderId}) not found.`);
+  if (!tmpl.grid || !tmpl.grid.sliceable) {
+    throw new Error(
+      `order.extract_stickers: template '${templateId}' is not a sliceable grid. extract_stickers requires grid.sliceable=true.`,
+    );
+  }
+  const versionId = typeof params.versionId === "string" && params.versionId ? params.versionId : undefined;
+  const result = await coreExtractStickers(ctx.cwd, {
+    orderId,
+    versionId,
+    rows: tmpl.grid.rows,
+    cols: tmpl.grid.cols,
+    model: typeof params.model === "string" ? params.model : undefined,
+    overwrite: params.overwrite === true,
+  });
+  return ok(
+    `Extracted ${result.stickers.length} transparent stickers from ${orderId}/${result.versionId} → stickers/sNN.png. ` +
+      `Source: ${result.sourceFile}. Background removed via ML matting (ISNet ${typeof params.model === "string" ? params.model : "small"}, whole-grid). ` +
+      `Sticker list written to meta.json.stickers.`,
+    { stickers: result.stickers, sourceFile: result.sourceFile, versionId: result.versionId, orderId },
+  );
+}
+
 async function protocolRead(ctx: ExtensionContext, params: JsonObject) {
   const artifactPath = requireString(params, "artifactPath");
   const file = safeProtocolPath(ctx.cwd, artifactPath);
@@ -492,6 +585,8 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "order.resolve_references params: { references: [{ orderId, versionId?, role }] }. Resolves reference entries into absolute image file paths grouped by role. Used by the Painter before generation to get the actual reference image files to inject. role is one of: character, style, composition.",
       "Visual anchor system: A 'foundation sheet' (assetType 'foundation_sheet' or 'cover_sheet') is the project's first real image output — it contains the mascot's signature pose, chibi form, expressions, and color palette on a single sheet. Every downstream order SHOULD reference it via the order.references field: [{ orderId: '<foundation-order-id>', role: 'character' }]. This ensures visual consistency across all generated assets. The Art Director creates the foundation order first; once it has a delivered result, the Art Director auto-fills references on all subsequent orders.",
       "Order references field: Each order may include a `references` array of { orderId, versionId?, role } entries. When present, the Painter resolves them via action='order.resolve_references' and passes the resulting image files as reference images to the image generation tool. Orders with assetType 'foundation_sheet' or 'cover_sheet' do NOT need references — they ARE the anchor.",
+      "order.slice params: { orderId, versionId? }. Computes slicing coordinates for a grid-image order result and writes them into that version's meta.json.tiles. REQUIRES the order's templateId to point at a sliceable grid template (e.g. official/chibi-grid-4x4 with grid.sliceable=true). versionId is optional — defaults to the order's currentVersion, else the latest version. This is COORDINATES ONLY: it does not generate per-cell PNG files; it records { rows, cols, cellW, cellH, cells: [{ row, col, x, y, w, h }] } so a renderer can crop the single grid image via CSS background-position. The equal-split is naive — if the AI-generated grid is irregular (e.g. 4-4-3-3 instead of 4-4-4-4), tiles may cut through stickers; that is a generation-quality issue, not a slicing bug. To read the resulting tiles, use protocol.read with artifactPath='orders/<orderId>/versions/<versionId>/meta.json'.",
+      "order.extract_stickers params: { orderId, versionId?, model?='small'|'medium'|'large', overwrite? }. Extracts N TRANSPARENT-BACKGROUND sticker PNGs from a grid image via ML matting + smart blob localization, and writes them to orders/<orderId>/versions/<versionId>/stickers/sNN.png. REQUIRES the order's templateId to be a sliceable grid (grid.sliceable=true, e.g. official/chibi-grid-4x4). Two-stage pipeline: (1) ISNet matting runs ONCE on the whole grid, producing an alpha mask that both removes the background AND locates each sticker; (2) connected-component analysis on the mask finds each sticker's TRUE bounding box — this fixes the misalignment that equal-cell slicing cannot (AI grids drift: rows offset by tens of px, so naive equal cuts clip into adjacent stickers). Each sticker is cropped to its real bbox, so dimensions vary per sticker (frontend centers each in a uniform container). If the detected foreground-region count ≠ rows×cols, the action REFUSES and reports the mismatch — overlapping stickers merge into one blob, holed stickers split into several; both mean the grid is structurally defective and must be regenerated. Works on ANY background (plain/illustrated/gradient). model: 'small' (~40MB, default) / 'medium' / 'large'. First run downloads the model, later runs use cache. overwrite=true replaces an existing stickers/ dir. Result in meta.json.stickers (array of { index, file, bbox, centroid, width, height }); stickersConfig records {method:'blob-detection', expected, detected}. meta.files still holds only the original grid image. Use for reusable standalone sticker assets (gallery, sticker pack, 404/empty-state). For CSS-only cropping without transparency, use order.slice.",
       "protocol.inspect params: {}. Inspects .repochan existence, current analysis/persona, analysis/persona versions, order directories, and order result versions without creating or mutating files.",
       "protocol.read params: { artifactPath }. Safely reads a JSON artifact inside .repochan. artifactPath may be '.repochan/analysis/current.json' or a path relative to .repochan.",
       "protocol.write params: { artifactPath, data, overwrite=false }. Safely writes JSON inside .repochan, creating parent directories. Use entity actions first; use protocol.write only for migrations, manifests, or user-directed maintenance. Ask before overwrite=true.",
@@ -575,6 +670,10 @@ export function registerRepoChan(pi: ExtensionAPI) {
           return getOrderResult(ctx, params);
         case "order.resolve_references":
           return resolveReferences(ctx, params);
+        case "order.slice":
+          return sliceOrder(ctx, params);
+        case "order.extract_stickers":
+          return extractStickersAction(ctx, params);
         case "foundation.find":
           return findFoundation(ctx);
         case "template.list":

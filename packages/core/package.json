@@ -32,6 +32,7 @@
     "package.json"
   ],
   "dependencies": {
+    "@imgly/background-removal-node": "^1.4.5",
     "fast-glob": "^3.3.3",
     "ignore": "^7.0.5",
     "simple-git": "^3.36.0",
@@ -39,6 +40,8 @@
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "@types/pngjs": "^6.0.5",
+    "pngjs": "^7.0.0",
     "typescript": "^5.9.3",
     "vitest": "^2.1.9"
   },

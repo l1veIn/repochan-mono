@@ -36,3 +36,11 @@ export type { AssetResolution, AssetCheckResult } from "./pages.js";
 export { createReview } from "./review.js";
 
 export { createPersonaReview } from "./persona-review.js";
+
+// Slicing — grid-image tile-coordinate computation (no image files generated).
+export { readPngSize, computeTileCells, sliceOrderResult } from "../slicing/index.js";
+export type { TileCell, TilesMeta } from "../slicing/index.js";
+
+// Sticker extraction — ML matting (whole-grid) + smart blob slicing → transparent PNGs.
+export { extractStickers, findConnectedComponents } from "../stickers/index.js";
+export type { StickerMeta } from "../stickers/index.js";
