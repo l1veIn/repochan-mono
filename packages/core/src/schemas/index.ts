@@ -265,6 +265,40 @@ export const OrderPromoteCandidateParamsSchema = Type.Object({
   versionId: VersionIdSchema,
 });
 
+// ── Slicing ──
+
+/**
+ * Compute slicing coordinates for a grid image's result version and write them
+ * into meta.json.tiles. Does NOT generate per-cell image files — it only
+ * records the {rows, cols, cells} geometry so renderers can crop via CSS.
+ *
+ * rows/cols are required here because core never parses templates; the pi
+ * layer resolves templateId → grid.rows/grid.cols before calling this.
+ * versionId is optional (defaults to currentVersion, else latest version dir).
+ */
+export const OrderSliceParamsSchema = Type.Object({
+  orderId: OrderIdSchema,
+  versionId: Type.Optional(VersionIdSchema),
+  rows: Type.Integer({ minimum: 1, description: "Grid row count (e.g. 4 for a 4×4 sheet)." }),
+  cols: Type.Integer({ minimum: 1, description: "Grid column count (e.g. 4 for a 4×4 sheet)." }),
+});
+
+/**
+ * Extract transparent-background sticker PNGs from a grid image via ML
+ * matting. Runs ISNet (@imgly/background-removal-node) on the WHOLE grid
+ * once, then slices the transparent result into rows×cols cells. Works on
+ * any background (not just plain) because ISNet is a general foreground
+ * segmenter. Produces <versionDir>/stickers/sNN.png and records meta.stickers.
+ */
+export const OrderExtractStickersParamsSchema = Type.Object({
+  orderId: OrderIdSchema,
+  versionId: Type.Optional(VersionIdSchema),
+  rows: Type.Integer({ minimum: 1, description: "Grid row count." }),
+  cols: Type.Integer({ minimum: 1, description: "Grid column count." }),
+  model: Type.Optional(Type.Union([Type.Literal("small"), Type.Literal("medium"), Type.Literal("large")], { description: "ISNet model size. small (~40MB) by default; larger = slower but higher quality." })),
+  overwrite: Type.Optional(Type.Boolean({ description: "Replace existing stickers/ dir if present." })),
+});
+
 // ── Analysis ──
 
 export const AnalysisRunParamsSchema = Type.Object({
@@ -600,6 +634,8 @@ export const WriteOpSchemas = {
   "order.set_current_result": OrderSetCurrentResultParamsSchema,
   "order.create_candidate": OrderCreateCandidateParamsSchema,
   "order.promote_candidate": OrderPromoteCandidateParamsSchema,
+  "order.slice": OrderSliceParamsSchema,
+  "order.extract_stickers": OrderExtractStickersParamsSchema,
   "analysis.run": AnalysisRunParamsSchema,
   "analysis.update": AnalysisUpdateParamsSchema,
   "page.create": PageCreateParamsSchema,

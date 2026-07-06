@@ -1,7 +1,7 @@
 id: "official/chibi-grid-4x4"
 asset_type: "chibi_emojis"
-label: "4×4 表情包"
-description: "4×4 格子 Q版表情包，可自动切片为 16 个独立表情。"
+label: "4×4 表情包（不推荐，优先用 3×3）"
+description: "4×4 格子 Q版表情包，可自动切片为 16 个独立表情。生成 16 张比 9 张更难控制对齐与背景一致性，推荐优先用 chibi-grid-3x3。"
 tags: ["sticker", "chibi", "grid"]
 
 width: 1024
@@ -17,9 +17,16 @@ grid:
 guide: "masterpiece, best quality"
 
 constraints:
-  - "4×4 grid, one isolated chibi sticker per cell"
-  - "same character identity in all cells"
-  - "plain white background"
-  - "no overlap between cells"
-  - "each cell must be cleanly separable into equal tiles"
-  - "cute chibi proportions, exaggerated expressions"
+  # ── 网格结构（后处理 blob 定位依赖）──
+  - "4×4 grid, exactly 16 stickers, arranged in a strict 4-row × 4-column layout"
+  - "generous blank margin around EACH sticker (do NOT let stickers touch cell edges or each other) — the auto-slicer localizes each sticker by its silhouette, so stickers must be visually separated with whitespace between them"
+  - "stickers must NOT overlap or merge into each other — overlapping stickers fuse into one blob and break auto-slicing"
+  - "each sticker must be a single solid silhouette with no internal holes or cut-outs (no hollow shapes) — internal holes split one sticker into multiple blobs and break auto-slicing"
+  # ── 背景与边框（后处理 matting 依赖）──
+  - "pure solid white background (#FFFFFF), flat and uniform — NOT off-white, NOT grey, NOT gradient"
+  - "background color must be pure white and must NOT appear inside the stickers themselves — if the character has white elements (eyes, teeth, highlights), surround them with a thin colored outline so the matting model does not mistake them for background"
+  - "NO borders, NO frames, NO dividing lines, NO grid lines, NO boxes around stickers or cells — borders are foreground and cannot be removed by background matting"
+  # ── 角色与表达 ──
+  - "same character identity preserved across all 16 cells"
+  - "cute chibi proportions, large head, simplified rendering, exaggerated expressions readable at small emoji size"
+  - "each expression clearly distinct from all others"
