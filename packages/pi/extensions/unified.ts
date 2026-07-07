@@ -82,6 +82,7 @@ const ActionSchema = Type.Union([
   Type.Literal("page.get"),
   Type.Literal("page.check_assets"),
   Type.Literal("page.render"),
+  Type.Literal("page.generate_project"),
   Type.Literal("review.create"),
   Type.Literal("order.create_candidate"),
   Type.Literal("order.promote_candidate"),
@@ -363,7 +364,7 @@ async function renderPageToDisk(ctx: ExtensionContext, params: JsonObject) {
   const resolvedAssets = new Map<string, string>();
   for (const r of assetCheck.resolved) {
     const key = rendererAssetKey(r.ref);
-    resolvedAssets.set(key, `assets/${r.ref.file}`);
+    resolvedAssets.set(key, pageAssetDestination(r.ref, r.resolvedPath!));
   }
 
   // 4. Render
@@ -383,9 +384,11 @@ async function renderPageToDisk(ctx: ExtensionContext, params: JsonObject) {
   // Copy asset files
   const copied: string[] = [];
   for (const r of assetCheck.resolved) {
-    const dest = path.join(outputDir, "assets", r.ref.file);
+    const relativeDest = pageAssetDestination(r.ref, r.resolvedPath!);
+    const dest = path.join(outputDir, relativeDest);
+    await fs.mkdir(path.dirname(dest), { recursive: true });
     await fs.copyFile(r.resolvedPath!, dest);
-    copied.push(`assets/${r.ref.file}`);
+    copied.push(relativeDest);
   }
 
   return ok(
@@ -394,6 +397,58 @@ async function renderPageToDisk(ctx: ExtensionContext, params: JsonObject) {
     `  assets/ (${copied.length} files: ${copied.join(", ")})`,
     { outputDir, html: result.html.length, assets: copied },
   );
+}
+
+async function generatePageProject(ctx: ExtensionContext, params: JsonObject) {
+  const { promises: fs } = await import("node:fs");
+  const outputDir = params.outputDir
+    ? path.resolve(ctx.cwd, String(params.outputDir))
+    : path.join(ctx.cwd, "repochan-page");
+  const overwrite = optionalBoolean(params, "overwrite", false);
+  const templateDir = params.templateDir
+    ? path.resolve(ctx.cwd, String(params.templateDir))
+    : path.join(ctx.cwd, "repochan-page");
+
+  if (path.resolve(outputDir) === path.resolve(templateDir)) {
+    return ok(
+      `Page project template is already present at ${path.relative(ctx.cwd, outputDir) || outputDir}.`,
+      { outputDir, templateDir, generated: false },
+    );
+  }
+
+  if (!(await exists(templateDir))) {
+    throw new Error(
+      `page.generate_project: templateDir not found: ${path.relative(ctx.cwd, templateDir) || templateDir}. ` +
+      "Pass params.templateDir, or create the dogfood Astro template first.",
+    );
+  }
+  if ((await exists(outputDir)) && !overwrite) {
+    throw new Error(
+      `page.generate_project: outputDir already exists: ${path.relative(ctx.cwd, outputDir) || outputDir}. ` +
+      "Pass overwrite=true to replace it.",
+    );
+  }
+
+  if (overwrite) await fs.rm(outputDir, { recursive: true, force: true });
+  await fs.mkdir(path.dirname(outputDir), { recursive: true });
+  await fs.cp(templateDir, outputDir, {
+    recursive: true,
+    filter: (src) => {
+      const rel = path.relative(templateDir, src);
+      if (!rel) return true;
+      return !rel.split(path.sep).some((part) => ["node_modules", "dist", ".astro"].includes(part));
+    },
+  });
+
+  return ok(
+    `Generated editable page project at ${path.relative(ctx.cwd, outputDir) || outputDir}`,
+    { outputDir, templateDir, generated: true },
+  );
+}
+
+function pageAssetDestination(ref: { orderId: string; versionId?: string; file: string }, resolvedPath: string): string {
+  const versionId = ref.versionId ?? path.basename(path.dirname(resolvedPath));
+  return path.posix.join("assets", ref.orderId, versionId, path.basename(ref.file));
 }
 
 function getBuiltinTemplatesDir(): string {
@@ -594,6 +649,7 @@ export function registerRepoChan(pi: ExtensionAPI) {
       "page.get params: optional { versionId }. Without versionId, reads .repochan/pages/current.json. With versionId, reads pages/versions/<versionId>.json.",
       "page.check_assets params: optional { page? }. Without params.page, reads the current page and checks whether all image AssetRefs across all sections are resolvable to actual files in .repochan/orders/. Returns ok=true if all resolved, or lists missing assets with available file suggestions. Use this BEFORE page.render to verify the page is ready.",
       "page.render params: optional { page?, outputDir? }. Renders the page to static HTML. Without params.page, reads current page. Checks assets first — REFUSES to render if any are missing (run page.check_assets first). Output goes to outputDir (default: .repochan/pages/site/). Produces index.html + copies of all referenced image files to assets/. The output is a zero-JS static site that can be deployed anywhere.",
+      "page.generate_project params: optional { outputDir='repochan-page', templateDir?, overwrite=false }. Scaffolds a normal editable Astro/Tailwind page project from a template directory. This is the preferred path for production page work: fill i18n JSON, theme tokens, and asset manifest, then let users/agents continue editing code. It does NOT replace page.render yet; page.render remains the legacy Page JSON → HTML demo renderer.",
       "Page section types: navbar (simple, with-cta), hero (centered, split-right, split-left, full-bg), features (grid-2, grid-3, grid-4), stats (row, grid), gallery (grid, masonry), cta (centered, banner), footer (standard, minimal). Each section has a content object whose shape depends on type+variant.",
       "Page AssetRef: { orderId, versionId?, file, alt? }. References an image file inside .repochan/orders/<orderId>/versions/<versionId>/. When versionId is omitted, uses the order's currentVersion. The renderer copies referenced files to the output assets/ directory.",
       "Page Designer two-phase workflow: Phase 1 — design page structure + audit assets (use page.check_assets); create orders for missing images via order.create, generate via Painter. Phase 2 — when all assets are delivered, assemble final Page JSON via page.create, then render via page.render.",
@@ -701,6 +757,8 @@ export function registerRepoChan(pi: ExtensionAPI) {
           return checkPageAssets(ctx, params);
         case "page.render":
           return renderPageToDisk(ctx, params);
+        case "page.generate_project":
+          return generatePageProject(ctx, params);
         case "review.create":
           return createReview(ctx, params);
         case "order.create_candidate":

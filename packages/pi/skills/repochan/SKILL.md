@@ -31,7 +31,7 @@ RepoChan 把仓库品牌建设当作专业约稿（`约稿`）：先深入理解
 ⑥ Art Director             → 创建下游任务（自动引用设定集）
 ⑦ Painter                 → 带参考图执行下游任务
      ↳ 所有资产维持角色一致性
-⑧ Page Designer（页面设计师）→ .repochan/pages/current.json + site/    〔可选〕
+⑧ Page Designer（页面设计师）→ repochan-page/ Astro 工程           〔可选〕
 ```
 
 带〔可选〕标记的步骤可以跳过。访谈（②）跳过时，创意团队直接从分析推导人设；页面（⑧）是项目落地页，可选的最后一步。
@@ -58,7 +58,7 @@ RepoChan 把仓库品牌建设当作专业约稿（`约稿`）：先深入理解
 | 创意团队 | `repochan-persona` | 分析、访谈（可选） | `.repochan/persona/current.json`、版本 |
 | 美术总监 | `repochan-art-director` | 分析、人设、设定集状态 | 设定集任务 + 下游任务（带引用） |
 | 画师 | `repochan-painter` | 已批准的任务、已解析的引用、分析、人设 | `.repochan/orders/<order-id>/versions/<version-id>/` 结果 |
-| 页面设计师 | `repochan-page-designer` | 分析、已交付的 order 素材（可选） | `.repochan/pages/current.json`、`.repochan/pages/site/` 静态站 |
+| 页面设计师 | `repochan-page-designer` | 分析、persona 视觉字段、已交付的 order 素材（可选） | `repochan-page/` Astro/Tailwind 工程（旧路线仍可输出 `.repochan/pages/site/` demo） |
 | 协议管家 | `repochan-protocol` | 现有工作区 | 经过验证的 `.repochan/` 布局 |
 
 ## 设定集封面

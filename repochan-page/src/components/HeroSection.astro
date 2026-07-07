@@ -1,0 +1,42 @@
+---
+import VisualFrame from "./VisualFrame.astro";
+import { getAsset } from "../config/assets";
+
+type Stat = { value: string; label: string };
+type Props = {
+  content: {
+    eyebrow: string;
+    headline: string;
+    body: string;
+    primaryCta: string;
+    secondaryCta: string;
+    stats: Stat[];
+  };
+};
+
+const { content } = Astro.props;
+const heroAsset = getAsset("banner");
+---
+
+<section class="bg-ink text-white">
+  <div class="content-wrap grid min-h-[calc(100vh-4rem)] items-center gap-12 py-16 lg:grid-cols-[0.8fr_1.2fr]">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-[0.26em] text-cyanline">{content.eyebrow}</p>
+      <h1 class="mt-5 max-w-3xl text-4xl font-semibold leading-tight md:text-6xl">{content.headline}</h1>
+      <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-300">{content.body}</p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a class="rounded-md bg-blueprint px-5 py-3 font-semibold text-white hover:bg-blue-600" href="#workflow">{content.primaryCta}</a>
+        <a class="rounded-md border border-cyanline/40 px-5 py-3 font-semibold text-cyanline hover:bg-white/5" href="#protocol">{content.secondaryCta}</a>
+      </div>
+      <dl class="mt-10 grid max-w-xl grid-cols-3 gap-3">
+        {content.stats.map((stat) => (
+          <div class="border-l border-cyanline/40 pl-4">
+            <dt class="text-2xl font-semibold text-white">{stat.value}</dt>
+            <dd class="mt-1 text-sm text-slate-400">{stat.label}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+    <VisualFrame asset={heroAsset} title="RepoChan hero banner" caption="ord-banner-001 · v-banner-20260707-switchbase" />
+  </div>
+</section>

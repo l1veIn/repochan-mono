@@ -6,7 +6,7 @@ RepoChan is an **LLM-native, local-first creative production tracking system**. 
 
 Architecturally, RepoChan uses an **artifact-centric** design: every role's goal is not "say something" but "produce a schema-validated, versioned, on-disk artifact under `.repochan/`". LLM freedom is constrained to "move from one valid node to the next", not "freestyle". See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full design rationale, the three-layer structure (schema / protocol / business rules), and known architectural gaps.
 
-This monorepo contains **five packages** that share a stable `.repochan/` on-disk protocol.
+This monorepo contains RepoChan's core packages plus the dogfooded `repochan-page/` Astro site, all sharing a stable `.repochan/` on-disk protocol.
 
 ## Architecture
 
@@ -15,8 +15,9 @@ packages/
 ├── core            @repochan/core              Pure TS library — protocol, schemas, entities, business rules, deterministic analysis. Zero Pi deps.
 ├── pi              repochan-pi                 Pi package — unified `repochan` tool, `/order_panel` command, 8 skills (6 roles + overview + protocol).
 ├── image-gen-pi    @repochan/image-gen-pi      Pi package — multi-provider image generation (Codex OAuth, FAL.ai, OpenAI, xAI).
-├── page-renderer   @repochan/page-renderer     Page JSON → zero-JS static HTML renderer.
+├── page-renderer   @repochan/page-renderer     Legacy Page JSON → zero-JS static HTML renderer.
 └── cli             repochan                    User-facing TUI — wizard, agent-driven role pages, CLI commands, i18n (en/zh).
+repochan-page/      repochan-page               Dogfooded Astro + Tailwind homepage project generated from RepoChan artifacts.
 ```
 
 ### Dependency direction
@@ -36,7 +37,8 @@ cli ──┬──> pi ──┬──> core
 | `core` | `.repochan/` reads/writes, schemas, entity operations (state machine, dependency gates), deterministic analysis engine | Everything (pure JS lib) |
 | `pi` | `repochan` tool (action-based API), 8 skills, `/order_panel` | Pi agent via `settings.json` (written by `repochan setup`) |
 | `image-gen-pi` | `image_generate` tool, `/image_model` command | Pi agent (same settings) |
-| `page-renderer` | Renders Page JSON to static HTML (used by `page.create`) | `pi` (library dependency) |
+| `page-renderer` | Legacy Page JSON → static HTML renderer for protocol demos | `pi` (library dependency) |
+| `repochan-page` | Editable Astro + Tailwind dogfood homepage driven by i18n/theme/assets config | Browser / GitHub Pages |
 | `cli` | TUI wizard, `repochan analyze/persona/foundation/paint`, `repochan validate`, i18n | End users at the terminal |
 
 ## The `.repochan/` protocol

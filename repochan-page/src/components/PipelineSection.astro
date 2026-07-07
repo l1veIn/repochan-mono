@@ -1,0 +1,36 @@
+---
+type Step = { name: string; artifact: string; body: string };
+type Props = {
+  content: {
+    eyebrow: string;
+    heading: string;
+    body: string;
+    steps: Step[];
+  };
+};
+
+const { content } = Astro.props;
+---
+
+<section id="pipeline" class="bg-paper py-24">
+  <div class="content-wrap">
+    <div class="max-w-3xl">
+      <p class="text-sm font-semibold uppercase tracking-[0.22em] text-blueprint">{content.eyebrow}</p>
+      <h2 class="mt-4 text-3xl font-semibold text-ink md:text-5xl">{content.heading}</h2>
+      <p class="mt-5 text-lg leading-8 text-slate-600">{content.body}</p>
+    </div>
+    <div class="mt-12 grid gap-4 md:grid-cols-5">
+      {content.steps.map((step, index) => (
+        <article class="relative rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+          <div class="mb-5 flex items-center justify-between">
+            <span class="grid h-9 w-9 place-items-center rounded-md bg-ink text-sm font-semibold text-cyanline">{index + 1}</span>
+            <span class="h-px flex-1 bg-slate-200"></span>
+          </div>
+          <h3 class="text-lg font-semibold text-ink">{step.name}</h3>
+          <p class="mt-2 rounded bg-slate-100 px-2 py-1 font-mono text-xs text-slate-600">{step.artifact}</p>
+          <p class="mt-4 text-sm leading-6 text-slate-600">{step.body}</p>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

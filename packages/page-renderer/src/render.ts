@@ -1,8 +1,8 @@
 import type { AssetRef, PageData } from "@repochan/core";
 import { compileTheme, formatCSSVars } from "./theme.js";
 import { renderSection } from "./templates/index.js";
-import type { RenderResult } from "./types.js";
-import { escapeHtml } from "./utils.js";
+import type { AssetPathResolver, RenderResult } from "./types.js";
+import { escapeHtml, resolveAssetPath } from "./utils.js";
 
 /**
  * Pre-resolved asset mapping: AssetRef (orderId+versionId+file) -> output path.
@@ -15,6 +15,10 @@ export type ResolvedAssets = Map<string, string>;
 /** Generate a unique key for an AssetRef. */
 export function assetKey(ref: AssetRef): string {
   return `${ref.orderId}/${ref.versionId ?? "current"}/${ref.file}`;
+}
+
+function createAssetResolver(resolvedAssets?: ResolvedAssets): AssetPathResolver {
+  return (ref) => resolvedAssets?.get(assetKey(ref)) ?? resolveAssetPath(ref);
 }
 
 /**
@@ -84,9 +88,10 @@ export function renderPage(
   resolvedAssets?: ResolvedAssets,
 ): RenderResult {
   const css = generateBaseCSS(page);
+  const resolveAsset = createAssetResolver(resolvedAssets);
 
   const bodyContent = page.sections
-    .map((section) => renderSection(section))
+    .map((section) => renderSection(section, resolveAsset))
     .join("\n");
 
   const assets: RenderResult["assets"] = [];

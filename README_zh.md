@@ -6,7 +6,7 @@ RepoChan 是一个 **LLM-native、本地优先的创意生产管线追踪系统*
 
 架构上，RepoChan 采用 **artifact-centric**（以产物为中心）设计：每个角色的目标不是"说一段话"，而是"产出一个经 schema 校验、版本化、落盘在 `.repochan/` 下的产物"。LLM 的自由度被约束在"从一个合法节点走向下一个合法节点"，而非"自由发挥"。完整设计理念、三层结构（schema / protocol / business rules）、已知架构缺口见 [`ARCHITECTURE.md`](./ARCHITECTURE.md)。
 
-此 monorepo 包含**五个**共享 `.repochan/` 磁盘协议的包。
+此 monorepo 包含 RepoChan 的核心包，以及狗粮生成的 `repochan-page/` Astro 官网工程，共享稳定的 `.repochan/` 磁盘协议。
 
 ## 架构
 
@@ -15,8 +15,9 @@ packages/
 ├── core            @repochan/core              纯 TS 库 — protocol、schema、entity、business rules、确定性分析。零 Pi 依赖。
 ├── pi              repochan-pi                 Pi 包 — 统一 `repochan` 工具、`/order_panel` 命令、8 个 skill（6 角色 + 总览 + protocol）。
 ├── image-gen-pi    @repochan/image-gen-pi      Pi 包 — 多供应商图片生成（Codex OAuth, FAL.ai, OpenAI, xAI）。
-├── page-renderer   @repochan/page-renderer     Page JSON → 零-JS 静态 HTML 渲染器。
+├── page-renderer   @repochan/page-renderer     旧版 Page JSON → 零-JS 静态 HTML demo 渲染器。
 └── cli             repochan                    面向用户的 TUI — 向导、Agent 驱动的角色页面、CLI 命令、i18n（中/英）。
+repochan-page/      repochan-page               由 RepoChan 产物驱动的 Astro + Tailwind 狗粮官网工程。
 ```
 
 ### 依赖方向
@@ -36,7 +37,8 @@ cli ──┬──> pi ──┬──> core
 | `core` | `.repochan/` 读写、schema、entity 操作（状态机、依赖门）、确定性分析引擎 | 一切（纯 JS 库） |
 | `pi` | `repochan` 工具（action 式 API）、8 个 skill、`/order_panel` | Pi agent，通过 `settings.json`（由 `repochan setup` 写入） |
 | `image-gen-pi` | `image_generate` 工具、`/image_model` 命令 | Pi agent（同一个 settings） |
-| `page-renderer` | 把 Page JSON 渲染成静态 HTML（供 `page.create` 使用） | `pi`（库依赖） |
+| `page-renderer` | 旧版 Page JSON → 静态 HTML demo 渲染器 | `pi`（库依赖） |
+| `repochan-page` | 由 i18n/theme/assets 配置驱动的可编辑 Astro + Tailwind 狗粮官网 | 浏览器 / GitHub Pages |
 | `cli` | TUI 向导、`repochan analyze/persona/foundation/paint`、`repochan validate`、i18n | 终端用户 |
 
 ## `.repochan/` 协议

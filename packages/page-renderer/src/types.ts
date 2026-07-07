@@ -4,6 +4,8 @@
  * PageData, PageSection, PageTheme, AssetRef are imported from @repochan/core
  * — the renderer is a pure consumer of core's types.
  */
+import type { AssetRef } from "@repochan/core";
+
 export type { PageData, PageSection, PageTheme, AssetRef } from "@repochan/core";
 
 /** Result of rendering a page. */
@@ -20,6 +22,9 @@ export type RenderResult = {
     destination: string;
   }>;
 };
+
+/** Resolve an AssetRef to the relative path emitted in the rendered HTML. */
+export type AssetPathResolver = (ref: AssetRef) => string;
 
 /** CSS variables generated from a PageTheme. */
 export type ThemeCSSVars = Record<string, string>;

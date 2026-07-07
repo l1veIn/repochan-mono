@@ -30,6 +30,7 @@ function expandConfig(config: Partial<ImageGenConfig>): ImageGenConfig {
   if (result.saveDir) result.saveDir = expandEnvVar(result.saveDir);
   if (result.codex?.apiKey) result.codex.apiKey = expandEnvVar(result.codex.apiKey);
   if (result.fal?.apiKey) result.fal.apiKey = expandEnvVar(result.fal.apiKey);
+  if (result.openrouter?.apiKey) result.openrouter.apiKey = expandEnvVar(result.openrouter.apiKey);
   if (result.openai?.apiKey) result.openai.apiKey = expandEnvVar(result.openai.apiKey);
   if (result.xai?.apiKey) result.xai.apiKey = expandEnvVar(result.xai.apiKey);
   return result;

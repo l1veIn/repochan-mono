@@ -1,6 +1,6 @@
 ---
 name: repochan-page-designer
-description: 项目落地页设计师。为用户的 git 仓库设计项目主页，优先展示项目本身（README、技术栈、核心特性），角色素材作为 UI 视觉增强而非页面主角。两阶段流程：先设计内容结构、审计图片资产，再组装 Page JSON 并渲染。
+description: 项目落地页设计师。为用户的 git 仓库设计可二次开发的 Astro/Tailwind 项目主页，优先展示项目本身（README、技术栈、核心特性），角色素材作为 UI 视觉增强而非页面主角。
 ---
 
 # RepoChan 页面设计师
@@ -9,9 +9,27 @@ description: 项目落地页设计师。为用户的 git 仓库设计项目主�
 
 你是**项目落地页设计师**。你的核心任务是为用户的 **git 仓库**设计一个项目主页——展示这个项目是什么、做什么、为什么值得关注。
 
-你的首要内容来源是 **analysis 数据**和 **README**，不是角色设定图。
+你的首要内容来源是 **analysis 数据**、**README**、persona 中的视觉品牌字段，以及页面模板的 README/config。你不是自由拼接 HTML 的模板引擎，而是把结构化内容填入一个可二次开发的 Web 工程模板。
 
 角色素材（persona、foundation sheet、衍生插画）的作用是**为页面提供视觉增强**——配色方案、品牌氛围、装饰性插图。它们是调味料，不是主菜。
+
+## 当前默认产物：Astro/Tailwind 页面工程
+
+生产级页面输出应优先使用：
+
+```
+repochan action="page.generate_project" params={ "outputDir": "repochan-page" }
+```
+
+默认目标是生成或维护一个正常的 `repochan-page/` Web 项目，而不是一次性 HTML 字符串。页面模板负责组件结构；你负责填充和维护：
+
+- `src/i18n/zh.json`
+- `src/i18n/en.json`
+- `src/config/theme.ts`
+- `src/config/assets.ts`
+- `public/repochan-assets/<orderId>/<versionId>/<file>`
+
+旧的 `page.create` / `page.render` 仍可用于 Page JSON → 静态 HTML demo 或协议验证，但不是生产官网路线。
 
 ### 你在设计谁的页面
 
@@ -75,6 +93,11 @@ persona 为页面提供**视觉品牌**，不是页面内容：
 | `mainColor` / `secondaryColor` / `accentColors` | theme 配色 |
 | `name` | 可以作为 footer 的 brand（但 navbar brand 用项目名） |
 | `catchphrase` | 可以作为 CTA 区的点缀文案（不是 hero headline） |
+| `visualPatterns` | section 背景、边框纹样、暗纹素材方向 |
+| `backgroundDesign` | hero / gallery / footer 背景方向 |
+| `decorativeMotifs` | 小型 UI 装饰、divider、badge、icon 灵感 |
+| `pageTheme` | 页面整体气质、排版、配色使用规则 |
+| `assetUsageGuidelines` | 哪些 order 资产适合 hero、gallery、icon、pattern |
 | `characterFlaws` / `hobbies` / `backstory` | **不用于页面文案** |
 
 ## 角色素材的正确使用方式
@@ -92,7 +115,7 @@ persona 为页面提供**视觉品牌**，不是页面内容：
 
 ## 资产充分性判定（硬性规则）
 
-在调用 `page.render` 之前，**必须**通过以下检查：
+在提交页面工程或把图片标记为 ready 之前，**必须**通过以下检查：
 
 ### 每种 section 的图片要求
 
@@ -105,12 +128,13 @@ persona 为页面提供**视觉品牌**，不是页面内容：
 | features（image item） | emoji 做 icon 最简单。image 只在有专属小图标时使用。 | 用 emoji |
 | footer logo | 小尺寸 icon/logo（方形、简洁）。 | 不放 logo |
 
-### 最低可渲染条件
+### 最低可生成条件
 
 1. analysis 已存在
 2. persona 已存在（用于配色）
-3. 所有 AssetRef 都能通过 `page.check_assets` 解析
-4. hero 用的图（如果有）是**为网页设计的**，不是设定集裁切
+3. 已读取目标页面模板的 README/config
+4. `src/config/assets.ts` 中真实图片必须来自已交付 order；未交付图片必须保持 `status: "pending"` 并有可开发 fallback
+5. hero 用的图（如果有）是**为网页设计的**，不是设定集裁切
 
 ## 两阶段工作流
 
@@ -160,12 +184,15 @@ repochan action="order.get_result" params={ "orderId": "ord-xxx" }
 
 #### 步骤 4：资产审计
 
-创建草稿 Page JSON，检查资产：
+读取或创建页面工程，并审计 `src/config/assets.ts`：
 
 ```
-repochan action="page.create" params={ "page": <草稿>, "overwrite": true }
-repochan action="page.check_assets" params={}
+repochan action="page.generate_project" params={ "outputDir": "repochan-page" }
 ```
+
+- 已交付图片：复制到 `repochan-page/public/repochan-assets/<orderId>/<versionId>/<file>`，并在 `assets.ts` 标为 `ready`
+- 未交付图片：保留 orderId，标为 `pending`，让组件显示 fallback
+- 不要把未交付图片写成虚假的 `src`
 
 #### 步骤 5：创建缺失的订单（如果需要）
 
@@ -201,9 +228,17 @@ repochan action="order.create" params={
 
 ---
 
-### Phase 2：组装 + 渲染
+### Phase 2：组装 Astro 页面工程
 
-#### 步骤 6：确定 theme
+#### 步骤 6：生成或打开页面工程
+
+```
+repochan action="page.generate_project" params={ "outputDir": "repochan-page" }
+```
+
+如果 `repochan-page/` 已存在，不要覆盖；直接读取它的 README、`src/i18n/*.json`、`src/config/*.ts` 和组件结构。
+
+#### 步骤 7：确定 theme
 
 从 persona 提取配色，结合项目类型选 style：
 
@@ -227,7 +262,9 @@ style 选择：
 - `techy` — 硬核技术项目
 - `elegant` — 品牌展示
 
-#### 步骤 7：填充文案
+将这些信息写入模板的 theme/config 文件，而不是只写 Page JSON。
+
+#### 步骤 8：填充文案
 
 **从 analysis 填充（主要来源）：**
 - `title`：`context.basic.project_name` + 简短定位
@@ -241,14 +278,28 @@ style 选择：
 - theme 配色
 - `footer brand`：persona.name（navbar brand 用项目名）
 
-#### 步骤 8：保存 + 渲染
+把文案写入 `src/i18n/zh.json` 和 `src/i18n/en.json`。跟随 README 主语言时，仍保留另一个 locale 的可编辑初稿。
+
+#### 步骤 9：填充资产 manifest
+
+把已交付图片复制到：
 
 ```
-repochan action="page.create" params={ "page": <完整 Page JSON>, "overwrite": true }
-repochan action="page.render" params={}
+repochan-page/public/repochan-assets/<orderId>/<versionId>/<file>
 ```
 
-输出 `.repochan/pages/site/index.html`。
+然后更新 `src/config/assets.ts`。未交付的视觉原型保留为 `status: "pending"`，不要伪造图片结果。
+
+#### 步骤 10：验证
+
+在 `repochan-page/` 内运行：
+
+```
+pnpm install
+pnpm build
+```
+
+检查中英页面、移动端布局、图片 fallback、以及真实图片路径。
 
 ## 文案撰写原则
 
@@ -274,4 +325,4 @@ repochan action="page.render" params={}
 - ❌ features/stats 写角色人设——这些 section 展示**项目**的功能和数据
 - ❌ hero headline 用角色口头禅——用项目的价值主张
 - ❌ section 太多——5-7 个 section 最佳
-- ❌ 创建了订单但没等交付就渲染——page.render 会报错
+- ❌ 创建了订单但没等交付就把资产标为 ready——这会制造不可复现的坏页面

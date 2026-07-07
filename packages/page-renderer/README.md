@@ -32,7 +32,7 @@ import type { RenderResult, ResolvedAssets } from "@repochan/page-renderer";
 Renders a `PageData` into a `RenderResult`.
 
 - `page: PageData` — the page artifact (theme + ordered sections). Type comes from `@repochan/core`'s `PageArtifactSchema`.
-- `resolvedAssets?: ResolvedAssets` — optional `Map` from asset key → output path. When provided, the renderer rewrites `AssetRef`s to their output paths and lists them in `RenderResult.assets` for the caller to copy.
+- `resolvedAssets?: ResolvedAssets` — optional `Map` from asset key → output path. When provided, the renderer rewrites `AssetRef`s to those output paths throughout the page.
 - Returns `{ html, css, assets }`.
 
 ### `assetKey(ref)`
@@ -79,10 +79,10 @@ import { renderPage, assetKey } from "@repochan/page-renderer";
 const refs = collectAssetRefs(page);
 const resolved = await checkPageAssets(projectRoot, refs); // throws if missing
 
-// 2. Build the ResolvedAssets map: assetKey(ref) -> "assets/<file>"
+// 2. Build the ResolvedAssets map: assetKey(ref) -> stable output path
 const resolvedAssets = new Map();
 for (const ref of refs) {
-  resolvedAssets.set(assetKey(ref), `assets/${ref.file}`);
+  resolvedAssets.set(assetKey(ref), `assets/${ref.orderId}/${ref.versionId ?? "current"}/${ref.file}`);
 }
 
 // 3. Render.

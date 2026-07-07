@@ -1,14 +1,15 @@
 import type { GalleryContent } from "@repochan/core";
+import type { AssetPathResolver } from "../types.js";
 import { escapeHtml, renderImg } from "../utils.js";
 
-export function renderGalleryGrid(content: GalleryContent): string {
+export function renderGalleryGrid(content: GalleryContent, resolveAsset?: AssetPathResolver): string {
   const heading = content.heading
     ? `<h2 class="text-3xl font-bold text-center text-[var(--color-text)] mb-12">${escapeHtml(content.heading)}</h2>`
     : "";
 
   const images = content.images.map((ref) => `
           <div class="overflow-hidden rounded-[var(--radius-lg)] shadow-[var(--shadow)]">
-            ${renderImg(ref, "w-full h-64 object-cover transition-transform hover:scale-105")}
+            ${renderImg(ref, "w-full h-64 object-cover transition-transform hover:scale-105", resolveAsset)}
           </div>`).join("\n");
 
   return `
@@ -22,14 +23,14 @@ ${images}
       </section>`;
 }
 
-export function renderGalleryMasonry(content: GalleryContent): string {
+export function renderGalleryMasonry(content: GalleryContent, resolveAsset?: AssetPathResolver): string {
   const heading = content.heading
     ? `<h2 class="text-3xl font-bold text-center text-[var(--color-text)] mb-12">${escapeHtml(content.heading)}</h2>`
     : "";
 
   const images = content.images.map((ref) => `
         <div class="break-inside-avoid mb-6 overflow-hidden rounded-[var(--radius-lg)] shadow-[var(--shadow)]">
-          ${renderImg(ref, "w-full h-auto")}
+          ${renderImg(ref, "w-full h-auto", resolveAsset)}
         </div>`).join("\n");
 
   return `

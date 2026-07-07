@@ -1,7 +1,8 @@
 import type { FeaturesContent } from "@repochan/core";
+import type { AssetPathResolver } from "../types.js";
 import { escapeHtml, renderImg } from "../utils.js";
 
-function renderFeaturesGrid(content: FeaturesContent, cols: 2 | 3 | 4): string {
+function renderFeaturesGrid(content: FeaturesContent, cols: 2 | 3 | 4, resolveAsset?: AssetPathResolver): string {
   const heading = content.heading
     ? `<h2 class="text-3xl font-bold text-center text-[var(--color-text)] mb-4">${escapeHtml(content.heading)}</h2>`
     : "";
@@ -15,7 +16,7 @@ function renderFeaturesGrid(content: FeaturesContent, cols: 2 | 3 | 4): string {
     const icon = item.icon
       ? `<div class="text-4xl mb-4">${escapeHtml(item.icon)}</div>`
       : item.image
-        ? `<div class="mb-4">${renderImg(item.image, "w-12 h-12")}</div>`
+        ? `<div class="mb-4">${renderImg(item.image, "w-12 h-12", resolveAsset)}</div>`
         : "";
     return `
           <div class="bg-[var(--color-surface)] rounded-[var(--radius-lg)] shadow-[var(--shadow)] p-6 text-center" style="border: 1px solid var(--color-border);">
@@ -37,12 +38,12 @@ ${items}
       </section>`;
 }
 
-export function renderFeaturesGrid2(content: FeaturesContent): string {
-  return renderFeaturesGrid(content, 2);
+export function renderFeaturesGrid2(content: FeaturesContent, resolveAsset?: AssetPathResolver): string {
+  return renderFeaturesGrid(content, 2, resolveAsset);
 }
-export function renderFeaturesGrid3(content: FeaturesContent): string {
-  return renderFeaturesGrid(content, 3);
+export function renderFeaturesGrid3(content: FeaturesContent, resolveAsset?: AssetPathResolver): string {
+  return renderFeaturesGrid(content, 3, resolveAsset);
 }
-export function renderFeaturesGrid4(content: FeaturesContent): string {
-  return renderFeaturesGrid(content, 4);
+export function renderFeaturesGrid4(content: FeaturesContent, resolveAsset?: AssetPathResolver): string {
+  return renderFeaturesGrid(content, 4, resolveAsset);
 }

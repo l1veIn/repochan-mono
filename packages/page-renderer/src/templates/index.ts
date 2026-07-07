@@ -1,4 +1,5 @@
 import type { PageSection } from "@repochan/core";
+import type { AssetPathResolver } from "../types.js";
 import { renderNavbarSimple, renderNavbarWithCta } from "./navbar.js";
 import {
   renderHeroCentered,
@@ -20,7 +21,7 @@ import { renderFooterStandard, renderFooterMinimal } from "./footer.js";
  * Dispatch a section to its template function based on type+variant.
  * Returns the rendered HTML string, or empty string for unknown combos.
  */
-export function renderSection(section: PageSection): string {
+export function renderSection(section: PageSection, resolveAsset?: AssetPathResolver): string {
   switch (section.type) {
     case "navbar":
       switch (section.variant) {
@@ -31,18 +32,18 @@ export function renderSection(section: PageSection): string {
 
     case "hero":
       switch (section.variant) {
-        case "centered":   return renderHeroCentered(section.content);
-        case "split-right": return renderHeroSplitRight(section.content);
-        case "split-left":  return renderHeroSplitLeft(section.content);
-        case "full-bg":     return renderHeroFullBg(section.content);
+        case "centered":   return renderHeroCentered(section.content, resolveAsset);
+        case "split-right": return renderHeroSplitRight(section.content, resolveAsset);
+        case "split-left":  return renderHeroSplitLeft(section.content, resolveAsset);
+        case "full-bg":     return renderHeroFullBg(section.content, resolveAsset);
       }
       break;
 
     case "features":
       switch (section.variant) {
-        case "grid-2": return renderFeaturesGrid2(section.content);
-        case "grid-3": return renderFeaturesGrid3(section.content);
-        case "grid-4": return renderFeaturesGrid4(section.content);
+        case "grid-2": return renderFeaturesGrid2(section.content, resolveAsset);
+        case "grid-3": return renderFeaturesGrid3(section.content, resolveAsset);
+        case "grid-4": return renderFeaturesGrid4(section.content, resolveAsset);
       }
       break;
 
@@ -55,8 +56,8 @@ export function renderSection(section: PageSection): string {
 
     case "gallery":
       switch (section.variant) {
-        case "grid":    return renderGalleryGrid(section.content);
-        case "masonry": return renderGalleryMasonry(section.content);
+        case "grid":    return renderGalleryGrid(section.content, resolveAsset);
+        case "masonry": return renderGalleryMasonry(section.content, resolveAsset);
       }
       break;
 
@@ -69,7 +70,7 @@ export function renderSection(section: PageSection): string {
 
     case "footer":
       switch (section.variant) {
-        case "standard": return renderFooterStandard(section.content);
+        case "standard": return renderFooterStandard(section.content, resolveAsset);
         case "minimal":  return renderFooterMinimal(section.content);
       }
       break;

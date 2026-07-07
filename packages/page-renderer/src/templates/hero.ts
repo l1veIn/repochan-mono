@@ -1,5 +1,6 @@
 import type { HeroContent } from "@repochan/core";
-import { escapeHtml, safeHref, renderImg } from "../utils.js";
+import type { AssetPathResolver } from "../types.js";
+import { escapeHtml, safeHref, renderImg, resolveAssetPath } from "../utils.js";
 
 type HeroCta = { label?: string; href?: string } | undefined;
 
@@ -18,9 +19,13 @@ const BTN_SECONDARY_LIGHT = (c: HeroCta) =>
     ? `<a href="${safeHref(c.href)}" class="px-6 py-3 rounded-[var(--radius)] font-medium border border-white/30 text-white transition-colors hover:bg-white/10">${escapeHtml(c.label)}</a>`
     : "";
 
-export function renderHeroCentered(content: HeroContent): string {
+function cssUrl(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+export function renderHeroCentered(content: HeroContent, resolveAsset?: AssetPathResolver): string {
   const img = content.image
-    ? `<div class="mt-12 max-w-2xl mx-auto">${renderImg(content.image, "rounded-[var(--radius-lg)] shadow-lg w-full")}</div>`
+    ? `<div class="mt-12 max-w-2xl mx-auto">${renderImg(content.image, "rounded-[var(--radius-lg)] shadow-lg w-full", resolveAsset)}</div>`
     : "";
 
   return `
@@ -37,9 +42,9 @@ export function renderHeroCentered(content: HeroContent): string {
       </section>`;
 }
 
-export function renderHeroSplitRight(content: HeroContent): string {
+export function renderHeroSplitRight(content: HeroContent, resolveAsset?: AssetPathResolver): string {
   const img = content.image
-    ? `<div class="lg:w-1/2 flex items-center justify-center">${renderImg(content.image, "rounded-[var(--radius-lg)] shadow-lg max-w-full h-auto")}</div>`
+    ? `<div class="lg:w-1/2 flex items-center justify-center">${renderImg(content.image, "rounded-[var(--radius-lg)] shadow-lg max-w-full h-auto", resolveAsset)}</div>`
     : "";
 
   return `
@@ -60,9 +65,9 @@ export function renderHeroSplitRight(content: HeroContent): string {
       </section>`;
 }
 
-export function renderHeroSplitLeft(content: HeroContent): string {
+export function renderHeroSplitLeft(content: HeroContent, resolveAsset?: AssetPathResolver): string {
   const img = content.image
-    ? `<div class="lg:w-1/2 flex items-center justify-center">${renderImg(content.image, "rounded-[var(--radius-lg)] shadow-lg max-w-full h-auto")}</div>`
+    ? `<div class="lg:w-1/2 flex items-center justify-center">${renderImg(content.image, "rounded-[var(--radius-lg)] shadow-lg max-w-full h-auto", resolveAsset)}</div>`
     : "";
 
   return `
@@ -83,9 +88,9 @@ export function renderHeroSplitLeft(content: HeroContent): string {
       </section>`;
 }
 
-export function renderHeroFullBg(content: HeroContent): string {
-  const bgImage = content.image ? `assets/${content.image.file}` : "";
-  const bgStyle = bgImage ? `background-image: url('${bgImage}'); background-size: cover; background-position: center;` : "";
+export function renderHeroFullBg(content: HeroContent, resolveAsset?: AssetPathResolver): string {
+  const bgImage = content.image ? (resolveAsset ? resolveAsset(content.image) : resolveAssetPath(content.image)) : "";
+  const bgStyle = bgImage ? `background-image: url('${cssUrl(bgImage)}'); background-size: cover; background-position: center;` : "";
   const overlay = bgImage ? '<div class="absolute inset-0 bg-black/40"></div>' : "";
 
   return `

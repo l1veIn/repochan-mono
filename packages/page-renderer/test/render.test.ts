@@ -328,6 +328,42 @@ describe('renderPage', () => {
     expect(result.html).toContain('data-theme="dark"');
   });
 
+  it('uses resolved asset paths throughout the rendered page', () => {
+    const page = makePage({
+      sections: [
+        {
+          type: 'hero',
+          variant: 'full-bg',
+          content: {
+            headline: 'Hero',
+            subheadline: 'Sub',
+            primaryCta: { label: 'Go', href: '#' },
+            image: { orderId: 'ord-hero', file: 'image.png' },
+          },
+        },
+        {
+          type: 'gallery',
+          variant: 'grid',
+          content: {
+            images: [
+              { orderId: 'ord-gallery', versionId: 'v2', file: 'image.png', alt: 'Gallery' },
+            ],
+          },
+        },
+      ],
+    });
+    const resolvedAssets = new Map([
+      ['ord-hero/current/image.png', 'assets/ord-hero/v1/image.png'],
+      ['ord-gallery/v2/image.png', 'assets/ord-gallery/v2/image.png'],
+    ]);
+
+    const result = renderPage(page, resolvedAssets);
+
+    expect(result.html).toContain("url('assets/ord-hero/v1/image.png')");
+    expect(result.html).toContain('src="assets/ord-gallery/v2/image.png"');
+    expect(result.html).not.toContain('src="assets/image.png"');
+  });
+
   it('renders multiple sections in order', () => {
     const page = makePage({
       sections: [

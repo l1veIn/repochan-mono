@@ -1,4 +1,5 @@
 import type { AssetRef } from "@repochan/core";
+import type { AssetPathResolver } from "./types.js";
 
 /** HTML-escape a string for safe insertion into HTML. */
 export function escapeHtml(text: string): string {
@@ -24,10 +25,11 @@ export function resolveAssetPath(ref: AssetRef): string {
 }
 
 /** Render an <img> tag from an AssetRef. */
-export function renderImg(ref: AssetRef, classes?: string): string {
+export function renderImg(ref: AssetRef, classes?: string, resolveAsset?: AssetPathResolver): string {
   const cls = classes ?? "";
   const alt = ref.alt ? escapeHtml(ref.alt) : "";
-  return `<img src="${resolveAssetPath(ref)}" alt="${alt}" class="${cls}" loading="lazy" />`;
+  const src = resolveAsset ? resolveAsset(ref) : resolveAssetPath(ref);
+  return `<img src="${safeHref(src)}" alt="${alt}" class="${cls}" loading="lazy" />`;
 }
 
 /** Render a link safely. */

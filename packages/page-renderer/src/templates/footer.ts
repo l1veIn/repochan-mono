@@ -1,9 +1,10 @@
 import type { FooterContent } from "@repochan/core";
+import type { AssetPathResolver } from "../types.js";
 import { escapeHtml, safeHref, renderLink, renderImg } from "../utils.js";
 
-export function renderFooterStandard(content: FooterContent): string {
+export function renderFooterStandard(content: FooterContent, resolveAsset?: AssetPathResolver): string {
   const logo = content.logo
-    ? renderImg(content.logo, "h-8 w-auto")
+    ? renderImg(content.logo, "h-8 w-auto", resolveAsset)
     : "";
 
   const links = (content.links ?? [])

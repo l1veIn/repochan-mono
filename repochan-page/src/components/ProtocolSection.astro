@@ -1,0 +1,38 @@
+---
+type Item = { path: string; label: string };
+type Props = {
+  content: {
+    eyebrow: string;
+    heading: string;
+    body: string;
+    items: Item[];
+  };
+};
+
+const { content } = Astro.props;
+---
+
+<section id="protocol" class="bg-white py-24">
+  <div class="content-wrap grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-[0.22em] text-blueprint">{content.eyebrow}</p>
+      <h2 class="mt-4 text-3xl font-semibold text-ink md:text-5xl">{content.heading}</h2>
+      <p class="mt-5 text-lg leading-8 text-slate-600">{content.body}</p>
+    </div>
+    <div class="rounded-lg border border-slate-200 bg-ink p-6 text-white shadow-soft-line">
+      <div class="mb-5 flex items-center gap-2">
+        <span class="h-3 w-3 rounded-full bg-blush"></span>
+        <span class="h-3 w-3 rounded-full bg-cyanline"></span>
+        <span class="h-3 w-3 rounded-full bg-violet"></span>
+      </div>
+      <div class="space-y-3 font-mono text-sm">
+        {content.items.map((item) => (
+          <div class="grid gap-2 rounded-md border border-white/10 bg-white/5 p-4 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)]">
+            <span class="text-cyanline">{item.path}</span>
+            <span class="text-slate-300">{item.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>

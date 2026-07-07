@@ -1,0 +1,23 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import NavBar from "../components/NavBar.astro";
+import HeroSection from "../components/HeroSection.astro";
+import PipelineSection from "../components/PipelineSection.astro";
+import ProtocolSection from "../components/ProtocolSection.astro";
+import GallerySection from "../components/GallerySection.astro";
+import WorkflowSection from "../components/WorkflowSection.astro";
+import CtaFooter from "../components/CtaFooter.astro";
+import content from "../i18n/en.json";
+---
+
+<SiteLayout title={content.meta.title} description={content.meta.description} lang="en">
+  <NavBar brand={content.nav.brand} links={content.nav.links} cta={content.nav.cta} lang="en" />
+  <main>
+    <HeroSection content={content.hero} />
+    <PipelineSection content={content.pipeline} />
+    <ProtocolSection content={content.protocol} />
+    <GallerySection content={content.gallery} />
+    <WorkflowSection content={content.workflow} />
+    <CtaFooter cta={content.cta} footer={content.footer} />
+  </main>
+</SiteLayout>

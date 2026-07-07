@@ -140,6 +140,21 @@ description: ".repochan 工作区协议详细规范，涵盖分析、人设、�
 
 ### 页面（可选）
 
+生产级页面路线优先生成可二次开发的 Web 工程：
+
+```text
+repochan-page/
+  src/i18n/en.json
+  src/i18n/zh.json
+  src/config/theme.ts
+  src/config/assets.ts
+  public/repochan-assets/<orderId>/<versionId>/<file>
+```
+
+使用 `page.generate_project` 从模板 scaffold 项目；Page Designer 填 i18n、theme token 和 asset manifest。真实图片必须来自已交付的 order result，未交付图片应在 `assets.ts` 中保持 `status: "pending"`。
+
+旧版 Page JSON → HTML demo 仍保留：
+
 ```json
 {
   "title": "项目名",

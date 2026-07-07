@@ -9,7 +9,7 @@
  * - Text-to-image: POST /v1/images/generations
  * - Image-to-image: POST /v1/images/edits
  *
- * Models: gpt-image-1, dall-e-3
+ * Models: gpt-image-2, gpt-image-1, dall-e-3
  */
 
 import { readFileSync } from "node:fs";
@@ -77,6 +77,14 @@ function resolveSize(model: string, width?: number, height?: number, aspectRatio
 }
 
 const MODELS: ModelOption[] = [
+  {
+    id: "openai:gpt-image-2",
+    display: "GPT Image 2 (OpenAI-compatible API)",
+    providerName: "openai",
+    modelName: "gpt-image-2",
+    badge: "paid",
+    tag: "OpenAI-compatible API, text + image editing",
+  },
   {
     id: "openai:gpt-image-1",
     display: "GPT Image 1 (OpenAI API)",

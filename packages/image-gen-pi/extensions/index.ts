@@ -299,10 +299,11 @@ export default function imageGenExtension(pi: ExtensionAPI) {
       }
 
       // Provider display order
-      const providerOrder = ["codex-oauth", "fal", "openai", "xai"];
+      const providerOrder = ["codex-oauth", "fal", "openrouter", "openai", "xai"];
       const providerLabels: Record<string, string> = {
         "codex-oauth": "Codex OAuth",
         fal: "FAL.ai",
+        openrouter: "OpenRouter",
         openai: "OpenAI API",
         xai: "xAI",
       };

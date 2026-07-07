@@ -18,17 +18,20 @@ import type {
 } from "./types.js";
 import { CodexOAuthProvider } from "./providers/codex-oauth.js";
 import { FalProvider } from "./providers/fal.js";
+import { OpenRouterProvider } from "./providers/openrouter.js";
 import { OpenAIApiProvider } from "./providers/openai-api.js";
 import { XaiProvider } from "./providers/xai.js";
 
 const codexProvider = new CodexOAuthProvider();
 const falProvider = new FalProvider();
+const openrouterProvider = new OpenRouterProvider();
 const openaiProvider = new OpenAIApiProvider();
 const xaiProvider = new XaiProvider();
 
 const providers = new Map<string, ImageGenProvider>([
   [codexProvider.name, codexProvider],
   [falProvider.name, falProvider],
+  [openrouterProvider.name, openrouterProvider],
   [openaiProvider.name, openaiProvider],
   [xaiProvider.name, xaiProvider],
 ]);
@@ -37,12 +40,14 @@ const providers = new Map<string, ImageGenProvider>([
 const PRIORITY = [
   codexProvider.name,
   falProvider.name,
+  openrouterProvider.name,
   openaiProvider.name,
   xaiProvider.name,
 ];
 
 export function initProviders(config: ImageGenConfig): void {
   falProvider.configure(config.fal);
+  openrouterProvider.configure(config.openrouter);
   openaiProvider.configure(config.openai);
   xaiProvider.configure(config.xai);
 }

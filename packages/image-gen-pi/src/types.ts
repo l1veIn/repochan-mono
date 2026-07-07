@@ -106,6 +106,7 @@ export interface ImageGenConfig {
   outputFormat?: "png" | "jpeg" | "webp";
   codex?: ProviderConfig;
   fal?: ProviderConfig;
+  openrouter?: ProviderConfig;
   openai?: ProviderConfig;
   xai?: ProviderConfig;
 }
