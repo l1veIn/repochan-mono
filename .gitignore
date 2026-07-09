@@ -17,3 +17,4 @@ test-repos/
 test/
 test-repos-archive-*/
 chibi-review/
+.spike/
