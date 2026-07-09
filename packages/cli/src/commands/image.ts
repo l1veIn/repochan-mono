@@ -3,6 +3,10 @@ import path from "node:path";
 import ora from "ora";
 import { generate, loadConfig, listEndpoints } from "@repochan/image-gen";
 import { emitResult, type OutputOptions, UsageError } from "../lib/output.js";
+import { runImageConfigure, type ImageConfigureOptions } from "./image-configure.js";
+
+export { runImageConfigure };
+export type { ImageConfigureOptions };
 
 /**
  * repochan image gen --prompt "..." [--out <path>] [--endpoint <id>] [--aspect landscape|square|portrait] [--size WxH]
@@ -29,8 +33,8 @@ export async function runImageGen(
   const endpoints = listEndpoints(config);
   if (endpoints.length === 0) {
     throw new UsageError(
-      "No image endpoints configured. Edit ~/.repochan/image.json to add one:\n" +
-        '  { "endpoints": { "switchbase": { "baseURL": "https://switchbase.vip/v1", "apiKey": "${SWITCHBASE_KEY}", "model": "gpt-image-2" } } }',
+      "No image endpoints configured.",
+      "Run `repochan image configure` (OpenAI or custom base URL + key).",
     );
   }
 
@@ -40,26 +44,42 @@ export async function runImageGen(
     ? path.resolve(cwd, options.out)
     : path.join(cwd, `generated-${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}.png`);
 
-  const spinner = ora(`Generating via ${options.endpoint ?? config.defaultEndpoint ?? endpoints[0]}...`).start();
+  const endpointLabel = options.endpoint ?? config.defaultEndpoint ?? endpoints[0];
+  // Providers rarely stream progress; set expectations so agents/humans don't
+  // treat a long silent wait as a hang (typical range ~30s–several minutes).
+  if (!options.json) {
+    console.log(`Generating via ${endpointLabel}…`);
+    console.log("This usually takes about 30–300 seconds. Please wait — not stuck.");
+  }
+  const spinner = ora(`Waiting for image (typically 30–300s)…`).start();
+  const started = Date.now();
+  const tick = setInterval(() => {
+    const sec = Math.floor((Date.now() - started) / 1000);
+    spinner.text = `Waiting for image… ${sec}s elapsed (typically 30–300s)`;
+  }, 1000);
   try {
     const result = await generate(
       { prompt, aspectRatio: aspect, size },
       config,
       { endpoint: options.endpoint },
     );
+    clearInterval(tick);
     if (!result.success) {
       spinner.fail();
       throw new UsageError(`Generation failed: ${result.error}`);
     }
     await fs.writeFile(outFile, result.image!);
-    spinner.succeed();
-    emitResult(options, `Generated ${result.image!.length} bytes → ${path.relative(cwd, outFile) || outFile} (${result.endpoint}/${result.model})`, {
+    const elapsed = Math.floor((Date.now() - started) / 1000);
+    spinner.succeed(`Done in ${elapsed}s`);
+    emitResult(options, `Generated ${result.image!.length} bytes → ${path.relative(cwd, outFile) || outFile} (${result.endpoint}/${result.model}, ${elapsed}s)`, {
       path: outFile,
       bytes: result.image!.length,
       endpoint: result.endpoint,
       model: result.model,
+      elapsedSeconds: elapsed,
     });
   } catch (err) {
+    clearInterval(tick);
     spinner.fail();
     throw err;
   }

@@ -26,8 +26,7 @@ function resolveEndpoint(config: ImageGenConfig, endpointId?: string): EndpointC
   const ids = Object.keys(endpoints);
   if (ids.length === 0) {
     throw new Error(
-      "No image endpoints configured. Run `repochan image gen setup` or edit ~/.repochan/image.json " +
-        'to add an endpoint, e.g. { "endpoints": { "switchbase": { "baseURL": "https://switchbase.vip/v1", "apiKey": "${SWITCHBASE_KEY}", "model": "gpt-image-2" } } }',
+      "No image endpoints configured. Run `repochan image configure` (or `repochan setup`) to add one.",
     );
   }
   const id = endpointId ?? config.defaultEndpoint ?? ids[0];
@@ -35,7 +34,8 @@ function resolveEndpoint(config: ImageGenConfig, endpointId?: string): EndpointC
   if (!ep) throw new Error(`Endpoint '${id}' not found in config. Available: ${ids.join(", ")}`);
   if (!ep.baseURL) throw new Error(`Endpoint '${id}' is missing baseURL.`);
   if (!ep.apiKey) throw new Error(`Endpoint '${id}' is missing apiKey (or its ${'$'}{ENV} is unset).`);
-  return ep;
+  // Config JSON keys the endpoint by id; ensure the returned object carries it.
+  return { ...ep, id: ep.id || id };
 }
 
 /**

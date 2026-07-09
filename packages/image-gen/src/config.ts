@@ -54,11 +54,28 @@ export function loadConfig(cwd: string): ImageGenConfig {
   return expandConfig({ ...globalConfig, ...projectConfig });
 }
 
-/** Save config to the global path (~/.repochan/image.json). */
+/** Save config to the global path (~/.repochan/image.json). Merges endpoints by id. */
 export function saveGlobalConfig(config: ImageGenConfig): void {
   mkdirSync(dirname(GLOBAL_CONFIG_PATH), { recursive: true });
-  const existing = tryReadJson(GLOBAL_CONFIG_PATH);
-  writeFileSync(GLOBAL_CONFIG_PATH, JSON.stringify({ ...existing, ...config }, null, 2), "utf8");
+  const existing = tryReadJson(GLOBAL_CONFIG_PATH) as ImageGenConfig;
+  const merged: ImageGenConfig = {
+    ...existing,
+    ...config,
+    endpoints: {
+      ...(existing.endpoints ?? {}),
+      ...(config.endpoints ?? {}),
+    },
+  };
+  writeFileSync(GLOBAL_CONFIG_PATH, JSON.stringify(merged, null, 2) + "\n", "utf8");
+}
+
+/** True when at least one endpoint is defined (global and/or project overlay). */
+export function hasConfiguredEndpoints(cwd: string): boolean {
+  return listEndpointIds(loadConfig(cwd)).length > 0;
+}
+
+function listEndpointIds(config: ImageGenConfig): string[] {
+  return Object.keys(config.endpoints ?? {});
 }
 
 export { GLOBAL_CONFIG_PATH };

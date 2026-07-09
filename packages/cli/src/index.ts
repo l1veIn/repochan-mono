@@ -178,8 +178,8 @@ cli.command("template <sub>", "Templates (Phase 3)")
   });
 
 // ---- image ----
-// `image <sub> [args...]` — gen delegates to @repochan/image-gen, edit to @repochan/image-edit.
-cli.command("image <sub>", "Image generation and editing")
+// `image <sub> [args...]` — gen / configure → @repochan/image-gen; edit → @repochan/image-edit.
+cli.command("image <sub>", "Image generation, configure, and editing")
   .option("--json", "Machine-readable JSON output")
   .option("--prompt <text>", "Prompt (image gen)")
   .option("--out <path>", "Output path (image gen) or dir (image edit slice)")
@@ -188,26 +188,39 @@ cli.command("image <sub>", "Image generation and editing")
   .option("--size <size>", "1024x1024 | 1536x1024 | 1024x1536 (image gen)")
   .option("--rows <n>", "Grid rows (image edit slice)", { default: undefined })
   .option("--cols <n>", "Grid cols (image edit slice)", { default: undefined })
+  .option("--provider <p>", "openai | custom | skip (image configure)")
+  .option("--api-key <key>", "API key (image configure)")
+  .option("--base-url <url>", "Custom OpenAI-compatible base URL (image configure)")
+  .option("--model <model>", "Model id (image configure), default gpt-image-2")
   .action(async (_p: any, opts: any) => {
     const args = cli.args; // [sub, imagePath?]
     const sub = args[0];
     switch (sub) {
       case "gen": return await image.runImageGen(process.cwd(), opts);
+      case "configure":
+        return await image.runImageConfigure(process.cwd(), {
+          json: opts.json,
+          provider: opts.provider,
+          apiKey: opts.apiKey,
+          baseUrl: opts.baseUrl,
+          model: opts.model,
+        });
       case "edit": {
         const editSub = args[1];
         if (editSub === "slice") return await image.runImageEditSlice(process.cwd(), args[2], opts);
         throw new Error(`Unknown image edit subcommand: ${editSub}. Use: slice`);
       }
-      default: throw new Error(`Unknown image subcommand: ${sub}. Use: gen | edit`);
+      default: throw new Error(`Unknown image subcommand: ${sub}. Use: gen | configure | edit`);
     }
   });
 
 // ---- setup ----
-cli.command("setup", "Install skills for your agent + inject a reference")
+cli.command("setup", "Install skills for your agent(s) + inject a reference")
   .option("--json", "Machine-readable JSON output")
-  .option("--agent <agent>", "codex | claude | pi | cursor")
-  .option("--list", "Show configured agents")
-  .option("--remove", "Remove RepoChan setup for the given --agent")
+  .option("--agent <agents>", "Agent id(s): claude,codex,... | auto (one primary) | all")
+  .option("--yes", "Non-interactive: one primary detected agent (install) or all configured (remove)")
+  .option("--list", "Show detected / configured agents")
+  .option("--remove", "Remove RepoChan setup (use with --agent or --yes)")
   .action(async (opts: any) => { await setup.runSetup(process.cwd(), opts); });
 
 // ---- parse ----
@@ -255,7 +268,10 @@ async function main() {
       await top.runStatus(process.cwd(), { json: args.includes("--json") });
       return;
     }
-    cli.parse(argv);
+    // run: false so we can await async command actions (otherwise UsageError
+    // from setup/etc becomes an unhandled rejection after main() returns).
+    cli.parse(argv, { run: false });
+    await cli.runMatchedCommand();
   } catch (err) {
     printError(err);
     process.exit(1);
