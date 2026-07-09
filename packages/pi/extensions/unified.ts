@@ -46,7 +46,6 @@ import {
   type OrderStatus,
   type PageData,
 } from "@repochan/core";
-import { renderPage as rendererRenderPage, assetKey as rendererAssetKey } from "@repochan/page-renderer";
 
 const ActionSchema = Type.Union([
   Type.Literal("analysis.run"),
@@ -81,7 +80,6 @@ const ActionSchema = Type.Union([
   Type.Literal("page.create"),
   Type.Literal("page.get"),
   Type.Literal("page.check_assets"),
-  Type.Literal("page.render"),
   Type.Literal("page.generate_project"),
   Type.Literal("review.create"),
   Type.Literal("order.create_candidate"),
@@ -343,62 +341,6 @@ async function checkPageAssets(ctx: ExtensionContext, params: JsonObject) {
   return ok(`Missing ${result.missing.length} of ${result.total} asset(s):\n${lines.join("\n")}`, result);
 }
 
-async function renderPageToDisk(ctx: ExtensionContext, params: JsonObject) {
-  // 1. Read page (current or from params)
-  const page: PageData | undefined = isPlainObject(params.page) ? (params.page as PageData) : await coreReadPage(ctx.cwd);
-  if (!page) throw new Error("No page found. Use action='page.create' first, or pass params.page.");
-
-  // 2. Check assets first — refuse to render if missing
-  const assetCheck = await coreCheckPageAssets(ctx.cwd, page);
-  if (!assetCheck.ok) {
-    const missing = assetCheck.missing
-      .map((m) => `  ${m.ref.orderId}/${m.ref.versionId ?? "current"}/${m.ref.file}: ${m.error}`)
-      .join("\n");
-    throw new Error(
-      `Cannot render: ${assetCheck.missing.length} of ${assetCheck.total} asset(s) are missing.\n${missing}\n\n` +
-      "Fix these first: create orders via action='order.create', generate images via Painter, then re-render.",
-    );
-  }
-
-  // 3. Build resolved assets map
-  const resolvedAssets = new Map<string, string>();
-  for (const r of assetCheck.resolved) {
-    const key = rendererAssetKey(r.ref);
-    resolvedAssets.set(key, pageAssetDestination(r.ref, r.resolvedPath!));
-  }
-
-  // 4. Render
-  const result = rendererRenderPage(page, resolvedAssets);
-
-  // 5. Write output files
-  const outputDir = params.outputDir
-    ? path.resolve(ctx.cwd, params.outputDir as string)
-    : path.join(root(ctx.cwd), "pages", "site");
-
-  const { promises: fs } = await import("node:fs");
-  await fs.mkdir(path.join(outputDir, "assets"), { recursive: true });
-
-  // Write index.html
-  await fs.writeFile(path.join(outputDir, "index.html"), result.html, "utf8");
-
-  // Copy asset files
-  const copied: string[] = [];
-  for (const r of assetCheck.resolved) {
-    const relativeDest = pageAssetDestination(r.ref, r.resolvedPath!);
-    const dest = path.join(outputDir, relativeDest);
-    await fs.mkdir(path.dirname(dest), { recursive: true });
-    await fs.copyFile(r.resolvedPath!, dest);
-    copied.push(relativeDest);
-  }
-
-  return ok(
-    `Rendered page to ${path.relative(ctx.cwd, outputDir) || outputDir}\n` +
-    `  index.html (${result.html.length} bytes)\n` +
-    `  assets/ (${copied.length} files: ${copied.join(", ")})`,
-    { outputDir, html: result.html.length, assets: copied },
-  );
-}
-
 async function generatePageProject(ctx: ExtensionContext, params: JsonObject) {
   const { promises: fs } = await import("node:fs");
   const outputDir = params.outputDir
@@ -444,11 +386,6 @@ async function generatePageProject(ctx: ExtensionContext, params: JsonObject) {
     `Generated editable page project at ${path.relative(ctx.cwd, outputDir) || outputDir}`,
     { outputDir, templateDir, generated: true },
   );
-}
-
-function pageAssetDestination(ref: { orderId: string; versionId?: string; file: string }, resolvedPath: string): string {
-  const versionId = ref.versionId ?? path.basename(path.dirname(resolvedPath));
-  return path.posix.join("assets", ref.orderId, versionId, path.basename(ref.file));
 }
 
 function getBuiltinTemplatesDir(): string {
@@ -755,8 +692,6 @@ export function registerRepoChan(pi: ExtensionAPI) {
           return getPage(ctx, params);
         case "page.check_assets":
           return checkPageAssets(ctx, params);
-        case "page.render":
-          return renderPageToDisk(ctx, params);
         case "page.generate_project":
           return generatePageProject(ctx, params);
         case "review.create":
