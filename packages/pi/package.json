@@ -38,6 +38,7 @@
   "dependencies": {
     "@juicesharp/rpiv-ask-user-question": "^1.20.0",
     "@repochan/core": "workspace:*",
+    "@repochan/image-edit": "workspace:*",
     "typebox": "^1.0.55"
   },
   "peerDependencies": {

@@ -24,7 +24,7 @@
 import { promises as fs, existsSync } from "node:fs";
 import path from "node:path";
 import { PNG } from "pngjs";
-import { computeTileCells } from "../src/slicing/index.js";
+import { computeTileCells } from "../src/index.js";
 
 // Resolve the script's own directory without import.meta (tsx/esbuild-safe).
 // process.argv[1] is the script path under both node and tsx.
@@ -55,7 +55,7 @@ const REPO_ROOT = resolveRepoRoot();
 const TEST_REPOS_DIR = path.join(REPO_ROOT, "test-repos");
 // Output dir sits next to this script file. We compute it relative to repo
 // root + the known package path so the location is stable regardless of cwd.
-const OUT_DIR = path.join(REPO_ROOT, "packages", "core", "scripts", "out");
+const OUT_DIR = path.join(REPO_ROOT, "packages", "image-edit", "scripts", "out");
 
 /** Find every chibi grid PNG under test-repos/<repo>/.repochan/orders/ord-chibi-001/. */
 async function findChibiGrids(): Promise<Array<{ repo: string; pngPath: string; versionDir: string }>> {

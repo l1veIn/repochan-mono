@@ -54,9 +54,6 @@ importers:
 
   packages/core:
     dependencies:
-      '@imgly/background-removal-node':
-        specifier: ^1.4.5
-        version: 1.4.5
       fast-glob:
         specifier: ^3.3.3
         version: 3.3.3
@@ -69,6 +66,22 @@ importers:
       typebox:
         specifier: ^1.0.55
         version: 1.2.8
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.13.2
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@24.13.2)
+
+  packages/image-edit:
+    dependencies:
+      '@imgly/background-removal-node':
+        specifier: ^1.4.5
+        version: 1.4.5
     devDependencies:
       '@types/node':
         specifier: ^24.0.0
@@ -115,6 +128,9 @@ importers:
       '@repochan/core':
         specifier: workspace:*
         version: link:../core
+      '@repochan/image-edit':
+        specifier: workspace:*
+        version: link:../image-edit
       typebox:
         specifier: ^1.0.55
         version: 1.2.8

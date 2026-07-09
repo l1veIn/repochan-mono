@@ -1,12 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
-import type { JsonObject } from "../types.js";
-import { exists, orderJsonPath, orderVersionDir, readJson, stamp, writeJson } from "../protocol/index.js";
-import { validateInput } from "../validate.js";
-import { OrderExtractStickersParamsSchema } from "../schemas/index.js";
-import { isPlainObject, validateOrderId, validateVersionId } from "../utils/index.js";
-import { readPngSize } from "../slicing/index.js";
+import { readPngSize } from "./slicing.js";
 import { removeBackground } from "@imgly/background-removal-node";
 
 // ---------------------------------------------------------------------------
@@ -22,9 +17,9 @@ const IMGLY_DIST = path.dirname(require.resolve("@imgly/background-removal-node"
 const IMGLY_PUBLIC_PATH = `file://${IMGLY_DIST}/`;
 
 // imgly's own vendored sharp (0.32) — used only for the post-matting slice.
-// We import it dynamically so core's own dependency tree stays sharp-free at
-// static-analysis time; the only sharp that loads is imgly's, avoiding the
-// dual-libvips conflict.
+// We import it dynamically so this package's own dependency tree stays
+// sharp-free at static-analysis time; the only sharp that loads is imgly's,
+// avoiding the dual-libvips conflict.
 async function loadImglySharp() {
   // Resolve sharp from within imgly's node_modules so we use its 0.32 build,
   // not a separately-installed one.
@@ -33,14 +28,14 @@ async function loadImglySharp() {
 }
 
 // ---------------------------------------------------------------------------
-// Sticker extraction action
+// Types
 // ---------------------------------------------------------------------------
 
 /** Metadata for one extracted transparent sticker. */
 export type StickerMeta = {
   /** Row-major index, 0-based (s00, s01, ...), in reading order (top-to-bottom, left-to-right). */
   index: number;
-  /** Relative path from the version dir, e.g. "stickers/s05.png". */
+  /** Relative path from the output directory, e.g. "s05.png". */
   file: string;
   /** True bounding box of this sticker in the source grid (from blob detection, NOT equal-cell). */
   bbox: { x: number; y: number; w: number; h: number };
@@ -50,6 +45,27 @@ export type StickerMeta = {
   width: number;
   height: number;
 };
+
+/** Options for sticker extraction from a grid image. */
+export type ExtractStickersOptions = {
+  rows: number;
+  cols: number;
+  /** ISNet model size: 'small' (~40MB, default) / 'medium' / 'large'. First run downloads, later runs use cache. */
+  model?: "small" | "medium" | "large";
+  /** Replace an existing output directory. Default false. */
+  overwrite?: boolean;
+};
+
+export type ExtractStickersResult = {
+  sourceFile: string;
+  stickers: StickerMeta[];
+  /** Engine diagnostics for the caller to persist if it wants. */
+  config: { model: "small" | "medium" | "large"; engine: "imgly-isnet"; method: "blob-detection"; expected: number; detected: number };
+};
+
+// ---------------------------------------------------------------------------
+// Connected-component analysis
+// ---------------------------------------------------------------------------
 
 /**
  * Find connected components in an alpha mask via flood-fill (4-connectivity).
@@ -90,8 +106,12 @@ export function findConnectedComponents(
   return blobs;
 }
 
+// ---------------------------------------------------------------------------
+// Sticker extraction: pure pixel pipeline
+// ---------------------------------------------------------------------------
+
 /**
- * Background-removal + smart-slicing pipeline for a grid image:
+ * Background-removal + smart-slicing pipeline for a single grid image:
  *
  *   1. Run ML matting (ISNet via @imgly) on the WHOLE grid once. The alpha
  *      mask both (a) removes the background and (b) locates each sticker.
@@ -107,71 +127,49 @@ export function findConnectedComponents(
  *
  * Works on ANY background (plain/illustrated/gradient) — ISNet is a general
  * foreground segmenter, not a white-threshold heuristic.
+ *
+ * Pure pixel operation: writes transparent PNGs to `outDir` and returns
+ * metadata. Does NOT touch any `.repochan/` protocol directory — the caller
+ * persists the returned metadata wherever it wants.
+ *
+ * @param imagePath  absolute path to a PNG grid image
+ * @param options    { rows, cols, model?, overwrite? }
+ * @param outDir     directory to write sticker PNGs (created; cleared if overwrite)
  */
-export async function extractStickers(
-  projectRoot: string,
-  params: JsonObject,
-): Promise<{ orderId: string; versionId: string; sourceFile: string; stickers: StickerMeta[] }> {
-  validateInput("order.extract_stickers", OrderExtractStickersParamsSchema, params);
+export async function extractStickersFromImage(
+  imagePath: string,
+  options: ExtractStickersOptions,
+  outDir: string,
+): Promise<ExtractStickersResult> {
+  const rows = options.rows;
+  const cols = options.cols;
+  const model = options.model ?? "small";
+  const overwrite = options.overwrite ?? false;
 
-  const orderId = validateOrderId(String(params.orderId));
-  const rows = Number(params.rows);
-  const cols = Number(params.cols);
-  const model = (typeof params.model === "string" && ["small", "medium", "large"].includes(params.model)
-    ? params.model
-    : "small") as "small" | "medium" | "large";
-  const overwrite = params.overwrite === true;
-
-  // Resolve versionId (same priority as sliceOrderResult).
-  let versionId: string | undefined = typeof params.versionId === "string" && params.versionId ? params.versionId : undefined;
-  if (!versionId) {
-    const order = await readJson(orderJsonPath(projectRoot, orderId));
-    if (typeof order.currentVersion === "string" && order.currentVersion) {
-      versionId = order.currentVersion;
-    } else {
-      const versionsRoot = path.join(orderVersionDir(projectRoot, orderId, "__noop__"), "..");
-      const entries = (await fs.readdir(versionsRoot).catch(() => [] as string[])).filter((e) => e !== "meta.json");
-      versionId = entries.sort().at(-1);
-    }
+  if (!Number.isInteger(rows) || !Number.isInteger(cols) || rows < 1 || cols < 1) {
+    throw new Error(`extractStickersFromImage: rows and cols must be positive integers (got rows=${rows}, cols=${cols}).`);
   }
-  if (!versionId) throw new Error(`order.extract_stickers: order ${orderId} has no result version.`);
-  versionId = validateVersionId(versionId);
 
-  const versionDir = orderVersionDir(projectRoot, orderId, versionId);
-  if (!(await exists(versionDir))) throw new Error(`order.extract_stickers: order ${orderId} has no result version ${versionId}.`);
+  const sourceFile = imagePath.split(/[\\/]/).pop()!;
+  const { width, height } = await readPngSize(imagePath);
 
-  // Find the single grid image.
-  const entries = await fs.readdir(versionDir).catch(() => [] as string[]);
-  const imageFiles = entries.filter((e) => [".png"].includes(path.extname(e).toLowerCase()));
-  if (imageFiles.length === 0) throw new Error(`order.extract_stickers: no PNG in ${orderId}/${versionId}.`);
-  if (imageFiles.length > 1) {
-    throw new Error(
-      `order.extract_stickers: ${imageFiles.length} PNGs in ${orderId}/${versionId}; needs exactly one. Found: ${imageFiles.join(", ")}.`,
-    );
+  if ((await exists(outDir)) && !overwrite) {
+    throw new Error(`extractStickersFromImage: output directory already exists: ${outDir}. Pass overwrite=true to replace.`);
   }
-  const sourceFile = imageFiles[0];
-  const sourcePath = path.join(versionDir, sourceFile);
-
-  const { width, height } = await readPngSize(sourcePath);
-
-  const stickersDir = path.join(versionDir, "stickers");
-  if ((await exists(stickersDir)) && !overwrite) {
-    throw new Error(`order.extract_stickers: ${orderId}/${versionId}/stickers already exists. Pass overwrite=true to replace.`);
-  }
-  await fs.rm(stickersDir, { recursive: true, force: true });
-  await fs.mkdir(stickersDir, { recursive: true });
+  await fs.rm(outDir, { recursive: true, force: true });
+  await fs.mkdir(outDir, { recursive: true });
 
   // ── Step 1: ML matting on the whole grid. ──────────────────────────────
   // imgly needs a Blob/File with a MIME type; a bare Buffer has none and it
   // throws "Unsupported format:".
-  const srcBuf = await fs.readFile(sourcePath);
+  const srcBuf = await fs.readFile(imagePath);
   const mattedBlob = await removeBackground(new Blob([srcBuf], { type: "image/png" }), {
     publicPath: IMGLY_PUBLIC_PATH,
     model,
   });
   const mattedBuf = Buffer.from(await mattedBlob.arrayBuffer());
 
-  // Use imgly's own vendored sharp (0.32) to decode + extract, so core itself
+  // Use imgly's own vendored sharp (0.32) to decode + extract, so this package
   // has no direct sharp dependency.
   const sharp = (await loadImglySharp()).default;
   const raw = await sharp(mattedBuf).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -179,48 +177,34 @@ export async function extractStickers(
   const gridChannels = raw.info.channels;
 
   // ── Step 2: locate stickers via the matting alpha mask. ────────────────
-  // The alpha channel IS the location signal: each sticker is a connected
-  // blob of high-alpha pixels. Connected-component analysis finds each
-  // sticker's true bounding box — which beats equal-cell slicing because AI
-  // grids are not perfectly aligned (rows drift by tens of px). This is the
-  // key fix for "切歪/切到相邻图": we cut where the sticker actually is, not
-  // where an ideal grid would put it.
   const alpha = new Uint8Array(width * height);
   for (let p = 0, q = 3; p < alpha.length; p++, q += gridChannels) alpha[p] = gridData[q];
   const allBlobs = findConnectedComponents(alpha, width, height, 128);
   // Stickers are sizable blobs; drop tiny noise (< 0.5% of canvas).
   const minBlobSize = Math.floor(width * height * 0.005);
-  const stickers_blobs = allBlobs.filter((b) => b.size >= minBlobSize);
+  const stickerBlobs = allBlobs.filter((b) => b.size >= minBlobSize);
 
   const expected = rows * cols;
-  if (stickers_blobs.length !== expected) {
-    // Blob count mismatch means the grid is structurally wrong: overlapping
-    // stickers merge into one blob (too few), or a sticker with holes splits
-    // into several (too many). We refuse to guess — surfacing the exact count
-    // so the user/agent knows this grid needs regeneration.
-    const detail = stickers_blobs.slice(0, 8).map((b) => `(${b.x0},${b.y0})-${b.x1},${b.y1} ${b.size}px`).join("  ");
+  if (stickerBlobs.length !== expected) {
+    const detail = stickerBlobs.slice(0, 8).map((b) => `(${b.x0},${b.y0})-${b.x1},${b.y1} ${b.size}px`).join("  ");
     throw new Error(
-      `order.extract_stickers: detected ${stickers_blobs.length} foreground regions but expected ${rows}×${cols}=${expected}. ` +
+      `extractStickersFromImage: detected ${stickerBlobs.length} foreground regions but expected ${rows}×${cols}=${expected}. ` +
         `The grid is structurally irregular (overlapping stickers merge, holed stickers split). ` +
         `Regenerate the grid with cleaner separation, or adjust rows/cols. Top blobs: ${detail}`,
     );
   }
 
   // Sort into reading order: top-to-bottom by row, then left-to-right by col.
-  // Cluster by Y-centroid into `rows` bands, then sort each band by X-centroid.
-  stickers_blobs.sort((a, b) => a.cy - b.cy);
-  const rowBand = Math.ceil(stickers_blobs.length / rows);
-  const sorted: typeof stickers_blobs = [];
+  stickerBlobs.sort((a, b) => a.cy - b.cy);
+  const rowBand = Math.ceil(stickerBlobs.length / rows);
+  const sorted: typeof stickerBlobs = [];
   for (let r = 0; r < rows; r++) {
-    const band = stickers_blobs.slice(r * rowBand, Math.min((r + 1) * rowBand, stickers_blobs.length));
+    const band = stickerBlobs.slice(r * rowBand, Math.min((r + 1) * rowBand, stickerBlobs.length));
     band.sort((a, b) => a.cx - b.cx);
     sorted.push(...band);
   }
 
   // ── Step 3: crop each sticker by its true bounding box. ───────────────
-  // Each sticker keeps its own dimensions (not normalized to a uniform size)
-  // — precise and never clips neighbors. Frontend centers each in a uniform
-  // container if needed.
   const stickers: StickerMeta[] = [];
   for (let i = 0; i < sorted.length; i++) {
     const blob = sorted[i];
@@ -240,11 +224,11 @@ export async function extractStickers(
 
     const stickerIdx = String(i).padStart(2, "0");
     const outFile = `s${stickerIdx}.png`;
-    await sharp(cellBuf, { raw: { width: bw, height: bh, channels: 4 } }).png().toFile(path.join(stickersDir, outFile));
+    await sharp(cellBuf, { raw: { width: bw, height: bh, channels: 4 } }).png().toFile(path.join(outDir, outFile));
 
     stickers.push({
       index: i,
-      file: `stickers/${outFile}`,
+      file: outFile,
       bbox: { x: blob.x0, y: blob.y0, w: bw, h: bh },
       centroid: { x: Math.round(blob.cx), y: Math.round(blob.cy) },
       width: bw,
@@ -252,25 +236,13 @@ export async function extractStickers(
     });
   }
 
-  // ── Write meta.json.stickers + order.json mirror (non-destructive). ─────
-  const metaPath = path.join(versionDir, "meta.json");
-  const meta = ((await exists(metaPath)) ? await readJson(metaPath) : {}) as JsonObject;
-  meta.stickers = stickers;
-  meta.stickersConfig = { model, engine: "imgly-isnet", method: "blob-detection", expected, detected: stickers_blobs.length, sourceFile };
-  meta.updatedAt = stamp();
-  await writeJson(metaPath, meta, true);
+  return {
+    sourceFile,
+    stickers,
+    config: { model, engine: "imgly-isnet", method: "blob-detection", expected, detected: stickerBlobs.length },
+  };
+}
 
-  const order = await readJson(orderJsonPath(projectRoot, orderId));
-  if (order.orderAsset && Array.isArray(order.orderAsset.versions)) {
-    const v = order.orderAsset.versions.find((vv: any) => vv && vv.versionId === versionId);
-    if (v) {
-      v.meta = isPlainObject(v.meta) ? v.meta : {};
-      v.meta.stickers = stickers;
-      v.meta.stickersConfig = { model, engine: "imgly-isnet", sourceFile };
-    }
-  }
-  order.updatedAt = stamp();
-  await writeJson(orderJsonPath(projectRoot, orderId), order, true);
-
-  return { orderId, versionId, sourceFile, stickers };
+async function exists(p: string): Promise<boolean> {
+  try { await fs.access(p); return true; } catch { return false; }
 }

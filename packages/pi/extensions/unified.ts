@@ -10,6 +10,7 @@ import {
   readJson,
   relativeProtocolPath,
   root,
+  stamp,
   safeProtocolPath,
   validateOrderId,
   validateVersionId,
@@ -41,11 +42,12 @@ import {
   createPersonaReview as coreCreatePersonaReview,
   createPersonaCandidate as coreCreatePersonaCandidate,
   promotePersonaCandidate as corePromotePersonaCandidate,
-  sliceOrderResult as coreSliceOrderResult,
-  extractStickers as coreExtractStickers,
+  orderVersionDir,
+  orderJsonPath,
   type OrderStatus,
   type PageData,
 } from "@repochan/core";
+import { sliceImage, extractStickersFromImage } from "@repochan/image-edit";
 
 const ActionSchema = Type.Union([
   Type.Literal("analysis.run"),
@@ -439,10 +441,88 @@ async function getTemplate(ctx: ExtensionContext, params: JsonObject) {
 }
 
 /**
+ * Resolve the effective versionId for an order result: explicit param →
+ * currentVersion → latest existing version dir (lexicographic max). Mirrors
+ * the priority readOrderResult uses. Shared by slice + extract_stickers.
+ */
+async function resolveVersionId(projectRoot: string, orderId: string, explicit?: string): Promise<string> {
+  if (explicit) return validateVersionId(explicit);
+  const order = await readJson(orderJsonPath(projectRoot, orderId));
+  if (typeof order.currentVersion === "string" && order.currentVersion) {
+    return validateVersionId(order.currentVersion);
+  }
+  const versionsDir = orderVersionDir(projectRoot, orderId, "__noop__").replace(/__noop\/?$/, "");
+  const { promises: fs } = await import("node:fs");
+  const entries = (await fs.readdir(versionsDir).catch(() => [] as string[])).filter((e) => e !== "meta.json");
+  const latest = entries.sort().at(-1);
+  if (!latest) throw new Error(`order ${orderId} has no result version. Pass versionId or create a result first.`);
+  return validateVersionId(latest);
+}
+
+/**
+ * Find the single grid image in a version directory. Throws if there are zero
+ * or multiple image files (ambiguous → refuse to guess).
+ */
+async function findSingleGridImage(versionDir: string, orderId: string, versionId: string): Promise<string> {
+  const { promises: fs } = await import("node:fs");
+  const IMAGE_EXT = [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"];
+  const entries = await fs.readdir(versionDir).catch(() => [] as string[]);
+  const imageFiles = entries.filter((e) => IMAGE_EXT.includes(path.extname(e).toLowerCase()));
+  if (imageFiles.length === 0) {
+    throw new Error(`order.slice/extract_stickers: no image file found in ${orderId}/${versionId}. Requires a grid image.`);
+  }
+  if (imageFiles.length > 1) {
+    throw new Error(
+      `order.slice/extract_stickers: ${imageFiles.length} image files found in ${orderId}/${versionId}; needs exactly one. ` +
+        `Found: ${imageFiles.join(", ")}. Refusing to guess — specify a single grid image.`,
+    );
+  }
+  return path.join(versionDir, imageFiles[0]);
+}
+
+/**
+ * Write a tile/sticker result into both meta.json (under the given key) and the
+ * order.json mirror at orderAsset.versions[versionId].meta[key]. Non-destructive
+ * merge — preserves other meta fields.
+ */
+async function writeMetaAndMirror(
+  projectRoot: string,
+  orderId: string,
+  versionId: string,
+  key: string,
+  value: unknown,
+  extraMeta?: Record<string, unknown>,
+): Promise<void> {
+  const versionDir = orderVersionDir(projectRoot, orderId, versionId);
+  const metaPath = path.join(versionDir, "meta.json");
+  const meta = ((await exists(metaPath)) ? await readJson(metaPath) : {}) as JsonObject;
+  meta[key] = value;
+  if (extraMeta) Object.assign(meta, extraMeta);
+  meta.updatedAt = stamp();
+  await writeJson(metaPath, meta, true);
+
+  // Mirror into order.json so readers that never touch the version dir see it.
+  const orderPath = orderJsonPath(projectRoot, orderId);
+  const order = await readJson(orderPath);
+  if (order.orderAsset && Array.isArray(order.orderAsset.versions)) {
+    const idx = order.orderAsset.versions.findIndex((v: any) => v && v.versionId === versionId);
+    if (idx >= 0) {
+      const v = order.orderAsset.versions[idx];
+      v.meta = isPlainObject(v.meta) ? v.meta : {};
+      v.meta[key] = value;
+      if (extraMeta) Object.assign(v.meta, extraMeta);
+    }
+  }
+  order.updatedAt = stamp();
+  await writeJson(orderPath, order, true);
+}
+
+/**
  * Compute slicing coordinates for a grid-image order result and write them into
  * the version's meta.json.tiles. The grid spec (rows/cols/sliceable) is read
  * from the order's templateId — core never parses templates, so pi resolves
- * the grid here and passes plain numbers to core.sliceOrderResult.
+ * the grid here, then delegates the pixel math to image-edit.sliceImage and
+ * persists the result via core protocol operations.
  *
  * This is coordinates-only: it does NOT generate per-cell PNG files and does
  * NOT assess whether the equal split is clean (irregular AI grids may need a
@@ -467,17 +547,24 @@ async function sliceOrder(ctx: ExtensionContext, params: JsonObject) {
         "Slicing only applies to templates with grid.sliceable=true.",
     );
   }
-  const versionId = typeof params.versionId === "string" && params.versionId ? params.versionId : undefined;
-  const result = await coreSliceOrderResult(ctx.cwd, {
-    orderId,
-    versionId,
-    rows: tmpl.grid.rows,
-    cols: tmpl.grid.cols,
-  });
+
+  const versionId = await resolveVersionId(ctx.cwd, orderId, typeof params.versionId === "string" && params.versionId ? params.versionId : undefined);
+  const versionDir = orderVersionDir(ctx.cwd, orderId, versionId);
+  if (!(await exists(versionDir))) throw new Error(`order.slice: order ${orderId} has no result version ${versionId}.`);
+
+  const imagePath = await findSingleGridImage(versionDir, orderId, versionId);
+  // image-edit slicing is PNG-only (header-based); surface a clear error otherwise.
+  if (path.extname(imagePath).toLowerCase() !== ".png") {
+    throw new Error(`order.slice: ${path.basename(imagePath)} is not a PNG. Header-based slicing currently supports PNG only.`);
+  }
+
+  const { tiles, sourceFile } = await sliceImage(imagePath, tmpl.grid.rows, tmpl.grid.cols);
+  await writeMetaAndMirror(ctx.cwd, orderId, versionId, "tiles", tiles);
+
   return ok(
-    `Sliced ${orderId}/${result.versionId} into ${result.tiles.rows}×${result.tiles.cols} (${result.tiles.cells.length} tiles). ` +
-      `Source: ${result.sourceFile} (${result.tiles.width}×${result.tiles.height}). Coordinates written to meta.json.tiles.`,
-    { tiles: result.tiles, sourceFile: result.sourceFile, versionId: result.versionId, orderId },
+    `Sliced ${orderId}/${versionId} into ${tiles.rows}×${tiles.cols} (${tiles.cells.length} tiles). ` +
+      `Source: ${sourceFile} (${tiles.width}×${tiles.height}). Coordinates written to meta.json.tiles.`,
+    { tiles, sourceFile, versionId, orderId },
   );
 }
 
@@ -491,6 +578,9 @@ async function sliceOrder(ctx: ExtensionContext, params: JsonObject) {
  *
  * Pipeline order matters: mat-first (whole grid) is ~10× faster than
  * slice-then-mat-each, and gives more consistent quality (global context).
+ *
+ * Pixel work (matting + cropping) is delegated to image-edit; pi orchestrates
+ * the protocol side (locate the version image, write stickers/ + meta.json).
  */
 async function extractStickersAction(ctx: ExtensionContext, params: JsonObject) {
   const orderId = requireOrderId(params);
@@ -510,20 +600,36 @@ async function extractStickersAction(ctx: ExtensionContext, params: JsonObject) 
       `order.extract_stickers: template '${templateId}' is not a sliceable grid. extract_stickers requires grid.sliceable=true.`,
     );
   }
-  const versionId = typeof params.versionId === "string" && params.versionId ? params.versionId : undefined;
-  const result = await coreExtractStickers(ctx.cwd, {
-    orderId,
-    versionId,
-    rows: tmpl.grid.rows,
-    cols: tmpl.grid.cols,
-    model: typeof params.model === "string" ? params.model : undefined,
-    overwrite: params.overwrite === true,
-  });
+
+  const versionId = await resolveVersionId(ctx.cwd, orderId, typeof params.versionId === "string" && params.versionId ? params.versionId : undefined);
+  const versionDir = orderVersionDir(ctx.cwd, orderId, versionId);
+  if (!(await exists(versionDir))) throw new Error(`order.extract_stickers: order ${orderId} has no result version ${versionId}.`);
+
+  const imagePath = await findSingleGridImage(versionDir, orderId, versionId);
+  if (path.extname(imagePath).toLowerCase() !== ".png") {
+    throw new Error(`order.extract_stickers: ${path.basename(imagePath)} is not a PNG. Sticker extraction supports PNG only.`);
+  }
+
+  const model = typeof params.model === "string" && ["small", "medium", "large"].includes(params.model) ? params.model as "small" | "medium" | "large" : "small";
+  // image-edit writes sticker PNGs to a caller-supplied outDir. The protocol
+  // convention is <versionDir>/stickers/. The returned `file` names are bare
+  // (sNN.png); prefix with "stickers/" for the meta.json paths.
+  const stickersOutDir = path.join(versionDir, "stickers");
+  const result = await extractStickersFromImage(
+    imagePath,
+    { rows: tmpl.grid.rows, cols: tmpl.grid.cols, model, overwrite: params.overwrite === true },
+    stickersOutDir,
+  );
+  const stickers = result.stickers.map((s) => ({ ...s, file: `stickers/${s.file}` }));
+  const stickersConfig = { model, engine: "imgly-isnet", method: "blob-detection", expected: result.config.expected, detected: result.config.detected, sourceFile: result.sourceFile };
+
+  await writeMetaAndMirror(ctx.cwd, orderId, versionId, "stickers", stickers, { stickersConfig });
+
   return ok(
-    `Extracted ${result.stickers.length} transparent stickers from ${orderId}/${result.versionId} → stickers/sNN.png. ` +
-      `Source: ${result.sourceFile}. Background removed via ML matting (ISNet ${typeof params.model === "string" ? params.model : "small"}, whole-grid). ` +
+    `Extracted ${stickers.length} transparent stickers from ${orderId}/${versionId} → stickers/sNN.png. ` +
+      `Source: ${result.sourceFile}. Background removed via ML matting (ISNet ${model}, whole-grid). ` +
       `Sticker list written to meta.json.stickers.`,
-    { stickers: result.stickers, sourceFile: result.sourceFile, versionId: result.versionId, orderId },
+    { stickers, sourceFile: result.sourceFile, versionId, orderId },
   );
 }
 
