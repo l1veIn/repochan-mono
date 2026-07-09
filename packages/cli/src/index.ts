@@ -28,7 +28,7 @@ cli.command("validate", "Validate protocol artifacts").option("--json", "Machine
 cli.command("analysis <sub>", "Manage the analysis report")
   .option("--json", "Machine-readable JSON output")
   .option("--overwrite", "Overwrite existing artifact")
-  .option("--data-file <path>", "JSON payload from file or - for stdin")
+  .option("--data-file <path>", "JSON payload from file, - for stdin, or omit when piping")
   .action(async (_p: any, opts: any) => {
     const [sub] = cli.args;
     switch (sub) {
@@ -44,7 +44,7 @@ cli.command("analysis <sub>", "Manage the analysis report")
 // ---- interview ----
 cli.command("interview <sub>", "Manage the interview report")
   .option("--json", "Machine-readable JSON output")
-  .option("--data-file <path>", "JSON payload from file or - for stdin")
+  .option("--data-file <path>", "JSON payload from file, - for stdin, or omit when piping")
   .action(async (_p: any, opts: any) => {
     const [sub] = cli.args;
     switch (sub) {
@@ -59,7 +59,7 @@ cli.command("interview <sub>", "Manage the interview report")
 cli.command("persona <sub>", "Manage the mascot persona")
   .option("--json", "Machine-readable JSON output")
   .option("--overwrite", "Overwrite existing persona")
-  .option("--data-file <path>", "JSON payload from file or - for stdin")
+  .option("--data-file <path>", "JSON payload from file, - for stdin, or omit when piping")
   .option("--slug <slug>", "Candidate slug (for persona candidate promote)")
   .action(async (_p: any, opts: any) => {
     const args = cli.args; // [sub, sub2?]
@@ -81,7 +81,7 @@ cli.command("persona <sub>", "Manage the mascot persona")
 // ---- order ----
 cli.command("order <sub>", "Manage creation orders")
   .option("--json", "Machine-readable JSON output")
-  .option("--data-file <path>", "JSON payload from file or - for stdin")
+  .option("--data-file <path>", "JSON payload from file, - for stdin, or omit when piping")
   .option("--text <text>", "Inline text (order add-revision)")
   .option("--rows <n>", "Grid rows", { default: undefined })
   .option("--cols <n>", "Grid cols", { default: undefined })
@@ -126,7 +126,7 @@ cli.command("foundation <sub>", "Foundation sheet (visual anchor)")
 // ---- page ----
 cli.command("page <sub>", "Manage the landing page spec")
   .option("--json", "Machine-readable JSON output")
-  .option("--data-file <path>", "JSON payload from file or - for stdin")
+  .option("--data-file <path>", "JSON payload from file, - for stdin, or omit when piping")
   .option("--output-dir <dir>", "Output directory (generate-project)")
   .option("--template-dir <dir>", "Template directory (generate-project)")
   .option("--overwrite", "Overwrite existing")
@@ -144,7 +144,7 @@ cli.command("page <sub>", "Manage the landing page spec")
 // ---- review ----
 cli.command("review <sub>", "Create a review")
   .option("--json", "Machine-readable JSON output")
-  .option("--data-file <path>", "JSON payload from file or - for stdin")
+  .option("--data-file <path>", "JSON payload from file, - for stdin, or omit when piping")
   .action(async (_p: any, opts: any) => {
     const [sub] = cli.args;
     if (sub === "create") return await ent.runReviewCreate(process.cwd(), opts.dataFile, opts);
@@ -155,7 +155,7 @@ cli.command("review <sub>", "Create a review")
 cli.command("protocol <sub>", "Protocol-level operations")
   .option("--json", "Machine-readable JSON output")
   .option("--overwrite", "Overwrite existing")
-  .option("--data-file <path>", "JSON payload from file or - for stdin")
+  .option("--data-file <path>", "JSON payload from file, - for stdin, or omit when piping")
   .action(async (_p: any, opts: any) => {
     const args = cli.args; // [sub, artifactPath?]
     const sub = args[0];
@@ -214,15 +214,48 @@ cli.command("setup", "Install skills for your agent + inject a reference")
 cli.help();
 cli.version(VERSION);
 
+function isHelpOrVersionFlag(arg: string): boolean {
+  return arg === "-h" || arg === "--help" || arg === "-v" || arg === "--version";
+}
+
+/**
+ * cac treats a bare `-` after `--option` as "value missing" (looks like a flag).
+ * Rewrite `--data-file -` → `--data-file=-` so stdin shorthand works.
+ */
+function normalizeArgv(argv: string[]): string[] {
+  const out: string[] = [];
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === "--data-file" && argv[i + 1] === "-") {
+      out.push("--data-file=-");
+      i++;
+      continue;
+    }
+    out.push(a);
+  }
+  return out;
+}
+
 async function main() {
   try {
-    const args = process.argv.slice(2);
+    const rawArgs = process.argv.slice(2);
+    const args = normalizeArgv(rawArgs);
+    const argv = [process.argv[0], process.argv[1], ...args];
+
+    // Always let cac handle --help / --version (and their short forms).
+    // Previously these were filtered out as "flags", leaving 0 positionals,
+    // which incorrectly fell through to the default `status` branch.
+    if (args.some(isHelpOrVersionFlag)) {
+      cli.parse(argv);
+      return;
+    }
     const noFlags = args.filter((a) => !a.startsWith("-"));
+    // Bare `repochan` (or only output flags like --json) → status overview.
     if (noFlags.length === 0) {
       await top.runStatus(process.cwd(), { json: args.includes("--json") });
       return;
     }
-    cli.parse(process.argv);
+    cli.parse(argv);
   } catch (err) {
     printError(err);
     process.exit(1);

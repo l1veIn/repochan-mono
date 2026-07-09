@@ -27,7 +27,7 @@ export async function runFoundationFind(cwd: string, options: OutputOptions) {
 // ---------------------------------------------------------------------------
 export async function runPageGet(cwd: string, options: OutputOptions) {
   const data = await readPage(cwd);
-  if (!data) throw new UsageError("No page found. Run `repochan page create --data-file -` first.");
+  if (!data) throw new UsageError("No page found. Run `repochan page create` with a JSON payload first.");
   emitResult(options, JSON.stringify(data, null, 2), data);
 }
 

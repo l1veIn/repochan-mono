@@ -47,7 +47,7 @@ export async function runStatus(cwd: string, options: OutputOptions = {}) {
 
   if (!protocol.exists) console.log(dim("\nNext: run `repochan init` to create the protocol directory."));
   else if (!protocol.analysis) console.log(dim("\nNext: run `repochan analysis run` to build the repository profile."));
-  else if (!protocol.persona) console.log(dim("\nNext: ask your agent to generate a persona, then `repochan persona create --data-file -`."));
+  else if (!protocol.persona) console.log(dim("\nNext: ask your agent to generate a persona, then pipe JSON into `repochan persona create`."));
 }
 
 // ---------------------------------------------------------------------------

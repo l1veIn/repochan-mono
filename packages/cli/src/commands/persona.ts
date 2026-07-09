@@ -14,7 +14,7 @@ import { readDataFile } from "../lib/data-file.js";
 // repochan persona get
 export async function runPersonaGet(cwd: string, options: OutputOptions) {
   const file = path.join(root(cwd), "persona", "current.json");
-  if (!(await exists(file))) throw new UsageError("No persona found. Ask your agent to generate one, then `repochan persona create --data-file -`.");
+  if (!(await exists(file))) throw new UsageError("No persona found. Ask your agent to generate one, then pipe JSON into `repochan persona create`.");
   const data = await readJson(file);
   emitResult(options, JSON.stringify(data, null, 2), data);
 }
