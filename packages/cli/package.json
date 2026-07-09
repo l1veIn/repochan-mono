@@ -32,6 +32,7 @@
     "@inquirer/prompts": "^7.0.0",
     "@repochan/core": "workspace:*",
     "@repochan/image-edit": "workspace:*",
+    "@repochan/image-gen": "workspace:*",
     "@repochan/skill": "workspace:*",
     "cac": "^6.7.14",
     "chalk": "^5.6.2",

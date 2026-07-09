@@ -9,6 +9,7 @@ import * as order from "./commands/order.js";
 import * as ent from "./commands/entities.js";
 import * as setup from "./commands/setup.js";
 import * as template from "./commands/template.js";
+import * as image from "./commands/image.js";
 
 const VERSION = "0.2.0";
 const cli = cac("repochan");
@@ -28,7 +29,7 @@ cli.command("analysis <sub>", "Manage the analysis report")
   .option("--json", "Machine-readable JSON output")
   .option("--overwrite", "Overwrite existing artifact")
   .option("--data-file <path>", "JSON payload from file or - for stdin")
-  .action(async (opts: any) => {
+  .action(async (_p: any, opts: any) => {
     const [sub] = cli.args;
     switch (sub) {
       case "run": return await analysis.runAnalysisRun(process.cwd(), opts);
@@ -44,7 +45,7 @@ cli.command("analysis <sub>", "Manage the analysis report")
 cli.command("interview <sub>", "Manage the interview report")
   .option("--json", "Machine-readable JSON output")
   .option("--data-file <path>", "JSON payload from file or - for stdin")
-  .action(async (opts: any) => {
+  .action(async (_p: any, opts: any) => {
     const [sub] = cli.args;
     switch (sub) {
       case "get": return await interview.runInterviewGet(process.cwd(), opts);
@@ -60,7 +61,7 @@ cli.command("persona <sub>", "Manage the mascot persona")
   .option("--overwrite", "Overwrite existing persona")
   .option("--data-file <path>", "JSON payload from file or - for stdin")
   .option("--slug <slug>", "Candidate slug (for persona candidate promote)")
-  .action(async (opts: any) => {
+  .action(async (_p: any, opts: any) => {
     const args = cli.args; // [sub, sub2?]
     const sub = args[0];
     const sub2 = args[1]; // for "persona candidate <create|promote>"
@@ -87,7 +88,7 @@ cli.command("order <sub>", "Manage creation orders")
   .option("--model <model>", "ISNet model (extract-stickers)")
   .option("--version <v>", "Version id")
   .option("--overwrite", "Overwrite existing")
-  .action(async (opts: any) => {
+  .action(async (_p: any, opts: any) => {
     const args = cli.args; // [sub, id?, more?]
     const sub = args[0];
     const id = args[1];
@@ -116,7 +117,7 @@ cli.command("order <sub>", "Manage creation orders")
 // ---- foundation ----
 cli.command("foundation <sub>", "Foundation sheet (visual anchor)")
   .option("--json", "Machine-readable JSON output")
-  .action(async (opts: any) => {
+  .action(async (_p: any, opts: any) => {
     const [sub] = cli.args;
     if (sub === "find") return await ent.runFoundationFind(process.cwd(), opts);
     throw new Error(`Unknown foundation subcommand: ${sub}. Use: find`);
@@ -129,7 +130,7 @@ cli.command("page <sub>", "Manage the landing page spec")
   .option("--output-dir <dir>", "Output directory (generate-project)")
   .option("--template-dir <dir>", "Template directory (generate-project)")
   .option("--overwrite", "Overwrite existing")
-  .action(async (opts: any) => {
+  .action(async (_p: any, opts: any) => {
     const [sub] = cli.args;
     switch (sub) {
       case "get": return await ent.runPageGet(process.cwd(), opts);
@@ -144,7 +145,7 @@ cli.command("page <sub>", "Manage the landing page spec")
 cli.command("review <sub>", "Create a review")
   .option("--json", "Machine-readable JSON output")
   .option("--data-file <path>", "JSON payload from file or - for stdin")
-  .action(async (opts: any) => {
+  .action(async (_p: any, opts: any) => {
     const [sub] = cli.args;
     if (sub === "create") return await ent.runReviewCreate(process.cwd(), opts.dataFile, opts);
     throw new Error(`Unknown review subcommand: ${sub}. Use: create`);
@@ -155,7 +156,7 @@ cli.command("protocol <sub>", "Protocol-level operations")
   .option("--json", "Machine-readable JSON output")
   .option("--overwrite", "Overwrite existing")
   .option("--data-file <path>", "JSON payload from file or - for stdin")
-  .action(async (opts: any) => {
+  .action(async (_p: any, opts: any) => {
     const args = cli.args; // [sub, artifactPath?]
     const sub = args[0];
     const artifactPath = args[1];
@@ -170,10 +171,35 @@ cli.command("protocol <sub>", "Protocol-level operations")
 // ---- template ----
 cli.command("template <sub>", "Templates (Phase 3)")
   .option("--json", "Machine-readable JSON output")
-  .action(async (opts: any) => {
+  .action(async (_p: any, opts: any) => {
     const [sub] = cli.args;
     if (sub === "list") return await template.runTemplateList(process.cwd(), opts);
     throw new Error(`Unknown template subcommand: ${sub}. Use: list`);
+  });
+
+// ---- image ----
+// `image <sub> [args...]` — gen delegates to @repochan/image-gen, edit to @repochan/image-edit.
+cli.command("image <sub>", "Image generation and editing")
+  .option("--json", "Machine-readable JSON output")
+  .option("--prompt <text>", "Prompt (image gen)")
+  .option("--out <path>", "Output path (image gen) or dir (image edit slice)")
+  .option("--endpoint <id>", "Endpoint id (image gen), overrides config default")
+  .option("--aspect <ratio>", "landscape | square | portrait (image gen)")
+  .option("--size <size>", "1024x1024 | 1536x1024 | 1024x1536 (image gen)")
+  .option("--rows <n>", "Grid rows (image edit slice)", { default: undefined })
+  .option("--cols <n>", "Grid cols (image edit slice)", { default: undefined })
+  .action(async (_p: any, opts: any) => {
+    const args = cli.args; // [sub, imagePath?]
+    const sub = args[0];
+    switch (sub) {
+      case "gen": return await image.runImageGen(process.cwd(), opts);
+      case "edit": {
+        const editSub = args[1];
+        if (editSub === "slice") return await image.runImageEditSlice(process.cwd(), args[2], opts);
+        throw new Error(`Unknown image edit subcommand: ${editSub}. Use: slice`);
+      }
+      default: throw new Error(`Unknown image subcommand: ${sub}. Use: gen | edit`);
+    }
   });
 
 // ---- setup ----

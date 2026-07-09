@@ -1,0 +1,31 @@
+{
+  "name": "@repochan/image-gen",
+  "version": "0.1.0",
+  "description": "Image generation library for RepoChan — prompt→PNG via AI SDK, with OpenAI-compatible providers (switchbase relays, codex reverse-proxy, OpenAI direct). Credentials self-managed, no .repochan/ awareness.",
+  "type": "module",
+  "license": "MIT",
+  "author": "l1veIn",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md", "package.json"],
+  "dependencies": {
+    "@ai-sdk/openai": "^4.0.9",
+    "ai": "^7.0.18"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  }
+}
