@@ -17,7 +17,8 @@ export async function ensureOrderApprovedForExecution(projectRoot: string, order
   if (!allowUnapproved && !["approved", "in_progress"].includes(String(order.status ?? ""))) {
     throw new Error(
       `Order ${id} is not approved/in_progress (status=${order.status ?? "missing"}). ` +
-        "Call repochan action='order.get' or 'order.list' for the pre-check, then obtain user approval or pass allowUnapprovedOrder=true only after explicit approval.",
+        "If the user asked you to execute this task (wizard/yolo mode), approve it first with `repochan order set-status <orderId> approved`, then create the result. " +
+        "Alternatively, pass allowUnapprovedOrder=true in the create-result payload to skip this check.",
     );
   }
   return order;

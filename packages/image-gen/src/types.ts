@@ -18,6 +18,13 @@ export interface GenerateParams {
   /** Explicit dimensions (override aspectRatio when the provider allows). */
   size?: "1024x1024" | "1536x1024" | "1024x1536";
   outputFormat?: "png" | "jpeg" | "webp";
+  /**
+   * Reference images for image-to-image / multi-image conditioning.
+   * Each entry is raw image bytes + mime type. Passed to the AI SDK's
+   * `generateImage({ prompt: { images, text } })` — used for cross-asset
+   * visual consistency (e.g. foundation sheet as character reference).
+   */
+  referenceImages?: Array<{ data: Uint8Array; mimeType: string }>;
 }
 
 /** Result of a generation request. */

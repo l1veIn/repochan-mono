@@ -1,6 +1,6 @@
 ---
 name: repochan-interviewer
-description: Interviewer role. Reads the analysis report, asks the user 7-14 structured questions across 8 dimensions (tone, audience/usage, weight, world, style, reference, naming, constraints) via ask_user_question, then distills the answers into a .repochan/interview/current.json report for the Creative Team to consume. Supports downstream weight-level calibration, world complexity preferences, and reference character trait absorption.
+description: Interviewer role. Reads the analysis report, asks the user 7-14 structured questions across 8 dimensions (tone, audience/usage, weight, world, style, reference, naming, constraints) via ask_user_question, then distills the answers into an interview report (repochan interview) for the Creative Team to consume. Supports downstream weight-level calibration, world complexity preferences, and reference character trait absorption.
 ---
 
 # RepoChan 访谈专员
@@ -21,12 +21,12 @@ description: Interviewer role. Reads the analysis report, asks the user 7-14 str
 
 ## 执行前检查
 
-1. 检查 `.repochan/analysis/current.json` 是否存在。如果缺失，停止并要求用户先运行 Analyst skill。
+1. 检查分析报告是否就绪（repochan analysis get）。如果缺失，停止并要求用户先运行分析。
 2. 读取分析报告，重点关注：
    - `preAnalysis.summary`、`preAnalysis.project_category`
    - `abstract.dimensions`（code_style / architecture / product_philosophy / tech_choices / team_culture）
    - 颜色、命名约定、技术栈等技术信号
-3. 检查 `.repochan/interview/current.json` 是否已存在：
+3. 检查访谈报告是否已存在（repochan interview get）：
    - **不存在**：这是首次访谈，直接进入提问流程。
    - **已存在**：用 `ask_user_question` 问用户：
      - 「重新开始一份新的访谈报告？」（会覆盖，需确认）
@@ -216,12 +216,7 @@ description: Interviewer role. Reads the analysis report, asks the user 7-14 str
 ### 首次创建
 
 ```
-repochan action="interview.create" interview={...} slug="v1"
-```
-
-`interview` 对象形状：
-
-```json
+repochan interview create <<'EOF'
 {
   "questions": [...],
   "responses": [...],
@@ -230,6 +225,7 @@ repochan action="interview.create" interview={...} slug="v1"
   "preferences": ["软偏好1", "软偏好2"],
   "avoidList": ["禁止项1", "禁止项2"]
 }
+EOF
 ```
 
 ### 续写（追加问答轮次）
@@ -237,7 +233,16 @@ repochan action="interview.create" interview={...} slug="v1"
 如果用户选择在现有基础上补充：
 
 ```
-repochan action="interview.append" questions=[新问题...] responses=[新回答...] summary="更新后的综合概括" slug="round2"
+repochan interview append <<'EOF'
+{
+  "questions": [新问题...],
+  "responses": [新回答...],
+  "summary": "更新后的综合概括",
+  "keyConstraints": ["更新后的硬约束1"],
+  "preferences": ["更新后的软偏好1"],
+  "avoidList": ["更新后的禁止项1"]
+}
+EOF
 ```
 
 `interview.append` 会：
@@ -255,8 +260,8 @@ repochan action="interview.append" questions=[新问题...] responses=[新回答
 
 ## 工作流总结
 
-1. 读取 `.repochan/analysis/current.json`。
-2. 检查 `.repochan/interview/current.json` 是否已存在，决定是新建、续写还是跳过。
+1. 用 `repochan analysis get` 读取分析报告。
+2. 用 `repochan interview get` 检查访谈报告是否已存在，决定是新建、续写还是跳过。
 3. 基于分析报告的具体信号，设计 7-14 个结构化问题（覆盖 tone/audience/weight/world/style/reference/naming/constraints）。
 4. 用 `ask_user_question` 分批提问（每批 ≤4 个问题）。
 5. 收集所有回答，提炼 summary / keyConstraints / preferences / avoidList。

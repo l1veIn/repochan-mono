@@ -96,6 +96,10 @@ export const PersonaArtifactSchema = Type.Object({
     reason: Type.String({ description: "Why this style fits the project (1 sentence, derived from repo signals)." }),
   }), { description: "Art style proposals from the World Architect (upstream). The Character Designer selects one as artStyle." })),
 
+  // ── Optional visual — brand extensions ──
+  signaturePatterns: Type.Optional(Type.Array(Type.String(), { description: "Brand-specific seamless texture/pattern concepts derived from the character's motifs and color palette (e.g. 'botanical specimen fragments in a 2×2 tileable grid for section backgrounds'). Each entry is one pattern idea, ideally noting its intended use (section bg / border / social OG / merch). Drives visual_pattern asset generation and page/merch background design." })),
+  signatureScenes: Type.Optional(Type.Array(Type.String(), { description: "Signature background/worldview scenes that carry the character's world mood (e.g. 'misty botanical library atrium with pressed-flower light', 'stormfront cliffside with bioluminescent rain'). Each entry is one scene concept. Drives poster/background asset generation." })),
+
   // ── Meta ──
   schemaVersion: Type.Optional(Type.String()),
   generatedAt: Type.Optional(Type.String()),

@@ -1,31 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { readPngSize } from "./slicing.js";
-import { removeBackground } from "@imgly/background-removal-node";
-
-// ---------------------------------------------------------------------------
-// imgly resource path resolution
-// ---------------------------------------------------------------------------
-// @imgly/background-removal-node locates its model + resources.json relative to
-// a publicPath config. Under pnpm symlinks the lib's default import.meta.url
-// resolution breaks, so we resolve the package dir ourselves and pass an
-// explicit file:// URI (must end with "/" so "./resources.json" resolves
-// inside dist/, not its parent).
-const require = createRequire(import.meta.url);
-const IMGLY_DIST = path.dirname(require.resolve("@imgly/background-removal-node"));
-const IMGLY_PUBLIC_PATH = `file://${IMGLY_DIST}/`;
-
-// imgly's own vendored sharp (0.32) — used only for the post-matting slice.
-// We import it dynamically so this package's own dependency tree stays
-// sharp-free at static-analysis time; the only sharp that loads is imgly's,
-// avoiding the dual-libvips conflict.
-async function loadImglySharp() {
-  // Resolve sharp from within imgly's node_modules so we use its 0.32 build,
-  // not a separately-installed one.
-  const sharpPath = require.resolve("sharp", { paths: [IMGLY_DIST] });
-  return import(sharpPath);
-}
+import { matteImage, loadImglySharp, type MatteModel } from "./imgly.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -160,21 +136,8 @@ export async function extractStickersFromImage(
   await fs.mkdir(outDir, { recursive: true });
 
   // ── Step 1: ML matting on the whole grid. ──────────────────────────────
-  // imgly needs a Blob/File with a MIME type; a bare Buffer has none and it
-  // throws "Unsupported format:".
   const srcBuf = await fs.readFile(imagePath);
-  const mattedBlob = await removeBackground(new Blob([srcBuf], { type: "image/png" }), {
-    publicPath: IMGLY_PUBLIC_PATH,
-    model,
-  });
-  const mattedBuf = Buffer.from(await mattedBlob.arrayBuffer());
-
-  // Use imgly's own vendored sharp (0.32) to decode + extract, so this package
-  // has no direct sharp dependency.
-  const sharp = (await loadImglySharp()).default;
-  const raw = await sharp(mattedBuf).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-  const gridData = raw.data;
-  const gridChannels = raw.info.channels;
+  const { data: gridData, channels: gridChannels } = await matteImage(srcBuf, "image/png", model as MatteModel);
 
   // ── Step 2: locate stickers via the matting alpha mask. ────────────────
   const alpha = new Uint8Array(width * height);
@@ -205,6 +168,7 @@ export async function extractStickersFromImage(
   }
 
   // ── Step 3: crop each sticker by its true bounding box. ───────────────
+  const sharp = (await loadImglySharp()).default;
   const stickers: StickerMeta[] = [];
   for (let i = 0; i < sorted.length; i++) {
     const blob = sorted[i];

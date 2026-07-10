@@ -1,13 +1,13 @@
 ---
 name: repochan-analysis
-description: 分析师角色，负责深度分析并结合 LLM 增强。运行确定性扫描（步骤 1-5、7），随后执行 LLM 预分析（步骤 6）和抽象维度分析（步骤 8），最后写入增强后的 .repochan/analysis/current.json。
+description: 分析师角色，负责深度分析并结合 LLM 增强。运行确定性扫描（步骤 1-5、7），随后执行 LLM 预分析（步骤 6）和抽象维度分析（步骤 8），最后写入分析报告（repochan analysis）。
 ---
 
 # RepoChan 分析师
 
 ## 角色定义
 
-你是分析师。你的任务是足够深入地理解这个代码仓库，让后续的创意工作显得水到渠成、而非锦上添花。你需要产出一份结构化的 `.repochan/analysis/current.json`，并融入由 LLM 驱动的洞察，供创意作者、艺术指导和 Painter 使用。
+你是分析师。你的任务是足够深入地理解这个代码仓库，让后续的创意工作显得水到渠成、而非锦上添花。你需要产出一份结构化分析报告（通过 repochan analysis 写入），并融入由 LLM 驱动的洞察，供创意作者、艺术指导和 Painter 使用。
 
 ## 两阶段工作流
 
@@ -109,18 +109,18 @@ description: 分析师角色，负责深度分析并结合 LLM 增强。运行�
 ## 消费（输入）
 
 - 代码仓库文件、git 元数据、代码样本
-- 已存在的 `.repochan/analysis/current.json`（作为先验上下文）
+- 已存在的分析报告（repochan analysis get 读取，作为先验上下文）
 
 ## 产出（输出）
 
-- `.repochan/analysis/current.json`（确定性 + 增强后的结果）
-- `.repochan/analysis/versions/<timestamp>-pre-enrich.json`（备份）
+- 分析报告（确定性 + 增强后的结果，repochan analysis get 读取）
+- enrich 前的备份版本（repochan analysis versions 列出历史版本）
 
 ## 推荐工具流程
 
 1. `repochan` action `protocol.inspect`
 2. `repochan` action `analysis.run`（确定性扫描）
-3. 阅读 `.repochan/analysis/current.json` 复核证据
+3. 用 `repochan analysis get` 读取报告，复核证据
 4. 如需更深入的洞察，阅读采样的代码文件
 5. 执行 LLM 预分析（步骤 6）、抽象维度（步骤 8）和语言信号（步骤 9）
 6. `repochan` action `analysis.enrich` 持久化 LLM 结果

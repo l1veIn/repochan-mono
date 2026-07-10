@@ -13,9 +13,14 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist", "README.md", "package.json"],
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ],
   "dependencies": {
-    "@imgly/background-removal-node": "^1.4.5"
+    "@imgly/background-removal-node": "^1.4.5",
+    "gifenc": "^1.0.3"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

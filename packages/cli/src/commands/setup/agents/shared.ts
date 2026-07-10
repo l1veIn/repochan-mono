@@ -2,6 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
 import type { AgentId, AgentTarget, InstallResult } from "./types.js";
+import { cliVersion } from "../../../lib/register.js";
 
 const require = createRequire(import.meta.url);
 
@@ -25,7 +26,10 @@ export const LEGACY_END = "<!-- repochan:setup end -->";
 /** Fallback skill dir for agents without a native skills convention. */
 export const FALLBACK_SKILL_DIR = ".repochan/skills";
 
-export function skillDestFor(target: AgentTarget): string {
+export function skillDestFor(target: AgentTarget, scope: "global" | "project" = "project"): string {
+  if (scope === "global") {
+    return target.globalSkillDir ?? target.skillDir ?? FALLBACK_SKILL_DIR;
+  }
   return target.skillDir ?? FALLBACK_SKILL_DIR;
 }
 
@@ -101,6 +105,16 @@ export async function copyDir(src: string, dest: string): Promise<number> {
     }
   }
   return count;
+}
+
+/**
+ * Stamp the skill directory with a `.repochan-version` marker recording the
+ * CLI version that installed these skills. Lets the installed skill set
+ * self-describe its version (independent of ~/.repochan/register.json) so
+ * `repochan status` can detect skill/cli drift.
+ */
+export async function stampSkillVersion(skillDirAbs: string): Promise<void> {
+  await atomicWrite(path.join(skillDirAbs, ".repochan-version"), `${cliVersion()}\n`);
 }
 
 function escapeRegex(s: string): string {
@@ -243,10 +257,12 @@ export async function installTarget(
   cwd: string,
   target: AgentTarget,
   skillSrc: string,
+  scope: "global" | "project" = "project",
 ): Promise<InstallResult> {
-  const skillRel = skillDestFor(target);
+  const skillRel = skillDestFor(target, scope);
   const skillAbs = path.join(cwd, skillRel);
   const skillFiles = await copyDir(skillSrc, skillAbs);
+  await stampSkillVersion(skillAbs);
 
   const instrAbs = path.join(cwd, target.instructionFile);
   let instructionAction: InstallResult["instructionAction"];
@@ -286,7 +302,11 @@ export async function installTarget(
   };
 }
 
-export async function uninstallTarget(cwd: string, target: AgentTarget): Promise<InstallResult> {
+export async function uninstallTarget(
+  cwd: string,
+  target: AgentTarget,
+  scope: "global" | "project" = "project",
+): Promise<InstallResult> {
   const instrAbs = path.join(cwd, target.instructionFile);
   let instructionAction: InstallResult["instructionAction"] = "not-found";
 
@@ -299,7 +319,7 @@ export async function uninstallTarget(cwd: string, target: AgentTarget): Promise
   // Remove skill tree only if it looks like ours (contains repochan wizard skill).
   // Don't delete shared fallback if other agents still use it — only remove
   // agent-specific skill dirs, or fallback when no other configured agent uses it.
-  const skillRel = skillDestFor(target);
+  const skillRel = skillDestFor(target, scope);
   if (target.skillDir !== null) {
     const skillAbs = path.join(cwd, skillRel);
     const wizard = path.join(skillAbs, "repochan", "SKILL.md");

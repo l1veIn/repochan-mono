@@ -1,0 +1,16 @@
+id: "official/poster-glitch-art"
+asset_type: "poster"
+label: "故障艺术数字拼贴"
+description: "错位视窗、色彩偏移与扫描线，适合数字、技术和数据项目。"
+tags: ["poster", "design", "glitch", "digital"]
+size: "1536x1024"
+
+prompt_template: |
+  glitch-art digital collage poster for {{repo_name}}, fragmented viewport composition and controlled visual corruption,
+  {{character_visual}} repeated through offset crops, RGB channel separation, scan lines, compression artifacts,
+  weave {{key_motifs}} into interface fragments and data layers, palette {{color_palette}},
+  title "{{repo_name}}" and subtitle "{{character_name}}" disrupted but still legible,
+  {{signature_scene}}, electronic atmosphere, sharp editorial hierarchy,
+  masterpiece, best quality
+
+constraints: []

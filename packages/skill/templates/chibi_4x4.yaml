@@ -1,0 +1,26 @@
+id: "official/chibi-grid-4x4"
+asset_type: "chibi_emojis"
+label: "4×4 表情包"
+description: "4×4 Q版表情包，可自动切片为 16 个独立表情；一致性难度高于 3×3。"
+tags: ["chibi_emojis", "sticker", "chibi", "grid"]
+size: "1024x1024"
+
+grid:
+  rows: 4
+  cols: 4
+  sliceable: true
+
+prompt_template: |
+  strict 4x4 chibi sticker sheet with exactly sixteen stickers of the same {{character_visual}},
+  sixteen clearly distinct expressions and actions: {{expression_set}},
+  simplified cute proportions, large head, bold readable silhouette, use {{color_palette}} and {{key_motifs}},
+  consistent identity and outfit in every cell, expressions readable at emoji size,
+  pure solid white background, evenly spaced isolated stickers, masterpiece, best quality
+
+constraints:
+  - "strict 4-row × 4-column grid with exactly 16 stickers"
+  - "generous pure-white margin around every sticker; stickers must not touch cell edges or each other"
+  - "stickers must not overlap or merge; every sticker must form one isolated foreground silhouette"
+  - "pure solid white background (#FFFFFF), flat and uniform; no off-white, grey, gradient, or texture"
+  - "pure white must not appear unoutlined inside stickers; surround white character details with a colored outline"
+  - "no borders, frames, dividing lines, grid lines, or cell boxes"

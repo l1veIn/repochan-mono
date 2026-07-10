@@ -1,0 +1,23 @@
+id: "official/pattern-grid-2x2"
+asset_type: "visual_pattern"
+label: "2×2 品牌纹理矩阵"
+description: "四张可切分品牌纹理，用于页面背景、边框、社交图和装饰图层。"
+tags: ["visual_pattern", "pattern", "texture", "background", "page"]
+size: "1024x1024"
+
+grid:
+  rows: 2
+  cols: 2
+  sliceable: true
+
+prompt_template: |
+  2x2 brand pattern design sheet for {{repo_name}}, exactly four distinct seamless pattern concepts,
+  derive abstract symbols from {{key_motifs}} and {{pattern_concepts}}, using {{color_palette}},
+  explore four uses: subtle hero texture, quiet section background, border or divider motif, social-card backdrop,
+  motifs rather than characters as main subjects, professional web-brand system, text-readable visual density,
+  each tile complete and independently usable, masterpiece, best quality
+
+constraints:
+  - "strict 2-row × 2-column grid with exactly 4 tiles"
+  - "generous clean gutters between tiles so every tile can be cropped independently"
+  - "no foreground elements crossing tile or gutter boundaries"

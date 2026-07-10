@@ -100,6 +100,12 @@ export type PersonaData = {
   /** Design notes — visual guidelines for downstream asset reuse. */
   designNotes?: string;
 
+  // ── Visual — brand extensions ─────────────────────────────
+  /** Brand-specific seamless texture/pattern concepts (2-4), each noting intended use (section bg / border / social OG / merch). */
+  signaturePatterns?: string[];
+  /** Signature background/worldview scenes (2-3) carrying the character's world mood. */
+  signatureScenes?: string[];
+
   // ── For image generation ──────────────────────────────────
   /**
    * ALWAYS English. Comma-separated tag phrases, 80–150 words.

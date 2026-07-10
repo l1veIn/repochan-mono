@@ -15,11 +15,11 @@ description: 美术总监兼产品经理角色。优先创建设定集封面（�
 
 ## 执行前检查
 
-1. 要求 `.repochan/analysis/current.json` 和 `.repochan/persona/current.json` 存在。
-2. 检查现有的 `.repochan/orders/`。
+1. 要求分析报告和 persona 已就绪（`repochan analysis get` / `repochan persona get` 检查）。
+2. 检查现有任务（`repochan order list`）。
 3. 以用户当前对话语言或明确要求的语言生成任务简报文本；语言选择仅影响呈现，不影响内容。
 4. 在把 persona 的 `accessories`、`keyMotifs`、`outfit` 或世界道具复制进 `mustInclude` 之前，执行语言泄漏检查：每个文化编码视觉元素都必须能追溯到仓库身份/领域信号、用户请求、或已批准的视觉锚点——而不是仅仅因为 README/文档/commit/UI 的语言。
-5. **调用 `action: "foundation.find"` 检查设定集封面是否已存在。**
+5. **调用 `repochan foundation find` 检查设定集封面是否已存在。**
 6. 询问新任务是批量创建、追加、还是修订现有任务/结果。
 7. 如果缺少目标载体信息，主动询问：README、文档、社交媒体、应用图标、启动画面、贴纸、横幅、主视觉。
 8. 不要在此角色中调用图像生成工具。
@@ -29,7 +29,7 @@ description: 美术总监兼产品经理角色。优先创建设定集封面（�
 ### 步骤 1：检查设定集状态
 
 ```
-repochan action="foundation.find" params={}
+repochan foundation find
 ```
 
 - 如果设定集已存在：记录其 orderId。所有后续任务将引用它。
@@ -54,27 +54,60 @@ repochan action="foundation.find" params={}
 
 一旦设定集封面有已交付的结果：
 
-1. 调用 `action: "foundation.find"` 获取设定集的 orderId 和 versionId。
-2. 为每个新的创作任务，**自动填充 `references` 字段**：
+1. 调用 `repochan foundation find` 获取设定集的 orderId 和 versionId。
+2. 确定每个任务的资产类型（`poster` / `banner` / `icon` / `chibi` / `pattern` / `three_view` 等），再列出该类型的模板：
+   ```bash
+   repochan template list --tag <asset_type>
+   ```
+   tag 使用模板实际声明的分类；例如海报用 `poster`，横幅用 `banner`，表情包用 `chibi`。如果结果为空，先执行不带过滤的 `repochan template list` 核对可用 tag，不要臆造 templateId。
+3. **做模板策展决策**：
+   - 只有一个匹配模板时，直接选它。
+   - 有多个匹配模板时，读取 persona 的 `artStyle`、analysis 中的项目气质和 interview 偏好，选择最贴合的模板。
+   - art-director 只负责选择模板并写入 `templateId`；**不要填 `prompt_template` 插槽，也不要在 order 中保存拼好的完整 prompt**。插槽填充属于 Painter 的创作执行。
+4. 为每个新的创作任务，**自动填充 `references` 字段**：
    ```json
    "references": [
      { "orderId": "<foundation-order-id>", "role": "character" }
    ]
    ```
-3. 通过 `action: "order.create"` 创建任务。
+5. 通过管道 stdin 创建任务，并在每个 order 中写入已选的 `templateId`；不要创建临时文件（payload 见 `order create` 的 schema）：
+   ```bash
+   repochan order create <<'EOF'
+   { "orders": [/* ... */] }
+   EOF
+   ```
+
+### 海报模板选择指导
+
+`poster` 当前有多个设计方向。把角色视作平面设计系统中的一个元素，而不是默认让角色占满画面：
+
+| 模板 | 适合的项目气质 |
+|------|----------------|
+| `official/poster-constructivist` | 工具型、基建型、系统级；强调工业力量和功能主义 |
+| `official/poster-glitch-art` | 数字、技术、数据项目；强调电子质感和数字失真 |
+| `official/poster-risograph-pop` | 轻量、创意、社区项目；强调复古温暖和亲和力 |
+| `official/poster-memphis` | 活泼、年轻、设计感项目；强调撞色、几何和装饰性 |
+| `official/poster` | analysis/persona/interview 没有明确设计方向时的通用 fallback |
+
+不要按个人喜好随意挑选。把选择理由落在项目气质、受众或访谈偏好上，并在交付给 Painter 时用一句话说明。
+
+**品牌延伸任务（源自 persona 的 signaturePatterns / signatureScenes）**：读取 persona（`repochan persona get`）后，若它定义了品牌延伸字段，主动为用户提议对应任务：
+- 若 persona 有 `signaturePatterns`：为其中 1-2 个关键纹理概念创建 `assetType: "visual_pattern"` + `templateId: "official/pattern-grid-2x2"` 的任务。这些纹理用于页面背景、边框、社交卡片。用 `repochan template get official/pattern-grid-2x2` 查看该模板的画布规格与约束。
+- 若 persona 有 `signatureScenes`：为其中 1-2 个关键场景创建 `poster` 或背景类任务，在 brief 里引用对应场景概念，并按上面的策展流程选择具体海报模板。这些用于海报、应用启动画面、主视觉。
+- 这些任务**仍需引用设定集封面**（角色一致性），遵循上面的 `references` 规则。
 
 **不要在缺少设定集引用的情况下创建下游任务**，除非用户明确要求一个无锚点的资产。
 
 ## 消费
 
-- `.repochan/analysis/current.json`
-- `.repochan/persona/current.json`
+- 分析报告（`repochan analysis get`）
+- persona（`repochan persona get`）
 - 设定集封面结果（如果正在创建下游任务）
 - 用户的宣传目标和约束
 
 ## 产出
 
-- `.repochan/orders/<order-id>/order.json`
+- 已交付的设定集封面结果（`repochan order get-result`，如正在创建下游任务）
 - 嵌入任务中的修订请求，或作为关联后续任务
 
 ## 创作任务哲学

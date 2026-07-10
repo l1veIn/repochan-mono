@@ -1,0 +1,16 @@
+id: "official/poster"
+asset_type: "poster"
+label: "通用角色主视觉"
+description: "无明确设计运动时的通用角色主视觉海报。"
+tags: ["poster", "illustration", "showcase"]
+size: "1536x1024"
+
+prompt_template: |
+  premium key-visual poster for {{repo_name}}, {{art_style}},
+  {{character_visual}} as one strong focal element within {{signature_scene}},
+  integrate {{key_motifs}} into the environment and use {{color_palette}},
+  dynamic editorial composition, dramatic lighting, environmental storytelling,
+  designed title "{{repo_name}}" and subtitle "{{character_name}}" integrated into the artwork,
+  no character-sheet panels or palette callouts, masterpiece, best quality, highly detailed
+
+constraints: []

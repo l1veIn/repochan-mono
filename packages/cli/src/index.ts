@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createRequire } from "node:module";
 import { cac } from "cac";
 import { printError } from "./lib/output.js";
 import * as top from "./commands/toplevel.js";
@@ -11,7 +12,10 @@ import * as setup from "./commands/setup.js";
 import * as template from "./commands/template.js";
 import * as image from "./commands/image.js";
 
-const VERSION = "0.2.0";
+// Read version from package.json at runtime so there's a single source of
+// truth — bumping package.json version is enough, no hardcoded constant to sync.
+const require = createRequire(import.meta.url);
+const { version: VERSION } = require("../package.json") as { version: string };
 const cli = cac("repochan");
 
 // cac passes positional args unreliably to actions (variadic args collapse),
@@ -169,12 +173,17 @@ cli.command("protocol <sub>", "Protocol-level operations")
   });
 
 // ---- template ----
-cli.command("template <sub>", "Templates (Phase 3)")
+cli.command("template <sub>", "Asset templates")
   .option("--json", "Machine-readable JSON output")
+  .option("--tag <tag>", "Filter template list by tag")
   .action(async (_p: any, opts: any) => {
-    const [sub] = cli.args;
-    if (sub === "list") return await template.runTemplateList(process.cwd(), opts);
-    throw new Error(`Unknown template subcommand: ${sub}. Use: list`);
+    const args = cli.args; // [sub, id?]
+    const sub = args[0];
+    switch (sub) {
+      case "list": return await template.runTemplateList(process.cwd(), opts);
+      case "get": return await template.runTemplateGet(process.cwd(), args[1], opts);
+      default: throw new Error(`Unknown template subcommand: ${sub}. Use: list | get`);
+    }
   });
 
 // ---- image ----
@@ -182,7 +191,8 @@ cli.command("template <sub>", "Templates (Phase 3)")
 cli.command("image <sub>", "Image generation, configure, and editing")
   .option("--json", "Machine-readable JSON output")
   .option("--prompt <text>", "Prompt (image gen)")
-  .option("--out <path>", "Output path (image gen) or dir (image edit slice)")
+  .option("--reference <path>", "Reference image(s) for image-to-image (image gen, repeatable)")
+  .option("--out <path>", "Output path (gen/bg-remove/gif) or dir (edit slice)")
   .option("--endpoint <id>", "Endpoint id (image gen), overrides config default")
   .option("--aspect <ratio>", "landscape | square | portrait (image gen)")
   .option("--size <size>", "1024x1024 | 1536x1024 | 1024x1536 (image gen)")
@@ -191,7 +201,11 @@ cli.command("image <sub>", "Image generation, configure, and editing")
   .option("--provider <p>", "openai | custom | skip (image configure)")
   .option("--api-key <key>", "API key (image configure)")
   .option("--base-url <url>", "Custom OpenAI-compatible base URL (image configure)")
-  .option("--model <model>", "Model id (image configure), default gpt-image-2")
+  .option("--model <model>", "Model id (image configure) or ISNet model small|medium|large (bg-remove)")
+  .option("--fps <n>", "Frames per second (image edit gif-from-frames)", { default: undefined })
+  .option("--delay <ms>", "Per-frame delay in ms, single or comma-list (image edit gif-from-frames)")
+  .option("--loop <n>", "Loop count, 0 = infinite (image edit gif-from-frames)", { default: undefined })
+  .option("--overwrite", "Overwrite existing output (bg-remove / gif-from-frames)")
   .action(async (_p: any, opts: any) => {
     const args = cli.args; // [sub, imagePath?]
     const sub = args[0];
@@ -208,7 +222,9 @@ cli.command("image <sub>", "Image generation, configure, and editing")
       case "edit": {
         const editSub = args[1];
         if (editSub === "slice") return await image.runImageEditSlice(process.cwd(), args[2], opts);
-        throw new Error(`Unknown image edit subcommand: ${editSub}. Use: slice`);
+        if (editSub === "bg-remove") return await image.runImageEditBgRemove(process.cwd(), args[2], opts);
+        if (editSub === "gif-from-frames") return await image.runImageEditGifFromFrames(process.cwd(), args.slice(2), opts);
+        throw new Error(`Unknown image edit subcommand: ${editSub}. Use: slice | bg-remove | gif-from-frames`);
       }
       default: throw new Error(`Unknown image subcommand: ${sub}. Use: gen | configure | edit`);
     }
@@ -221,6 +237,8 @@ cli.command("setup", "Install skills for your agent(s) + inject a reference")
   .option("--yes", "Non-interactive: one primary detected agent (install) or all configured (remove)")
   .option("--list", "Show detected / configured agents")
   .option("--remove", "Remove RepoChan setup (use with --agent or --yes)")
+  .option("--global", "Install skills to ~/<agent>/skills (all projects)")
+  .option("--project", "Install skills to <project>/<agent>/skills only")
   .action(async (opts: any) => { await setup.runSetup(process.cwd(), opts); });
 
 // ---- parse ----

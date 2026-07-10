@@ -1,0 +1,16 @@
+id: "official/readme-banner-21x9"
+asset_type: "readme_banner"
+label: "README 横幅"
+description: "宽幅项目主视觉，适合 GitHub README 首屏；输出尺寸适配图像模型支持档位。"
+tags: ["readme_banner", "banner", "illustration", "readme"]
+size: "1536x1024"
+
+prompt_template: |
+  wide editorial hero banner for the software project {{repo_name}},
+  {{character_visual}} acting as {{project_metaphor}}, placed in {{signature_scene}},
+  project-specific composition built from {{key_motifs}}, palette {{color_palette}},
+  render the repository name "{{repo_name}}" as prominent designed typography integrated into the artwork,
+  professional open-source branding, clear focal hierarchy, strong crop-safe central composition,
+  masterpiece, best quality
+
+constraints: []

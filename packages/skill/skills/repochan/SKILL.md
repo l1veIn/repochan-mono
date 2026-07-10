@@ -21,9 +21,9 @@ description: RepoChan 向导——默认一键调度全流程，把 git 仓库�
 你的职责是**自己串起整条链**，不需要用户逐步指挥：
 
 ```
-① 分析师    → repochan-analysis    → 理解仓库，写 .repochan/analysis/
+① 分析师    → repochan-analysis    → 理解仓库，产出分析报告
 ② 访谈专员  → repochan-interviewer → 〔可选〕提炼用户偏好
-③ 创意团队  → repochan-persona     → 造人格，写 .repochan/persona/
+③ 创意团队  → repochan-persona     → 造人格，产出人设
    ⏸ 检查点 1：persona 定稿后停下，展示给用户确认
 ④ 美术总监  → repochan-art-director → 先创建 foundation_sheet 任务（视觉锚点）
 ⑤ 画师      → repochan-painter     → 执行设定集封面
@@ -35,7 +35,7 @@ description: RepoChan 向导——默认一键调度全流程，把 git 仓库�
 ⑨ 部署上线  → 构建 + 部署到 GitHub Pages
 ```
 
-每一步你要：读对应团队 skill 的指引 → 按它的指导跑（调 cli 子命令、读 `.repochan/` 上游产物）→ 完成后进入下一阶段。
+每一步你要：读对应团队 skill 的指引 → 按它的指导跑（调 cli 子命令、用 `repochan <entity> get` 读上游产物）→ 完成后进入下一阶段。
 
 ## 三档体验
 
@@ -72,19 +72,27 @@ description: RepoChan 向导——默认一键调度全流程，把 git 仓库�
 
 无论哪种模式，都遵循 RepoChan 的核心约束：**视觉一致性通过设定集封面（foundation sheet）实现**。这是第一个真正的图像产出，作为所有下游资产的视觉锚点。每个后续资产都引用设定集封面。
 
-持久状态保存在 `.repochan/`，使产出可检查、可复现、可修订。这些依赖由 core 层强制校验——缺上游会被工具拒绝执行。完整规范见 `repochan-protocol` skill。
+持久状态由 CLI 管理（`repochan` 子命令读写），使产出可检查、可复现、可修订。这些依赖由 core 层强制校验——缺上游会被 CLI 拒绝执行并报错。**团队调用顺序**（后一步依赖前一步的产物，CLI 会强制校验）：
+
+1. **分析**（`repochan-analysis`）——无上游依赖，扫描仓库。
+2. **访谈**（`repochan-interviewer`）——〔可选〕依赖分析。
+3. **人设**（`repochan-persona`）——依赖分析，可选消费访谈。
+4. **任务**（`repochan-art-director`）——依赖分析 + 人设。
+5. **绘制**（`repochan-painter`）——依赖分析 + 人设 + 一个已批准的任务。
+
+每一步用对应的 `repochan <entity> get` 检查上游是否就绪，不要假设或直接读内部文件。
 
 ## 边界
 
-- **你改的是模板/产物文件，不是 `.repochan/`**。`.repochan/` 的写入只有 cli（经 core 校验）能做。你调度团队跑 cli 子命令，cli 负责 protocol-safe 的落盘。
-- 你不亲自执行代码——你指挥 agent（你自己）跑 cli 子命令、读 `.repochan/` 文件、做创作判断。
+- **你改的是模板/产物文件，不是协议状态**。协议状态（分析、人设、任务等）的写入只有 CLI（经 core 校验）能做。你调度团队跑 cli 子命令，cli 负责 protocol-safe 的落盘。
+- 你不亲自执行代码——你指挥 agent（你自己）跑 cli 子命令、用 `repochan <entity> get` 读取上游产物、做创作判断。
 
 ## 执行前检查
 
 收到总指令后，先做：
-1. 检查 `.repochan/` 是否存在（`repochan status` 或 `action: "protocol.inspect"`）。
+1. 检查项目是否已初始化、现有哪些产物（`repochan status`）。**若 status 提示 "Skill version drift"（skill 版本与当前 CLI 不一致），先让用户运行 `repochan setup` 刷新 skill**——版本不匹配时你可能用到过时的流程指引。
 2. 如果已有产物，总结现有进度，判断从哪一步续跑。
-3. 通过 `action: "foundation.find"` 检查视觉锚点是否已存在——已存在则跳到下游任务。
+3. 通过 `repochan foundation find` 检查视觉锚点是否已存在——已存在则跳到下游任务。
 4. 确认用户要的终点（全套资产？到图为止？要部署吗？）。
 
 ## 团队 skill 索引
@@ -97,7 +105,6 @@ description: RepoChan 向导——默认一键调度全流程，把 git 仓库�
 | ④⑤⑥ 美术指导 | `repochan-art-director` | 创建设定集 + 下游任务 |
 | ⑤⑦ 绘制 | `repochan-painter` | 执行图像任务 |
 | ⑧ 页面 | `repochan-page-designer` | 落地页 |
-| 协议 | `repochan-protocol` | `.repochan/` 规范（参考用） |
 
 需要某一步的细节时，加载对应团队 skill 的完整指引。
 
@@ -106,7 +113,7 @@ description: RepoChan 向导——默认一键调度全流程，把 git 仓库�
 **用户**："给我的项目生成全套资产并部署到 GitHub Pages"
 
 **你的行为**（向导模式）：
-1. 检查 `.repochan/` 现状，告知用户将从分析开始。
+1. 检查现有产物（`repochan status`），告知用户将从分析开始。
 2. 加载 `repochan-analysis`，跑分析。
 3. （interview 可选，询问或跳过）
 4. 加载 `repochan-persona`，造人格。

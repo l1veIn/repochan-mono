@@ -18,7 +18,7 @@ description: 项目落地页设计师。为用户的 git 仓库设计可二次�
 生产级页面输出应优先使用：
 
 ```
-repochan action="page.generate_project" params={ "outputDir": "repochan-page" }
+repochan page generate-project --output-dir repochan-page
 ```
 
 默认目标是生成或维护一个正常的 `repochan-page/` Web 项目，而不是一次性 HTML 字符串。页面模板负责组件结构；你负责填充和维护：
@@ -143,7 +143,7 @@ persona 为页面提供**视觉品牌**，不是页面内容：
 #### 步骤 1：读取项目信息（首要）
 
 ```
-repochan action="analysis.get" params={}
+repochan analysis get --json
 ```
 
 从 analysis 提取：
@@ -153,18 +153,18 @@ repochan action="analysis.get" params={}
 
 然后读取 persona 获取配色：
 ```
-repochan action="persona.get" params={}
+repochan persona get --json
 ```
 
 #### 步骤 2：盘点可用素材
 
 ```
-repochan action="order.list" params={}
+repochan order list --json
 ```
 
 对每个 delivered order，读取 result 了解图片：
 ```
-repochan action="order.get_result" params={ "orderId": "ord-xxx" }
+repochan order get-result ord-xxx <versionId> --json
 ```
 
 #### 步骤 3：设计页面结构
@@ -187,7 +187,7 @@ repochan action="order.get_result" params={ "orderId": "ord-xxx" }
 读取或创建页面工程，并审计 `src/config/assets.ts`：
 
 ```
-repochan action="page.generate_project" params={ "outputDir": "repochan-page" }
+repochan page generate-project --output-dir repochan-page
 ```
 
 - 已交付图片：复制到 `repochan-page/public/repochan-assets/<orderId>/<versionId>/<file>`，并在 `assets.ts` 标为 `ready`
@@ -199,7 +199,8 @@ repochan action="page.generate_project" params={ "outputDir": "repochan-page" }
 如果设计了需要图片的 section 但没有合适的素材，创建订单：
 
 ```
-repochan action="order.create" params={
+repochan order create <<'EOF'
+{
   "orders": [{
     "orderId": "ord-page-hero-001",
     "requestType": "new_asset",
@@ -216,6 +217,7 @@ repochan action="order.create" params={
     "acceptanceCriteria": ["构图适合网页 hero 区"]
   }]
 }
+EOF
 ```
 
 请用户批准后，移交 Painter 出图。
@@ -233,7 +235,7 @@ repochan action="order.create" params={
 #### 步骤 6：生成或打开页面工程
 
 ```
-repochan action="page.generate_project" params={ "outputDir": "repochan-page" }
+repochan page generate-project --output-dir repochan-page
 ```
 
 如果 `repochan-page/` 已存在，不要覆盖；直接读取它的 README、`src/i18n/*.json`、`src/config/*.ts` 和组件结构。

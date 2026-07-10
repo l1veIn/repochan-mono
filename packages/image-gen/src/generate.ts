@@ -57,9 +57,18 @@ export async function generate(
     params.size ?? (params.aspectRatio ? SIZE_FOR_RATIO[params.aspectRatio] : config.size ?? "1024x1024");
 
   try {
+    // When reference images are provided, use the { images, text } prompt form
+    // for image-to-image conditioning (character consistency, style transfer).
+    const prompt = params.referenceImages?.length
+      ? {
+          images: params.referenceImages.map((img) => img.data),
+          text: params.prompt,
+        }
+      : params.prompt;
+
     const result = await generateImage({
       model: provider.image(model),
-      prompt: params.prompt,
+      prompt,
       size,
       ...(options.signal ? { abortSignal: options.signal } : {}),
     });

@@ -1,0 +1,17 @@
+id: "official/foundation-sheet"
+asset_type: "foundation_sheet"
+label: "设定集封面"
+description: "项目视觉锚点：全身立绘、Q版、表情、配色卡、关键元素和图标示例。"
+tags: ["foundation_sheet", "sheet", "foundation", "anchor"]
+size: "1024x1024"
+
+prompt_template: |
+  professional anime character foundation sheet for {{repo_name}}, single clean concept-sheet composition,
+  {{character_visual}}, character name "{{character_name}}",
+  one main full-body illustration using {{signature_pose}}, plus a small visual cue of {{signature_action}},
+  one simplified chibi, three distinct expression headshots, compact palette swatches using {{color_palette}},
+  key motif callouts for {{key_motifs}}, one polished app-icon mockup derived from the character,
+  neat white or very light background, readable hierarchy, consistent identity across every depiction,
+  masterpiece, best quality
+
+constraints: []

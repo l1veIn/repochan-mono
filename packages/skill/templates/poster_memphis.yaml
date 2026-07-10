@@ -1,0 +1,16 @@
+id: "official/poster-memphis"
+asset_type: "poster"
+label: "孟菲斯几何撞色海报"
+description: "不对称分割、几何色块与俏皮撞色，适合活泼、年轻和设计感项目。"
+tags: ["poster", "design", "memphis", "playful"]
+size: "1536x1024"
+
+prompt_template: |
+  Memphis design poster for {{repo_name}}, asymmetrical composition with playful geometric partitions,
+  {{character_visual}} integrated among zigzags, circles, arches, dots, and {{key_motifs}},
+  energetic contrasting palette {{color_palette}}, flat shapes with selective dimensional shadows,
+  bold title "{{repo_name}}", subtitle "{{character_name}}", decorative typography,
+  {{signature_scene}}, youthful optimistic rhythm, polished brand-design finish,
+  masterpiece, best quality
+
+constraints: []

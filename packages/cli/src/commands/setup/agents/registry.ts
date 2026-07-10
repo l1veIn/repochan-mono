@@ -56,7 +56,8 @@ export const ALL_TARGETS: readonly AgentTarget[] = Object.freeze([
   {
     id: "hermes",
     displayName: "Hermes Agent",
-    skillDir: null,
+    skillDir: ".hermes/skills",
+    globalSkillDir: ".hermes/skills",
     instructionFile: "AGENTS.md",
     instructionMode: "marker",
     detectInstalled: () => exists(hermesHome()),
@@ -75,6 +76,8 @@ export const ALL_TARGETS: readonly AgentTarget[] = Object.freeze([
     id: "pi",
     displayName: "Pi",
     skillDir: "skills",
+    // Pi global skills live under ~/.pi/agent/skills (not ~/.pi/skills).
+    globalSkillDir: ".pi/agent/skills",
     instructionFile: "AGENTS.md",
     instructionMode: "marker",
     detectInstalled: () => exists(home(".pi")) || exists(path.join(process.cwd(), ".pi")),
@@ -82,7 +85,8 @@ export const ALL_TARGETS: readonly AgentTarget[] = Object.freeze([
   {
     id: "opencode",
     displayName: "opencode",
-    skillDir: null, // no native skills dir → .repochan/skills
+    skillDir: ".config/opencode/skills",
+    globalSkillDir: ".config/opencode/skills",
     instructionFile: "AGENTS.md",
     instructionMode: "marker",
     detectInstalled: () =>
@@ -93,7 +97,8 @@ export const ALL_TARGETS: readonly AgentTarget[] = Object.freeze([
   {
     id: "gemini",
     displayName: "Gemini CLI",
-    skillDir: null,
+    skillDir: ".gemini/skills",
+    globalSkillDir: ".gemini/skills",
     instructionFile: "GEMINI.md",
     instructionMode: "marker",
     detectInstalled: () => exists(home(".gemini")),
@@ -101,7 +106,8 @@ export const ALL_TARGETS: readonly AgentTarget[] = Object.freeze([
   {
     id: "kiro",
     displayName: "Kiro",
-    skillDir: null,
+    skillDir: ".kiro/steering",
+    globalSkillDir: ".kiro/steering",
     instructionFile: ".kiro/steering/repochan.md",
     instructionMode: "owned-file",
     detectInstalled: () => exists(home(".kiro")),
@@ -109,8 +115,9 @@ export const ALL_TARGETS: readonly AgentTarget[] = Object.freeze([
   {
     id: "antigravity",
     displayName: "Antigravity IDE",
-    skillDir: null,
-    // Shares project GEMINI.md with Gemini CLI — marker upsert is idempotent.
+    skillDir: ".gemini/skills",
+    // Shares global skill dir + project GEMINI.md with Gemini CLI — markers
+    // are per-agent so both can coexist in the same files.
     instructionFile: "GEMINI.md",
     instructionMode: "marker",
     detectInstalled: () =>

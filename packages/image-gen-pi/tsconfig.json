@@ -1,9 +1,0 @@
-{
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "noEmit": true,
-    "types": ["node"]
-  },
-  "include": ["extensions/**/*.ts", "src/**/*.ts"],
-  "exclude": ["dist"]
-}

@@ -1,0 +1,15 @@
+id: "official/poster-risograph-pop"
+asset_type: "poster"
+label: "Risograph 半调波普海报"
+description: "网点纹理、高饱和撞色与复古杂志排版，适合轻量、创意和社区项目。"
+tags: ["poster", "design", "risograph", "pop"]
+size: "1536x1024"
+
+prompt_template: |
+  risograph pop poster for {{repo_name}}, warm retro magazine layout with playful editorial energy,
+  {{character_visual}} simplified into bold overlapping color planes, palette {{color_palette}},
+  coarse halftone dots, imperfect ink registration, paper grain, {{key_motifs}} as repeating pop symbols,
+  friendly oversized title "{{repo_name}}", subtitle "{{character_name}}", {{signature_scene}},
+  approachable community atmosphere, clear graphic rhythm, masterpiece, best quality
+
+constraints: []

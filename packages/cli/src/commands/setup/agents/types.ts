@@ -50,6 +50,12 @@ export interface AgentTarget {
    * shared fallback (`.repochan/skills`) so instructions can still link.
    */
   readonly skillDir: string | null;
+  /**
+   * Home-relative skill destination for global install. Defaults to `skillDir`
+   * when omitted. Only set when the global path differs from the project path
+   * (e.g. Pi: project `.pi/skills` vs global `~/.pi/agent/skills`).
+   */
+  readonly globalSkillDir?: string;
   /** Project-relative instructions path. */
   readonly instructionFile: string;
   readonly instructionMode: InstructionMode;

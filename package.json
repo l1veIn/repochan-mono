@@ -2,7 +2,7 @@
   "name": "repochan-monorepo",
   "private": true,
   "version": "0.1.0",
-  "description": "RepoChan monorepo containing the pure @repochan/core library and the public Pi package.",
+  "description": "RepoChan monorepo: core protocol + CLI (sole binding surface) + skill/template assets. Agent-agnostic — bring your own (Pi / Claude Code / Codex).",
   "type": "module",
   "packageManager": "pnpm@9.15.4",
   "repository": {
@@ -16,7 +16,7 @@
   "scripts": {
     "build": "pnpm -r build",
     "test": "pnpm --filter @repochan/core build && pnpm -r test",
-    "dev": "pnpm exec pi -e ./packages/pi/extensions/repochan.ts",
+    "dev": "pnpm --filter repochan exec tsx src/index.ts",
     "lint": "pnpm -r lint",
     "cli": "pnpm --filter repochan run cli",
     "cli:dev": "pnpm --filter repochan exec tsx src/index.ts"

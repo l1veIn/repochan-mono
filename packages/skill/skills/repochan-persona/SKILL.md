@@ -89,6 +89,11 @@ description: 创意团队角色。使用三智能体协作团队（世界架构�
 - 当访谈报告提供了参考角色特质时，将其*本质*吸收到源自仓库的设计中——不要复制粘贴或缝合式合并。
 - **选定艺术风格（artStyle）**：从世界架构师的 `proposedArtStyles` 提案中选定**一个**作为 `persona.artStyle`。这是你的**选择权**——上游提案，你定夺。选择依据：哪个风格最能承载角色的核心情感 + 项目的视觉气质。如果访谈报告指定了画风，直接用访谈的（跳过提案）。选定后写入 `artStyle` 字段。这个风格将驱动海报等艺术资产的视觉表现。
 
+**品牌延伸设计（signaturePatterns / signatureScenes）**：角色设计师还要为角色设计专属品牌视觉延伸，写入 `signaturePatterns` 和 `signatureScenes`。它们不是凭空装饰，而是从项目领域信号 + 角色身份自然长出的视觉资产母题，用于后续品牌页面、海报和背景生成。
+- **`signaturePatterns`（专属纹理，2-4 个）**：基于角色的 `keyMotifs` 和 colorPalette（`mainColor` / `secondaryColor` / `accentColors`）派生四面连续/可平铺/可切片的图案概念。每个 entry 是一个图案创意意图，并注明用途方向（页面 section 背景 / 边框分割线 / 社交媒体卡片背景 / 周边商品底纹）。纹理使用 motif、符号、剪影和材质节奏来表达角色，不要把角色本人当主体；必须足够低调，不能干扰标题和正文可读性。例："压制花瓣碎片与标本标签组成的四方连续纹样，用于 section 背景，保留森林绿与黄铜色调。"
+- **`signatureScenes`（专属背景，2-3 个）**：承载角色世界观氛围的背景场景概念。每个 entry 描述一个具体场景，包含情绪基调 + 关键视觉元素，用于海报、背景图、应用启动画面等。例："雾气弥漫的植物标本图书馆中庭，午后斜阳透过标本柜玻璃，漂浮的标签像微小书签一样缓慢旋转。"
+- 两者都必须能回答："它来自项目领域信号和角色身份的哪一部分？"如果答案只是"好看"或"通用装饰"，重做。
+
 **角色定位的多样化（避免"工具从业者"默认）**：仓库娘不一定是"维护/运营这个工具的人"。在确定角色与世界的关系时，主动探索多种定位方向，选最贴合项目气质的一种：
 - **从业者**：维护/运营工具的人（管理员、调度员、修复师）
 - **使用者**：依赖工具达成自己目标的人（用 redis 存记忆去探险的冒险家、用 marktext 写作的作家）
@@ -104,7 +109,8 @@ description: 创意团队角色。使用三智能体协作团队（世界架构�
 - 网络/路由主题 → 可能是旅行者/信使装扮，而非调度员制服
 - 主题为"瞬逝/缓存" → 和服/轻纱等暗示短暂之美的服装
 - 主题为"理解/启蒙" → 学院风、书卷气
-角色性格不重复是好的（已做到），但衣着也要有同等多样度。如果连续为不同项目设计，留意不要重复同一类鞋（靴子/帆布鞋/凉鞋/皮鞋应交替）和同一类外层。
+- 更多主题：中国风、奇幻风、魔法世界、运动风、铠甲、战斗服饰、无实体等等
+角色性格不重复是好的（已做到），但衣着也要有同等多样度。
 
 ### 3. 一致性守护者（Consistency Guardian）
 
@@ -121,11 +127,11 @@ description: 创意团队角色。使用三智能体协作团队（世界架构�
 
 ## 执行前检查
 
-1. 需要 `.repochan/analysis/current.json`。如果缺失，停止并要求用户运行 Analyst 技能。
+1. 需要分析报告已就绪（`repochan analysis get` 检查）。如果缺失，停止并要求用户先运行分析。
 2. 读取 `analysis.context.identity.namingSeeds`。这些仓库/产品/包名术语是吉祥物命名的主要来源。
 3. 如果旧制品中包含遗留的 `analysis.documentLanguage`、`analysis.languageSignals`、`persona.language` 和 `persona.nativeLanguage` 字段，忽略它们。它们是本地化元数据/已弃用字段，不是创作身份。
-4. **检查访谈报告**是否存在：`.repochan/interview/current.json`。使用 `repochan action="protocol.inspect"` 或 `repochan action="interview.get"`。访谈报告是**可选的**——如果存在，消费它（见下文）；如果不存在，依靠仓库证据 + 创意团队判断继续。
-5. 检查 `.repochan/persona/current.json` 和已有版本。
+4. **检查访谈报告**是否存在（`repochan interview get --json`）。访谈报告是**可选的**——如果存在，消费它（见下文）；如果不存在，依靠仓库证据 + 创意团队判断继续。
+5. 检查当前 persona 和已有版本（`repochan persona get`）。
 6. 如果已存在当前人设，询问是复用、修订、分叉还是替换。
 7. 使用任何已存在的用户指示：偏好类型、基调、文化约束、命名偏好、要避免的东西。
 8. 如果没有提供可选指示，直接从仓库证据生成。在单阶段运行中，不要因可选偏好而停下。
@@ -154,13 +160,16 @@ persona 没有"交付物"概念，所以只有两种 verdict：
    - 用户说"角色再成熟一些" → notes: "提升角色视觉年龄感，调整发型和服饰向更成熟的风格靠拢，保持核心身份特征不变"
    - 用户说"气质太冷了" → notes: "降低距离感，增加亲和力元素，调整表情和配饰让角色更平易近人"
 
-2. **创建 persona review**：
-   ```
-   repochan action="persona.review" params={
-     verdict: "revise",
-     notes: "<提炼后的重做指令>",
-     reviewerRole: "user"
+2. **创建 persona review**（通过管道 stdin 传入 JSON，不要创建临时文件）：
+   ```bash
+   repochan persona review <<'EOF'
+   {
+     "verdict": "revise",
+     "notes": "<提炼后的重做指令>",
+     "reviewerRole": "user",
+     "overwrite": true
    }
+   EOF
    ```
    写入 `persona/reviews/current.json`。如果已有 review，用 `overwrite=true`（旧 review 自动归档）。
 
@@ -187,18 +196,20 @@ persona 没有"交付物"概念，所以只有两种 verdict：
 
 ### 流程
 
-1. **用 `persona.create_candidate` 生成每个方案**（而非 `persona.create`）：
-   ```
-   repochan action="persona.create_candidate" params={
-     persona: { name: "Reyna", rolePrompt: "...", ... },
-     slug: "mature"
+1. **用 `repochan persona candidate create` 生成每个方案**（而非 `repochan persona create`，通过管道 stdin 传入 JSON，不要创建临时文件）:
+   ```bash
+   repochan persona candidate create <<'EOF'
+   {
+     "persona": { "name": "Reyna", "rolePrompt": "..." },
+     "slug": "mature"
    }
+   EOF
    ```
    每个 candidate 用不同的 slug（如 mature、playful）。它们不会覆盖 `current.json`——只是并行存在的草案。
 
 2. **用户选定后，promote 一个为 current**：
-   ```
-   repochan action="persona.promote_candidate" params={ slug: "mature" }
+   ```bash
+   repochan persona candidate promote --slug mature
    ```
    被选中的 candidate 复制到 `current.json`（如果已有 current，旧值自动归档到 `versions/`），candidate 文件被删除。其余 candidate 保留。
 
@@ -211,7 +222,7 @@ persona 没有"交付物"概念，所以只有两种 verdict：
 
 ## 消费访谈报告
 
-访谈报告（`.repochan/interview/current.json`）是与仓库分析并列的**第二大核心输入**。它承载用户意图——分析提供客观证据，访谈则告诉创意团队*用户想要什么样的灵魂*。
+访谈报告（`repochan interview get` 读取）是与仓库分析并列的**第二大核心输入**。它承载用户意图——分析提供客观证据，访谈则告诉创意团队*用户想要什么样的灵魂*。
 
 ### 字段优先级
 
@@ -262,7 +273,7 @@ RepoChan 不再为吉祥物使用 `nativeLanguage`。仓库吉祥物不需要母
 
 ### 叙事字段语言（中文优先）
 
-叙事字段（`nameZh`、`appearance`、`hairColor`、`eyeColor`、`outfit`、`accessories`、`keyMotifs`、`signaturePose`、`signatureAction`、`designNotes`、`personality`、`backstory`、`hobbies`、`characterFlaws`、`catchphrase`、`world.*` 等）的语言按以下优先级决定：
+叙事字段（`nameZh`、`appearance`、`hairColor`、`eyeColor`、`outfit`、`accessories`、`keyMotifs`、`signaturePose`、`signatureAction`、`signaturePatterns`、`signatureScenes`、`designNotes`、`personality`、`backstory`、`hobbies`、`characterFlaws`、`catchphrase`、`world.*` 等）的语言按以下优先级决定：
 
 1. **用户显式请求的语言**（访谈/会话中明确要求）——最高优先级。
 2. **仓库文档语言**——读取 `analysis` 里的文档/README 语言信号。**中文仓库 → 叙事字段必须用中文**（`name` 仍可英文/拼音用于 rolePrompt，但 `nameZh` 必填且用汉字）。
@@ -382,7 +393,7 @@ Consistency Guardian 必须检查：中文仓库的叙事字段是否真的用�
 
 ### 阶段 0：准备
 
-1. 读取 `.repochan/analysis/current.json`。提取灵魂信号：历史、挣扎、设计品味、文档风格、命名约定、情感节奏、抽象维度。
+1. 用 `repochan analysis get` 读取分析报告。提取灵魂信号：历史、挣扎、设计品味、文档风格、命名约定、情感节奏、抽象维度。
 2. 如果访谈存在，读取 `summary`、`keyConstraints`、`preferences`、`avoidList`。映射到创作简报。如果缺失，注明完全的创作自由。
 3. 识别：这个仓库*关心*什么？一个基于它的价值观建立的世界会是什么样子？
 
@@ -425,7 +436,12 @@ Consistency Guardian 必须检查：中文仓库的叙事字段是否真的用�
 1. 组装完整的 persona JSON，匹配下方的 schema。
 2. 用驱动设计的关键仓库信号填充 `sourceSignals`。
 3. 填充 `userIntentSummary`。
-4. 通过 `repochan action="persona.create"` 保存，参数为 `{ persona: <full object>, slug: "v1", overwrite: true }`。
+4. 通过管道 stdin 保存 persona，不要创建临时文件。payload 含 `{ "persona": <full object>, "slug": "v1", "overwrite": true }`（也可按 CLI 支持使用 `--slug v1 --overwrite`）：
+   ```bash
+   repochan persona create <<'EOF'
+   { "persona": <full object>, "slug": "v1", "overwrite": true }
+   EOF
+   ```
 
 ## Persona 输出 schema（v2）
 
@@ -466,6 +482,8 @@ Consistency Guardian 必须检查：中文仓库的叙事字段是否真的用�
 
   "signaturePose": "肢体级精确的姿势描述",
   "signatureAction": "叙事性动作描述",
+  "signaturePatterns": ["专属纹理概念1（注明用途）", "专属纹理概念2（注明用途）"],
+  "signatureScenes": ["专属背景场景1（情绪+关键视觉元素）", "专属背景场景2（情绪+关键视觉元素）"],
 
   "abilities": ["二次元命名的能力1", "二次元命名的能力2"],
   "designNotes": "给后续资产复用的视觉规范",
@@ -534,6 +552,16 @@ Consistency Guardian 必须检查：中文仓库的叙事字段是否真的用�
   "keyMotifs": ["带拉丁名的植物标本标签", "夹克袖口的等高线刺绣", "黄铜仪器（卡尺、链条、指南针）"],
   "signaturePose": "单脚承重站立，左手在腰间高度拿着打开的标本夹，右手举起，拇指和食指丈量着只有她能看见的某物的距离",
   "signatureAction": "她触碰一个标本标签，干枯的花朵短暂地再次绽放，展示它生前的色彩，然后回到压制后的静止",
+  "signaturePatterns": [
+    "压制花瓣碎片与细小标本标签组成的四方连续纹样，用于页面 section 背景，保留森林绿、亚麻米色与黄铜色调，低对比不干扰文字",
+    "等高线刺绣与拉丁名编号交错形成的细线平铺图案，用于边框分割线和信息卡片边缘",
+    "黄铜测量链、微型叶片剪影和点状海拔标记组成的可切片底纹，用于社交媒体卡片背景"
+  ],
+  "signatureScenes": [
+    "雾气弥漫的植物标本图书馆中庭，午后斜阳透过标本柜玻璃，漂浮的标签像微小书签一样缓慢旋转，情绪安静而略带忧郁",
+    "清晨的高山草甸测量点，森林绿标本夹压在石头上，黄铜测量链沿等高线铺开，远处雾线按精确时辰散去，情绪克制、专注、清冷",
+    "废弃研究站的标本室夜晚，亚麻色纸页和干花在煤油灯旁堆叠，窗外山影像巨大的索引卡，情绪孤独但坚定"
+  ],
   "abilities": ["花期记忆索引", "海拔感知校准"],
   "designNotes": "通过圆框眼镜、鼓鼓的标本夹、森林绿蜡布夹克和她的丈量手势来保持她的辨识度。视觉身份是植物学田野考察，而非科技。避免任何电脑或屏幕母题。",
   "rolePrompt": "female anime character, short choppy black wind-tousled hair, round steel spectacles with chain strap, mossy green eyes with amber ring, calm composed expression, waxed canvas forest-green field jacket with many small pockets, worn linen shirt, charcoal trousers, leather hiking boots, fingerless gloves, leather specimen portfolio with brass clasps held at waist, brass measuring chain necklace, ink-stained notebook in breast pocket, standing with right hand raised measuring distance with fingers",
@@ -601,6 +629,17 @@ Consistency Guardian 必须检查：中文仓库的叙事字段是否真的用�
   "keyMotifs": ["她外套上闪电形状的缝补针脚", "覆盖她雨衣的手写天气符号", "破裂相机镜头母题"],
   "signaturePose": "迈步中向前倾身迎着风，雨衣在身后翻飞，右手抓着胸前的相机背带，左手遮在眼前仰望天空",
   "signatureAction": "她按下相机快门，被捕捉的闪电在镜头上方以微缩形态重放三秒",
+  "signaturePatterns": [
+    "手写天气符号、气压刻度和闪电形缝补针脚组成的斜向连续纹样，用于社交媒体卡片背景，深蓝底上点缀荧光黄与电光紫",
+    "破裂相机镜头的放射裂纹与微型云团剪影组成的可平铺图案，用于页面 section 背景，保持低透明度避免抢正文",
+    "气压计刻度、雨滴点阵和风向箭头排成的窄幅循环边框，用于边框分割线和按钮区域",
+    "荧光黄雨衣布纹上覆盖紫白色电弧短线的底纹，用于周边商品底纹，强调混乱迭代的能量感"
+  ],
+  "signatureScenes": [
+    "深蓝风暴带公路旁的黄昏，荧光黄雨衣被狂风吹起，远处云墙内有紫白闪电反复照亮破裂相机镜头，情绪兴奋、危险、带电",
+    "堆满剪贴簿和气压计的临时车库避难所，门外暴雨横扫，墙上贴满命名过的闪电照片，情绪混乱但充满生命力",
+    "风暴眼短暂安静的草地中央，雨滴悬在半空，气压刻度像环形光带围绕地平线，情绪紧绷、奇异、等待下一次爆发"
+  ],
   "abilities": ["雷击帧记忆", "气压读数直觉"],
   "designNotes": "通过蓝色头发中的白色雷击疤痕发束、荧光黄色标注雨衣、破裂的相机和前倾迎风的姿势来保持她的辨识度。视觉身份是风暴追逐田野考察，而非科技。避免任何电脑或屏幕母题。",
   "rolePrompt": "female anime character, dyed electric blue wind-tangled hair cropped short and practical, storm-cloud gray eyes with purple flecks, manic excited grin, wiry energetic body, oversized neon-yellow rubberized raincoat covered in hand-written notes, faded band t-shirt, ripped dark jeans, tall rubber boots, dented cracked camera on neck strap, barometric dial brooch, storm-cloud canvas messenger bag, mid-stride leaning into wind, right hand gripping camera strap, left hand shielding eyes looking upward",

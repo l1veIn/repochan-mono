@@ -1,0 +1,25 @@
+id: "official/icon-grid-3x3"
+asset_type: "icon"
+label: "3×3 图标探索矩阵"
+description: "同一品牌方向的 9 个图标方案，可切分后用于头像、文档、应用和社交预览。"
+tags: ["icon", "avatar", "grid"]
+size: "1024x1024"
+
+grid:
+  rows: 3
+  cols: 3
+  sliceable: true
+
+prompt_template: |
+  strict 3x3 app-icon exploration sheet for {{repo_name}}, exactly nine distinct but related square icon designs,
+  build a coherent icon family from {{character_visual}}, {{key_motifs}}, and {{color_palette}},
+  explore nine directions: {{icon_directions}}, each with a different crop, symbol emphasis, or geometric treatment,
+  every cell is a complete standalone app icon with a centered bold emblem, crisp silhouette, high contrast,
+  minimal layered geometry, balanced negative space, readable at favicon size, no small text,
+  consistent brand identity and premium product finish across all nine icons,
+  masterpiece, best quality
+
+constraints:
+  - "strict 3-row × 3-column grid with exactly 9 equal square icon cells"
+  - "every icon must stay fully inside its own cell; no foreground elements crossing cell boundaries"
+  - "consistent gutters and alignment between all cells"

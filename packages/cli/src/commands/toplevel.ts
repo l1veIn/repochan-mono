@@ -6,12 +6,14 @@ import {
   type ProtocolValidationProblem,
 } from "@repochan/core";
 import { asArray, bullet, dim, heading, printJson, type OutputOptions, yesNo } from "../lib/output.js";
+import { recordProjectInit, recordProjectSeen, getStaleSkillRecords, cliVersion } from "../lib/register.js";
 
 // ---------------------------------------------------------------------------
 // repochan init — initialize the .repochan/ protocol directory
 // ---------------------------------------------------------------------------
 export async function runInit(cwd: string, options: OutputOptions = {}) {
   await initProtocol(cwd);
+  await recordProjectInit(cwd);
   const summary = await inspectProtocol(cwd);
   if (options.json) return void printJson(summary);
   heading("RepoChan protocol initialized");
@@ -25,9 +27,15 @@ export async function runInit(cwd: string, options: OutputOptions = {}) {
 // ---------------------------------------------------------------------------
 export async function runStatus(cwd: string, options: OutputOptions = {}) {
   const protocol = await inspectProtocol(cwd);
+  // Refresh lastSeen for known projects (no-op if this project isn't registered).
+  if (protocol.exists) await recordProjectSeen(cwd);
   const orders = protocol.exists ? await listOrders(cwd) : { files: [], orders: [] };
   const resultCount = (orders.orders as any[]).reduce((sum, order) => sum + Number(order.resultCount ?? 0), 0);
-  const overview = { protocol, orders, results: { count: resultCount } };
+  // Skill/cli version drift — computed before the json early-return so both
+  // paths surface it. Empty when skills are in sync (the common case).
+  const stale = await getStaleSkillRecords();
+  const skills = { current: cliVersion(), stale };
+  const overview = { protocol, orders, results: { count: resultCount }, skills };
   if (options.json) return void printJson(overview);
 
   heading("RepoChan status");
@@ -43,6 +51,15 @@ export async function runStatus(cwd: string, options: OutputOptions = {}) {
   if (active.length) {
     console.log("\nActive work:");
     for (const order of active as any[]) console.log(`- ${order.orderId ?? order.file} ${dim(String(order.assetType ?? ""))}`);
+  }
+
+  if (stale.length) {
+    console.log("\nSkill version drift:");
+    for (const e of stale) {
+      const scope = `${e.scope} ${e.path}`;
+      console.log(`  - ${e.agentId}: ${e.installedVersion} → CLI ${e.currentVersion} ${dim(`(${scope})`)}`);
+    }
+    console.log(dim("Run `repochan setup` to refresh stale skills."));
   }
 
   if (!protocol.exists) console.log(dim("\nNext: run `repochan init` to create the protocol directory."));

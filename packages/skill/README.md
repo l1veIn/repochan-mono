@@ -13,7 +13,10 @@ This is a pure-markdown package (no build step, no code). It is the C-position o
 - `repochan-art-director` — Art Director: create the foundation sheet (visual anchor) + downstream tasks.
 - `repochan-painter` — Painter: execute image generation tasks.
 - `repochan-page-designer` — Page Designer (optional): build the landing page.
-- `repochan-protocol` — Protocol keeper: `.repochan/` workspace spec (reference).
+
+## Templates
+
+12 asset templates ship as YAML under `templates/` (foundation sheet, 2×2 pattern grid, chibi grids, five poster styles, banner, 3×3 icon exploration grid, and three-view). Each template centers on a reusable `prompt_template` with semantic `{{slot}}` placeholders, plus only the physical metadata needed for output and post-processing. The CLI reads them via `repochan template list [--tag <tag>]` and `repochan template get <id>`; project-level templates in `<projectRoot>/.repochan/templates/` override built-ins by id, and legacy width/height templates remain readable.
 
 ## Distribution
 
@@ -21,4 +24,4 @@ Per the ADR, skills ship bundled with the `repochan` CLI (`npm install -g repoch
 
 ## Status
 
-The team skills are migrated as-is from `packages/pi/skills/`. Their content still references Pi-era `action:` calls; they will be rewritten to CLI subcommands once the CLI refactor (Phase 2) finalizes the command surface. The wizard skill is already written to the new model (ADR §17).
+All skills are migrated to the new `repochan` CLI subcommand syntax (`repochan foundation find`, `repochan order create --data-file`, etc.). The wizard skill is written to the orchestrator model (ADR §17).

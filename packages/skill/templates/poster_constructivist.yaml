@@ -1,0 +1,16 @@
+id: "official/poster-constructivist"
+asset_type: "poster"
+label: "构成主义宣传海报"
+description: "几何对角线、工业质感与大字标题，适合工具型、基建型和系统级项目。"
+tags: ["poster", "design", "constructivist"]
+size: "1536x1024"
+
+prompt_template: |
+  constructivist propaganda poster design for {{repo_name}}, bold geometric diagonal composition,
+  {{character_visual}} treated as a graphic shape within the system, limited palette {{color_palette}},
+  {{key_motifs}} rendered as flat industrial symbols integrated into the geometry,
+  oversized title "{{repo_name}}", subtitle "{{character_name}}", functional sans-serif typography,
+  risograph halftone print texture, raw industrial atmosphere, {{signature_scene}},
+  masterpiece, best quality
+
+constraints: []

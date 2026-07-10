@@ -99,7 +99,8 @@ export async function runOrderGetResult(cwd: string, orderId: string, versionId:
 export async function runOrderResolveReferences(cwd: string, orderId: string, options: OutputOptions) {
   if (!orderId) throw new UsageError("Usage: repochan order resolve-references <id>");
   const order = await readOrder(cwd, orderId);
-  const result = await resolveOrderReferences(cwd, order);
+  const references = Array.isArray(order.references) ? order.references : [];
+  const result = await resolveOrderReferences(cwd, references);
   emitResult(options, `Resolved references for ${orderId}.`, result);
 }
 
