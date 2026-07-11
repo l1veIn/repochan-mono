@@ -37,7 +37,7 @@ description: >
 
 1. 要求分析报告已就绪（`repochan analysis get` 检查）。
 2. 要求 persona 已就绪（`repochan persona get` 检查）。
-3. 要求已选定一个 order（`repochan order get <id>` 检查）。如果状态是 `draft`，说明任务停在团队中断点；当任务已经交给画师执行时，视为用户已要求继续，直接帮忙批准：`repochan order set-status <orderId> approved`，然后正常执行。状态为 `approved` 时直接执行。只有在逐团队模式下用户尚未明确要求“画这个/执行这个订单”时，才停下来询问。
+3. 要求已选定一个 order（`repochan order get <id>` 检查）。状态为 `approved` / `in_progress` / `needs_revision` 时直接执行。若是 `draft`：在 **yolo / 向导已把任务交给画师** 时，先 `repochan order set-status <orderId> approved` 再画（兜底）；**理想情况 AD 在 yolo 下创建时已是 approved**。只有逐团队模式且用户未明确要求执行时，才对 draft 停下来询问。**禁止**因 draft 去要 API key 或结束会话。
 4. **如果状态是 `needs_revision`，这是 review 回流订单。** 进入 review 回流流程——读取 [workflows-review.md](references/workflows-review.md)，用上一版产物做图生图，而非从零生成。
 5. **检查任务是否有 `references`。** 如果有，解析它们。
 6. **读取任务的 `templateId`**（如果有）：`repochan template get <templateId>`。这给你权威的 `prompt_template`、输出尺寸、网格布局和技术约束。

@@ -1,7 +1,10 @@
 id: "official/icon-grid-3x3"
 asset_type: "icon"
 label: "3×3 图标探索矩阵"
-description: "同一品牌方向的 9 个图标方案，可切分后用于头像、文档、应用和社交预览。"
+description: >
+  同一品牌下的 9 个方形图标方案，按「角色存在感」光谱排布：
+  第 1 行基于角色头像/全身；第 2 行基于 Q 版大头贴；第 3 行不出现角色正脸，用主元素或剪影。
+  可切分后用于头像、文档、应用与社交预览。
 tags: ["icon", "avatar", "grid"]
 size: "1024x1024"
 
@@ -11,15 +14,36 @@ grid:
   sliceable: true
 
 prompt_template: |
-  strict 3x3 app-icon exploration sheet for {{repo_name}}, exactly nine distinct but related square icon designs,
-  build a coherent icon family from {{character_visual}}, {{key_motifs}}, and {{color_palette}},
-  explore nine directions: {{icon_directions}}, each with a different crop, symbol emphasis, or geometric treatment,
-  every cell is a complete standalone app icon with a centered bold emblem, crisp silhouette, high contrast,
-  minimal layered geometry, balanced negative space, readable at favicon size, no small text,
-  consistent brand identity and premium product finish across all nine icons,
+  strict 3x3 app-icon exploration sheet for {{repo_name}}, exactly nine distinct square icons,
+  ONE coherent brand family from {{character_visual}}, {{key_motifs}}, and {{color_palette}},
+  arrange cells by a CHARACTER-PRESENCE SPECTRUM (strongest → weakest, top → bottom):
+
+  ROW 1 (top, strongest character presence) — three app icons whose main subject is the character
+  rendered as a recognizable portrait or full-body crop suitable for an icon badge;
+  vary crop and pose across the three cells (e.g. face close-up / bust / full-body silhouette-friendly pose),
+  still read as premium app icons, not stickers or sheets,
+
+  ROW 2 (middle, medium character presence) — three app icons based on a CHIBI / big-head mascot treatment
+  of the same character; cute simplified proportions, large head, bold silhouette;
+  each cell a complete standalone icon with different chibi pose, framing, or motif accent,
+
+  ROW 3 (bottom, weakest character presence) — three app icons with NO readable character face or full figure;
+  design from primary brand elements only: {{key_motifs}}, geometric marks, abstract emblems,
+  or highly simplified character SILHOUETTE / shadow / negative-space hint at most;
+  motif-first product icons, not portraits,
+
+  every cell is a complete standalone app icon: centered bold emblem, crisp silhouette, high contrast,
+  minimal layered geometry, balanced negative space, readable at favicon size, no small text, no letters as decoration,
+  consistent color system and premium product finish across all nine,
+  do not mix rows: keep the three-tier presence spectrum visually obvious from top to bottom,
   masterpiece, best quality
 
 constraints:
   - "strict 3-row × 3-column grid with exactly 9 equal square icon cells"
+  - "row 1 = character portrait or full-body based icons (strongest character presence)"
+  - "row 2 = chibi / big-head mascot based icons (medium character presence)"
+  - "row 3 = no character face or full figure; motifs, symbols, or silhouette-only (weakest character presence)"
+  - "character presence must clearly decrease from top row to bottom row"
   - "every icon must stay fully inside its own cell; no foreground elements crossing cell boundaries"
   - "consistent gutters and alignment between all cells"
+  - "no small text, watermarks, or labels inside cells"

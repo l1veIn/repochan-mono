@@ -158,7 +158,7 @@ echo -e "${DIM}Archive: $ARCHIVE_DIR${RESET}"
 echo ""
 
 # ── The claude prompt (shared) ────────────────────────────────────
-CLAUDE_PROMPT='/repochan yolo 模式，生成全套资产：foundation_sheet、sticker_sheet(chibi 3x3)、poster、readme_banner、pattern。不要部署。完成后 repochan status 汇报。'
+CLAUDE_PROMPT='/repochan yolo 模式，生成全套资产：foundation_sheet、sticker_sheet(chibi 3x3)、poster、readme_banner、pattern、icon。不要部署。订单创建时必须 status=approved（不要 draft）。出图只调用 repochan image gen，禁止停下来要 API key 或跑 image configure。完成后 repochan status 汇报。'
 
 # ── Run pipeline for each project ─────────────────────────────────
 TOTAL=${#PROJECTS[@]}
@@ -234,16 +234,33 @@ for project in "${PROJECTS[@]}"; do
 done
 
 # Write summary.json
-python3 -c "
+# Under `set -u`, empty arrays must not expand as ${FAILED[*]} / "${arr[@]}".
+FAILED_JSON='[]'
+if [ ${#FAILED[@]} -gt 0 ]; then
+  FAILED_JSON="$(python3 -c 'import json,sys; print(json.dumps(sys.argv[1:]))' "${FAILED[@]}")"
+fi
+if [ ${#summary_entries[@]} -gt 0 ]; then
+  python3 -c "
 import json,sys
 entries = [json.loads(e) for e in sys.argv[1:]]
 print(json.dumps({
   'timestamp': '$TIMESTAMP',
   'totalProjects': ${#PROJECTS[@]},
-  'failed': $(python3 -c "import json;print(json.dumps('${FAILED[*]}'.split() if '${FAILED[*]}' else []))" 2>/dev/null || echo '[]'),
+  'failed': json.loads('''$FAILED_JSON'''),
   'projects': entries
 }, indent=2, ensure_ascii=False))
 " "${summary_entries[@]}" > "$ARCHIVE_DIR/summary.json" 2>/dev/null || true
+else
+  python3 -c "
+import json
+print(json.dumps({
+  'timestamp': '$TIMESTAMP',
+  'totalProjects': ${#PROJECTS[@]},
+  'failed': json.loads('''$FAILED_JSON'''),
+  'projects': []
+}, indent=2, ensure_ascii=False))
+" > "$ARCHIVE_DIR/summary.json" 2>/dev/null || true
+fi
 
 # ── Final report ──────────────────────────────────────────────────
 echo ""

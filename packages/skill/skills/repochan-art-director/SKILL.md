@@ -35,7 +35,7 @@ description: >
 3. AD **只选 templateId**，不填 prompt 插槽、不拼完整 prompt（那是 Painter 的活）。
 4. `mustInclude` 正向描述为主，`avoid` 轻量护栏（见 order-craft）。
 5. 海报多模板时按项目气质策展，写一句话理由（见 poster-and-brand）。
-6. 全部订单创建后设为 `approved`（yolo 模式）或保留 `draft` 等用户确认（非 yolo）。
+6. **yolo / 无人值守**：创建订单时在 JSON 里直接写 `"status": "approved"`（不要先 draft 再 set-status——多一步易被忘掉或当成检查点）。**非 yolo**：默认 `draft`（或省略 status，core 默认为 draft），等用户确认后再 approve。
 
 ## 工作流
 
@@ -78,13 +78,29 @@ repochan foundation find
 - 海报多模板时写一句话理由。
 
 **管道创建：**
+
+yolo / CI（**推荐直接 approved，少一步失败点**）：
 ```bash
 repochan order create <<'EOF'
-{ "orders": [/* foundation + 全部下游 */] }
+{
+  "orders": [
+    { "orderId": "ord-foundation-001", "status": "approved", "requestType": "new_asset", "assetType": "foundation_sheet", "templateId": "official/foundation-sheet", "references": [], "brief": { "..." : "..." } },
+    { "orderId": "ord-sticker-001", "status": "approved", "requestType": "new_asset", "assetType": "sticker_sheet", "templateId": "official/chibi-grid-3x3", "references": [{ "orderId": "ord-foundation-001", "role": "character" }], "brief": { "..." : "..." } }
+  ]
+}
 EOF
 ```
 
-创建后，yolo 模式下把全部订单 `set-status approved`。非 yolo 模式保留 `draft`，等用户确认后 approve。
+非 yolo（默认 draft，等用户确认）：
+```bash
+repochan order create <<'EOF'
+{ "orders": [/* 不写 status 或 "status": "draft" */] }
+EOF
+# 用户确认后：
+# repochan order set-status <orderId> approved
+```
+
+**禁止**在 yolo 下只建 draft 就停：创建后应立即把控制权交给 painter 出图。不要问 API key——出图只调 `repochan image gen`，失败则贴 CLI 报错。
 
 内容元素表 → [order-craft.md](references/order-craft.md)。JSON 示例 → [examples.md](references/examples.md)。
 海报选型 + signaturePatterns/Scenes 品牌延伸任务 → [poster-and-brand.md](references/poster-and-brand.md)。

@@ -5,8 +5,10 @@
 ```json
 {
   "orderId": "ord-foundation-001",
+  "status": "approved",
   "requestType": "new_asset",
   "assetType": "foundation_sheet",
+  "templateId": "official/foundation-sheet",
   "references": [],
   "brief": {
     "intent": "创建项目的视觉锚点：一张角色设定图。",
@@ -18,14 +20,18 @@
 }
 ```
 
+> yolo 示例写 `"status": "approved"`。非 yolo 可省略 status（默认 draft）或显式 `"draft"`。
+
 
 ## 带引用的下游任务示例
 
 ```json
 {
   "orderId": "ord-readme-hero-001",
+  "status": "approved",
   "requestType": "new_asset",
-  "assetType": "readme_hero",
+  "assetType": "readme_banner",
+  "templateId": "official/readme-banner-21x9",
   "references": [{ "orderId": "ord-foundation-001", "role": "character" }],
   "brief": {
     "intent": "将项目人设呈现为一位能干的工作室向导，面向开发者。",

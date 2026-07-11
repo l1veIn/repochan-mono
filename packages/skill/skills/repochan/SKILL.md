@@ -27,7 +27,7 @@ description: >
 ② 访谈专员  → repochan-interviewer → 〔可选〕提炼用户偏好
 ③ 创意团队  → repochan-persona     → 造人格，产出人设
    ⏸ 检查点 1：persona 定稿后停下，展示给用户确认
-④ 美术总监  → repochan-art-director → 一次性创建全部订单（foundation + sticker + poster + banner + pattern…）
+④ 美术总监  → repochan-art-director → 一次性创建全部订单（yolo 时 status=approved；非 yolo 为 draft）
 ⑤ 画师      → repochan-painter     → 先执行 foundation，再执行下游（引用 foundation 参考图）
    ⏸ 检查点 2：foundation 出图后停下（非 yolo 才停；yolo 直接继续下游）
 ⑥ 模板部署  → repochan-page-designer → 拉取/填充 Astro 模板
@@ -78,9 +78,15 @@ description: >
 2. **访谈**（`repochan-interviewer`）——〔可选〕依赖分析。
 3. **人设**（`repochan-persona`）——依赖分析，可选消费访谈。
 4. **任务**（`repochan-art-director`）——依赖分析 + 人设。
-5. **绘制**（`repochan-painter`）——依赖分析 + 人设 + 一个已批准的任务。
+5. **绘制**（`repochan-painter`）——依赖分析 + 人设 + **已 approved 的任务**（`create-result` 在 draft 上会被 CLI 拒绝）。
 
 每一步用对应的 `repochan <entity> get` 检查上游是否就绪，不要假设或直接读内部文件。
+
+**yolo 与订单状态（易踩坑）：**
+
+- AD 创建订单时必须在 JSON 里写 `"status": "approved"`（core 支持；默认不写则是 `draft`）。
+- **不要**只建 draft 再指望另一步 set-status——上下文一长容易漏掉，agent 还会把 draft 误当成「等人确认」而停住，甚至编造「缺 API key」之类借口。
+- 出图只调 `repochan image gen`；**禁止**主动要 API key。没配好时 CLI 会报错，把原文给用户即可。
 
 ## 边界
 
@@ -120,7 +126,7 @@ description: >
 3. （interview 可选，询问或跳过）
 4. 加载 `repochan-persona`，造人格。
 5. **检查点 1**：展示 persona，问"这个人设可以吗？要调整什么？"
-6. 用户确认后，加载 `repochan-art-director`，**一次性创建全部订单**（foundation + sticker + poster + banner + pattern…）。
+6. 用户确认后，加载 `repochan-art-director`，**一次性创建全部订单**（此模式用 draft，用户确认后再 approve）。
 7. 加载 `repochan-painter`，先执行 foundation 出图。
 8. **检查点 2**：展示 foundation 图，问"视觉风格满意吗？"
 9. 确认后，画师继续执行下游订单（引用 foundation 参考图）。
@@ -130,4 +136,4 @@ description: >
 
 **用户**："yolo 全套搞定别问我"
 
-→ 同样链路，但 3 个检查点全部默认继续，一路推到部署。
+→ 同样链路，但 3 个检查点全部默认继续；**AD 创建订单时直接 `"status": "approved"`**，然后立即 painter 出图（先 foundation 再下游），一路推到部署。禁止在 draft 订单上结束会话。
