@@ -99,12 +99,45 @@ export type PersonaData = {
   abilities?: string[];
   /** Design notes — visual guidelines for downstream asset reuse. */
   designNotes?: string;
+  /**
+   * Selected art style (e.g. 'cyberpunk neon', 'ghibli watercolor', 'thick
+   * paint', 'minimalist flat'). REQUIRED — drives downstream template selection
+   * (Art Director) and material/rendering style (Painter). Always within the
+   * anime/2D framework — this is a sub-style, not a switch to realistic.
+   */
+  artStyle: string;
 
   // ── Visual — brand extensions ─────────────────────────────
   /** Brand-specific seamless texture/pattern concepts (2-4), each noting intended use (section bg / border / social OG / merch). */
   signaturePatterns?: string[];
   /** Signature background/worldview scenes (2-3) carrying the character's world mood. */
   signatureScenes?: string[];
+
+  // ── v2 narrative extensions ───────────────────────────────
+  /** World setting designed by the World Architect. */
+  world?: {
+    name: string;
+    coreRule: string;
+    atmosphere: string;
+    relationshipToCharacter: string;
+  };
+  /** Character book entries for RAG-style context injection. */
+  character_book?: {
+    name: string;
+    entries: Array<{ keys: string[]; content: string }>;
+  };
+  /** Example dialogue lines for the character. */
+  mes_example?: string[];
+  /** Design provenance: which repo signals drove the character concept. */
+  sourceSignals?: {
+    primarySignal: string;
+    supportingSignals: string[];
+  };
+  /** How the creative direction was decided (interview, yolo, etc.). */
+  userIntentSummary?: {
+    source: string;
+    summary: string;
+  };
 
   // ── For image generation ──────────────────────────────────
   /**

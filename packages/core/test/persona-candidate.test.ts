@@ -13,7 +13,7 @@ import { initProtocol } from '../src/protocol/index.js';
 import { personaCandidatePath } from '../src/protocol/index.js';
 
 function makePersona(name: string) {
-  return { name, rolePrompt: `${name} visual tags` };
+  return { name, rolePrompt: `${name} visual tags`, artStyle: "cel-shaded anime" };
 }
 
 describe('persona candidate', () => {
@@ -41,7 +41,7 @@ describe('persona candidate', () => {
 
     expect(result.slug).toBe('mature');
     expect(result.data.name).toBe('Reyna');
-    expect(result.data.schemaVersion).toBe('repochan.persona.v1');
+    expect(result.data.schemaVersion).toBe('repochan.persona.v2');
 
     // current.json should NOT exist — candidate doesn't promote
     const currentExists = await fs.access(

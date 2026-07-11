@@ -26,7 +26,7 @@ describe("unified validation layer", () => {
     // seed upstream artifacts
     const r = path.join(projectRoot, ".repochan");
     await fs.writeFile(path.join(r, "analysis", "current.json"), JSON.stringify({ summary: "test" }));
-    await fs.writeFile(path.join(r, "persona", "current.json"), JSON.stringify({ name: "test", rolePrompt: "test" }));
+    await fs.writeFile(path.join(r, "persona", "current.json"), JSON.stringify({ name: "test", rolePrompt: "test", artStyle: "cel-shaded" }));
   });
 
   afterEach(async () => {
@@ -83,9 +83,9 @@ describe("unified validation layer", () => {
       ).rejects.toThrow(/rolePrompt/);
     });
 
-    it("accepts persona with name + rolePrompt", async () => {
+    it("accepts persona with name + rolePrompt + artStyle", async () => {
       const result = await createOrUpdatePersona(projectRoot, {
-        persona: { name: "Spiria", rolePrompt: "1girl, purple hair, violet eyes" },
+        persona: { name: "Spiria", rolePrompt: "1girl, purple hair, violet eyes", artStyle: "cel-shaded anime" },
         overwrite: true,
       }, "create");
       expect((result.data as any).name).toBe("Spiria");

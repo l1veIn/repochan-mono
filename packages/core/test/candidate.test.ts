@@ -26,7 +26,7 @@ describe('candidate state', () => {
 
     const r = path.join(projectRoot, '.repochan');
     await fs.writeFile(path.join(r, 'analysis', 'current.json'), JSON.stringify({ summary: 'test' }));
-    await fs.writeFile(path.join(r, 'persona', 'current.json'), JSON.stringify({ name: 'Test', rolePrompt: 'test' }));
+    await fs.writeFile(path.join(r, 'persona', 'current.json'), JSON.stringify({ name: 'Test', rolePrompt: 'test', artStyle: 'cel-shaded' }));
   });
 
   afterEach(async () => {

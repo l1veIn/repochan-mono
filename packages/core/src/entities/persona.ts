@@ -28,7 +28,7 @@ export async function createOrUpdatePersona(projectRoot: string, params: JsonObj
     await writeJson(path.join(protocolRoot(projectRoot), "persona", "versions", `${ts}-previous.json`), await readJson(current), false);
   }
   const provenance = params.persona.provenance ?? params.provenance ?? { tool: "repochan", action: `persona.${mode}` };
-  const data = { ...params.persona, schemaVersion: "repochan.persona.v1", generatedAt: stamp(), provenance };
+  const data = { ...params.persona, schemaVersion: "repochan.persona.v2", generatedAt: stamp(), provenance };
   const slug = typeof params.slug === "string" ? params.slug : "persona";
   if (!/^[a-z0-9-]+$/.test(slug)) throw new Error("slug must match ^[a-z0-9-]+$.");
   const versionName = `${ts}-${slug}.json`;
@@ -61,7 +61,7 @@ export async function createPersonaCandidate(projectRoot: string, params: JsonOb
   }
 
   const provenance = params.persona.provenance ?? params.provenance ?? { tool: "repochan", action: "persona.create_candidate" };
-  const data = { ...params.persona, schemaVersion: "repochan.persona.v1", generatedAt: stamp(), provenance };
+  const data = { ...params.persona, schemaVersion: "repochan.persona.v2", generatedAt: stamp(), provenance };
   await writeJson(candidateFile, data, overwrite);
   return { slug, data };
 }

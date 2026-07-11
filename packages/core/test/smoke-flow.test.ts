@@ -28,7 +28,7 @@ describe("RepoChan protocol smoke flow", () => {
     });
 
     await createOrUpdatePersona(cwd, {
-      persona: { name: "RepoChan", rolePrompt: "1girl, blue hair, blue eyes, tech-wear outfit" },
+      persona: { name: "RepoChan", rolePrompt: "1girl, blue hair, blue eyes, tech-wear outfit", artStyle: "cel-shaded anime" },
       slug: "repochan",
     }, "create");
 

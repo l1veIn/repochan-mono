@@ -47,13 +47,17 @@ export const OrderResultVersionSchema = Type.Object({
 /**
  * Persona artifact — the repository's living mascot.
  *
- * Only `name` and `rolePrompt` are strictly required. Everything else is
- * optional so that early-stage drafts can be saved, but downstream consumers
- * (Painter, Art Director) should check for the fields they need.
+ * `name`, `rolePrompt`, and `artStyle` are required. `artStyle` drives
+ * downstream template selection (Art Director) and material/rendering style
+ * (Painter) — omitting it breaks the style coordination chain.
+ * Everything else is optional so that early-stage drafts can be saved,
+ * but downstream consumers (Painter, Art Director) should check for the
+ * fields they need.
  */
 export const PersonaArtifactSchema = Type.Object({
   name: Type.String({ description: "Primary name." }),
   rolePrompt: Type.String({ description: "ALWAYS English. Comma-separated tag phrases for image generation." }),
+  artStyle: Type.String({ description: "Selected art style (e.g. 'cyberpunk neon', 'ghibli watercolor', 'thick paint', 'minimalist flat'). Drives poster and other artistic assets. Always within the anime/2D framework — this is a sub-style, not a switch to realistic/oil painting." }),
 
   // ── Optional identity ──
   nameJa: Type.Optional(Type.String()),
@@ -90,15 +94,34 @@ export const PersonaArtifactSchema = Type.Object({
   // ── Optional visual — design ──
   abilities: Type.Optional(Type.Array(Type.String())),
   designNotes: Type.Optional(Type.String()),
-  artStyle: Type.Optional(Type.String({ description: "Selected art style (e.g. 'cyberpunk neon', 'ghibli watercolor', 'thick paint', 'minimalist flat'). Drives poster and other artistic assets. Always within the anime/2D framework — this is a sub-style, not a switch to realistic/oil painting." })),
-  proposedArtStyles: Type.Optional(Type.Array(Type.Object({
-    style: Type.String({ description: "Art style name, e.g. 'cyberpunk neon'." }),
-    reason: Type.String({ description: "Why this style fits the project (1 sentence, derived from repo signals)." }),
-  }), { description: "Art style proposals from the World Architect (upstream). The Character Designer selects one as artStyle." })),
 
   // ── Optional visual — brand extensions ──
   signaturePatterns: Type.Optional(Type.Array(Type.String(), { description: "Brand-specific seamless texture/pattern concepts derived from the character's motifs and color palette (e.g. 'botanical specimen fragments in a 2×2 tileable grid for section backgrounds'). Each entry is one pattern idea, ideally noting its intended use (section bg / border / social OG / merch). Drives visual_pattern asset generation and page/merch background design." })),
   signatureScenes: Type.Optional(Type.Array(Type.String(), { description: "Signature background/worldview scenes that carry the character's world mood (e.g. 'misty botanical library atrium with pressed-flower light', 'stormfront cliffside with bioluminescent rain'). Each entry is one scene concept. Drives poster/background asset generation." })),
+
+  // ── v2 narrative extensions ──
+  world: Type.Optional(Type.Object({
+    name: Type.String(),
+    coreRule: Type.String(),
+    atmosphere: Type.String(),
+    relationshipToCharacter: Type.String(),
+  }, { description: "World setting designed by the World Architect. Drives scene/atmosphere for all downstream visual assets." })),
+  character_book: Type.Optional(Type.Object({
+    name: Type.String(),
+    entries: Type.Array(Type.Object({
+      keys: Type.Array(Type.String()),
+      content: Type.String(),
+    })),
+  }, { description: "Character book entries for RAG-style context injection." })),
+  mes_example: Type.Optional(Type.Array(Type.String(), { description: "Example dialogue lines for the character." })),
+  sourceSignals: Type.Optional(Type.Object({
+    primarySignal: Type.String(),
+    supportingSignals: Type.Array(Type.String()),
+  }, { description: "Design provenance: which repo signals drove the character concept." })),
+  userIntentSummary: Type.Optional(Type.Object({
+    source: Type.String(),
+    summary: Type.String(),
+  }, { description: "How the creative direction was decided (interview, yolo, etc.)." })),
 
   // ── Meta ──
   schemaVersion: Type.Optional(Type.String()),

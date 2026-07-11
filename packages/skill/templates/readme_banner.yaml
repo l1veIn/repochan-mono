@@ -9,7 +9,8 @@ prompt_template: |
   wide editorial hero banner for the software project {{repo_name}},
   {{character_visual}} acting as {{project_metaphor}}, placed in {{signature_scene}},
   project-specific composition built from {{key_motifs}}, palette {{color_palette}},
-  render the repository name "{{repo_name}}" as prominent designed typography integrated into the artwork,
+  render the repository name "{{repo_name}}" as large bold designed text directly in the image — not blank space for later CSS overlay,
+  the text must be visibly rendered with clear legible letters integrated into the artwork,
   professional open-source branding, clear focal hierarchy, strong crop-safe central composition,
   masterpiece, best quality
 
