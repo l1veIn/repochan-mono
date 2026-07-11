@@ -1,14 +1,22 @@
 /**
  * Image generation types.
  *
- * The model is deliberately simple: every backend is an "endpoint" — an
- * OpenAI-compatible /images/generations server described by a baseURL + apiKey +
- * default model. This covers switchbase relays, a local codex reverse-proxy,
- * and OpenAI direct alike (they all speak the standard images endpoint, as
- * verified in the Phase 2.0 spike). No provider-specific HTTP code, no OAuth —
- * a user who wants to ride a ChatGPT subscription runs their own reverse proxy
- * and points an endpoint at it.
+ * Every backend is an "endpoint" — baseURL + apiKey + model + mode.
+ * Modes (Infinite-Canvas-inspired, scoped down):
+ *   - auto          default: classic OpenAI; host rules may upgrade to openai-async;
+ *                   response job_id triggers opportunistic poll (no X-Async headers)
+ *   - openai        force classic sync (no X-Async headers)
+ *   - openai-async  force X-Async-Mode + poll async-generations
+ *
+ * Credentials live in image-gen config + env; this package never writes
+ * protocol artifacts under project `.repochan/`.
  */
+
+/** Configured / CLI mode (includes adaptive auto). */
+export type ImageRequestMode = "auto" | "openai" | "openai-async";
+
+/** Mode actually used for a single HTTP generation (never auto). */
+export type RuntimeImageMode = "openai" | "openai-async";
 
 /** Parameters for a generation request. */
 export interface GenerateParams {
@@ -20,9 +28,7 @@ export interface GenerateParams {
   outputFormat?: "png" | "jpeg" | "webp";
   /**
    * Reference images for image-to-image / multi-image conditioning.
-   * Each entry is raw image bytes + mime type. Passed to the AI SDK's
-   * `generateImage({ prompt: { images, text } })` — used for cross-asset
-   * visual consistency (e.g. foundation sheet as character reference).
+   * Each entry is raw image bytes + mime type. Sent via multipart /images/edits.
    */
   referenceImages?: Array<{ data: Uint8Array; mimeType: string }>;
 }
@@ -30,21 +36,33 @@ export interface GenerateParams {
 /** Result of a generation request. */
 export interface GenerateResult {
   success: boolean;
-  /** PNG bytes on success. */
+  /** Image bytes on success. */
   image?: Uint8Array;
   mimeType?: string;
   /** Which endpoint + model produced this. */
   endpoint: string;
   model: string;
+  /** Configured mode (may be auto). */
+  mode: ImageRequestMode;
+  /** Resolved runtime mode used for this call. */
+  effectiveMode: RuntimeImageMode;
+  /** Why effectiveMode was chosen: override | config | host-rule | default. */
+  modeSource?: string;
+  /** Async job id when known (submit, poll, or failure after 202). */
+  jobId?: string;
+  /**
+   * True when the upstream may already have billed (timeout after submit,
+   * body-read failure, 504 after long wait). Callers must not blind re-POST.
+   */
+  billedRisk?: boolean;
   error?: string;
 }
 
 /**
  * One OpenAI-compatible image endpoint.
- *   { baseURL, apiKey, model } → createOpenAI({ baseURL, apiKey }).image(model)
  */
 export interface EndpointConfig {
-  /** A friendly id, e.g. "switchbase", "codex-proxy", "openai". */
+  /** A friendly id, e.g. "switchbase", "local-proxy", "openai". */
   id: string;
   /** OpenAI-compatible base URL, e.g. "https://switchbase.vip/v1". */
   baseURL: string;
@@ -52,9 +70,29 @@ export interface EndpointConfig {
   apiKey: string;
   /** Default model id, e.g. "gpt-image-2". */
   model: string;
+  /**
+   * Request protocol. Defaults to "auto" (classic unless host rule matches).
+   * Use "openai-async" only when the relay requires X-Async-Mode on submit.
+   */
+  mode?: ImageRequestMode;
+  /** Override POST path for text-to-image (default /images/generations). */
+  imageGenerationPath?: string;
+  /** Override POST path for image edits (default /images/edits). */
+  imageEditPath?: string;
+  /**
+   * Poll path template for openai-async (default /images/async-generations/{jobId}).
+   * Use {jobId} placeholder.
+   */
+  asyncPollPathTemplate?: string;
+  /** Per-request HTTP timeout override (ms). */
+  timeoutMs?: number;
+  /** Overall async poll budget override (ms). */
+  asyncMaxWaitMs?: number;
 }
 
 export interface ImageGenConfig {
+  /** Schema version. Missing → treated as v1 (endpoints default mode=auto). */
+  version?: number;
   /** Active endpoint id. If unset, the first endpoint is used. */
   defaultEndpoint?: string;
   /** Named endpoints. */
@@ -63,4 +101,18 @@ export interface ImageGenConfig {
   aspectRatio?: "landscape" | "square" | "portrait";
   size?: "1024x1024" | "1536x1024" | "1024x1536";
   outputFormat?: "png" | "jpeg" | "webp";
+}
+
+/** Public status row (no secrets). */
+export interface EndpointStatus {
+  id: string;
+  baseURL: string;
+  model: string;
+  /** Configured mode (auto | openai | openai-async). */
+  mode: ImageRequestMode;
+  /** Resolved runtime mode for this baseURL. */
+  effectiveMode: RuntimeImageMode;
+  modeSource: string;
+  hasKey: boolean;
+  isDefault: boolean;
 }

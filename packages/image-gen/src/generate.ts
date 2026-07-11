@@ -1,17 +1,51 @@
 /**
- * Image generation via the Vercel AI SDK.
+ * Image generation dispatcher.
  *
- * Every endpoint is OpenAI-compatible, so the whole provider layer collapses to
- * `createOpenAI({ baseURL, apiKey }).image(model)` + `generateImage()`. This
- * replaces the old 1754-line hand-rolled HTTP per-provider code.
+ * Effective mode resolution (see resolveMode.ts):
+ *   override → explicit config → host rule → classic openai
  *
- * Pure library: prompt + config → PNG bytes. No .repochan/ protocol awareness;
- * the caller (cli) decides where to persist. Credentials come from config/env.
+ * Runtime modes:
+ * 1. openai       — classic sync (no X-Async); job_id → opportunistic poll
+ * 2. openai-async — X-Async-Mode + poll
+ *
+ * Never auto-retries a full generation (IMAGE_MAX_RETRIES = 0).
+ * Never switches mode and re-POSTs after failure (double-bill risk).
  */
 
-import { createOpenAI } from "@ai-sdk/openai";
-import { generateImage } from "ai";
-import type { GenerateParams, GenerateResult, ImageGenConfig, EndpointConfig } from "./types.js";
+import type {
+  EndpointConfig,
+  GenerateParams,
+  GenerateResult,
+  ImageGenConfig,
+  ImageRequestMode,
+} from "./types.js";
+import { normalizeEndpoint } from "./config.js";
+import {
+  createImageFetch,
+  IMAGE_HTTP_LONG_TIMEOUT_MS,
+  IMAGE_HTTP_TIMEOUT_MS,
+  IMAGE_MAX_RETRIES,
+  ImageGenError,
+  isGptImage2Model,
+  pngMagicOk,
+} from "./http.js";
+import { resolveEffectiveMode, normalizeImageRequestMode } from "./resolveMode.js";
+import { generateOpenAI } from "./modes/openai.js";
+import { generateOpenAIAsync } from "./modes/openai-async.js";
+import type { ModeContext } from "./modes/shared.js";
+
+export {
+  IMAGE_HTTP_TIMEOUT_MS,
+  IMAGE_HTTP_LONG_TIMEOUT_MS,
+  IMAGE_ASYNC_MAX_WAIT_MS,
+  IMAGE_ASYNC_POLL_MS,
+  IMAGE_MAX_RETRIES,
+  IMAGE_AGENT_BASH_TIMEOUT_MS,
+  createImageFetch,
+} from "./http.js";
+
+export { resolveEffectiveMode, normalizeImageRequestMode } from "./resolveMode.js";
+export { BUILTIN_HOST_RULES, matchHostRule, detectModeFromHost } from "./hostRules.js";
 
 /** Aspect-ratio → OpenAI size mapping (gpt-image-2 supports these). */
 const SIZE_FOR_RATIO: Record<string, `${number}x${number}`> = {
@@ -21,7 +55,7 @@ const SIZE_FOR_RATIO: Record<string, `${number}x${number}`> = {
 };
 
 /** Resolve which endpoint to use: explicit param → config.defaultEndpoint → first. */
-function resolveEndpoint(config: ImageGenConfig, endpointId?: string): EndpointConfig {
+export function resolveEndpoint(config: ImageGenConfig, endpointId?: string): EndpointConfig {
   const endpoints = config.endpoints ?? {};
   const ids = Object.keys(endpoints);
   if (ids.length === 0) {
@@ -32,66 +66,105 @@ function resolveEndpoint(config: ImageGenConfig, endpointId?: string): EndpointC
   const id = endpointId ?? config.defaultEndpoint ?? ids[0];
   const ep = endpoints[id];
   if (!ep) throw new Error(`Endpoint '${id}' not found in config. Available: ${ids.join(", ")}`);
-  if (!ep.baseURL) throw new Error(`Endpoint '${id}' is missing baseURL.`);
-  if (!ep.apiKey) throw new Error(`Endpoint '${id}' is missing apiKey (or its ${'$'}{ENV} is unset).`);
-  // Config JSON keys the endpoint by id; ensure the returned object carries it.
-  return { ...ep, id: ep.id || id };
+  const normalized = normalizeEndpoint(id, ep);
+  if (!normalized.baseURL) throw new Error(`Endpoint '${id}' is missing baseURL.`);
+  if (!normalized.apiKey) {
+    throw new Error(`Endpoint '${id}' is missing apiKey (or its ${"$"}{ENV} is unset).`);
+  }
+  return normalized;
 }
+
+export type GenerateOptions = {
+  endpoint?: string;
+  /** Override endpoint.mode for this call (debug / CLI --mode). auto = no override. */
+  mode?: ImageRequestMode;
+  signal?: AbortSignal;
+  timeoutMs?: number;
+};
 
 /**
  * Generate an image. Returns PNG bytes + provenance; never writes to disk.
- *
- * @param params  prompt + optional size/format/aspectRatio
- * @param config  loaded ImageGenConfig (endpoints + defaults)
- * @param options endpoint override + abort signal
+ * Never auto-retries a full generation.
  */
 export async function generate(
   params: GenerateParams,
   config: ImageGenConfig,
-  options: { endpoint?: string; signal?: AbortSignal } = {},
+  options: GenerateOptions = {},
 ): Promise<GenerateResult> {
   const endpoint = resolveEndpoint(config, options.endpoint);
-  const provider = createOpenAI({ apiKey: endpoint.apiKey, baseURL: endpoint.baseURL });
-  const model = endpoint.model;
+  const resolution = resolveEffectiveMode(endpoint, options.mode);
+  const mode = resolution.effective;
+
+  const defaultTimeout =
+    endpoint.timeoutMs ??
+    (mode === "openai-async" || isGptImage2Model(endpoint.model)
+      ? IMAGE_HTTP_LONG_TIMEOUT_MS
+      : IMAGE_HTTP_TIMEOUT_MS);
+  const timeoutMs = options.timeoutMs ?? defaultTimeout;
+  const fetchFn = createImageFetch(timeoutMs);
+
   const size: `${number}x${number}` =
-    params.size ?? (params.aspectRatio ? SIZE_FOR_RATIO[params.aspectRatio] : config.size ?? "1024x1024");
+    params.size ??
+    (params.aspectRatio ? SIZE_FOR_RATIO[params.aspectRatio] : config.size ?? "1024x1024");
+
+  const ctx: ModeContext = {
+    endpoint,
+    mode,
+    params,
+    size,
+    fetchFn,
+    signal: options.signal,
+    asyncMaxWaitMs: endpoint.asyncMaxWaitMs,
+  };
+
+  const baseMeta = {
+    endpoint: endpoint.id,
+    model: endpoint.model,
+    mode: resolution.configured,
+    effectiveMode: mode,
+    modeSource: resolution.source,
+  };
 
   try {
-    // When reference images are provided, use the { images, text } prompt form
-    // for image-to-image conditioning (character consistency, style transfer).
-    const prompt = params.referenceImages?.length
-      ? {
-          images: params.referenceImages.map((img) => img.data),
-          text: params.prompt,
-        }
-      : params.prompt;
+    const outcome =
+      mode === "openai-async" ? await generateOpenAIAsync(ctx) : await generateOpenAI(ctx);
 
-    const result = await generateImage({
-      model: provider.image(model),
-      prompt,
-      size,
-      ...(options.signal ? { abortSignal: options.signal } : {}),
-    });
-    const image = result.images[0];
-    const bytes = image.uint8Array;
+    const bytes = outcome.bytes;
+    if (!bytes.length || bytes.length < 1000) {
+      return {
+        success: false,
+        ...baseMeta,
+        jobId: outcome.jobId,
+        billedRisk: true,
+        error: `Image API returned empty or tiny payload (${bytes.length} bytes).`,
+      };
+    }
+
     return {
       success: true,
       image: bytes,
-      mimeType: "image/png",
-      endpoint: endpoint.id,
-      model,
+      mimeType: pngMagicOk(bytes) ? "image/png" : "application/octet-stream",
+      ...baseMeta,
+      jobId: outcome.jobId,
     };
   } catch (err) {
+    const jobId = err instanceof ImageGenError ? err.jobId : undefined;
+    const billedRisk = err instanceof ImageGenError ? Boolean(err.billedRisk) : true;
+    const raw = err instanceof Error ? err.message : String(err);
     return {
       success: false,
-      endpoint: endpoint.id,
-      model,
-      error: err instanceof Error ? err.message : String(err),
+      ...baseMeta,
+      jobId,
+      billedRisk,
+      error:
+        `${raw} (client maxRetries=${IMAGE_MAX_RETRIES}: no automatic re-generation. ` +
+        (jobId ? `jobId=${jobId}. ` : "") +
+        `If the relay dashboard shows a completed job, download that result — do not re-submit the same prompt.)`,
     };
   }
 }
 
-/** List configured endpoint ids (for `repochan image gen setup` / status). */
+/** List configured endpoint ids. */
 export function listEndpoints(config: ImageGenConfig): string[] {
   return Object.keys(config.endpoints ?? {});
 }

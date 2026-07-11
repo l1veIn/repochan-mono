@@ -38,12 +38,13 @@ description: >
 1. 要求分析报告已就绪（`repochan analysis get` 检查）。
 2. 要求 persona 已就绪（`repochan persona get` 检查）。
 3. 要求已选定一个 order（`repochan order get <id>` 检查）。状态为 `approved` / `in_progress` / `needs_revision` 时直接执行。若是 `draft`：在 **yolo / 向导已把任务交给画师** 时，先 `repochan order set-status <orderId> approved` 再画（兜底）；**理想情况 AD 在 yolo 下创建时已是 approved**。只有逐团队模式且用户未明确要求执行时，才对 draft 停下来询问。**禁止**因 draft 去要 API key 或结束会话。
-4. **如果状态是 `needs_revision`，这是 review 回流订单。** 进入 review 回流流程——读取 [workflows-review.md](references/workflows-review.md)，用上一版产物做图生图，而非从零生成。
-5. **检查任务是否有 `references`。** 如果有，解析它们。
-6. **读取任务的 `templateId`**（如果有）：`repochan template get <templateId>`。这给你权威的 `prompt_template`、输出尺寸、网格布局和技术约束。
-7. **如果任务没有引用且不是设定集封面，警告用户**（见下方边界情况）。
-8. 检查相关的现有任务结果版本。
-9. 更改 `currentVersion` 前先询问。优先添加新版本。
+4. **`repochan image gen` 等待规则**：复杂/横图常需 2–5 分钟；async 模式 poll 预算约 **20 分钟**。CLI **不会**因失败自动整单重生（避免中转已出图仍连打计费）。Bash `timeout` 建议 ≥ **1320000**（22 分钟，覆盖 async 预算）。**同一 order 同时只开一条 gen**。失败时若输出含 `jobId` 或提示 `billedRisk`，先查中转后台/已完成结果，**勿立刻同 prompt 连发**。配置缺失时让用户跑 `repochan image configure` / `repochan image status`，**不要**向用户索要 API key。
+5. **如果状态是 `needs_revision`，这是 review 回流订单。** 进入 review 回流流程——读取 [workflows-review.md](references/workflows-review.md)，用上一版产物做图生图，而非从零生成。
+6. **检查任务是否有 `references`。** 如果有，解析它们。
+7. **读取任务的 `templateId`**（如果有）：`repochan template get <templateId>`。这给你权威的 `prompt_template`、输出尺寸、网格布局和技术约束。
+8. **如果任务没有引用且不是设定集封面，警告用户**（见下方边界情况）。
+9. 检查相关的现有任务结果版本。
+10. 更改 `currentVersion` 前先询问。优先添加新版本。
 
 用户反馈改图 / 多方案 → [workflows-review.md](references/workflows-review.md)、[workflows-candidate.md](references/workflows-candidate.md)。
 
@@ -90,7 +91,7 @@ repochan order resolve-references <orderId> --json
 repochan image gen --prompt "<精炼后的画师简报>" --reference "<resolve出的路径1>" "<resolve出的路径2>" --aspect landscape|square|portrait --size 1024x1024
 ```
 
-CLI 关键参数：`--prompt`、`--reference <path...>`、`--out`（默认勿传，CLI 写 `~/.cache/repochan/`）、`--aspect`、`--size`。
+CLI 关键参数：`--prompt`、`--reference <path...>`、`--out`（默认勿传，CLI 写 `~/.cache/repochan/`）、`--aspect`、`--size`。一般**不要**传 `--mode`（默认 auto）。诊断：`repochan image status`、`repochan image probe`。
 
 foundation_sheet 本身是锚点，不需要 `--reference`。
 

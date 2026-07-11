@@ -187,13 +187,15 @@ cli.command("template <sub>", "Asset templates")
   });
 
 // ---- image ----
-// `image <sub> [args...]` — gen / configure → @repochan/image-gen; edit → @repochan/image-edit.
-cli.command("image <sub>", "Image generation, configure, and editing")
+// `image <sub> [args...]` — gen / configure / status / probe → @repochan/image-gen; edit → @repochan/image-edit.
+cli.command("image <sub>", "Image generation, configure, status, probe, and editing")
   .option("--json", "Machine-readable JSON output")
   .option("--prompt <text>", "Prompt (image gen)")
   .option("--reference <path>", "Reference image(s) for image-to-image (image gen, repeatable)")
   .option("--out <path>", "Output path (gen/bg-remove/gif) or dir (edit slice)")
-  .option("--endpoint <id>", "Endpoint id (image gen), overrides config default")
+  .option("--endpoint <id>", "Endpoint id (gen/probe/configure), overrides config default")
+  .option("--endpoint-id <id>", "Name for new endpoint (image configure)")
+  .option("--mode <mode>", "auto | openai | openai-async (advanced; default auto)")
   .option("--aspect <ratio>", "landscape | square | portrait (image gen)")
   .option("--size <size>", "1024x1024 | 1536x1024 | 1024x1536 (image gen)")
   .option("--rows <n>", "Grid rows (image edit slice)", { default: undefined })
@@ -202,6 +204,8 @@ cli.command("image <sub>", "Image generation, configure, and editing")
   .option("--api-key <key>", "API key (image configure)")
   .option("--base-url <url>", "Custom OpenAI-compatible base URL (image configure)")
   .option("--model <model>", "Model id (image configure) or ISNet model small|medium|large (bg-remove)")
+  .option("--set-default", "Set this endpoint as default (image configure)")
+  .option("--probe", "After configure, GET /models smoke check (no bill)")
   .option("--fps <n>", "Frames per second (image edit gif-from-frames)", { default: undefined })
   .option("--delay <ms>", "Per-frame delay in ms, single or comma-list (image edit gif-from-frames)")
   .option("--loop <n>", "Loop count, 0 = infinite (image edit gif-from-frames)", { default: undefined })
@@ -211,6 +215,8 @@ cli.command("image <sub>", "Image generation, configure, and editing")
     const sub = args[0];
     switch (sub) {
       case "gen": return await image.runImageGen(process.cwd(), opts);
+      case "status": return await image.runImageStatus(process.cwd(), opts);
+      case "probe": return await image.runImageProbe(process.cwd(), opts);
       case "configure":
         return await image.runImageConfigure(process.cwd(), {
           json: opts.json,
@@ -218,6 +224,10 @@ cli.command("image <sub>", "Image generation, configure, and editing")
           apiKey: opts.apiKey,
           baseUrl: opts.baseUrl,
           model: opts.model,
+          endpointId: opts.endpointId,
+          mode: opts.mode,
+          setDefault: opts.setDefault,
+          probe: opts.probe,
         });
       case "edit": {
         const editSub = args[1];
@@ -226,7 +236,7 @@ cli.command("image <sub>", "Image generation, configure, and editing")
         if (editSub === "gif-from-frames") return await image.runImageEditGifFromFrames(process.cwd(), args.slice(2), opts);
         throw new Error(`Unknown image edit subcommand: ${editSub}. Use: slice | bg-remove | gif-from-frames`);
       }
-      default: throw new Error(`Unknown image subcommand: ${sub}. Use: gen | configure | edit`);
+      default: throw new Error(`Unknown image subcommand: ${sub}. Use: gen | configure | status | probe | edit`);
     }
   });
 

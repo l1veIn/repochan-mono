@@ -1,10 +1,23 @@
 {
   "name": "@repochan/image-edit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Zero-credential local pixel operations for RepoChan: grid slicing and ML sticker extraction.",
   "type": "module",
   "license": "MIT",
   "author": "l1veIn",
+  "homepage": "https://github.com/l1veIn/repochan-mono/tree/main/packages/image-edit",
+  "bugs": {
+    "url": "https://github.com/l1veIn/repochan-mono/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/l1veIn/repochan-mono.git",
+    "directory": "packages/image-edit"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -18,6 +31,9 @@
     "README.md",
     "package.json"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "@imgly/background-removal-node": "^1.4.5",
     "gifenc": "^1.0.3"
@@ -31,6 +47,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build",
     "test": "vitest run",
     "lint": "tsc -p tsconfig.json --noEmit"
   }

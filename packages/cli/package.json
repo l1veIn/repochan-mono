@@ -1,6 +1,6 @@
 {
   "name": "repochan",
-  "version": "0.2.1",
+  "version": "0.2.4",
   "description": "RepoChan CLI — a deterministic, agent-driven creative pipeline. Manages .repochan/ protocol entities; no embedded runtime.",
   "type": "module",
   "license": "MIT",
@@ -44,8 +44,12 @@
     "typescript": "^5.9.3",
     "vitest": "^2.1.9"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json && chmod +x dist/index.js",
+    "prepublishOnly": "npm run build",
     "dev": "tsx src/index.ts",
     "test": "vitest run",
     "lint": "tsc -p tsconfig.json --noEmit"

@@ -45,7 +45,7 @@ cli ──┬──> core
 | `core` | `.repochan/` R/W, schema gates, state machine, analysis engine | CLI (and tests) |
 | `skill` | How to run the pipeline (wizard + roles) | Your agent (via `repochan setup`) |
 | `cli` | Deterministic subcommands + skill install | You / agent / CI |
-| `image-gen` | Image generation + `~/.repochan/image.json` | `repochan image gen\|configure` |
+| `image-gen` | Image generation + `~/.repochan/image.json` (modes: `openai` / `openai-async`) | `repochan image gen\|configure\|status\|probe` |
 | `image-edit` | Local pixel ops | `repochan image edit …` |
 | `templates` | Official asset templates | `repochan template list\|get` |
 
@@ -175,8 +175,10 @@ repochan protocol inspect|read|write
 Images & templates:
 
 ```bash
-repochan image gen --prompt "…" [--reference path] [--out path] …
-repochan image configure [--provider …] [--api-key …] [--base-url …]
+repochan image gen --prompt "…" [--reference path] [--out path] [--endpoint id] [--mode openai|openai-async]
+repochan image configure [--provider openai|custom|async|skip] [--base-url …] [--api-key …] [--endpoint-id …] [--mode …]
+repochan image status
+repochan image probe [--endpoint id]
 repochan image edit slice <image> --rows N --cols M [--out dir]
 repochan image edit bg-remove <image> [--out path]
 repochan image edit gif-from-frames <frame…> [--out path] [--fps N]

@@ -1,37 +1,58 @@
 # @repochan/image-gen
 
-Image generation library for RepoChan — **prompt → PNG via the Vercel AI SDK**.
+Image generation library for RepoChan — **prompt → PNG bytes** via OpenAI-compatible HTTP.
 
-Every backend is treated as an OpenAI-compatible `/images/generations` endpoint
-(`baseURL` + `apiKey` + `model`), which covers switchbase relays, a local codex
-reverse-proxy, and OpenAI direct alike (all verified in the Phase 2.0 spike to
-speak the standard images endpoint). No provider-specific HTTP, no OAuth — a
-user riding a ChatGPT subscription runs their own reverse proxy and points an
-endpoint at it.
+## Modes (users usually ignore this)
+
+| Configured `mode` | Behavior |
+|-------------------|----------|
+| **`auto`** (default) | Classic OpenAI submit (**no** `X-Async-Mode`). If the response has a `job_id`/`task_id`, poll. Host rules may upgrade to `openai-async`. |
+| **`openai`** | Force classic (no X-Async headers). |
+| **`openai-async`** | Force `X-Async-Mode: true` + async poll paths. |
+
+**Never** re-POSTs a full generation after failure (no “try the other mode” — double-bill risk).
+
+Host rules live in `src/hostRules.ts` (empty by default; add only when a host *requires* X-Async on submit). Advanced: `REPOCHAN_IMAGE_MODE=openai-async` or `mode` in config.
 
 ## API
 
-- `generate(params, config, options)` → `{ success, image: Uint8Array, endpoint, model }`
-- `loadConfig(cwd)` / `saveGlobalConfig(config)` — read/write `~/.repochan/image.json`
-- `listEndpoints(config)` — configured endpoint ids
+- `generate(params, config, options?)` → `{ success, image, mode, effectiveMode, modeSource, jobId?, billedRisk?, … }`
+- `loadConfig` / `saveGlobalConfig` — `~/.repochan/image.json`
+- `listEndpointStatuses` — configured + effective mode (no secrets)
+- `probeEndpoint` — `GET /models` (no bill)
+- `resolveEffectiveMode` / `BUILTIN_HOST_RULES`
 
-## Config (`~/.repochan/image.json`)
+## Config example
 
 ```json
 {
+  "version": 2,
   "defaultEndpoint": "switchbase",
   "endpoints": {
-    "switchbase":   { "baseURL": "https://switchbase.vip/v1", "apiKey": "${SWITCHBASE_KEY}", "model": "gpt-image-2" },
-    "codex-proxy":  { "baseURL": "http://127.0.0.1:8787/v1",  "apiKey": "${CODEX_PROXY_KEY}", "model": "gpt-image-2" },
-    "openai":       { "baseURL": "https://api.openai.com/v1", "apiKey": "${OPENAI_API_KEY}", "model": "gpt-image-2" }
+    "switchbase": {
+      "id": "switchbase",
+      "baseURL": "https://switchbase.vip/v1",
+      "apiKey": "${SWITCHBASE_KEY}",
+      "model": "gpt-image-2",
+      "mode": "auto"
+    }
   }
 }
 ```
 
-`${ENV_VAR}` references expand from the environment at load time.
+Missing `mode` → **`auto`**.
+
+## CLI
+
+```bash
+repochan image configure          # OpenAI | Custom OpenAI-compatible | skip
+repochan image status             # shows mode → effectiveMode
+repochan image gen --prompt "…"
+```
+
+Advanced: `--mode openai-async` or config `mode: "openai-async"` for relays that require async submit headers.
 
 ## Boundaries
 
-Pure library: returns bytes, never writes to `.repochan/` protocol artifacts.
-The caller (cli) persists results via `@repochan/core`. Credentials are isolated
-here — core and cli have no concept of API keys (ADR §8.3/§8.4).
+Pure library: returns bytes, never writes project `.repochan/` protocol artifacts.
+Credentials stay here — core has no API keys.

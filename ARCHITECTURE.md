@@ -310,13 +310,22 @@ repochan setup                   # 检测 agent、安装 skill、可选配置 im
 | 包 / 命令 | 本性 | 凭证 | 协议感知 |
 |---|---|---|---|
 | `repochan image gen` → image-gen | 联网生成 | 是（自管） | 否 |
-| `repochan image configure` → image-gen | 写 `~/.repochan/image.json` | 是 | 否 |
+| `repochan image configure` → image-gen | 写 `~/.repochan/image.json`（mode 可选） | 是 | 否 |
+| `repochan image status` / `probe` | 列出 endpoint / GET models 探测 | 是（只读） | 否 |
 | `repochan image edit slice` | 网格切图 | 否 | 否 |
 | `repochan image edit bg-remove` | ML 抠图 | 否 | 否 |
 | `repochan image edit gif-from-frames` | 帧组 GIF | 否 | 否 |
 | `repochan order slice` / `extract-stickers` | 订单上下文下的切图/贴纸 | 否（像素） | 是（经 core 落盘） |
 
-image-gen 把所有后端视为 **OpenAI-compatible** `/images/generations` endpoint（`baseURL` + `apiKey` + `model`），覆盖中转站、本地 reverse-proxy、OpenAI 直连等。
+image-gen 把所有后端视为 **OpenAI-compatible** endpoint（`baseURL` + `apiKey` + `model` + `mode`）：
+
+| mode | 用途 |
+|------|------|
+| `auto`（默认） | 经典提交（不带 `X-Async-Mode`）；响应有 job/task id 则 poll；host 规则可升为 async |
+| `openai` | 强制经典 |
+| `openai-async` | 强制 `X-Async-Mode` + 异步 poll（仅已知需要的中转） |
+
+用户配置一般只需 URL + key；**不必**懂 sync/async。诊断：`repochan image status`（显示 `mode → effectiveMode`）。客户端从不自动 re-POST 整次生图，也不在 504 后换 mode 重打。
 
 资产模板（构图骨架、尺寸、grid）在 `@repochan/templates`，经 `repochan template list|get` 消费；项目可在 `.repochan/templates/` 覆盖同 id。
 

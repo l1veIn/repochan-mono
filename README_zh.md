@@ -45,7 +45,7 @@ cli ──┬──> core
 | `core` | `.repochan/` 读写、schema 门、状态机、分析引擎 | CLI（与测试） |
 | `skill` | 管线怎么跑（向导 + 角色） | 你的 agent（经 `repochan setup`） |
 | `cli` | 确定性子命令 + skill 安装 | 用户 / agent / CI |
-| `image-gen` | 图像生成 + `~/.repochan/image.json` | `repochan image gen\|configure` |
+| `image-gen` | 图像生成 + `~/.repochan/image.json`（mode: `openai` / `openai-async`） | `repochan image gen\|configure\|status\|probe` |
 | `image-edit` | 本地像素操作 | `repochan image edit …` |
 | `templates` | 官方资产模板 | `repochan template list\|get` |
 
@@ -175,8 +175,10 @@ repochan protocol inspect|read|write
 图像与模板：
 
 ```bash
-repochan image gen --prompt "…" [--reference path] [--out path] …
-repochan image configure [--provider …] [--api-key …] [--base-url …]
+repochan image gen --prompt "…" [--reference path] [--out path] [--endpoint id] [--mode openai|openai-async]
+repochan image configure [--provider openai|custom|async|skip] [--base-url …] [--api-key …] [--endpoint-id …] [--mode …]
+repochan image status
+repochan image probe [--endpoint id]
 repochan image edit slice <image> --rows N --cols M [--out dir]
 repochan image edit bg-remove <image> [--out path]
 repochan image edit gif-from-frames <frame…> [--out path] [--fps N]

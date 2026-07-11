@@ -1,11 +1,15 @@
-import { input, password, select } from "@inquirer/prompts";
+import { input, password, select, confirm } from "@inquirer/prompts";
 import {
   GLOBAL_CONFIG_PATH,
   hasConfiguredEndpoints,
   loadConfig,
   listEndpoints,
+  listEndpointStatuses,
   saveGlobalConfig,
+  normalizeImageRequestMode,
+  probeEndpoint,
   type ImageGenConfig,
+  type ImageRequestMode,
 } from "@repochan/image-gen";
 import { emitResult, type OutputOptions, UsageError, dim, heading, bullet } from "../lib/output.js";
 
@@ -18,11 +22,16 @@ export type ImageConfigureOptions = OutputOptions & {
   /**
    * Non-interactive: skip | openai | custom.
    * For openai/custom, pass --api-key (and --base-url for custom).
+   * Advanced: --mode auto|openai|openai-async (default auto).
    */
-  provider?: ImageConfigureChoice;
+  provider?: ImageConfigureChoice | "async";
   apiKey?: string;
   baseUrl?: string;
   model?: string;
+  endpointId?: string;
+  mode?: string;
+  setDefault?: boolean;
+  probe?: boolean;
   /**
    * When true (setup embedding): if already configured, do nothing quietly.
    * When false (standalone `image configure`): always offer to (re)configure.
@@ -30,10 +39,51 @@ export type ImageConfigureOptions = OutputOptions & {
   onlyIfMissing?: boolean;
 };
 
+/** Derive a stable endpoint id from baseURL (no user prompt). */
+function deriveEndpointId(baseURL: string, fallback: string): string {
+  try {
+    const u = new URL(baseURL);
+    const host = u.hostname.replace(/^www\./, "").toLowerCase();
+    if (host === "localhost" || /^\d{1,3}(\.\d{1,3}){3}$/.test(host)) {
+      const port = u.port || (u.protocol === "https:" ? "443" : "80");
+      const base = host === "localhost" ? "localhost" : host.replace(/\./g, "-");
+      return `${base}-${port}`.slice(0, 40);
+    }
+    // Drop public suffix-ish last label: img-cn.65535.space → img-cn-65535
+    const parts = host.split(".");
+    const core = parts.length > 1 ? parts.slice(0, -1).join("-") : host;
+    let slug = core
+      .replace(/[^a-zA-Z0-9-]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+    if (slug.length < 2) {
+      slug = host.replace(/[^a-zA-Z0-9-]/g, "-").replace(/-+/g, "-");
+    }
+    return (slug || fallback).slice(0, 40);
+  } catch {
+    return fallback;
+  }
+}
+
+/** Avoid clobbering a different endpoint that already uses the same id. */
+function uniqueEndpointId(cwd: string, baseId: string, baseURL: string): string {
+  const config = loadConfig(cwd);
+  const existing = config.endpoints ?? {};
+  const normalizedUrl = baseURL.replace(/\/$/, "");
+  // Same URL already registered under this id → reuse
+  if (existing[baseId]?.baseURL?.replace(/\/$/, "") === normalizedUrl) return baseId;
+  if (!existing[baseId]) return baseId;
+  for (let i = 2; i < 100; i++) {
+    const id = `${baseId}-${i}`;
+    if (!existing[id] || existing[id].baseURL?.replace(/\/$/, "") === normalizedUrl) return id;
+  }
+  return `${baseId}-${Date.now()}`;
+}
+
 /**
  * Interactive / flag-driven image endpoint setup.
  * Writes ~/.repochan/image.json (global). Does not touch project .repochan/ protocol.
- * Does not run `repochan init` — protocol init stays with the agent / explicit init.
+ * Default mode is auto — users do not need to know sync vs async.
  */
 export async function runImageConfigure(cwd: string, options: ImageConfigureOptions = {}) {
   if (options.onlyIfMissing && hasConfiguredEndpoints(cwd)) {
@@ -75,7 +125,6 @@ export async function maybeConfigureImageDuringSetup(
   }
 
   if (options.yes || options.json) {
-    // Non-interactive setup never blocks on keys.
     if (!options.json) {
       console.log();
       console.log(dim("Image: not configured (skipped in --yes mode)."));
@@ -95,22 +144,23 @@ export async function maybeConfigureImageDuringSetup(
   console.log();
   heading("Image generation");
   console.log(dim("Needed for mascot / foundation art. You can skip and configure later."));
+  console.log(dim("Just add an OpenAI-compatible base URL + key — mode defaults to auto."));
   await runImageConfigure(cwd, { onlyIfMissing: true });
 }
 
-async function runInteractive(cwd: string, options: OutputOptions) {
+async function runInteractive(cwd: string, options: OutputOptions & { probe?: boolean }) {
   const choice = await select<ImageConfigureChoice>({
     message: "Image generation endpoint",
     choices: [
       {
         name: "OpenAI (official API)",
         value: "openai",
-        description: "api.openai.com — just paste your API key",
+        description: "api.openai.com — paste your API key",
       },
       {
         name: "Custom OpenAI-compatible",
         value: "custom",
-        description: "Relay / reverse-proxy — base URL + API key",
+        description: "Relay / reverse-proxy — base URL + key (auto mode)",
       },
       {
         name: "Skip for now",
@@ -134,17 +184,19 @@ async function runInteractive(cwd: string, options: OutputOptions) {
       mask: "*",
       validate: (v) => (v.trim() ? true : "API key is required"),
     });
-    const saved = writeEndpoint({
+    const saved = writeEndpoint(cwd, {
       id: "openai",
       baseURL: OPENAI_BASE_URL,
       apiKey: apiKey.trim(),
       model: DEFAULT_MODEL,
+      mode: "auto",
+      setDefault: true,
     });
-    return reportSaved(options, saved);
+    return finishSaved(cwd, options, saved);
   }
 
-  const baseURL = await input({
-    message: "Base URL (OpenAI-compatible, e.g. https://relay.example/v1)",
+  const baseURLRaw = await input({
+    message: "Base URL (e.g. https://switchbase.vip/v1 or http://127.0.0.1:8787/v1)",
     validate: (v) => {
       const t = v.trim();
       if (!t) return "Base URL is required";
@@ -152,6 +204,8 @@ async function runInteractive(cwd: string, options: OutputOptions) {
       return true;
     },
   });
+  const baseURL = baseURLRaw.trim().replace(/\/$/, "");
+  const endpointId = uniqueEndpointId(cwd, deriveEndpointId(baseURL, "custom"), baseURL);
   const apiKey = await password({
     message: "API key",
     mask: "*",
@@ -161,19 +215,46 @@ async function runInteractive(cwd: string, options: OutputOptions) {
     message: "Model id",
     default: DEFAULT_MODEL,
   });
-  const saved = writeEndpoint({
-    id: "custom",
-    baseURL: baseURL.trim().replace(/\/$/, ""),
+  const existing = listEndpoints(loadConfig(cwd));
+  let setDefault = existing.length === 0;
+  if (existing.length > 0 && !existing.includes(endpointId)) {
+    setDefault = await confirm({
+      message: `Set this endpoint as default? (${endpointId})`,
+      default: true,
+    });
+  } else if (existing.includes(endpointId)) {
+    // Updating existing entry: keep as default if it already is, else ask only when not sole endpoint
+    const cfg = loadConfig(cwd);
+    setDefault = cfg.defaultEndpoint === endpointId || existing.length === 1;
+    if (!setDefault && existing.length > 1) {
+      setDefault = await confirm({
+        message: `Set this endpoint as default? (${endpointId})`,
+        default: true,
+      });
+    }
+  }
+
+  const saved = writeEndpoint(cwd, {
+    id: endpointId,
+    baseURL,
     apiKey: apiKey.trim(),
     model: (model || DEFAULT_MODEL).trim(),
+    mode: "auto",
+    setDefault,
   });
-  return reportSaved(options, saved);
+  return finishSaved(cwd, options, saved);
 }
 
 async function runNonInteractive(cwd: string, options: ImageConfigureOptions) {
-  void cwd;
-  const provider = options.provider;
+  let provider = options.provider;
   if (!provider) throw new UsageError("Missing --provider openai|custom|skip");
+
+  // Back-compat: --provider async → custom + mode openai-async
+  let mode: ImageRequestMode = normalizeImageRequestMode(options.mode || "auto");
+  if (provider === "async") {
+    provider = "custom";
+    if (!options.mode) mode = "openai-async";
+  }
 
   if (provider === "skip") {
     return void emitResult(options, "Skipped image configuration.", { action: "skipped" });
@@ -187,13 +268,15 @@ async function runNonInteractive(cwd: string, options: ImageConfigureOptions) {
         "Pass --api-key sk-... or set OPENAI_API_KEY.",
       );
     }
-    const saved = writeEndpoint({
-      id: "openai",
+    const saved = writeEndpoint(cwd, {
+      id: options.endpointId?.trim() || "openai",
       baseURL: OPENAI_BASE_URL,
       apiKey,
       model: options.model?.trim() || DEFAULT_MODEL,
+      mode,
+      setDefault: options.setDefault !== false,
     });
-    return reportSaved(options, saved);
+    return finishSaved(cwd, options, saved);
   }
 
   const baseURL = options.baseUrl?.trim();
@@ -201,42 +284,118 @@ async function runNonInteractive(cwd: string, options: ImageConfigureOptions) {
   if (!baseURL || !apiKey) {
     throw new UsageError(
       "Custom configure needs --base-url and --api-key.",
-      "Example: repochan image configure --provider custom --base-url https://relay.example/v1 --api-key ...",
+      "Example: repochan image configure --provider custom --base-url https://relay.example/v1 --api-key ... --endpoint-id switchbase",
     );
   }
-  const saved = writeEndpoint({
-    id: "custom",
-    baseURL: baseURL.replace(/\/$/, ""),
+  const normalizedUrl = baseURL.replace(/\/$/, "");
+  const id =
+    options.endpointId?.trim() ||
+    uniqueEndpointId(cwd, deriveEndpointId(normalizedUrl, "custom"), normalizedUrl);
+  const existing = listEndpoints(loadConfig(cwd));
+  const setDefault =
+    options.setDefault === true || (options.setDefault !== false && existing.length === 0);
+
+  const saved = writeEndpoint(cwd, {
+    id,
+    baseURL: normalizedUrl,
     apiKey,
     model: options.model?.trim() || DEFAULT_MODEL,
+    mode,
+    setDefault,
   });
-  return reportSaved(options, saved);
+  return finishSaved(cwd, options, saved);
 }
 
-function writeEndpoint(ep: {
-  id: string;
+function writeEndpoint(
+  cwd: string,
+  ep: {
+    id: string;
+    baseURL: string;
+    apiKey: string;
+    model: string;
+    mode: ImageRequestMode;
+    setDefault: boolean;
+  },
+): {
+  path: string;
+  endpoint: string;
   baseURL: string;
-  apiKey: string;
   model: string;
-}): { path: string; endpoint: string; baseURL: string; model: string } {
+  mode: ImageRequestMode;
+  effectiveMode?: string;
+  modeSource?: string;
+} {
+  void cwd;
   const patch: ImageGenConfig = {
-    defaultEndpoint: ep.id,
+    version: 2,
     endpoints: {
       [ep.id]: {
         id: ep.id,
         baseURL: ep.baseURL,
         apiKey: ep.apiKey,
         model: ep.model,
+        mode: ep.mode,
       },
     },
   };
+  if (ep.setDefault) {
+    patch.defaultEndpoint = ep.id;
+  }
   saveGlobalConfig(patch);
-  return { path: GLOBAL_CONFIG_PATH, endpoint: ep.id, baseURL: ep.baseURL, model: ep.model };
+  return {
+    path: GLOBAL_CONFIG_PATH,
+    endpoint: ep.id,
+    baseURL: ep.baseURL,
+    model: ep.model,
+    mode: ep.mode,
+  };
+}
+
+async function finishSaved(
+  cwd: string,
+  options: OutputOptions & { probe?: boolean },
+  saved: {
+    path: string;
+    endpoint: string;
+    baseURL: string;
+    model: string;
+    mode: ImageRequestMode;
+  },
+) {
+  const statuses = listEndpointStatuses(loadConfig(cwd));
+  const st = statuses.find((s) => s.id === saved.endpoint);
+  const enriched = {
+    ...saved,
+    effectiveMode: st?.effectiveMode,
+    modeSource: st?.modeSource,
+  };
+
+  if (options.probe) {
+    const probe = await probeEndpoint(loadConfig(cwd), { endpoint: saved.endpoint });
+    if (!options.json) {
+      console.log(
+        dim(
+          `Probe GET /models: ${probe.modelsOk ? "ok" : "not ok"}` +
+            (probe.modelsStatus != null ? ` (${probe.modelsStatus})` : "") +
+            (probe.modelsNote ? ` — ${probe.modelsNote}` : ""),
+        ),
+      );
+    }
+  }
+  return reportSaved(options, enriched);
 }
 
 function reportSaved(
   options: OutputOptions,
-  saved: { path: string; endpoint: string; baseURL: string; model: string },
+  saved: {
+    path: string;
+    endpoint: string;
+    baseURL: string;
+    model: string;
+    mode: ImageRequestMode;
+    effectiveMode?: string;
+    modeSource?: string;
+  },
 ) {
   if (options.json) {
     return void emitResult(options, "", { action: "configured", ...saved });
@@ -245,7 +404,72 @@ function reportSaved(
   bullet("endpoint", saved.endpoint);
   bullet("baseURL", saved.baseURL);
   bullet("model", saved.model);
+  bullet("mode", saved.mode + (saved.effectiveMode ? ` → effective ${saved.effectiveMode} (${saved.modeSource})` : ""));
   bullet("config", saved.path);
   console.log(dim('\nTry: repochan image gen --prompt "a chibi mascot" --out /tmp/test.png'));
+  console.log(dim("     repochan image status"));
   return { action: "configured" as const, ...saved };
+}
+
+/** repochan image status */
+export async function runImageStatus(cwd: string, options: OutputOptions = {}) {
+  const config = loadConfig(cwd);
+  const statuses = listEndpointStatuses(config);
+  if (statuses.length === 0) {
+    throw new UsageError(
+      "No image endpoints configured.",
+      "Run `repochan image configure` (OpenAI or custom OpenAI-compatible).",
+    );
+  }
+  if (options.json) {
+    return void emitResult(options, "", { endpoints: statuses, configPath: GLOBAL_CONFIG_PATH });
+  }
+  heading("Image endpoints");
+  for (const s of statuses) {
+    const mark = s.isDefault ? " (default)" : "";
+    const key = s.hasKey ? "key=yes" : "key=MISSING";
+    console.log(`  ${s.id}${mark}`);
+    console.log(dim(`    ${s.baseURL}`));
+    console.log(
+      dim(
+        `    mode=${s.mode} → ${s.effectiveMode} (${s.modeSource})  model=${s.model}  ${key}`,
+      ),
+    );
+  }
+  console.log(dim(`\nConfig: ${GLOBAL_CONFIG_PATH}`));
+  console.log(dim("auto = classic OpenAI unless a host rule or mode=openai-async applies."));
+}
+
+/** repochan image probe */
+export async function runImageProbe(
+  cwd: string,
+  options: OutputOptions & { endpoint?: string } = {},
+) {
+  const config = loadConfig(cwd);
+  if (listEndpoints(config).length === 0) {
+    throw new UsageError("No image endpoints configured.", "Run `repochan image configure` first.");
+  }
+  const result = await probeEndpoint(config, { endpoint: options.endpoint });
+  const statuses = listEndpointStatuses(config);
+  const st = statuses.find((s) => s.id === result.endpoint);
+  if (options.json) {
+    return void emitResult(options, "", { ...result, ...st });
+  }
+  heading(`Probe: ${result.endpoint}`);
+  bullet("baseURL", result.baseURL || "(none)");
+  if (st) {
+    bullet("mode", `${st.mode} → ${st.effectiveMode} (${st.modeSource})`);
+  }
+  bullet("model", result.model);
+  bullet("hasKey", result.hasKey ? "yes" : "no");
+  if (result.error) {
+    console.log(dim(`  error: ${result.error}`));
+  }
+  if (result.modelsStatus != null) {
+    bullet("GET /models", `${result.modelsOk ? "ok" : "fail"} (${result.modelsStatus})`);
+  } else if (result.modelsNote) {
+    bullet("GET /models", result.modelsOk === false ? "fail" : "n/a");
+  }
+  if (result.modelsNote) console.log(dim(`  note: ${result.modelsNote}`));
+  console.log(dim("\nThis does not generate an image (no bill). Use `repochan image gen` to test live."));
 }

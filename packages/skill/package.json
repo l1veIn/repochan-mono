@@ -5,11 +5,26 @@
   "type": "module",
   "license": "MIT",
   "author": "l1veIn",
+  "homepage": "https://github.com/l1veIn/repochan-mono/tree/main/packages/skill",
+  "bugs": {
+    "url": "https://github.com/l1veIn/repochan-mono/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/l1veIn/repochan-mono.git",
+    "directory": "packages/skill"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "files": [
     "README.md",
-    "skills"
+    "skills",
+    "package.json"
   ],
   "scripts": {
-    "build": "echo 'skill package: no build step (pure markdown)'"
+    "build": "echo 'skill package: no build step (pure markdown)'",
+    "prepublishOnly": "npm run build"
   }
 }
