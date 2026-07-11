@@ -1,0 +1,15 @@
+{
+  "name": "repochan-score-review",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Human review / scoring UI for RepoChan batch test archives (test-*)",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "viewerjs": "^1.11.7"
+  }
+}

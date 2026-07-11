@@ -19,6 +19,20 @@ description: >
 
 设定集封面（`assetType: foundation_sheet` 或 `cover_sheet`）是唯一不需要引用就能生成的任务类型——它本身就是锚点。
 
+## 批量执行（多个 approved 订单）
+
+美术总监会一次性创建全部订单（foundation + 下游）。当你拿到多个 approved 订单时，**按依赖顺序执行**：
+
+1. **先执行 foundation**——它是所有下游的视觉锚点，必须先出图。
+2. **再执行下游**——每个下游订单的 `references` 指向 foundation，`resolve-references` 此时能成功解析出 foundation 图路径。
+
+**yolo 模式**：foundation 出图后直接继续执行下游，不停。
+**非 yolo 模式**：foundation 出图后停在检查点 2（由向导控制），用户确认后继续下游。
+
+如果 foundation 不在本次任务列表中（已存在），直接执行下游——`resolve-references` 会取已有的 foundation 图。
+
+逐个订单执行：读取订单 → 解析引用 → 组装 prompt → `repochan image gen` → `repochan order create-result` → 下一个。
+
 ## 执行前检查
 
 1. 要求分析报告已就绪（`repochan analysis get` 检查）。

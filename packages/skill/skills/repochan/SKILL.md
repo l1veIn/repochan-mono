@@ -27,14 +27,12 @@ description: >
 ② 访谈专员  → repochan-interviewer → 〔可选〕提炼用户偏好
 ③ 创意团队  → repochan-persona     → 造人格，产出人设
    ⏸ 检查点 1：persona 定稿后停下，展示给用户确认
-④ 美术总监  → repochan-art-director → 先创建 foundation_sheet 任务（视觉锚点）
-⑤ 画师      → repochan-painter     → 执行设定集封面
-   ⏸ 检查点 2：foundation 出图后停下，展示给用户确认
-⑥ 美术总监  → repochan-art-director → 创建下游任务（自动引用设定集）
-⑦ 画师      → repochan-painter     → 带参考图执行下游任务（贴纸/表情/海报…）
-⑧ 模板部署  → repochan-page-designer → 拉取/填充 Astro 模板
+④ 美术总监  → repochan-art-director → 一次性创建全部订单（foundation + sticker + poster + banner + pattern…）
+⑤ 画师      → repochan-painter     → 先执行 foundation，再执行下游（引用 foundation 参考图）
+   ⏸ 检查点 2：foundation 出图后停下（非 yolo 才停；yolo 直接继续下游）
+⑥ 模板部署  → repochan-page-designer → 拉取/填充 Astro 模板
    ⏸ 检查点 3：部署前停下，给用户最后确认（外向不可逆操作）
-⑨ 部署上线  → 构建 + 部署到 GitHub Pages
+⑦ 部署上线  → 构建 + 部署到 GitHub Pages
 ```
 
 每一步你要：读对应团队 skill 的指引 → 按它的指导跑（调 cli 子命令、用 `repochan <entity> get` 读上游产物）→ 完成后进入下一阶段。
@@ -106,9 +104,9 @@ description: >
 | ① 分析 | `repochan-analysis` | 扫描仓库，写分析报告 |
 | ② 访谈 | `repochan-interviewer` | 〔可选〕结构化访谈 |
 | ③ 人设 | `repochan-persona` | 创意团队造人格 |
-| ④⑤⑥ 美术指导 | `repochan-art-director` | 创建设定集 + 下游任务 |
-| ⑤⑦ 绘制 | `repochan-painter` | 执行图像任务 |
-| ⑧ 页面 | `repochan-page-designer` | 落地页 |
+| ④ 美术指导 | `repochan-art-director` | 一次性创建全部订单（foundation + 下游） |
+| ⑤ 绘制 | `repochan-painter` | 先执行 foundation，再执行下游 |
+| ⑥ 页面 | `repochan-page-designer` | 落地页 |
 
 需要某一步的细节时，加载对应团队 skill 的完整指引。
 
@@ -122,12 +120,13 @@ description: >
 3. （interview 可选，询问或跳过）
 4. 加载 `repochan-persona`，造人格。
 5. **检查点 1**：展示 persona，问"这个人设可以吗？要调整什么？"
-6. 用户确认后，加载 `repochan-art-director` 创建 foundation 任务，再加载 `repochan-painter` 出设定集封面。
-7. **检查点 2**：展示 foundation 图，问"视觉风格满意吗？"
-8. 确认后，美术总监建下游任务，画师批量执行。
-9. 加载 `repochan-page-designer`，拉模板填充。
-10. **检查点 3**："即将部署到 GitHub Pages，确认上线？"
-11. 用户确认 → 构建 + 部署。
+6. 用户确认后，加载 `repochan-art-director`，**一次性创建全部订单**（foundation + sticker + poster + banner + pattern…）。
+7. 加载 `repochan-painter`，先执行 foundation 出图。
+8. **检查点 2**：展示 foundation 图，问"视觉风格满意吗？"
+9. 确认后，画师继续执行下游订单（引用 foundation 参考图）。
+10. 加载 `repochan-page-designer`，拉模板填充。
+11. **检查点 3**："即将部署到 GitHub Pages，确认上线？"
+12. 用户确认 → 构建 + 部署。
 
 **用户**："yolo 全套搞定别问我"
 

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RepoChan Score Review</title>
+    <link rel="stylesheet" href="/vendor/viewerjs/viewer.min.css" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Archive picker (home) -->
+      <section id="home" class="view">
+        <header class="topbar">
+          <div class="brand">
+            <span class="logo">◆</span>
+            <h1>RepoChan Score Review</h1>
+          </div>
+          <p class="subtitle">加载 test-results/ 下 test-* 归档 · 横向人类评分</p>
+        </header>
+        <div id="archive-list" class="archive-grid">
+          <p class="muted">加载中…</p>
+        </div>
+      </section>
+
+      <!-- Review workspace -->
+      <section id="review" class="view hidden">
+        <header class="topbar review-bar">
+          <button type="button" id="btn-back" class="btn ghost" title="返回归档列表">← 归档</button>
+          <div class="bar-center">
+            <span id="archive-label" class="chip"></span>
+            <span id="progress-label" class="progress"></span>
+          </div>
+          <div class="bar-right">
+            <label class="rater-field">
+              评分人
+              <input id="rater-name" type="text" placeholder="你的名字" maxlength="40" />
+            </label>
+            <span id="save-status" class="save-status" aria-live="polite"></span>
+          </div>
+        </header>
+
+        <div class="review-layout">
+          <!-- Left: image + nav -->
+          <div class="panel image-panel">
+            <div class="item-heading">
+              <h2 id="item-title">—</h2>
+              <div id="item-meta-chips" class="chips"></div>
+            </div>
+            <div class="image-stage" id="image-stage">
+              <img id="main-image" alt="order result" title="点击放大查看细节" />
+              <p id="no-image" class="muted hidden">无图片</p>
+              <p id="zoom-hint" class="zoom-hint hidden">点击图片放大 · 滚轮缩放 · 拖动平移 · Esc 关闭</p>
+            </div>
+            <!-- Hidden gallery for Viewer.js multi-image support -->
+            <ul id="viewer-gallery" class="viewer-gallery" hidden></ul>
+            <div id="thumb-row" class="thumb-row"></div>
+            <div class="nav-row">
+              <button type="button" id="btn-prev" class="btn">← 上一张 <kbd>A</kbd></button>
+              <div class="jump">
+                <input id="jump-index" type="number" min="1" />
+                <button type="button" id="btn-jump" class="btn ghost">跳转</button>
+              </div>
+              <button type="button" id="btn-next" class="btn primary">下一张 → <kbd>D</kbd></button>
+            </div>
+            <div class="nav-row secondary-nav">
+              <button type="button" id="btn-prev-unrated" class="btn ghost">上一个未评</button>
+              <button type="button" id="btn-next-unrated" class="btn ghost">下一个未评</button>
+            </div>
+          </div>
+
+          <!-- Right: score + refs -->
+          <div class="panel side-panel">
+            <div class="score-card">
+              <h3>评分</h3>
+              <div class="score-row">
+                <div class="score-buttons" id="score-buttons"></div>
+                <button type="button" id="btn-clear-score" class="btn ghost sm">清除分数</button>
+              </div>
+              <label class="field">
+                评论 / 建议
+                <textarea
+                  id="comment"
+                  rows="4"
+                  placeholder="做得好的地方、问题、改进建议…"
+                ></textarea>
+              </label>
+              <div class="score-meta">
+                <span id="score-rated-at" class="muted"></span>
+                <span id="score-badge" class="badge"></span>
+              </div>
+            </div>
+
+            <div class="tabs">
+              <button type="button" class="tab active" data-tab="prompt">提示词</button>
+              <button type="button" class="tab" data-tab="order">Order</button>
+              <button type="button" class="tab" data-tab="persona">Persona</button>
+              <button type="button" class="tab" data-tab="project">项目</button>
+              <button type="button" class="tab" data-tab="queue">队列</button>
+            </div>
+
+            <div class="tab-panels">
+              <div id="tab-prompt" class="tab-panel active">
+                <section class="block">
+                  <h4>promptBrief</h4>
+                  <pre id="prompt-brief" class="code-block"></pre>
+                </section>
+                <section class="block">
+                  <h4>generationPrompt</h4>
+                  <pre id="generation-prompt" class="code-block long"></pre>
+                </section>
+                <section class="block">
+                  <h4>其他 meta</h4>
+                  <pre id="meta-extra" class="code-block"></pre>
+                </section>
+              </div>
+
+              <div id="tab-order" class="tab-panel">
+                <section class="block">
+                  <h4>Brief</h4>
+                  <pre id="order-brief" class="code-block long"></pre>
+                </section>
+                <section class="block">
+                  <h4>Acceptance / Deliverables</h4>
+                  <pre id="order-extra" class="code-block"></pre>
+                </section>
+              </div>
+
+              <div id="tab-persona" class="tab-panel">
+                <div id="persona-content" class="persona-view">
+                  <p class="muted">加载中…</p>
+                </div>
+              </div>
+
+              <div id="tab-project" class="tab-panel">
+                <pre id="project-content" class="code-block long"></pre>
+              </div>
+
+              <div id="tab-queue" class="tab-panel">
+                <div id="queue-list" class="queue-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <script src="/vendor/viewerjs/viewer.min.js"></script>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
