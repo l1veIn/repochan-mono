@@ -1,6 +1,8 @@
 ---
 name: repochan
-description: RepoChan 向导——默认一键调度全流程，把 git 仓库变成完整的品牌资产（人设、插画、贴纸、落地页）并部署。带关键检查点保护级联错误；用户说 yolo 可全默认跳过。逐团队访问为高级模式。
+description: >
+  RepoChan 向导——默认一键调度全流程，把 git 仓库变成完整的品牌资产（人设、插画、贴纸、落地页）并部署。带关键检查点保护级联错误；用户说 yolo 可全默认跳过。逐团队访问为高级模式。
+  Use when the user wants the full pipeline, runs /repochan, or says 一键生成/全流程/yolo.
 ---
 
 # RepoChan 向导
@@ -96,6 +98,8 @@ description: RepoChan 向导——默认一键调度全流程，把 git 仓库�
 4. 确认用户要的终点（全套资产？到图为止？要部署吗？）。
 
 ## 团队 skill 索引
+
+各团队 skill 采用 progressive disclosure：精炼 `SKILL.md` + 按需 `references/`。调度时读取对应 skill 的主文件即可；细节由该 skill 自行加载。
 
 | 阶段 | 团队 skill | 职责 |
 |---|---|---|

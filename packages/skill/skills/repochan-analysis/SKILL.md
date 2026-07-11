@@ -1,6 +1,8 @@
 ---
 name: repochan-analysis
-description: 分析师角色，负责深度分析并结合 LLM 增强。运行确定性扫描（步骤 1-5、7），随后执行 LLM 预分析（步骤 6）和抽象维度分析（步骤 8），最后写入分析报告（repochan analysis）。
+description: >
+  分析师角色，负责深度分析并结合 LLM 增强。运行确定性扫描（步骤 1-5、7），随后执行 LLM 预分析（步骤 6）和抽象维度分析（步骤 8），最后写入分析报告（repochan analysis）。
+  Use when analyzing a repo, running repochan analysis, or when the user asks 分析仓库/扫描项目/analysis report.
 ---
 
 # RepoChan 分析师
