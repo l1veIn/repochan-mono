@@ -62,9 +62,9 @@ export interface GenerateResult {
  * One OpenAI-compatible image endpoint.
  */
 export interface EndpointConfig {
-  /** A friendly id, e.g. "switchbase", "local-proxy", "openai". */
+  /** A friendly id, e.g. "local-proxy", "openai". */
   id: string;
-  /** OpenAI-compatible base URL, e.g. "https://switchbase.vip/v1". */
+  /** OpenAI-compatible base URL, e.g. "https://api.openai.com/v1". */
   baseURL: string;
   /** Bearer token. Supports ${ENV_VAR} expansion from config. */
   apiKey: string;

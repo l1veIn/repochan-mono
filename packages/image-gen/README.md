@@ -27,12 +27,12 @@ Host rules live in `src/hostRules.ts` (empty by default; add only when a host *r
 ```json
 {
   "version": 2,
-  "defaultEndpoint": "switchbase",
+  "defaultEndpoint": "example",
   "endpoints": {
-    "switchbase": {
-      "id": "switchbase",
-      "baseURL": "https://switchbase.vip/v1",
-      "apiKey": "${SWITCHBASE_KEY}",
+    "example": {
+      "id": "example",
+      "baseURL": "https://api.openai.com/v1",
+      "apiKey": "${OPENAI_KEY}",
       "model": "gpt-image-2",
       "mode": "auto"
     }

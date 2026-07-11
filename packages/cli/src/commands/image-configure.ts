@@ -196,7 +196,7 @@ async function runInteractive(cwd: string, options: OutputOptions & { probe?: bo
   }
 
   const baseURLRaw = await input({
-    message: "Base URL (e.g. https://switchbase.vip/v1 or http://127.0.0.1:8787/v1)",
+    message: "Base URL (e.g. https://api.openai.com/v1 or http://127.0.0.1:8787/v1)",
     validate: (v) => {
       const t = v.trim();
       if (!t) return "Base URL is required";
@@ -284,7 +284,7 @@ async function runNonInteractive(cwd: string, options: ImageConfigureOptions) {
   if (!baseURL || !apiKey) {
     throw new UsageError(
       "Custom configure needs --base-url and --api-key.",
-      "Example: repochan image configure --provider custom --base-url https://relay.example/v1 --api-key ... --endpoint-id switchbase",
+      "Example: repochan image configure --provider custom --base-url https://relay.example/v1 --api-key ... --endpoint-id exampleId",
     );
   }
   const normalizedUrl = baseURL.replace(/\/$/, "");

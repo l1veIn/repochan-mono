@@ -42,7 +42,7 @@ export async function runImageGen(
   const prompt = options.prompt;
   if (!prompt || !prompt.trim()) {
     throw new UsageError(
-      "Missing --prompt. Usage: repochan image gen --prompt 'a chibi mascot' [--out out.png] [--endpoint switchbase]",
+      "Missing --prompt. Usage: repochan image gen --prompt 'a chibi mascot' [--out out.png] [--endpoint endpointId]",
     );
   }
   const config = loadConfig(cwd);
