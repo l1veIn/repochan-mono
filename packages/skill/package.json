@@ -7,8 +7,7 @@
   "author": "l1veIn",
   "files": [
     "README.md",
-    "skills",
-    "templates"
+    "skills"
   ],
   "scripts": {
     "build": "echo 'skill package: no build step (pure markdown)'"

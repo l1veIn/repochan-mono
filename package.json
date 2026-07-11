@@ -2,7 +2,7 @@
   "name": "repochan-monorepo",
   "private": true,
   "version": "0.1.0",
-  "description": "RepoChan monorepo: core protocol + CLI (sole binding surface) + skill/template assets. Agent-agnostic — bring your own (Pi / Claude Code / Codex).",
+  "description": "RepoChan monorepo: core protocol + CLI (sole binding surface) + skill + asset templates. Agent-agnostic — bring your own (Pi / Claude Code / Codex).",
   "type": "module",
   "packageManager": "pnpm@9.15.4",
   "repository": {

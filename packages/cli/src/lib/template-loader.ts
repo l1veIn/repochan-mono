@@ -8,7 +8,7 @@ const require = createRequire(import.meta.url);
 // Template types — CLI-local.
 // core only sees `templateId` as a plain string on AssetOrder.
 // Template loading, parsing, and consumption is the CLI's responsibility.
-// Built-in templates ship with @repochan/skill (packages/skill/templates/);
+// Built-in templates ship with @repochan/templates (packages/templates/);
 // project-level templates live in <projectRoot>/.repochan/templates/.
 // ---------------------------------------------------------------------------
 
@@ -271,16 +271,16 @@ export async function loadTemplatesFromDir(dir: string): Promise<TemplateData[]>
 }
 
 /**
- * Resolve the built-in templates directory shipped with @repochan/skill.
- * Mirrors setup/agents/shared.ts resolveSkillSourceDir().
+ * Resolve the built-in templates directory shipped with @repochan/templates.
+ * YAML files live at the package root (next to package.json).
  */
 export async function getBuiltinTemplatesDir(): Promise<string> {
-  const pkgJsonPath = require.resolve("@repochan/skill/package.json");
-  return path.join(path.dirname(pkgJsonPath), "templates");
+  const pkgJsonPath = require.resolve("@repochan/templates/package.json");
+  return path.dirname(pkgJsonPath);
 }
 
 /**
- * Load all available templates: built-in (from @repochan/skill) + project-level
+ * Load all available templates: built-in (from @repochan/templates) + project-level
  * (<projectRoot>/.repochan/templates/). Project-level templates override
  * built-in by id.
  */

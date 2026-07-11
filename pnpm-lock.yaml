@@ -32,6 +32,9 @@ importers:
       '@repochan/skill':
         specifier: workspace:*
         version: link:../skill
+      '@repochan/templates':
+        specifier: workspace:*
+        version: link:../templates
       cac:
         specifier: ^6.7.14
         version: 6.7.14
@@ -122,6 +125,8 @@ importers:
         version: 2.1.9(@types/node@24.13.2)
 
   packages/skill: {}
+
+  packages/templates: {}
 
   repochan-page:
     dependencies:

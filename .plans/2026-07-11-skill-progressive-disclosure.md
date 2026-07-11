@@ -159,3 +159,17 @@ name / description（含触发词 + 场景 + 不触发场景）
 - 不改 CLI / core 协议（除非 skill 引用了错误命令——仅修 skill 文本）
 - 不在本次混入 templates YAML 内容大改
 - 不强制拆 &lt;150 行的 skill
+
+---
+
+## Follow-up（已执行）：asset templates 包归属
+
+**决定**：独立 `@repochan/templates` 纯数据包（`packages/templates/`），不跟 skill、不塞进 CLI `dist`。
+
+| 层 | 包 |
+|---|---|
+| 方法论 | `@repochan/skill`（markdown only） |
+| 加载 / list / get | CLI → `@repochan/templates` + `.repochan/templates/` overlay |
+| 协议 | core 只存 `templateId` 字符串 |
+
+理由：官方 ~12 个 YAML 适合版本锁定分发；skill 不再背 runtime 数据；后续 registry 可在不动 skill 的情况下扩展。

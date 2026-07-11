@@ -1,0 +1,31 @@
+{
+  "name": "@repochan/templates",
+  "version": "0.1.0",
+  "description": "Built-in asset templates (YAML) for RepoChan image pipeline — prompt skeletons, sizes, grids, constraints.",
+  "type": "module",
+  "license": "MIT",
+  "author": "l1veIn",
+  "homepage": "https://github.com/l1veIn/repochan-mono/tree/main/packages/templates",
+  "bugs": {
+    "url": "https://github.com/l1veIn/repochan-mono/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/l1veIn/repochan-mono.git",
+    "directory": "packages/templates"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "files": [
+    "*.yaml",
+    "README.md",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "echo 'templates package: no build step (pure YAML data)'",
+    "test": "echo 'templates package: no unit tests (loaded by CLI)'",
+    "lint": "echo 'templates package: no lint step'"
+  }
+}

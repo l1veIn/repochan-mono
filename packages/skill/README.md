@@ -14,9 +14,9 @@ This is a pure-markdown package (no build step, no code). It is the C-position o
 - `repochan-painter` — Painter: execute image generation tasks.
 - `repochan-page-designer` — Page Designer (optional): build the landing page.
 
-## Templates
+## Asset templates (not in this package)
 
-12 asset templates ship as YAML under `templates/` (foundation sheet, 2×2 pattern grid, chibi grids, five poster styles, banner, 3×3 icon exploration grid, and three-view). Each template centers on a reusable `prompt_template` with semantic `{{slot}}` placeholders, plus only the physical metadata needed for output and post-processing. The CLI reads them via `repochan template list [--tag <tag>]` and `repochan template get <id>`; project-level templates in `<projectRoot>/.repochan/templates/` override built-ins by id, and legacy width/height templates remain readable.
+Built-in image asset templates live in **`@repochan/templates`** (YAML data package). The CLI loads them via `repochan template list|get`; skills only teach agents how to pick and fill slots through that CLI. Project overrides: `<projectRoot>/.repochan/templates/`.
 
 ## Distribution
 
