@@ -16,6 +16,19 @@ description: >
 
 > **Progressive disclosure**：本文件是可执行主流程。详细规则、菜单、完整示例在 `references/`，**按需读取**对应文件，不要凭记忆省略硬规则。
 
+## 规则优先级（死序 · 全文 SSOT）
+
+从高到低；低优先级不得覆盖高优先级：
+
+1. **安全与产品定位**（年龄/CSAM/gore/仇恨；默认仓库娘女性）
+2. **用户硬约束**（`keyConstraints`、`avoidList`、会话显式指令）
+3. **分量天花板**——仅 `projectWeight=light` 禁止 high concept（见 [project-weight.md](references/project-weight.md)）
+4. **仓库灵魂贴合**（防机械映射、防语言→审美泄漏等）
+5. **用户软偏好**（`preferences`）
+6. **反模板 / 多样性**（建议；不得仅因「不够独特」打回）
+
+**合成：** 用户硬要 light 项目上高概念 → **停下来问用户**，不静默执行也不静默否决。medium/heavy 配轻松世界/日常角色 → **合法**。
+
 ## 默认性别：女性（仓库娘）
 
 **RepoChan = "Repo" + 日语尊称后缀「-chan」（＝仓库娘）。仓库吉祥物默认是少女角色。** 这是产品定位，不是可选项。
@@ -32,10 +45,10 @@ description: >
 
 | 成员 | 职责摘要 | 详细规则 |
 |---|---|---|
-| **0. 项目分量评估** | 造世界前评定 light/medium/heavy；错配是最严重贴合度问题 | [project-weight.md](references/project-weight.md) |
-| **1. 世界架构师** | 体量匹配的世界 + 2–3 候选原型去重 + 视觉风格建议 | [world-architect.md](references/world-architect.md) |
-| **2. 角色设计师** | 世界中的角色、`artStyle`（必填）、品牌延伸、多样性 | [character-designer.md](references/character-designer.md) |
-| **3. 一致性守护者** | 至少找出 2 个问题；防过拟合；最多 1 轮迭代 | [guardian-antioverfit.md](references/guardian-antioverfit.md) |
+| **0. 项目分量评估** | 评 light/medium/heavy；**仅 light∩high 为错配** | [project-weight.md](references/project-weight.md) |
+| **1. 世界架构师** | 预算内造世界 + 贴合优先的原型选择 + 视觉风格建议 | [world-architect.md](references/world-architect.md) |
+| **2. 角色设计师** | 预算内 conceptWeight、`artStyle`（必填）、品牌延伸 | [character-designer.md](references/character-designer.md) |
+| **3. 一致性守护者** | 按优先级审查；≥2 问题；最多 1 轮 | [guardian-antioverfit.md](references/guardian-antioverfit.md) |
 
 其他按需加载：
 
@@ -64,18 +77,15 @@ description: >
 
 ## 关键硬规则（摘要 checklist）
 
-执行任一阶段前快速自检；完整条文在 references，冲突时以 references 为准。
+执行前快速自检。**冲突时以本文「规则优先级」+ 对应 references 为准。**
 
-1. **分量匹配优先于多样化**——轻项目不配神话世界；工业级工具不要过轻。详见 project-weight + guardian「贴合优先」。
-2. **防机械映射**——禁止技术栈→性格/爱好/能力的一对一翻译。
-3. **她不是默认仓库管理员**——可不懂代码。
+1. **规则优先级死序**（上节）——用户硬约束 > light 天花板 > 贴合 > 软偏好 > 反模板。
+2. **错配仅一种**：`projectWeight=light` 且 conceptWeight=high → 必须降级。medium/heavy 配轻世界/日常角色合法。
+3. **防机械映射**——禁止技术栈→性格/爱好/能力的一对一翻译；她不是默认仓库管理员。
 4. **禁止语言→审美泄漏**——文档语言不决定和服/毛笔/维多利亚。
-5. **`artStyle` 必填**——World Architect 提案 2–3 方向，Character Designer 选定；缺失会断下游链路。
-6. **`rolePrompt` 始终英文**；中文仓库叙事字段必须中文（见 identity-naming）。
-7. **世界类型去重**——避免默认「档案馆/走廊/图书馆」；先列 2–3 候选原型。
-8. **角色多样性**——避免默认「安静精确 + 工装靴子」；年龄 14–26（除非用户指定）。
-9. **安全**：禁止血腥/gore、CSAM、仇恨歧视；外观年龄 14–26（除非用户显式指定其他年龄）。
-10. Guardian **至少找 2 个问题**；高概念/魔法若有仓库或用户信号支撑则合法，勿误杀。
+5. **`artStyle` 必填**；**`rolePrompt` 始终英文**；中文仓库叙事字段必须中文。
+6. **安全** + 默认女性仓库娘（显式覆盖除外）；外观年龄 14–26（除非用户另指定）。
+7. Guardian **按检查表逐项 pass/fail**（0 个 fail 可通过）；勿硬凑缺陷；suggestion 不强制重做；有信号的高概念勿误杀。
 
 ## 协作流程
 
@@ -84,17 +94,15 @@ description: >
 1. 用 `repochan analysis get` 读取分析报告。提取灵魂信号：历史、挣扎、设计品味、文档风格、命名约定、情感节奏、抽象维度。
 2. 如果访谈存在，读取 `summary`、`keyConstraints`、`preferences`、`avoidList`（规则见 [interview.md](references/interview.md)）。如果缺失，注明完全的创作自由。
 3. 识别：这个仓库*关心*什么？一个基于它的价值观建立的世界会是什么样子？
-4. 读取 [project-weight.md](references/project-weight.md)，输出 `projectWeight`（light / medium / heavy）。
+4. 读取 [project-weight.md](references/project-weight.md)，输出 `projectWeight`（light / medium / heavy）。若 interview 要求 high concept 且 weight=light → **先问用户**（见 [interview.md](references/interview.md)）。
 
 ### 阶段 1：世界构建 —— 世界架构师主导
 
-读取 [world-architect.md](references/world-architect.md)。以结构化散文输出（还不是 JSON）：
+读取 [world-architect.md](references/world-architect.md)。在预算内以结构化散文输出（还不是 JSON）：
 
-- **世界名称**：诗意、有画面感，捕捉仓库精髓。
-- **核心规则**（1-2 句话）：定义性法则——让这个世界与众不同的东西。
-- **氛围**：感觉层面——光线、节奏、情感质地。
-- **角色定位**：他们相对于世界的立场。守护者？叛逆者？漫游者？见证者？什么张力或和谐？
-- **视觉风格建议**：基于世界氛围提出 2-3 个二次元风格方向 + 各 1 句理由。世界气质驱动提案，角色情感驱动选择。
+- **世界名称** / **核心规则** / **氛围** / **角色定位**
+- **视觉风格建议**：2–3 个二次元方向 + 各 1 句理由
+- light 禁止 high concept 世界；medium/heavy 可轻可重
 
 ### 阶段 2：角色设计 —— 角色设计师主导
 
@@ -117,19 +125,24 @@ description: >
 
 读取 [guardian-antioverfit.md](references/guardian-antioverfit.md)。
 
-1. **你必须识别出至少 2 个具体问题。** 检查阶段 1 和阶段 2 的产出。
-2. 检查每一条防过拟合规则。用具体引用标记违规。
-3. 检查语言到审美的泄漏：名字、服装、道具、世界时代感、卷轴/灯笼/印章或文化编码母题出现，是因为仓库证据/用户请求，还是仅仅因为文档/commit/UI 文案使用了某种自然语言？
-4. 验证用户意图对齐：keyConstraints 满足了吗？avoidList 缺席了吗？preferences 被尊重了吗？
-5. **检查分量错配**（最重要）。
-6. 清晰具体地陈述所需修订；角色设计师处理每一条。
-7. 守护者再次审查。**最多 1 次迭代。** 未解决的问题 → 在 `designNotes` 中记录，供未来修订。
+按 [guardian-antioverfit.md](references/guardian-antioverfit.md) 的审查顺序，**逐项 pass/fail**（不强制凑满 N 个问题）：
+
+1. 安全 / 性别锚点  
+2. keyConstraints / avoidList  
+3. **错配：仅 light∩high**  
+4. 防过拟合 + 语言泄漏 + 气质贴合  
+5. preferences（软）  
+6. 多样性仅 suggestion，不单独 fail  
+
+- 全 pass → 通过，可进入落盘  
+- 有 fail → 修订；**最多 1 轮**；未解决记入 `designNotes`  
+- 可选 suggestion 不触发必须重做  
 
 ### 阶段 4：最终整合
 
 1. 组装完整的 persona JSON，匹配下方 schema（完整范例见 [examples.md](references/examples.md)）。
-2. 用驱动设计的关键仓库信号填充 `sourceSignals`。
-3. 填充 `userIntentSummary`。
+2. 用驱动设计的关键仓库信号填充 `sourceSignals`（建议含 `projectWeight: light|medium|heavy`）。
+3. 填充 `userIntentSummary`（含用户硬约束对仓库方向的覆盖说明，若有）。
 4. 通过管道 stdin 保存 persona，不要创建临时文件。payload 含 `{ "persona": <full object>, "slug": "v1", "overwrite": true }`（也可按 CLI 支持使用 `--slug v1 --overwrite`）：
    ```bash
    repochan persona create <<'EOF'
