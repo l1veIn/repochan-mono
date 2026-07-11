@@ -1,20 +1,18 @@
 # @repochan/core
 
-Pure TypeScript primitives for the RepoChan `.repochan/` protocol. The deterministic backbone shared by `pi`, `page-renderer`, and `cli`.
+Pure TypeScript primitives for the RepoChan `.repochan/` protocol — the deterministic backbone shared by the CLI and tests.
 
-Core has **no Pi runtime dependency**. APIs take `projectRoot: string` or plain JSON data and preserve the existing on-disk format used by the public `repochan` Pi tool. See the monorepo [`ARCHITECTURE.md`](../../ARCHITECTURE.md) for how core fits into the three-layer design.
+Core has **no agent runtime**, **no image credentials**, and **no pixel-processing** dependencies. APIs take `projectRoot: string` or plain JSON and preserve the on-disk format used by the public `repochan` CLI. See the monorepo [`ARCHITECTURE.md`](../../ARCHITECTURE.md) for how core fits the layered design.
 
-## Three-layer design
-
-Core implements three orthogonal layers. Each layer is independently testable and has no Pi dependency.
+## Three-layer design (inside core)
 
 ```
 ┌─────────────────────────────────────────────┐
-│  Business Rules  entities.ts                  │  state machine, dependency gates, approval gates
+│  Business Rules  entities/*.ts               │  state machine, dependency gates, approval
 ├─────────────────────────────────────────────┤
-│  Protocol        protocol/index.ts            │  current.json + versions/, safe paths, require*()
+│  Protocol        protocol/index.ts           │  current.json + versions/, safe paths, require*()
 ├─────────────────────────────────────────────┤
-│  Schema          schemas/index.ts             │  artifact shapes, params gates, WriteOpSchemas
+│  Schema          schemas/index.ts            │  artifact shapes, params gates, WriteOpSchemas
 └─────────────────────────────────────────────┘
 ```
 
@@ -22,66 +20,41 @@ Core implements three orthogonal layers. Each layer is independently testable an
 
 ## What core owns
 
-### Schema layer — `src/schemas/index.ts`
+### Schema — `src/schemas/index.ts`
 
-Artifact shapes (what gets written to `.repochan/`):
+Artifact shapes (written under `.repochan/`):
 
 - `PersonaArtifactSchema`, `InterviewArtifactSchema`, `OrderResultVersionSchema`, `PageArtifactSchema`, `AnalysisArtifactSchema`
 - Each carries `schemaVersion`, `generatedAt`, `provenance`.
 
-Write-operation params gates (what the agent passes in):
+Write-operation params gates and the `WriteOpSchemas` registry. `validate.ts` exposes `validateInput(action, schema, params)`.
 
-- `PersonaCreateParamsSchema` / `PersonaUpdateParamsSchema`
-- `InterviewCreateParamsSchema` / `InterviewAppendParamsSchema`
-- `OrderCreateParamsSchema` / `OrderUpdateParamsSchema` / `OrderSetStatusParamsSchema` / `OrderAddRevisionParamsSchema` / `OrderCreateResultParamsSchema` / `OrderSetCurrentResultParamsSchema`
-- `AnalysisRunParamsSchema` / `AnalysisUpdateParamsSchema`
-- `PageCreateParamsSchema`
+### Protocol — `src/protocol/index.ts`
 
-Registry: `WriteOpSchemas` maps every action name to its params schema. `validate.ts` exposes `validateInput(action, schema, params)` — the single gate called at the top of every write operation.
+- `PROTOCOL_DIR` (`.repochan`), `protocolRoot`, `safeProtocolPath`, `writeJson` / `readJson`
+- `initProtocol` / `inspectProtocol`
+- Versioning helpers and order/review/persona-candidate path helpers
+- Dependency gates: `requireAnalysis`, `requirePersona`, `requireInterview`, `requirePage`
 
-### Protocol layer — `src/protocol/index.ts`
+### Business rules — `src/entities/`
 
-- `PROTOCOL_DIR` (`.repochan`), `protocolRoot`, `safeProtocolPath` (path-traversal guard), `stripProtocolPrefix`.
-- `writeJson(file, data, overwrite)` — refuses to overwrite without `overwrite=true`.
-- `readJson` / `readJsonIfExists` / `exists` / `listJsonFiles`.
-- `initProtocol(projectRoot)` — creates the standard directory layout.
-- `inspectProtocol(projectRoot)` — returns a summary of all artifacts and versions.
-- Versioning: `stamp`, `stampForPath`, `protocolVersionPath` (maps `xxx/current.json` → `xxx/versions/<ts>.json`).
-- Order-specific path helpers: `orderDir`, `orderJsonPath`, `orderVersionsDir`, `orderVersionDir`.
-- **Dependency gates**: `requireAnalysis`, `requirePersona`, `requireInterview`, `requirePage` (plus non-throwing `hasInterview`, `hasPage`).
-
-### Business rules layer — `src/entities.ts`
-
-Entity operations that compose schema + protocol + workflow rules:
-
-- **Persona**: `createPersona`, `updatePersona`.
-- **Interview**: `createInterview`, `appendInterview`.
-- **Orders**: `createOrder`, `updateOrder`, `setOrderStatus`, `addRevision`, `createOrderResult`, `setCurrentResult`, `listOrders`, `getOrder`, `listOrderResults`, `getOrderResult`.
-- **Pages**: `createPage`, `getPage`.
-- **State machine**: `OrderStatusSchema` (6 states), `ORDER_STATUSES`, `isValidStatusTransition`, `validNextStatuses`, `requireValidStatus`. `setOrderStatus` rejects illegal transitions (e.g. `delivered → draft`).
-- **Approval gate**: `ensureOrderApprovedForExecution` / `areOrdersApprovedForExecution` — `createOrderResult` requires the order to be `approved`/`in_progress` (escape hatch: `allowUnapprovedOrder=true`).
-- **Asset resolution**: `collectAssetRefs`, `checkPageAssets` — resolves `AssetRef`s to concrete order/version/file triples for page rendering.
-- **Foundation detection**: `FOUNDATION_ASSET_TYPES`, `isFoundationAssetType` — the visual-anchor asset type that downstream orders auto-reference.
+- **Persona**: create/update, candidates, promote
+- **Interview**: create/update, append
+- **Orders**: CRUD-ish ops, status machine, results, candidates, foundation find, reference resolve
+- **Pages**: create/update, asset ref collect/check
+- **Reviews**: order review, persona review
+- Approval gate: `ensureOrderApprovedForExecution`
 
 ### Deterministic analysis — `src/analysis/`
 
-The repository analyzer used by `analysis.run`, runnable without any LLM:
-
-- `schema.ts` — `AnalyzeSchema`, `AnalyzeInput`.
-- `assemble.ts` — `performAnalysis(projectRoot, options)` → `AnalysisResult` (deterministic, in-memory).
-- `write-artifact.ts` — `writeAnalysisArtifact(projectRoot, params)` / `updateAnalysisArtifact(projectRoot, params)` — initialize protocol, version the previous analysis, run analysis, apply an optional analyst merge patch, write `.repochan/analysis/current.json`.
-- Helpers under `src/analysis/`: `walk` (gitignore-aware), `git-profile`, `tech-stack`, `colors`, `desensitize` (scrubs secrets before sampling), `inventory`, `sample`, `abstract`.
+`performAnalysis` / `writeAnalysisArtifact` / `updateAnalysisArtifact` — runnable without any LLM. Helpers: walk, git-profile, tech-stack, colors, desensitize, inventory, sample, abstract.
 
 ### Validation — `src/validation.ts`, `src/validate.ts`
 
-- `validate.ts` — `validateInput(action, schema, params)` + `ValidationError`. The single entry point for params gating.
-- `validation.ts` — `validateProtocol(projectRoot)` for integrity checks across the whole `.repochan/` tree (used by `repochan validate`).
+- `validateInput` — per-write params gate
+- `validateProtocol` — whole-tree integrity (used by `repochan validate`)
 
-### Utils — `src/utils/index.ts`
-
-- `deepMerge`, `isPlainObject`, `stampProvenance`, plus id validators (`validateOrderId`, `validateVersionId`, `validateResultVersionId`).
-
-## Public API surface
+## Public API
 
 Everything is re-exported from the package root:
 
@@ -91,35 +64,34 @@ export * from "./protocol/index.js";
 export * from "./schemas/index.js";
 export * from "./utils/index.js";
 export * from "./validate.js";
-export * from "./entities.js";
+export * from "./entities/index.js";
 export * from "./analysis.js";
 export * from "./validation.js";
 ```
 
-Consumers (`pi`, `page-renderer`, `cli`) import solely from `@repochan/core` — never reaching into subpaths.
+Consumers import solely from `@repochan/core`.
 
 ## Purity rules (enforced)
 
 Core must **not**:
 
-- import Pi runtime APIs (`@earendil-works/pi-*`),
-- reference `ExtensionContext` or any agent/tool registration,
-- contain agent prompts, role guidelines, or creative-agent logic.
-
-When adding reusable protocol/schema/rule code, it belongs here. When adding Pi integration or prompts, it belongs in `packages/pi`. See monorepo `AGENTS.md`.
-
-## Protocol & fixtures
-
-- On-disk protocol spec: [`packages/pi/skills/repochan-protocol/SKILL.md`](../pi/skills/repochan-protocol/SKILL.md).
-- Architectural rationale (three layers, known gaps): [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md).
-- Minimal fixture (inspectable without running AI): [`examples/minimal`](../../examples/minimal).
+- import agent runtimes or register tools,
+- contain agent prompts or role guidelines,
+- hold image-provider API keys,
+- perform grid slicing / sticker extraction (that lives in `@repochan/image-edit`).
 
 ## Development
 
 ```bash
 # From monorepo root
-pnpm --filter @repochan/core build      # TS → dist/
-pnpm --filter @repochan/core test       # the only test suite — run after any protocol/rule change
+pnpm --filter @repochan/core build
+pnpm --filter @repochan/core test
 ```
 
-Per monorepo `AGENTS.md`: **when changing core protocol or business rules, always run `pnpm --filter @repochan/core test` from the monorepo root.**
+Per monorepo `AGENTS.md`: **when changing core protocol or business rules, always run the core test suite.**
+
+## Related
+
+- Architecture: [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md)
+- Minimal fixture: [`../../examples/minimal`](../../examples/minimal)
+- Skills (how agents use the CLI): [`../skill/README.md`](../skill/README.md)

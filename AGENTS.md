@@ -1,12 +1,38 @@
 # RepoChan Monorepo Guidelines
 
-> ⚠️ **架构基线已变（2026-07-09）。** 下方"5 包结构是稳定基线"已不再是基准。
-> 当前权威方向见 [`.plans/2026-07-09-repositioning.md`](./.plans/2026-07-09-repositioning.md) ——
-> 以 core+skill 为中心、CLI 唯一绑定面、agent 由用户自带、不内嵌 Pi runtime。
-> 执行重构前**必读该 ADR**；下方既有条款在 ADR 未完成迁移前仍适用于当前 main 分支代码。
+> **Architecture baseline (2026-07-09+).**  
+> Authoritative decisions: [`.plans/2026-07-09-repositioning.md`](./.plans/2026-07-09-repositioning.md).  
+> Living overview: [`ARCHITECTURE.md`](./ARCHITECTURE.md).  
+>
+> **core + skill at the center · CLI is the sole binding surface · agent is BYO · no embedded runtime.**
 
-- `packages/core` must remain a pure library: no Pi imports, no `ExtensionContext`, no creative-agent prompting logic. Core may depend on `sharp` (prebuilt image binaries via `@img/sharp-*`) for pixel-level post-processing (sticker extraction / background removal) — this is the only native dependency permitted in core; do not introduce others without an explicit decision. *(Note: per the 2026-07-09 ADR, slicing/stickers are slated to move out of core into a new `imaging` package; until that move happens this rule still holds.)*
-- Core APIs take `projectRoot: string` or plain JSON data and preserve the existing `.repochan/` on-disk protocol.
-- `packages/pi` owns extension registration, prompt guidelines, skills, and Pi runtime integration. Keep the public tool name `repochan` and action/params shapes stable.
-- When changing core protocol or business rules, run `pnpm --filter @repochan/core test` from this directory.
-- When changing the Pi package, ensure imports from reusable protocol/schema/rule code come from `@repochan/core`.
+## Package rules
+
+- **`packages/core`** must remain a pure library: no agent runtime imports, no `ExtensionContext`, no creative-agent prompting, no image-provider credentials. Core owns schema / protocol / business rules / deterministic analysis only. APIs take `projectRoot: string` or plain JSON and preserve the `.repochan/` on-disk protocol.
+- **`packages/skill`** is pure markdown (no build). It teaches agents how to run `repochan` subcommands and make creative judgments. Skills must not instruct agents to hand-edit `.repochan/` — writes go through the CLI.
+- **`packages/cli`** (`repochan`) is the only published bin and the only binding surface. It must not embed an agent runtime or model loop. Business rules are delegated to `@repochan/core`.
+- **`packages/image-gen`** is a library: prompt → image bytes. It may hold credentials (`~/.repochan/image.json` + env). It must **not** write protocol artifacts under `.repochan/`.
+- **`packages/image-edit`** is a library: local pixel ops (slice / bg-remove / GIF). Zero network, zero credentials, no protocol awareness.
+- **`packages/templates`** is pure YAML data for asset templates. Agents consume templates only via `repochan template list|get`.
+
+## Dependency direction (must stay acyclic)
+
+```text
+cli → core | skill | image-gen | image-edit | templates
+```
+
+Leaves never import `cli` or each other (except that `cli` alone aggregates).
+
+## When changing code
+
+- Protocol or business rules in core → run `pnpm --filter @repochan/core test` from the monorepo root.
+- Reusable protocol/schema/rule code belongs in `@repochan/core`, not reimplemented in the CLI.
+- New capabilities for agents should appear as `repochan` subcommands first; do not introduce a parallel MCP (or other) source of truth. MCP-over-CLI may be added later only as a thin wrapper.
+- Prefer atomic CLI subcommands; orchestration stays in skills (agent-driven).
+
+## Product invariants
+
+1. No `repochan run` that “thinks” — the wizard skill + external agent orchestrate.
+2. Foundation sheet first for visual consistency; downstream orders reference it.
+3. Destructive overwrites require explicit `overwrite=true` (or equivalent).
+4. Version `current.json` before replace; never silently drop history.
