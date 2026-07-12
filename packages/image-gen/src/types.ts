@@ -24,7 +24,9 @@ export interface GenerateParams {
   /** Output aspect ratio. Providers snap to the closest supported size. */
   aspectRatio?: "landscape" | "square" | "portrait";
   /** Explicit dimensions (override aspectRatio when the provider allows). */
-  size?: "1024x1024" | "1536x1024" | "1024x1536";
+  size?: string;
+  /** Provider-side rendering quality. */
+  quality?: "low" | "medium" | "high" | "auto";
   outputFormat?: "png" | "jpeg" | "webp";
   /**
    * Reference images for image-to-image / multi-image conditioning.
@@ -99,7 +101,7 @@ export interface ImageGenConfig {
   endpoints?: Record<string, EndpointConfig>;
   /** Default aspect ratio / size / format (applied when params omit them). */
   aspectRatio?: "landscape" | "square" | "portrait";
-  size?: "1024x1024" | "1536x1024" | "1024x1536";
+  size?: string;
   outputFormat?: "png" | "jpeg" | "webp";
 }
 

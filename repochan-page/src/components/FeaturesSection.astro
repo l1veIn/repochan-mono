@@ -1,0 +1,55 @@
+---
+type FeatureItem = { emoji: string; title: string; body: string };
+type Props = {
+  content: {
+    eyebrow: string;
+    heading: string;
+    items: FeatureItem[];
+  };
+};
+
+const { content } = Astro.props;
+// Alternating accent colors for the cards
+const accents = ["var(--c-primary)", "var(--c-accent-1)", "var(--c-accent-2)"];
+---
+
+<section id="features" class="bg-white py-24">
+  <div class="content-wrap">
+    <div class="max-w-3xl">
+      <div class="flex items-center gap-3">
+        <span class="construct-diamond" style="background: var(--c-accent-1);"></span>
+        <p class="text-sm font-bold uppercase tracking-[0.28em] text-[var(--c-base)]">{content.eyebrow}</p>
+      </div>
+      <h2 class="mt-5 text-4xl font-black leading-tight text-[var(--c-base)] md:text-5xl">{content.heading}</h2>
+    </div>
+
+    <!-- Feature grid: chibi expression as the visual anchor of each card -->
+    <div class="mt-14 grid gap-[var(--construct-gap)] sm:grid-cols-2 lg:grid-cols-3">
+      {content.items.map((item, i) => (
+        <article class="construct-block group relative flex flex-col bg-[rgb(var(--c-base-rgb)_/_0.03)] p-6 transition-transform hover:-translate-y-1">
+          <!-- Top accent stripe — alternating colors -->
+          <div class="absolute inset-x-0 top-0 h-1" style={`background: ${accents[i % 3]};`}></div>
+
+          <!-- Chibi expression as the card's visual anchor -->
+          <div class="mb-4 flex items-end gap-4">
+            <img
+              src={`/assets/chibi/${item.emoji}.png`}
+              alt={item.title}
+              class="h-24 w-auto object-contain"
+              style={`filter: drop-shadow(0 4px 12px rgb(${i % 3 === 0 ? 'var(--c-primary-rgb)' : i % 3 === 1 ? 'var(--c-accent-1-rgb)' : 'var(--c-accent-2-rgb)'} / 0.2));`}
+              loading="lazy"
+            />
+            <!-- Step number with diamond -->
+            <div class="flex items-center gap-2 pb-2">
+              <span class="construct-diamond-outline" style={`width: 0.8rem; height: 0.8rem; border-color: ${accents[i % 3]};`}></span>
+              <span class="font-mono text-xs text-black/30">0{i + 1}</span>
+            </div>
+          </div>
+
+          <h3 class="text-xl font-bold text-[var(--c-base)]">{item.title}</h3>
+          <p class="mt-2 flex-1 text-sm leading-relaxed text-black/55">{item.body}</p>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

@@ -1,4 +1,6 @@
 import { promises as fs } from "node:fs";
+import path from "node:path";
+import { loadImglySharp } from "./imgly.js";
 
 // ---------------------------------------------------------------------------
 // PNG IHDR reading (zero-dependency)
@@ -119,4 +121,113 @@ export async function sliceImage(
   const tiles = computeTileCells(width, height, rows, cols);
   const sourceFile = imagePath.split(/[\\/]/).pop()!;
   return { tiles, sourceFile };
+}
+
+// ---------------------------------------------------------------------------
+// Grid-to-files slicing: crop a grid PNG into individual tile image files
+// ---------------------------------------------------------------------------
+
+/** One output tile written by {@link sliceGridToFiles}. */
+export type SlicedTile = {
+  /** Row-major index, 0-based (tile-0, tile-1, …), in reading order. */
+  index: number;
+  /** Relative path from the output directory, e.g. "tile-0.png". */
+  file: string;
+  /** The actual crop rectangle used (after padding), in source pixels. */
+  crop: { x: number; y: number; w: number; h: number };
+  /** Output tile dimensions in pixels (= crop w/h). */
+  width: number;
+  height: number;
+};
+
+/** Options for {@link sliceGridToFiles}. */
+export type SliceGridOptions = {
+  rows: number;
+  cols: number;
+  /** Pixels to inset each cell on all four sides before cropping. Shrinks the crop to dodge white gutters / borders / labels. Default 0. */
+  padding?: number;
+  /** Name template for output files; `{i}` is replaced by the 0-based index. Default "tile-{i}.png". */
+  nameTemplate?: string;
+  /** Replace an existing output directory. Default false. */
+  overwrite?: boolean;
+};
+
+export type SliceGridResult = {
+  sourceFile: string;
+  tiles: SlicedTile[];
+};
+
+/**
+ * Slice a grid PNG into individual tile image files on disk.
+ *
+ *   1. Read the PNG dimensions, compute equal-sized cell rectangles via
+ *      {@link computeTileCells}.
+ *   2. Inset each cell by `padding` px on all sides (default 0) so the crop
+ *      avoids white gutters / borders / edge labels that AI sheets often add.
+ *      Padding is clamped so a crop never goes zero-size.
+ *   3. Crop and write each tile as a PNG via imgly's vendored sharp (no extra
+ *      dependency).
+ *
+ * Pure pixel operation: writes PNGs to `outDir` and returns metadata. Does NOT
+ * touch any `.repochan/` protocol directory — the caller persists metadata
+ * wherever it wants.
+ *
+ * @param imagePath absolute path to a PNG grid image
+ * @param outDir    directory to write tile PNGs (created; cleared if overwrite)
+ * @param options   { rows, cols, padding?, nameTemplate?, overwrite? }
+ */
+export async function sliceGridToFiles(
+  imagePath: string,
+  outDir: string,
+  options: SliceGridOptions,
+): Promise<SliceGridResult> {
+  const rows = options.rows;
+  const cols = options.cols;
+  if (!Number.isInteger(rows) || !Number.isInteger(cols) || rows < 1 || cols < 1) {
+    throw new Error(`sliceGridToFiles: rows and cols must be positive integers (got rows=${rows}, cols=${cols}).`);
+  }
+  const padding = Math.max(0, options.padding ?? 0);
+  const nameTemplate = options.nameTemplate ?? "tile-{i}.png";
+  const overwrite = options.overwrite ?? false;
+
+  const { width, height } = await readPngSize(imagePath);
+  const grid = computeTileCells(width, height, rows, cols);
+  const sourceFile = imagePath.split(/[\\/]/).pop()!;
+
+  // Prepare output directory.
+  if ((await exists(outDir)) && !overwrite) {
+    throw new Error(`sliceGridToFiles: output directory already exists: ${outDir}. Pass overwrite=true to replace.`);
+  }
+  await fs.rm(outDir, { recursive: true, force: true });
+  await fs.mkdir(outDir, { recursive: true });
+
+  // Clamp padding so a crop stays at least 1px in each dimension.
+  const maxPadX = Math.max(0, Math.floor(grid.cellW / 2) - 1);
+  const maxPadY = Math.max(0, Math.floor(grid.cellH / 2) - 1);
+  const padX = Math.min(padding, maxPadX);
+  const padY = Math.min(padding, maxPadY);
+
+  const sharp = (await loadImglySharp()).default;
+  const tiles: SlicedTile[] = [];
+
+  for (let i = 0; i < grid.cells.length; i++) {
+    const cell = grid.cells[i];
+    const cropX = cell.x + padX;
+    const cropY = cell.y + padY;
+    const cropW = cell.w - padX * 2;
+    const cropH = cell.h - padY * 2;
+    const file = nameTemplate.replace("{i}", String(i));
+    const outFile = path.join(outDir, file);
+    await sharp(imagePath)
+      .extract({ left: cropX, top: cropY, width: cropW, height: cropH })
+      .png()
+      .toFile(outFile);
+    tiles.push({ index: i, file, crop: { x: cropX, y: cropY, w: cropW, h: cropH }, width: cropW, height: cropH });
+  }
+
+  return { sourceFile, tiles };
+}
+
+async function exists(p: string): Promise<boolean> {
+  try { await fs.access(p); return true; } catch { return false; }
 }

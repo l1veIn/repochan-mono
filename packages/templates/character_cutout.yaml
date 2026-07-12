@@ -1,0 +1,33 @@
+id: "official/character-cutout"
+asset_type: "character_cutout"
+label: "角色抠图（matte 底定制姿态）"
+description: "纯色 matte 背景上的角色定制姿态图，配合 chroma-key 抠出透明 PNG。用于角色打破矩形容器：探出 section 边缘、漂浮在 section 之间、做交互引导。"
+tags: ["character_cutout", "cutout", "transparent", "pose", "web"]
+size: "1024x1024"
+
+prompt_template: |
+  ONE single full-body character illustration of {{character_visual}},
+  the character is performing this specific pose/action: {{cutout_pose}},
+  clean cel-shaded style consistent with {{art_style}},
+  using {{color_palette}},
+
+  Extraction setup: render exactly one isolated asset, centered with a clear margin,
+  on a perfectly flat uniform matte background of pure {{matte_color}}.
+  Do not use gradients, texture, vignette, shadows, reflections, contact shadows, scenery, props, labels, frames, or background-colored details.
+  Keep the full subject visible and separated from the matte.
+  The character is the ONLY thing on the matte background — no props, no furniture, no scenery.
+  The character does NOT touch any edge — generous margin on all four sides.
+  The character's silhouette is clean and uncluttered.
+  Simple self-contained outfit and accessories — nothing extending beyond the body silhouette.
+  No text, no watermark, no signature.
+
+  masterpiece, best quality
+
+constraints:
+  - "ONE single character on a perfectly flat uniform matte background — no grid, no multiple poses"
+  - "matte background must be pure flat {{matte_color}} — no gradients, texture, shadow, or off-color"
+  - "character must NOT touch any canvas edge — generous margin on all four sides"
+  - "NO props, furniture, scenery, or background elements — character only"
+  - "NO text, watermark, or signature"
+  - "clean self-contained silhouette suitable for chroma-key extraction"
+  - "pick a matte_color that does NOT appear in the character's palette"

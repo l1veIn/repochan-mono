@@ -15,16 +15,16 @@ prompt_template: |
   sixteen clearly distinct expressions and actions: {{expression_set}},
   simplified cute proportions, large head, bold readable silhouette, use {{color_palette}} and {{key_motifs}},
   consistent identity and outfit in every cell, expressions readable at emoji size,
-  pure solid white background (#FFFFFF), flat and uniform, no off-white grey gradient or texture,
-  generous spacing between stickers with large white margins, stickers must not touch cell edges or each other,
+  perfectly flat uniform matte background of pure {{matte_color}}, no off-color, no gradient or texture,
+  generous spacing between stickers with large margins, stickers must not touch cell edges or each other,
   each sticker is simple and minimal — no background props, no text labels, no complex scenery inside any cell,
   square 1:1 aspect ratio, evenly spaced isolated stickers, masterpiece, best quality
 
 constraints:
   - "strict 4-row × 4-column grid with exactly 16 stickers"
-  - "generous pure-white margin around every sticker; stickers must not touch cell edges or each other"
+  - "generous margin around every sticker; stickers must not touch cell edges or each other"
   - "stickers must not overlap or merge; every sticker must form one isolated foreground silhouette"
-  - "pure solid white background (#FFFFFF), flat and uniform; no off-white, grey, gradient, or texture"
-  - "pure white must not appear unoutlined inside stickers; surround white character details with a colored outline"
+  - "perfectly flat uniform matte background of pure {{matte_color}} — no off-color, grey, gradient, or texture"
+  - "pick a matte_color that does NOT appear in the character's palette"
   - "each sticker must be simple and minimal — no background props, no text labels, no complex scenery inside any cell"
   - "no borders, frames, dividing lines, grid lines, or cell boxes"

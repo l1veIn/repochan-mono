@@ -12,19 +12,32 @@ type Props = {
 };
 
 const { content } = Astro.props;
-const galleryAssets = assets.filter((asset) => ["gallery", "hero", "chibi", "pattern", "poster", "icon"].includes(asset.usage));
+const galleryAssets = assets.filter((a) => ["gallery", "hero", "chibi", "poster", "icon"].includes(a.usage));
 ---
 
-<section id="gallery" class="bg-mint/45 py-24">
-  <div class="content-wrap">
+<section id="gallery" class="relative overflow-hidden bg-[rgb(var(--c-accent-2-rgb)_/_0.08)] py-24">
+  <!-- Sideband texture overlay (tile-2) -->
+  <div class="texture-sideband absolute inset-0"></div>
+
+  <div class="content-wrap relative">
     <div class="max-w-3xl">
-      <p class="text-sm font-semibold uppercase tracking-[0.22em] text-blueprint">{content.eyebrow}</p>
-      <h2 class="mt-4 text-3xl font-semibold text-ink md:text-5xl">{content.heading}</h2>
-      <p class="mt-5 text-lg leading-8 text-slate-700">{content.body}</p>
+      <div class="flex items-center gap-3">
+        <span class="construct-diamond"></span>
+        <p class="text-sm font-bold uppercase tracking-[0.28em] text-[var(--c-base)]">{content.eyebrow}</p>
+      </div>
+      <h2 class="mt-5 text-4xl font-black leading-tight text-[var(--c-base)] md:text-5xl">{content.heading}</h2>
+      <p class="mt-6 text-lg leading-relaxed text-black/60">{content.body}</p>
     </div>
-    <div class="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+
+    <!-- Gallery grid: tight constructivist gap, hard frames -->
+    <div class="mt-14 grid gap-[var(--construct-gap)] md:grid-cols-2 lg:grid-cols-3">
       {galleryAssets.map((asset) => (
-        <VisualFrame compact asset={asset} title={asset.label} caption={`${asset.orderId} · ${asset.status === "pending" ? content.pending : "Ready"}`} />
+        <VisualFrame
+          compact
+          asset={asset}
+          title={asset.label}
+          caption={asset.status === "pending" ? content.pending : asset.key}
+        />
       ))}
     </div>
   </div>

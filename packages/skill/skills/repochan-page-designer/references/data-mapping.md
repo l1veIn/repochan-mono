@@ -34,12 +34,12 @@ persona 为页面提供**视觉品牌**，不是页面内容：
 
 | persona 字段 | 页面用途 |
 |---|---|
-| `mainColor` / `secondaryColor` / `accentColors` | theme 配色 |
+| `mainColor` / `secondaryColor` / `accentColors` | theme 配色（primary / secondary / accent / accent2 / accent3） |
 | `name` | 可以作为 footer 的 brand（但 navbar brand 用项目名） |
 | `catchphrase` | 可以作为 CTA 区的点缀文案（不是 hero headline） |
-| `visualPatterns` | section 背景、边框纹样、暗纹素材方向 |
-| `backgroundDesign` | hero / gallery / footer 背景方向 |
-| `decorativeMotifs` | 小型 UI 装饰、divider、badge、icon 灵感 |
-| `pageTheme` | 页面整体气质、排版、配色使用规则 |
-| `assetUsageGuidelines` | 哪些 order 资产适合 hero、gallery、icon、pattern |
+| `signaturePatterns` | section 背景、边框纹样、暗纹素材方向 → 指导 pattern 资产生成 + 页面纹理叠加 |
+| `signatureScenes` | hero / gallery / footer 背景的氛围方向 |
+| `keyMotifs` | 小型 UI 装饰、divider、badge、icon 灵感 |
+| `designNotes` | 页面整体气质、排版、配色使用规则 |
+| `artStyle` | UI 风格派生（圆角/边框/网格/字体语言） |
 | `characterFlaws` / `hobbies` / `backstory` | **不用于页面文案** |

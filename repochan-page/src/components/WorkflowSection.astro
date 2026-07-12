@@ -13,14 +13,17 @@ const { content } = Astro.props;
 <section id="workflow" class="bg-white py-24">
   <div class="content-wrap grid gap-12 lg:grid-cols-[0.9fr_1.1fr]">
     <div>
-      <p class="text-sm font-semibold uppercase tracking-[0.22em] text-blueprint">{content.eyebrow}</p>
-      <h2 class="mt-4 text-3xl font-semibold text-ink md:text-5xl">{content.heading}</h2>
+      <div class="flex items-center gap-3">
+        <span class="construct-diamond" style="background: var(--c-accent-1);"></span>
+        <p class="text-sm font-bold uppercase tracking-[0.28em] text-[var(--c-base)]">{content.eyebrow}</p>
+      </div>
+      <h2 class="mt-5 text-4xl font-black leading-tight text-[var(--c-base)] md:text-5xl">{content.heading}</h2>
     </div>
-    <ol class="space-y-4">
+    <ol class="space-y-[var(--construct-gap)]">
       {content.steps.map((step, index) => (
-        <li class="flex gap-4 rounded-md border border-slate-200 bg-paper p-5">
-          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-blueprint text-sm font-semibold text-white">{index + 1}</span>
-          <span class="leading-7 text-slate-700">{step}</span>
+        <li class="construct-block flex items-start gap-5 bg-[rgb(var(--c-primary-rgb)_/_0.05)] p-6">
+          <span class="construct-diamond mt-1" style={`width: 1.25rem; height: 1.25rem; background: ${index % 2 === 0 ? "var(--c-primary)" : "var(--c-accent-1)"};`}></span>
+          <span class="text-lg leading-relaxed text-[var(--c-base)]">{step}</span>
         </li>
       ))}
     </ol>

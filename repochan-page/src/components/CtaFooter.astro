@@ -1,5 +1,6 @@
 ---
 import { getAsset } from "../config/assets";
+import { site } from "../config/site";
 
 type Props = {
   cta: {
@@ -17,21 +18,53 @@ const { cta, footer } = Astro.props;
 const chibi = getAsset("chibi");
 ---
 
-<section class="bg-ink text-white">
-  <div class="content-wrap py-20">
-    <div class="luma-pattern grid gap-8 rounded-lg border border-white/10 bg-white/[0.03] p-8 md:p-12 lg:grid-cols-[1fr_260px] lg:items-center">
-      <div>
-        <h2 class="max-w-3xl text-3xl font-semibold md:text-5xl">{cta.heading}</h2>
-        <p class="mt-5 max-w-2xl text-lg leading-8 text-slate-300">{cta.body}</p>
-        <div class="mt-8 flex flex-wrap gap-3">
-          <a class="rounded-md bg-blueprint px-5 py-3 font-semibold text-white hover:bg-blue-600" href="https://github.com/l1veIn/repochan-mono">{cta.primary}</a>
-          <a class="rounded-md border border-cyanline/40 px-5 py-3 font-semibold text-cyanline hover:bg-white/5" href="https://github.com/l1veIn/repochan-mono#readme">{cta.secondary}</a>
+<section class="bg-[var(--c-base)]">
+  <hr class="construct-divider" />
+
+  <div class="content-wrap py-24">
+    <!-- CTA block with Mondrian color-block texture (tile-3) -->
+    <div class="construct-block relative overflow-hidden bg-[rgb(var(--c-accent-1-rgb)_/_0.15)] p-8 md:p-14">
+      <div class="texture-cta absolute inset-0"></div>
+
+      <div class="relative grid gap-10 lg:grid-cols-[1fr_240px] lg:items-center">
+        <div>
+          <h2 class="max-w-3xl text-4xl font-black leading-tight text-white md:text-5xl">{cta.heading}</h2>
+          <p class="mt-6 max-w-2xl text-lg leading-relaxed text-white/50">{cta.body}</p>
+          <div class="mt-10 flex flex-wrap gap-0">
+            <a
+              class="focus-ring bg-[var(--c-primary)] px-7 py-4 text-base font-bold uppercase tracking-wide text-[var(--c-base)] transition-opacity hover:opacity-90"
+              style="border-radius: var(--construct-radius);"
+              href="https://github.com/l1veIn/repochan-mono"
+            >
+              {cta.primary}
+            </a>
+            <a
+              class="focus-ring border-[3px] border-[var(--c-primary)] px-7 py-4 text-base font-bold uppercase tracking-wide text-[var(--c-primary)] transition-colors hover:bg-[var(--c-primary)] hover:text-[var(--c-base)]"
+              style="border-radius: var(--construct-radius);"
+              href="https://github.com/l1veIn/repochan-mono#readme"
+            >
+              {cta.secondary}
+            </a>
+          </div>
         </div>
+
+        {chibi?.src && (
+          <img
+            class="construct-block hidden bg-white p-2 lg:block"
+            src={chibi.src}
+            alt=""
+            loading="lazy"
+          />
+        )}
       </div>
-      {chibi?.src && <img class="hidden w-full rounded-md border border-white/10 bg-white object-contain p-2 lg:block" src={chibi.src} alt="" loading="lazy" />}
     </div>
-    <footer class="flex flex-col justify-between gap-4 border-t border-white/10 py-8 text-sm text-slate-400 md:flex-row">
-      <span>RepoChan</span>
+
+    <!-- Footer -->
+    <footer class="mt-12 flex flex-col justify-between gap-4 border-t-[3px] border-white/10 py-8 text-sm text-white/40 md:flex-row">
+      <span class="flex items-center gap-2">
+        <span class="construct-diamond" style="width: 0.6rem; height: 0.6rem;"></span>
+        RepoChan
+      </span>
       <span>{footer.tagline}</span>
     </footer>
   </div>

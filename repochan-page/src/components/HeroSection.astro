@@ -1,8 +1,9 @@
 ---
-import VisualFrame from "./VisualFrame.astro";
-import { getAsset } from "../config/assets";
+// Hero section — L1L2 composite background + L3 typography + L4 UI overlay.
+// Adapted from an Open Design reference: element positions, glassmorphism,
+// staggered entrance animations, pointer parallax, and chip drift.
+// The composite image IS the container — elements are positioned over it.
 
-type Stat = { value: string; label: string };
 type Props = {
   content: {
     eyebrow: string;
@@ -10,33 +11,934 @@ type Props = {
     body: string;
     primaryCta: string;
     secondaryCta: string;
-    stats: Stat[];
+    githubUrl: string;
+    brandName: string;
+    ctaStart: string;
+    tags: string[];
+    describe: string;
+    typography: {
+      give: string;
+      this: string;
+      a: string;
+      repo: string;
+      soul: string;
+    };
   };
 };
 
 const { content } = Astro.props;
-const heroAsset = getAsset("banner");
 ---
 
-<section class="bg-ink text-white">
-  <div class="content-wrap grid min-h-[calc(100vh-4rem)] items-center gap-12 py-16 lg:grid-cols-[0.8fr_1.2fr]">
-    <div>
-      <p class="text-sm font-semibold uppercase tracking-[0.26em] text-cyanline">{content.eyebrow}</p>
-      <h1 class="mt-5 max-w-3xl text-4xl font-semibold leading-tight md:text-6xl">{content.headline}</h1>
-      <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-300">{content.body}</p>
-      <div class="mt-8 flex flex-wrap gap-3">
-        <a class="rounded-md bg-blueprint px-5 py-3 font-semibold text-white hover:bg-blue-600" href="#workflow">{content.primaryCta}</a>
-        <a class="rounded-md border border-cyanline/40 px-5 py-3 font-semibold text-cyanline hover:bg-white/5" href="#protocol">{content.secondaryCta}</a>
-      </div>
-      <dl class="mt-10 grid max-w-xl grid-cols-3 gap-3">
-        {content.stats.map((stat) => (
-          <div class="border-l border-cyanline/40 pl-4">
-            <dt class="text-2xl font-semibold text-white">{stat.value}</dt>
-            <dd class="mt-1 text-sm text-slate-400">{stat.label}</dd>
-          </div>
-        ))}
-      </dl>
+<section class="hero" aria-label="RepoChan">
+  <!-- L1+L2: composite background (WebP, 0.29MB) -->
+  <div class="layer-bg" aria-hidden="true">
+    <img
+      src="/assets/hero-composite.webp"
+      alt=""
+      decoding="async"
+      fetchpriority="high"
+    />
+    <div class="layer-bg-glow"></div>
+  </div>
+
+  <!-- L3: typography -->
+  <div class="layer-type">
+    <div class="layer-row row-1">
+      <span class="type-word give">{content.typography.row1_word}</span>
+      <span class="type-sentence">
+        <span class="type-line this">{content.typography.row1_sentence}</span>
+      </span>
     </div>
-    <VisualFrame asset={heroAsset} title="RepoChan hero banner" caption="ord-banner-001 · v-banner-20260707-switchbase" />
+    <div class="layer-row row-2">
+      <span class="type-word a">{content.typography.row2_word}</span>
+      <span class="type-sentence">
+        <span class="type-line repo">{content.typography.row2_sentence}</span>
+      </span>
+    </div>
+    <div class="layer-row row-3">
+      <span class="type-sentence">
+        <span class="type-line soul">{content.typography.row3}</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- L4: UI elements -->
+  <div class="layer-ui">
+    <!-- Scattered tech tags -->
+    <span class="tech-tag t-mascot">{content.tags[0]}</span>
+    <span class="tech-tag t-local">{content.tags[1]}</span>
+    <span class="tech-tag t-pipeline">{content.tags[2]}</span>
+    <span class="tech-tag t-discribe">{content.describe}</span>
+
+    <!-- Brand badge (top-left) -->
+    <a class="brand-badge" href="/" aria-label={content.brandName}>
+      <span class="brand-badge-face">
+        <span class="brand-mark" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 3.5L4.5 7.5v9L12 20.5l7.5-4v-9L12 3.5z"
+              stroke="#fff"
+              stroke-width="1.6"
+              stroke-linejoin="round"></path>
+            <circle cx="12" cy="12" r="2.2" fill="#fff"></circle>
+          </svg>
+        </span>
+        <span class="brand-name">{content.brandName}</span>
+      </span>
+    </a>
+
+    <!-- GitHub Repository (top-right) -->
+    <a
+      class="github-badge"
+      href={content.githubUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="GitHub Repository"
+    >
+      <span class="github-badge-face">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+        </svg>
+      </span>
+    </a>
+
+    <!-- CTA start (right side, lower) -->
+    <a
+      id="start"
+      class="cta-start"
+      href="#features"
+      aria-label={content.primaryCta}
+    >
+      <span class="cta-start-face">
+        <span class="cta-arrow" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M5 12h12M13 6l6 6-6 6"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+          </svg>
+        </span>
+        <span class="cta-label">{content.ctaStart}</span>
+      </span>
+    </a>
+
+    <!-- SVG Glitch Filter Definition -->
+    <svg class="sr-only" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter
+          id="glitch-displacement"
+          x="-30%"
+          y="-30%"
+          width="160%"
+          height="160%"
+        >
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.05 0.95"
+            numOctaves="1"
+            result="noise"></feTurbulence>
+          <feColorMatrix
+            type="matrix"
+            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"
+            in="noise"
+            result="coloredNoise"></feColorMatrix>
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="coloredNoise"
+            scale="18"
+            xChannelSelector="R"
+            yChannelSelector="G"></feDisplacementMap>
+        </filter>
+      </defs>
+    </svg>
   </div>
 </section>
+
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap");
+
+  /* ── Variables ── */
+  :root {
+    --cyan: #5ef0ff;
+    --glass: rgba(8, 16, 36, 0.55);
+    --glass-border: rgba(120, 200, 255, 0.35);
+    --font-display: "Outfit", "SF Pro Display", system-ui, sans-serif;
+    --font-jp: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+    --tilt-type: -11deg;
+    --tilt-badge: -4deg;
+    --tilt-start: -11deg;
+    --rim-tight: drop-shadow(0 0 1.2px rgba(210, 252, 255, 0.9))
+      drop-shadow(0 0 7px rgba(90, 230, 255, 0.58));
+    --rim-tight-hot: drop-shadow(0 0 1.4px rgba(230, 255, 255, 0.98))
+      drop-shadow(0 0 10px rgba(110, 240, 255, 0.68));
+  }
+
+  /* ── Hero shell ── */
+  /* Container locked to the image's native 16:9 ratio so the image
+     displays fully without cropping. All overlay elements are
+     positioned relative to this container, tracking the image. */
+  .hero {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  /* ── L1+L2: composite background ── */
+  .layer-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .layer-bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .layer-bg-glow {
+    position: absolute;
+    width: 48vw;
+    height: 48vw;
+    right: 8%;
+    bottom: 2%;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      rgba(0, 180, 255, 0.22) 0%,
+      transparent 68%
+    );
+    filter: blur(8px);
+    animation: glow-pulse 6s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes glow-pulse {
+    0%,
+    100% {
+      opacity: 0.65;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.06);
+    }
+  }
+
+  /* ── L3: typography — poster stack ── */
+  .layer-type {
+    position: absolute;
+    z-index: 2;
+    left: 20%;
+    top: 20%;
+    width: 45%;
+    height: 20vh;
+    --box-h: 40vh;
+    /* border: 2px solid red; */
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    transform: rotate(var(--tilt-type, -15deg)) scaleY(1.2);
+    transform-origin: left center;
+  }
+
+  .layer-row {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .layer-row:not(:last-child) {
+    /* border-bottom: 2px solid red; */
+  }
+
+  .layer-row.row-1 {
+    flex: 35;
+    font-size: calc(var(--box-h) * 0.35 * 0.95);
+  }
+
+  .layer-row.row-2 {
+    flex: 30;
+    font-size: calc(var(--box-h) * 0.30 * 0.95);
+  }
+
+  .layer-row.row-3 {
+    flex: 35;
+    font-size: calc(var(--box-h) * 0.35 * 0.95);
+  }
+
+  .tech-tag {
+    position: absolute;
+    z-index: 2;
+    font-family: var(--font-mono, monospace);
+    font-size: clamp(0.7rem, 1.4vw, 0.9rem);
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.65);
+    padding-bottom: 2px;
+    display: inline-flex;
+    align-items: center;
+    pointer-events: none;
+    transform: rotate(var(--tilt-type, -11deg)) scaleY(1.2);
+    transform-origin: left center;
+  }
+
+  .tech-tag.t-mascot {
+    left: 38%;
+    top: 10%;
+  }
+  .tech-tag.t-mascot::after {
+    animation: burst-blink 6.5s infinite both;
+    animation-delay: 0s;
+  }
+
+  .tech-tag.t-local {
+    right: 14%;
+    top: 10%;
+  }
+  .tech-tag.t-local::after {
+    animation: burst-blink 8s infinite both;
+    animation-delay: 1.8s;
+  }
+
+  .tech-tag.t-pipeline {
+    right: 14%;
+    top: 82%;
+  }
+  .tech-tag.t-pipeline::after {
+    animation: burst-blink 7.2s infinite both;
+    animation-delay: 3.4s;
+  }
+
+  .tech-tag.t-discribe {
+    left: 5%;
+    top: 52%;
+    font-family: var(--font-base), sans-serif;
+    text-transform: none;
+    transform: rotate(-20deg) scaleY(1.5) !important;
+  }
+  .tech-tag.t-discribe::after {
+    animation: burst-blink 9.5s infinite both;
+    animation-delay: 0.8s;
+  }
+
+  .tech-tag::after {
+    content: "|";
+    margin-left: 4px;
+    color: var(--c-primary, #3de0ff);
+  }
+
+  @keyframes burst-blink {
+    /* 0% 到 28% 为敲字快频闪烁期 */
+    0%, 4%, 8%, 12%, 16%, 20%, 24%, 28% { opacity: 1; }
+    2%, 6%, 10%, 14%, 18%, 22%, 26% { opacity: 0; }
+    /* 29% 到 100% 为系统沉默熄灭期 */
+    29%, 100% { opacity: 0; }
+  }
+
+  .type-word {
+    font-family: "Oswald", var(--font-display);
+    font-weight: 600;
+    color: #fff;
+    line-height: 0.9;
+    flex-shrink: 0;
+    padding: 0.12em 0;
+    margin: -0.12em 1.5rem -0.12em 0;
+  }
+
+  .type-sentence {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    overflow: visible;
+  }
+
+  .type-line {
+    font-family: "Oswald", var(--font-display);
+    font-weight: 600;
+    color: #fff;
+    line-height: 0.9;
+    padding: 0.12em 0;
+    margin: -0.12em 0;
+  }
+
+  .type-word.give {
+    font-size: 1.05em;
+    transform: scaleY(1.25);
+    transform-origin: left bottom;
+    display: inline-block;
+    text-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+  }
+
+  .type-line.this {
+    font-size: 0.45em;
+    margin-bottom: 0.35em;
+    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  .type-word.a {
+    font-size: 0.45em;
+    margin-bottom: 0.25em;
+    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  .type-line.repo {
+    font-size: 1.05em;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    background: linear-gradient(
+      105deg,
+      #9af8ff 0%,
+      #3de0ff 28%,
+      #2aa8ff 62%,
+      #4d7cff 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: url(#glitch-displacement)
+      drop-shadow(0 6px 18px rgba(0, 0, 0, 0.38));
+  }
+
+  .type-line.soul {
+    font-size: 1.1em;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 0.8;
+    background: 
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.4' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"),
+      linear-gradient(135deg, #3b4eff 0%, #9b37ff 45%, #ff4fa8 80%, #ff7de1 100%);
+    background-blend-mode: overlay;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.38));
+    display: inline-block;
+  }
+
+
+  /* ── L4: UI overlay ── */
+  .layer-ui {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  .layer-ui > * {
+    pointer-events: auto;
+  }
+
+  /* Rim glow shell: filter is applied to outer container, while inner face handles clip-path. This ensures drop-shadow follows the polygon contour closely. Outer background must be near opaque for outline clarity. */
+  .brand-badge {
+    --cut: 14px;
+    position: absolute;
+    top: 8%;
+    left: clamp(1rem, 3vw, 2rem);
+    display: block;
+    padding: 0;
+    border: none;
+    background: transparent;
+    text-decoration: none;
+    color: var(--fg);
+    filter: var(--rim-tight);
+    opacity: 0;
+    transform: rotate(var(--tilt-badge));
+    transform-origin: left center;
+    animation: ui-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.9s forwards;
+    transition:
+      filter 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .github-badge {
+    position: absolute;
+    top: 8%;
+    right: clamp(1rem, 3vw, 2rem);
+    display: block;
+    padding: 0;
+    border: none;
+    background: transparent;
+    text-decoration: none;
+    color: var(--fg);
+    filter: var(--rim-tight);
+    opacity: 0;
+    transform: rotate(var(--tilt-badge));
+    transform-origin: right center;
+    animation: ui-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.9s forwards;
+    transition:
+      filter 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .brand-badge-face {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.72rem 1.55rem 0.72rem 0.72rem;
+    background: rgba(6, 14, 32, 0.92);
+    clip-path: polygon(
+      var(--cut) 0,
+      calc(100% - var(--cut)) 0,
+      100% var(--cut),
+      100% calc(100% - var(--cut)),
+      calc(100% - var(--cut)) 100%,
+      var(--cut) 100%,
+      0 calc(100% - var(--cut)),
+      0 var(--cut)
+    );
+    /* Inward micro-glow (no extra filter): 1) 1px border highlight 2) inset cyan light bleeding inward 3) mid-range soft mist for volume */
+    box-shadow:
+      0 0 0 1px rgba(200, 250, 255, 0.7) inset,
+      0 0 12px rgba(90, 230, 255, 0.38) inset,
+      0 0 26px rgba(70, 180, 255, 0.16) inset;
+  }
+
+  /* Clipped corner highlight points + thin gradient band bleeding inward along edges */
+  .brand-badge-face::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(180deg, rgba(170, 240, 255, 0.16) 0%, transparent 42%),
+      linear-gradient(0deg, rgba(100, 190, 255, 0.1) 0%, transparent 38%),
+      linear-gradient(90deg, rgba(140, 230, 255, 0.1) 0%, transparent 28%),
+      linear-gradient(270deg, rgba(140, 230, 255, 0.08) 0%, transparent 28%);
+    opacity: 0.95;
+  }
+
+  .brand-badge-face::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(
+        135deg,
+        rgba(200, 245, 255, 0.9) var(--cut),
+        transparent calc(var(--cut) + 1.5px)
+      ),
+      linear-gradient(
+        -45deg,
+        rgba(140, 210, 255, 0.55) var(--cut),
+        transparent calc(var(--cut) + 1.5px)
+      );
+    opacity: 0.9;
+    mix-blend-mode: screen;
+  }
+
+  .brand-badge:hover {
+    filter: var(--rim-tight-hot);
+    transform: rotate(var(--tilt-badge)) translateY(-1px);
+  }
+
+  .brand-badge:hover .brand-badge-face {
+    box-shadow:
+      0 0 0 1px rgba(220, 255, 255, 0.82) inset,
+      0 0 14px rgba(110, 240, 255, 0.46) inset,
+      0 0 30px rgba(80, 200, 255, 0.2) inset;
+  }
+
+  .brand-badge:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 3px;
+  }
+
+  .github-badge-face {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: rgba(6, 14, 32, 0.92);
+    clip-path: polygon(
+      8px 0,
+      calc(100% - 8px) 0,
+      100% 8px,
+      100% calc(100% - 8px),
+      calc(100% - 8px) 100%,
+      8px 100%,
+      0 calc(100% - 8px),
+      0 8px
+    );
+    box-shadow:
+      0 0 0 1px rgba(200, 250, 255, 0.7) inset,
+      0 0 12px rgba(90, 230, 255, 0.38) inset,
+      0 0 26px rgba(70, 180, 255, 0.16) inset;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .github-badge:hover .github-badge-face {
+    background: rgba(140, 230, 255, 0.15);
+    box-shadow:
+      0 0 0 1px rgba(220, 255, 255, 0.82) inset,
+      0 0 14px rgba(110, 240, 255, 0.46) inset,
+      0 0 30px rgba(80, 200, 255, 0.2) inset;
+  }
+
+  .github-badge:hover {
+    filter: var(--rim-tight-hot);
+    transform: rotate(var(--tilt-badge)) translateY(-1px);
+  }
+
+  .github-badge:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 3px;
+  }
+
+  .brand-mark {
+    position: relative;
+    z-index: 1;
+    width: 44px;
+    height: 44px;
+    border-radius: 0;
+    clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+    display: grid;
+    place-items: center;
+    background: linear-gradient(145deg, #3de0ff, #5a6bff);
+    /* Small icon: single layer of shadow is sufficient, do not stack filter */
+    box-shadow: 0 0 12px rgba(80, 200, 255, 0.55);
+    flex-shrink: 0;
+  }
+
+  .brand-mark svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .brand-name {
+    font-size: clamp(1.35rem, 2.1vw, 1.75rem);
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    position: relative;
+    z-index: 1;
+    text-shadow: none;
+  }
+
+  /* Start — 同构：外壳 filter 轮廓光 + 内层面 */
+  .cta-start {
+    --cut: 12px;
+    position: absolute;
+    right: 16%;
+    top: 45%;
+    transform: translateY(-10%) rotate(var(--tilt-start));
+    transform-origin: center center;
+    display: block;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #e8f7ff;
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 2.1vw, 1.7rem);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: lowercase;
+    text-decoration: none;
+    cursor: pointer;
+    filter: var(--rim-tight);
+    opacity: 0;
+    animation: cta-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 1s forwards;
+    transition:
+      filter 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .cta-start-face {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.8rem 3.9rem 0.8rem 3.4rem;
+    background: linear-gradient(
+      135deg,
+      rgba(6, 18, 42, 0.94),
+      rgba(10, 32, 72, 0.9)
+    );
+    clip-path: polygon(
+      var(--cut) 0,
+      calc(100% - var(--cut)) 0,
+      100% var(--cut),
+      100% calc(100% - var(--cut)),
+      calc(100% - var(--cut)) 100%,
+      var(--cut) 100%,
+      0 calc(100% - var(--cut)),
+      0 var(--cut)
+    );
+    box-shadow:
+      0 0 0 1px rgba(200, 250, 255, 0.7) inset,
+      0 0 14px rgba(90, 230, 255, 0.4) inset,
+      0 0 28px rgba(70, 180, 255, 0.18) inset;
+    overflow: hidden;
+    transform-origin: center center;
+    /* 周期轻晃：只动 transform，不碰 filter，避免卡顿 */
+    animation: cta-nudge 4.8s ease-in-out 2.2s infinite;
+    will-change: transform;
+  }
+
+  /* 悬停/聚焦时停晃，避免和 hover 位移打架 */
+  .cta-start:hover .cta-start-face,
+  .cta-start:focus-visible .cta-start-face {
+    animation-play-state: paused;
+  }
+
+  /* 沿边向内的薄光带 — 与徽章同构 */
+  .cta-start-face::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(180deg, rgba(170, 240, 255, 0.18) 0%, transparent 44%),
+      linear-gradient(0deg, rgba(100, 190, 255, 0.12) 0%, transparent 40%),
+      linear-gradient(90deg, rgba(140, 230, 255, 0.1) 0%, transparent 30%),
+      linear-gradient(270deg, rgba(140, 230, 255, 0.09) 0%, transparent 30%);
+    opacity: 0.95;
+  }
+
+  .cta-start-face::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(
+        135deg,
+        rgba(220, 250, 255, 0.95) var(--cut),
+        transparent calc(var(--cut) + 1.5px)
+      ),
+      linear-gradient(
+        -45deg,
+        rgba(150, 220, 255, 0.7) var(--cut),
+        transparent calc(var(--cut) + 1.5px)
+      );
+    opacity: 0.9;
+    mix-blend-mode: screen;
+  }
+
+  .cta-start:hover {
+    filter: var(--rim-tight-hot);
+    transform: translateY(calc(-10% - 2px)) rotate(var(--tilt-start));
+  }
+
+  .cta-start:hover .cta-start-face {
+    background: linear-gradient(
+      135deg,
+      rgba(12, 40, 82, 0.96),
+      rgba(22, 58, 110, 0.92)
+    );
+    box-shadow:
+      0 0 0 1px rgba(220, 255, 255, 0.82) inset,
+      0 0 16px rgba(110, 240, 255, 0.48) inset,
+      0 0 32px rgba(80, 200, 255, 0.22) inset;
+  }
+
+  .cta-start:active {
+    transform: translateY(calc(-10% + 1px)) scale(0.98)
+      rotate(var(--tilt-start));
+  }
+
+  .cta-start:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 4px;
+  }
+
+  .cta-arrow {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    transition: transform 0.2s ease;
+  }
+
+  .cta-arrow svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .cta-start:hover .cta-arrow {
+    transform: translateX(5px);
+  }
+
+  .cta-label {
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 2px 10px rgba(0, 12, 30, 0.45);
+  }
+
+  /* ── Keyframes ── */
+  @keyframes ui-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px) rotate(var(--tilt-badge));
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) rotate(var(--tilt-badge));
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes cta-in {
+    from {
+      opacity: 0;
+      transform: translateY(calc(-10% + 14px)) rotate(var(--tilt-start));
+    }
+    to {
+      opacity: 1;
+      transform: translateY(-10%) rotate(var(--tilt-start));
+    }
+  }
+
+  /* 大部分时间静止，约每 4.8s 轻晃一下「可点」提示 */
+  @keyframes cta-nudge {
+    0%,
+    76%,
+    100% {
+      transform: rotate(0deg) translate3d(0, 0, 0);
+    }
+    80% {
+      transform: rotate(-2.4deg) translate3d(-2px, 0, 0);
+    }
+    84% {
+      transform: rotate(2.2deg) translate3d(3px, 0, 0);
+    }
+    88% {
+      transform: rotate(-1.5deg) translate3d(-1.5px, 0, 0);
+    }
+    92% {
+      transform: rotate(0.9deg) translate3d(1px, 0, 0);
+    }
+    96% {
+      transform: rotate(0deg) translate3d(0, 0, 0);
+    }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    :root {
+      --tilt-type: -9deg;
+      --tilt-badge: var(--tilt-type, -9deg);
+      --tilt-start: -9deg;
+    }
+
+    .layer-type {
+      left: 0.85rem;
+      top: 12%;
+      transform: none;
+      width: min(92vw, 720px);
+    }
+
+    .cta-start {
+      --cut: 14px;
+      right: auto;
+      left: 1.1rem;
+      top: auto;
+      bottom: 1.35rem;
+      transform: rotate(var(--tilt-start));
+      animation-name: cta-mobile-in;
+    }
+
+    .cta-start-face {
+      padding: 1rem 1.9rem 1rem 1.4rem;
+    }
+
+    .cta-start {
+      font-size: clamp(1.35rem, 4.2vw, 1.7rem);
+    }
+
+    .cta-arrow svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .cta-start:hover {
+      transform: translateY(-2px) rotate(var(--tilt-start));
+    }
+
+    .cta-start:active {
+      transform: translateY(1px) scale(0.98) rotate(var(--tilt-start));
+    }
+
+    @keyframes cta-mobile-in {
+      from {
+        opacity: 0;
+        transform: translateY(10px) rotate(var(--tilt-start));
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) rotate(var(--tilt-start));
+      }
+    }
+
+    .layer-bg img {
+      object-position: 75% 50%;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .layer-type {
+      top: 10%;
+      width: 94vw;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .layer-bg-glow,
+    .brand-badge,
+    .github-badge,
+    .cta-start,
+    .cta-start-face {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      rotate: none !important;
+    }
+    .brand-badge,
+    .github-badge {
+      transform: rotate(var(--tilt-badge));
+      opacity: 1;
+    }
+    .cta-start {
+      transform: translateY(-10%) rotate(var(--tilt-start));
+      opacity: 1;
+    }
+    .cta-start-face {
+      transform: none;
+      will-change: auto;
+    }
+  }
+</style>

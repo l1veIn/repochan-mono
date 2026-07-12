@@ -2,13 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   RepoChan — Constructivist visual system
+   All color/texture values are injected by SiteLayout as CSS
+   variables from the persona JSON. This file only defines
+   structural classes and fallback defaults.
+   ============================================================ */
+
 :root {
-  color-scheme: light;
-  --color-primary: #3B82F6;
-  --color-secondary: #0F172A;
-  --color-accent: #6EE7FF;
-  --color-violet: #A78BFA;
-  --color-blush: #F9A8D4;
+  /* Fallbacks — overridden at runtime by <style is:inline> in SiteLayout */
+  --c-primary: #6ee7ff;
+  --c-base: #0f172a;
+  --c-accent-1: #a78bfa;
+  --c-accent-2: #f9a8d4;
+  --c-primary-rgb: 110 231 255;
+  --c-base-rgb: 15 23 42;
+  --c-accent-1-rgb: 167 139 250;
+  --c-accent-2-rgb: 249 168 212;
+  --construct-radius: 0px;
+  --construct-line: 3px;
+  --construct-line-color: #0f172a;
+  --construct-gap: 3px;
 }
 
 * {
@@ -21,9 +35,10 @@ html {
 
 body {
   margin: 0;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #f8fafc;
-  color: #0f172a;
+  font-family: "Space Grotesk", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--c-base);
+  color: var(--c-primary);
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
@@ -31,31 +46,95 @@ a {
   text-decoration: none;
 }
 
-.pattern-field {
-  background-image:
-    linear-gradient(rgba(59, 130, 246, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(59, 130, 246, 0.08) 1px, transparent 1px);
-  background-size: 42px 42px;
-}
-
-.luma-pattern {
-  background-image:
-    linear-gradient(rgba(15, 23, 42, 0.86), rgba(15, 23, 42, 0.92)),
-    url("/repochan-assets/ord-pattern-001/v-pattern-20260707-switchbase/repochan-pattern-2x2.png");
-  background-position: center;
-  background-size: cover, 560px 560px;
-}
-
-.protocol-thread {
-  background-image: linear-gradient(90deg, rgba(110, 231, 255, 0), rgba(110, 231, 255, 0.7), rgba(167, 139, 250, 0));
-}
+/* ── Layout container ──────────────────────────────────────── */
 
 .content-wrap {
   width: min(1120px, calc(100% - 32px));
   margin-inline: auto;
 }
 
-.focus-ring {
-  outline: 3px solid rgba(110, 231, 255, 0.45);
+/* ── Constructivist primitives ─────────────────────────────── */
+/* Hard edges, no rounded corners. Bold black grid lines.
+   These are the building blocks of the Mondrian-meets-protocol
+   aesthetic that Chan's artStyle ("Cel-shading + Constructivism")
+   demands. */
+
+.construct-block {
+  border-radius: var(--construct-radius);
+  border: var(--construct-line) solid var(--construct-line-color);
+}
+
+/* A thick divider line — the signature constructivist horizontal split */
+.construct-divider {
+  height: var(--construct-line);
+  background: var(--construct-line-color);
+  border: none;
+  margin: 0;
+}
+
+/* Diamond motif — Chan's primary key motif (cursor mark).
+   Used as bullets, step numbers, and section accents. */
+.construct-diamond {
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  background: var(--c-primary);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+}
+
+.construct-diamond-outline {
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  border: 2px solid var(--c-primary);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+}
+
+/* ── Texture overlays ──────────────────────────────────────── */
+/* White-background texture tiles are overlaid on color blocks via
+   mix-blend-mode: multiply — the white disappears, the pattern
+   shows through at reduced opacity. This lets one tile work on
+   any background color. */
+
+.texture-multiply {
+  background-image: var(--texture-hero);
+  background-size: 280px;
+  background-repeat: repeat;
+  mix-blend-mode: multiply;
+  opacity: 0.10;
+  pointer-events: none;
+}
+
+.texture-divider {
+  background-image: var(--texture-divider);
+  background-size: 140px;
+  background-repeat: repeat;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.texture-sideband {
+  background-image: var(--texture-sideband);
+  background-size: 120px;
+  background-repeat: repeat;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.texture-cta {
+  background-image: var(--texture-cta);
+  background-size: 200px;
+  background-repeat: repeat;
+  mix-blend-mode: multiply;
+  opacity: 0.20;
+  pointer-events: none;
+}
+
+/* ── Focus ring (keyboard accessibility) ────────────────────── */
+
+.focus-ring:focus-visible {
+  outline: 3px solid var(--c-primary);
   outline-offset: 3px;
 }

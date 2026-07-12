@@ -29,7 +29,7 @@ export type ModeContext = {
   /** Runtime mode only (never auto). */
   mode: RuntimeImageMode;
   params: GenerateParams;
-  size: `${number}x${number}`;
+  size: string;
   fetchFn: typeof fetch;
   signal?: AbortSignal;
   asyncMaxWaitMs?: number;
@@ -79,7 +79,7 @@ export function asyncPollUrl(endpoint: EndpointConfig, jobId: string, mode: Runt
 export function generationsBody(
   endpoint: EndpointConfig,
   params: GenerateParams,
-  size: `${number}x${number}`,
+  size: string,
   opts?: { includeResponseFormat?: boolean },
 ): Record<string, unknown> {
   const body: Record<string, unknown> = {
@@ -88,6 +88,9 @@ export function generationsBody(
     n: 1,
     size,
   };
+  if (params.quality) {
+    body.quality = params.quality;
+  }
   const includeRf = opts?.includeResponseFormat ?? !isGptImage2Model(endpoint.model);
   if (includeRf) {
     body.response_format = "url";

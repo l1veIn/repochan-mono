@@ -10,6 +10,17 @@
 - **背景要有氛围**：不是白底，是与模板风格 + 项目气质匹配的设计场域。
 - **不含设定集元素**：绝不出现 chibi、表情网格、配色卡、callout 标签。
 - **引用 foundation 保证角色一致**：仍先用 `repochan order resolve-references <orderId> --json` 确认 foundation 可解析；把 resolve 出的 foundation 图路径通过 `--reference <path>` 传给 `repochan image gen`，由参考图锚定角色身份，平面设计语言由所选模板决定，不受 foundation 的画风束缚。
+- **只借身份、不借设定集版式**：prompt 须写明 *single poster composition only*；**禁止**把 foundation 里的 chibi 网格、表情九宫格、配色卡、callout 标签搬进海报（常见失败：海报里塞满表情包）。
+
+### 品牌纹理 / pattern 特殊引导（assetType=visual_pattern）
+
+Pattern 是**可切分消费型资产**——下游用 slice/bg-remove 抠出 4 块矩形纹理给落地页/CSS。
+
+**必须**：
+- **纯白底板 + 白 gutter**：四格之间用厚纯白分隔，方便抠图。
+- **每格四方连续**：seamless tileable，无透视、无场景插画。
+- **无角色主视觉**：抽象 motif / 几何 / 品牌符号为主。
+- 模板 constraints 不削弱。
 
 ### 贴纸表特殊引导（assetType=chibi_emojis / sticker_sheet）
 
@@ -22,6 +33,12 @@
 - **保持正方形比例**：整体图像必须是 1:1 正方形，否则切分后 cell 比例变形。
 - **constraints 是硬约束**：模板的 constraints（间距、纯白背景、无边框等）不可削弱或省略。
 
+### 图标矩阵特殊引导（assetType=icon）
+
+**必须**：
+- 每个 cell 是完整 app icon，**主体不得溢出 cell 边界**（留安全边距）。
+- 严格 3×3 光谱（角色强→弱），勿与贴纸表混淆。
+
 ### README 横幅特殊引导（assetType=readme_banner）
 
 横幅是**品牌展示型资产**——必须包含仓库名文字，作为 GitHub README 首屏的视觉锚点。
@@ -29,6 +46,7 @@
 **横幅必须**：
 - **仓库名文字必须在图像内渲染**：不要留空白让后期 CSS 叠加文字。prompt 中的 `render the repository name` 指令要求图像模型直接渲染出可读的仓库名文字。如果模型第一次没渲染出文字，重试时加强文字指令。
 - **文字要大且清晰**：仓库名应作为画面的显眼标题元素，字号大、字体设计感强、与画面融合但不被遮挡。
+- **不是贴纸表**：不要塞 chibi 表情九宫格；单幅横构图 + 角色 + 标题。
 
 ### 设定集封面特殊引导（assetType=foundation_sheet）
 

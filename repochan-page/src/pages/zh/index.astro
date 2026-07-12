@@ -2,6 +2,7 @@
 import SiteLayout from "../../layouts/SiteLayout.astro";
 import NavBar from "../../components/NavBar.astro";
 import HeroSection from "../../components/HeroSection.astro";
+import FeaturesSection from "../../components/FeaturesSection.astro";
 import PipelineSection from "../../components/PipelineSection.astro";
 import ProtocolSection from "../../components/ProtocolSection.astro";
 import GallerySection from "../../components/GallerySection.astro";
@@ -14,6 +15,7 @@ import content from "../../i18n/zh.json";
   <NavBar brand={content.nav.brand} links={content.nav.links} cta={content.nav.cta} lang="zh" />
   <main>
     <HeroSection content={content.hero} />
+    <FeaturesSection content={content.features} />
     <PipelineSection content={content.pipeline} />
     <ProtocolSection content={content.protocol} />
     <GallerySection content={content.gallery} />

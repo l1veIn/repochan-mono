@@ -112,7 +112,7 @@ description: >
 2. 建立角色-世界张力：存在什么摩擦？
 3. 从仓库信号 + 世界情境衍生出 personality、flaws、hobbies、backstory。
 4. 设计视觉身份：头发、眼睛、服装、配饰、母题、颜色、标志姿势——全部源自仓库 + 世界启发，而非机械映射。
-5. **确定 `artStyle`**：读阶段 1 的视觉风格建议，结合角色核心情感，选定或调整后写入 `artStyle`（必填）。在 `designNotes` 里用 1 句话说明选择理由。如果访谈指定了画风，直接用访谈的。
+5. **确定 `artStyle`**：读阶段 1 的视觉风格建议，结合角色核心情感，选定或调整后写入 `artStyle`（必填）。在 `designNotes` 里用 1 句话说明选择理由。如果访谈指定了画风，直接用访谈的。**禁止**对「CLI/中间件/基建类」仓库机械默认「赛璐璐+构成主义」——工具型项目也要从故障/孟菲斯/装饰艺术/太阳朋克等方向里真正选型；`artStyle` 字符串里应带 **可被 AD 映射的关键词**（构成/孟菲斯/故障/glitch/装饰艺术/孟菲斯设计…）。
 6. 对照 `avoidList` 交叉检查。
 7. 用英文写 `rolePrompt`（见下方格式规范）。
 8. 用用户请求的语言或当前对话语言写叙事字段；不得创建 `language` / `nativeLanguage` 字段。命名与语言规则见 [identity-naming.md](references/identity-naming.md)。
@@ -194,7 +194,7 @@ description: >
 
   "abilities": ["二次元命名的能力1", "二次元命名的能力2"],
   "designNotes": "给后续资产复用的视觉规范",
-  "artStyle": "赛璐璐 + 构成主义——干净线条+平涂色块+几何精确构图（必填，驱动下游模板选择和材质风格）",
+  "artStyle": "赛璐璐 + 故障美学——干净平涂轮廓 + 边缘微 glitch/霓虹高光（必填；须含可映射关键词：构成/孟菲斯/故障/装饰艺术/… 驱动下游海报模板）",
 
   "rolePrompt": "ALWAYS English. 80-150 words. Comma-separated tag phrases. Order: appearance → outfit → accessories → signature pose. NO quality tags. NO background/scene/lighting. Only character visual features.",
 

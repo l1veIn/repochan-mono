@@ -14,11 +14,23 @@
     "cta": "Star on GitHub"
   },
   "hero": {
-    "eyebrow": "LLM-native · local-first · artifact-centric",
-    "headline": "Turn a repository into a mascot, a visual system, and an editable site.",
-    "body": "RepoChan is a manual creative pipeline for agents: analyze a repo, design its living character, commission visual assets, track every result, and generate a real web project that can keep evolving.",
+    "eyebrow": "LLM-NATIVE • LOCAL-FIRST • ARTIFACT-CENTRIC",
+    "headline": "Turn a repository into a mascot.",
+    "body": "RepoChan is a creative production pipeline that turns git repos into living character personas, tracked visual assets, and editable project homepages.",
     "primaryCta": "Start the pipeline",
     "secondaryCta": "Inspect the protocol",
+    "githubUrl": "https://github.com/l1veIn/repochan-mono",
+    "brandName": "RepoChan",
+    "ctaStart": "start",
+    "tags": ["mascot", "local-first", "pipeline"],
+    "describe": "このリポジトリに魂を。",
+    "typography": {
+      "row1_word": "give",
+      "row1_sentence": "this",
+      "row2_word": "repo",
+      "row2_sentence": "A",
+      "row3": "Soul"
+    },
     "stats": [
       { "value": "6", "label": "workspace packages" },
       { "value": "148", "label": "analyzed files" },
@@ -48,10 +60,22 @@
       { "path": "repochan-page/", "label": "Editable generated website project" }
     ]
   },
+  "features": {
+    "eyebrow": "What Chan does",
+    "heading": "From git repo to living mascot — every step tracked.",
+    "items": [
+      { "emoji": "waving", "title": "Analyst", "body": "Scans repository structure, README signals, tech stack, git profile, and content inventory." },
+      { "emoji": "curious", "title": "Persona Design", "body": "Turns repository identity into a living mascot with color palette, role prompt, and brand direction." },
+      { "emoji": "thinking", "title": "Art Direction", "body": "Creates structured asset commissions with intent, deliverables, references, and acceptance criteria." },
+      { "emoji": "proud", "title": "Tracked Assets", "body": "Every image is traceable to an order, version, prompt, and file. Nothing lives only in chat history." },
+      { "emoji": "celebrating", "title": "Editable Output", "body": "Generates a real Astro project you can keep editing — not a screenshot, not a black box." },
+      { "emoji": "cozy", "title": "Local-First", "body": "All protocol state in .repochan/ on disk. Version, diff, git-blame your creative work." }
+    ]
+  },
   "gallery": {
     "eyebrow": "Tracked visual assets",
     "heading": "The page exists because the mascot assets exist.",
-    "body": "RepoChan's dogfood page uses the generated Luma Protocol foundation sheet, hero banner, chibi stickers, pattern matrix, poster, and icon. Each visual is still traceable to an order, version, prompt, and file.",
+    "body": "This dogfood page uses the generated Chan foundation sheet, hero banner, chibi stickers, pattern textures, poster, and icon grid. Each visual is still traceable to an order, version, prompt, and file.",
     "pending": "Pending image result"
   },
   "workflow": {

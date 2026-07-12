@@ -14,11 +14,23 @@
     "cta": "GitHub Star"
   },
   "hero": {
-    "eyebrow": "LLM-native · 本地优先 · 以产物为中心",
-    "headline": "把一个仓库变成仓库娘、视觉系统和可编辑官网。",
-    "body": "RepoChan 是一条由 agent 协作但由用户手动掌控的创意生产管线：分析仓库、设计角色、委托视觉资产、追踪每个结果，并生成一个还能继续 vibe coding 的真实 Web 工程。",
+    "eyebrow": "LLM-NATIVE • LOCAL-FIRST • ARTIFACT-CENTRIC",
+    "headline": "把一个仓库变成仓库娘。",
+    "body": "RepoChan 是一条创意生产管线，将 git 仓库转化为鲜活的角色人设、可追踪的视觉资产以及可编辑的项目主页。",
     "primaryCta": "启动管线",
     "secondaryCta": "查看协议",
+    "githubUrl": "https://github.com/l1veIn/repochan-mono",
+    "brandName": "RepoChan",
+    "ctaStart": "start",
+    "tags": ["mascot", "local-first", "pipeline"],
+    "describe": "このリポジトリに魂を。",
+    "typography": {
+      "row1_word": "give",
+      "row1_sentence": "this",
+      "row2_word": "repo",
+      "row2_sentence": "A",
+      "row3": "Soul"
+    },
     "stats": [
       { "value": "6", "label": "workspace 包" },
       { "value": "148", "label": "已分析文件" },
@@ -48,10 +60,22 @@
       { "path": "repochan-page/", "label": "可编辑的生成官网工程" }
     ]
   },
+  "features": {
+    "eyebrow": "酱酱能做什么",
+    "heading": "从 git 仓库到鲜活角色——每一步都有据可查。",
+    "items": [
+      { "emoji": "waving", "title": "分析师", "body": "扫描仓库结构、README 信号、技术栈、git 历史和内容清单。" },
+      { "emoji": "curious", "title": "角色设计", "body": "把仓库身份转化为角色、人设、配色、role prompt 和品牌视觉方向。" },
+      { "emoji": "thinking", "title": "美术总监", "body": "创建结构化约稿任务，记录意图、交付物、引用图和验收标准。" },
+      { "emoji": "proud", "title": "可追踪资产", "body": "每张图都能追溯到 order、version、prompt 和文件。创意不留只在聊天记录里。" },
+      { "emoji": "celebrating", "title": "可编辑产出", "body": "生成真实的 Astro 工程，继续二次开发——不是截图，不是黑盒。" },
+      { "emoji": "cozy", "title": "本地优先", "body": "所有协议状态在 .repochan/ 目录。版本、diff、git-blame 你的创意工作。" }
+    ]
+  },
   "gallery": {
     "eyebrow": "可追踪视觉资产",
     "heading": "页面之所以成立，是因为仓库娘资产已经存在。",
-    "body": "这个狗粮官网直接使用本轮生成的露玛 foundation sheet、hero banner、chibi 表情包、2×2 纹理矩阵、海报和 icon。每张图仍然能追溯到 order、version、prompt 和文件。",
+    "body": "这个狗粮官网直接使用本轮生成的酱酱 foundation sheet、hero banner、chibi 表情包、纹理矩阵、海报和 icon。每张图仍然能追溯到 order、version、prompt 和文件。",
     "pending": "等待图片结果"
   },
   "workflow": {

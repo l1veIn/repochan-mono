@@ -4,19 +4,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: "#0F172A",
-        panel: "#172033",
-        blueprint: "#3B82F6",
-        cyanline: "#6EE7FF",
-        violet: "#A78BFA",
-        blush: "#F9A8D4",
-        paper: "#F8FAFC",
-        mint: "#DDFCF7"
+        // Persona-driven tokens — values come from CSS variables injected
+        // by SiteLayout at build time. Changing the persona JSON changes
+        // every color in the site automatically.
+        primary: "var(--c-primary)",
+        base: "var(--c-base)",
+        accent1: "var(--c-accent-1)",
+        accent2: "var(--c-accent-2)",
       },
-      boxShadow: {
-        "soft-line": "0 24px 80px rgba(15, 23, 42, 0.16)"
-      }
-    }
+      fontFamily: {
+        sans: ['"Space Grotesk"', "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ['"JetBrains Mono"', '"Fira Code"', "ui-monospace", "monospace"],
+      },
+    },
   },
-  plugins: []
+  plugins: [],
 };

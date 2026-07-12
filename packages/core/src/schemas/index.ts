@@ -448,6 +448,15 @@ export const PageThemeSchema = Type.Object({
   ]),
   darkMode: Type.Optional(Type.Boolean()),
   fontFamily: Type.Optional(Type.String()),
+  // ── Visual brand fields (optional, derived from persona) ──
+  // These extend the theme beyond 3-color + style to carry the richer
+  // visual brand data that persona generation produces, enabling
+  // texture/motif-driven page templates.
+  accent2: Type.Optional(Type.String({ description: "Second accent hex (persona.accentColors[1])." })),
+  accent3: Type.Optional(Type.String({ description: "Third accent hex (persona.accentColors[2])." })),
+  motifs: Type.Optional(Type.Array(Type.String(), { description: "Key visual motifs from persona.keyMotifs for UI decoration, dividers, badges." })),
+  patternAsset: Type.Optional(AssetRefSchema),
+  textureStyle: Type.Optional(Type.String({ description: "Visual texture treatment label derived from persona.signaturePatterns + artStyle (e.g. 'constructivist', 'art-deco', 'botanical')." })),
 });
 
 export const NavbarContentSchema = Type.Object({

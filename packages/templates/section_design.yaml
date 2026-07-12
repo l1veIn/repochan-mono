@@ -1,0 +1,53 @@
+id: "official/section-design"
+asset_type: "section_design"
+label: "Section 视觉设计稿"
+description: |
+  生成一个网页 section 的完整视觉设计稿——看起来像真实网页截图,不是海报。
+  画师决定排版、配色、角色融入方式、纹理叠加、文字层级——一切视觉决定都在这张图里。
+  产出后用 screenshot-to-code 工具(claude design / opendesign)转成 HTML/Tailwind 代码。
+tags: ["section_design", "web", "ui", "screenshot", "hero", "landing"]
+size: "1536x1024"
+
+prompt_template: |
+  WEB PAGE SECTION DESIGN — this must look like a REAL rendered web page screenshot, NOT a poster, NOT an illustration.
+  The image should look exactly like what you'd see if you opened a browser and navigated to a beautifully designed website.
+
+  Section type: {{section_type}}
+  Design style: {{design_style}}
+
+  CONTENT (render as real readable web UI text, NOT as decorative lettering):
+  {{section_content}}
+
+  CHARACTER: {{character_visual}}
+  The character should be INTEGRATED into the section design naturally — not pasted on top, not in a frame.
+  The character can emerge from behind a panel, lean on a heading, interact with UI elements, or fade into the background.
+  The character's presence should feel like part of the design system, not a sticker on top.
+
+  TEXTURE: integrate the following texture/pattern subtly into section backgrounds, cards, or borders:
+  {{texture_direction}}
+
+  COLOR PALETTE: {{color_palette}}
+  Use this palette as the design system — backgrounds, accents, text colors, button colors all derive from it.
+
+  VISUAL LANGUAGE: {{design_language}}
+  This defines the UI aesthetic — border radius, line weight, spacing rhythm, typography weight, geometric vocabulary.
+
+  CRITICAL RULES:
+  - This must look like a PIXEL-PERFECT web page render, with proper CSS-like layout: flexbox alignment, grid spacing, consistent padding
+  - All text must be SHARP, READABLE, and properly typeset — like real web typography, not poster lettering
+  - The character art must match {{art_style}} — cel-shaded, consistent with the reference
+  - Include realistic UI elements: navigation bars, buttons, cards, icons, dividers, badges as appropriate for {{section_type}}
+  - The overall composition should be balanced and professional — like an award-winning landing page
+  - Do NOT add a title bar, watermark, "mockup" label, or browser chrome around the design
+  - The image IS the web section — edge to edge, no frame, no margin
+
+  masterpiece, best quality, professional web design, award-winning UI
+
+constraints:
+  - "OUTPUT MUST LOOK LIKE A REAL WEB PAGE SCREENSHOT — not a poster, not an illustration, not a mockup with browser frame"
+  - "all text must be sharp, readable, and typeset like real web typography (proper hierarchy: h1 > h2 > body > caption)"
+  - "character must be INTEGRATED into the design (emerging from panels, leaning on elements, interacting with UI) — NOT pasted on top or framed"
+  - "texture must be SUBTLY woven into backgrounds/cards/borders — not dominant"
+  - "include realistic UI elements as appropriate: nav, buttons, cards, icons, dividers, badges"
+  - "NO browser chrome, NO mockup label, NO watermark, NO 'design by' credit"
+  - "the image fills the canvas edge to edge — it IS the web section"

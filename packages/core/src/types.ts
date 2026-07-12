@@ -327,6 +327,16 @@ export type PageTheme = {
   style: "modern" | "playful" | "minimal" | "techy" | "elegant";
   darkMode?: boolean;
   fontFamily?: string;
+  /** Second accent hex (persona.accentColors[1]). */
+  accent2?: string;
+  /** Third accent hex (persona.accentColors[2]). */
+  accent3?: string;
+  /** Key visual motifs from persona.keyMotifs for UI decoration. */
+  motifs?: string[];
+  /** Reference to the visual_pattern order driving background textures. */
+  patternAsset?: AssetRef;
+  /** Visual texture treatment label (e.g. 'constructivist', 'art-deco'). */
+  textureStyle?: string;
 };
 
 /** Content shapes for each section type. */
