@@ -84,6 +84,117 @@ repochan page generate-project --starter constructivist --output-dir .repochan/w
 
 文案原则 / 结构表 / 陷阱 → [copy-and-structure.md](references/copy-and-structure.md)。
 
+## 资产迁移（从 starter 默认资产到项目角色）
+
+Starter 自带**默认参考资产**（hero 合成图等），它们编码了设计知识（构图、人物姿态、留白位置、设计语言）。但这些资产里的角色是 starter 的默认角色，不是用户项目的角色。**你需要创建迁移订单，让画师把默认资产里的角色替换成项目的 foundation 角色。**
+
+### 迁移 vs 本地化
+
+starter.json 的每个 asset slot 有两个迁移模板字段：
+
+| 字段 | 模板 | 语义 |
+|---|---|---|
+| `migrateTemplate` | `official/hero-character-migrate` | **换皮保骨架**：角色姿态、构图、留白严格照搬 starter 原图，只换角色身份和配色 |
+| `localizeTemplate` | `official/hero-character-localize` | **借鉴风格自由发挥**：借鉴设计语言（风格/氛围），但不锁姿态，自由构图，只要遵守留白约束 |
+
+默认用 `migrateTemplate`（保留 starter 精心设计的构图）。用户要求更有创意的重新诠释时用 `localizeTemplate`。
+
+### 迁移订单创建流程
+
+#### 步骤 1：读 starter.json
+
+```bash
+# scaffold 后,starter.json 不会被复制到输出目录（generate-project 排除了它）。
+# 从 @repochan/starters 包读取:
+repochan page generate-project --starter <id> --json   # 输出里有 starterId
+# 或直接读 packages/starters/<id>/starter.json（你知道 starter id 时）
+```
+
+从 starter.json 读取：
+- `assets[].migrateTemplate` / `localizeTemplate` — 用哪个迁移模板
+- `assets[].migrateSize` / `migrateQuality` — 输出尺寸和质量
+- `assets[].migrateRole` — 参考图角色（通常是 `composition`）
+- `blankZones[]` — **留白约束**（side + ratio）
+
+#### 步骤 2：把 blankZones 转成 mustInclude 文字
+
+starter.json 的 `blankZones` 是结构化数据，画师需要自然语言。**你负责翻译**：
+
+```json
+// starter.json
+"blankZones": [
+  { "side": "left", "ratio": 0.55 }
+]
+```
+↓ 翻译成 order brief.mustInclude：
+```json
+"mustInclude": [
+  "left 55% of the frame must remain empty (dark, atmospheric) for HTML text overlay",
+  "character identity from the foundation reference"
+]
+```
+
+多个方向时拼合成一句：
+```json
+// blankZones: left 0.3, right 0.3, top 0.2, bottom 0.2
+// → "a center region (30% from each side, 20% from top and bottom) must remain empty for HTML overlay"
+```
+
+#### 步骤 3：创建迁移订单
+
+```bash
+repochan order create --data-file <<'EOF'
+{
+  "order": {
+    "orderId": "ord-hero-migrate-001",
+    "requestType": "new_asset",
+    "assetType": "hero_composite",
+    "templateId": "official/hero-character-migrate",
+    "brief": {
+      "summary": "把 starter hero 的角色迁移成 <persona-name>",
+      "visualDescription": "<从 deliverables 或 starter 描述>",
+      "intent": "为 <repo> 落地页生成 hero 背景合成图",
+      "mustInclude": [
+        "<blankZone 翻译的自然语言>",
+        "character identity from the foundation reference"
+      ],
+      "avoid": ["any text or UI elements", "deviating from foundation character identity"],
+      "creativeFreedom": ["low"]
+    },
+    "deliverables": [{"name": "hero-composite", "format": "png", "width": 2560, "height": 1440, "aspectRatio": "16:9"}],
+    "acceptanceCriteria": ["<mustInclude 的验收版>"],
+    "references": [
+      { "type": "file", "path": "<starter hero-composite.webp 绝对路径>", "role": "composition" },
+      { "type": "order", "orderId": "<foundation orderId>", "role": "character" }
+    ]
+  }
+}
+EOF
+```
+
+**关键**：references 里 `composition`（starter 参考）在前、`character`（foundation）在后。`resolve-references` 会按 role 排序（composition → character），保证模板 prompt 的 FIRST/SECOND 语义对齐。
+
+#### 步骤 4：批准 + 移交画师
+
+```bash
+repochan order set-status ord-hero-migrate-001 approved
+```
+
+画师会：读模板 → 解析引用 → 填充 prompt（含 mustInclude 里的留白约束）→ `image gen` → `create-result`（写 meta.json）。
+
+#### 步骤 5：交付后替换 starter 默认资产
+
+画师交付后，用 image-edit 后处理（compress → WebP），替换 scaffold 站点里的默认资产：
+
+```bash
+repochan order get-result ord-hero-migrate-001 --json   # 拿到交付图路径
+repochan image edit compress <交付图.png> \
+  --out .repochan/web-starter/public/assets/hero-composite.webp \
+  --format webp --quality 82 --max-width 2560 --overwrite
+```
+
+更新 `assets.ts` 把 hero-composite 标为 `ready`。
+
 ## references 索引
 
 | 文件 | 内容 |
