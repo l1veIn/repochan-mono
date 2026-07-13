@@ -585,5 +585,12 @@ export async function resolveOrderReferences(
     if (files.length === 0) throw new Error(`Reference order '${ref.orderId}' version '${versionId}' has no image files.`);
     resolved.push({ role: ref.role, orderId: ref.orderId, versionId, files });
   }
+  // Sort by role priority: composition first (pose/layout anchor), then
+  // character (identity), then style. This ensures the --reference flag order
+  // passed to `image gen` matches what migration templates expect (FIRST =
+  // composition, SECOND = character), regardless of the order references were
+  // listed in order.json.
+  const ROLE_PRIORITY: Record<string, number> = { composition: 0, character: 1, style: 2 };
+  resolved.sort((a, b) => (ROLE_PRIORITY[a.role] ?? 99) - (ROLE_PRIORITY[b.role] ?? 99));
   return resolved;
 }
