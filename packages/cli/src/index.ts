@@ -226,7 +226,20 @@ cli.command("image <sub>", "Image generation, configure, status, probe, and edit
     const args = cli.args; // [sub, imagePath?]
     const sub = args[0];
     switch (sub) {
-      case "gen": return await image.runImageGen(process.cwd(), opts);
+      case "gen": {
+        // Backstop: if the user passed multiple paths after a single --reference
+        // (e.g. --reference A B), cac swallows B into cli.args as a stray positional.
+        // This silently drops the second reference image. Detect and error clearly.
+        const stray = args.slice(1); // anything after "gen"
+        if (stray.length > 0) {
+          throw new Error(
+            `Unexpected positional argument(s) after "image gen": ${stray.map(s => `"${s}"`).join(", ")}.\n` +
+            `Did you pass multiple reference paths to a single --reference? ` +
+            `Use separate flags: --reference <path1> --reference <path2>`,
+          );
+        }
+        return await image.runImageGen(process.cwd(), opts);
+      }
       case "status": return await image.runImageStatus(process.cwd(), opts);
       case "probe": return await image.runImageProbe(process.cwd(), opts);
       case "configure":

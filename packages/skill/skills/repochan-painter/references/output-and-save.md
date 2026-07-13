@@ -30,9 +30,12 @@ repochan image gen --prompt "<组装的 prompt>" --aspect square --size 1024x102
 - 写了简报就停——没有生成图像的简报是不完整的交付物。
 - 描述你"会"生成什么——实际调用 CLI。
 
-调用 `repochan image gen`：
+调用 `repochan image gen`（每个参考图一个独立的 `--reference` flag）：
 ```bash
-repochan image gen --prompt "<你组装的 persona + order + template prompt>" --reference <resolve出的路径...> --aspect landscape|square|portrait --size 1024x1024
+repochan image gen --prompt "<你组装的 persona + order + template prompt>" \
+  --reference <resolve出的路径1> \
+  --reference <resolve出的路径2> \
+  --aspect landscape|square|portrait --size 1024x1024
 ```
 
 如果是 foundation_sheet 或其他确实没有参考图的任务，省略 `--reference`：
