@@ -1,0 +1,11 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import HeroSection from "../../components/HeroSection.astro";
+import content from "../../i18n/zh.json";
+---
+
+<SiteLayout title={content.meta.title} description={content.meta.description} lang="zh">
+  <main>
+    <HeroSection content={content.hero} />
+  </main>
+</SiteLayout>

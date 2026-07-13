@@ -48,3 +48,4 @@ Each starter ships with **default reference assets** (hero composite, character 
 | id | style | notes |
 |---|---|---|
 | `constructivist` | 构成主义 | 硬边色块、菱形 motif、角色-留白合成 hero (default) |
+| `minimal` | 构成主义(简化) | 只含 Hero section,用于迁移管道测试 |

@@ -24,7 +24,3 @@ constraints:
   - "Left blank zone must stay empty for HTML overlay"
   - "No text or UI elements"
   - "Character identity must match the foundation reference"
-
-# 参考图通过 order references 传入:
-#   references[0] = {type:"file", path: "<starter hero-composite>", role: "composition"}
-#   references[1] = {type:"order", orderId: "<foundation>", role: "character"}
