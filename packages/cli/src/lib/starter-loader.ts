@@ -11,13 +11,25 @@ export type StarterAssetSlot = {
   description?: string;
 };
 
+/** A blank-zone declaration: which side of the frame should stay empty for HTML overlay. */
+export type BlankZone = {
+  /** Which side: left, right, top, or bottom. */
+  side: "left" | "right" | "top" | "bottom";
+  /** Fraction of that dimension to keep blank (0–1, e.g. 0.55 = 55%). */
+  ratio: number;
+  desc?: string;
+};
+
 /** Parsed starter manifest (starter.json). */
 export type StarterMeta = {
   id: string;
   name?: string;
   description?: string;
   style?: string;
+  tags?: string[];
   default?: boolean;
+  /** Zones the page-designer must pass to orders as blank-zone constraints. */
+  blankZones?: BlankZone[];
   assets?: StarterAssetSlot[];
   /** Absolute path to the starter directory (the Astro project root). */
   dir: string;
@@ -51,7 +63,9 @@ async function readStarterManifest(starterDir: string): Promise<StarterMeta | nu
     name: parsed.name,
     description: parsed.description,
     style: parsed.style,
+    tags: Array.isArray(parsed.tags) ? parsed.tags : [],
     default: parsed.default === true,
+    blankZones: Array.isArray(parsed.blankZones) ? parsed.blankZones : [],
     assets: Array.isArray(parsed.assets) ? parsed.assets : [],
     dir: starterDir,
   };

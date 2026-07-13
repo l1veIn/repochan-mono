@@ -3,7 +3,11 @@
   "name": "Constructivist Landing",
   "description": "构成主义风格:硬边色块、菱形 motif、角色-留白合成 hero。角色在右侧,抬腿伸手的动态姿态巧妙地在手下方留出 CTA 按钮位置;左侧暗区留给 HTML 文字层。",
   "style": "constructivist",
+  "tags": ["landing", "constructivist", "hero", "cel-shaded"],
   "default": true,
+  "blankZones": [
+    { "side": "left", "ratio": 0.55, "desc": "左侧 55% 暗色留白,留给 HTML 文字层" }
+  ],
   "assets": [
     {
       "slot": "hero-composite",
@@ -12,7 +16,8 @@
       "migrateTemplate": "official/hero-character-migrate",
       "migrateSize": "2560x1440",
       "migrateQuality": "high",
-      "migrateRole": "composition"
+      "migrateRole": "composition",
+      "localizeTemplate": "official/hero-character-localize"
     },
     {
       "slot": "character-cutout",

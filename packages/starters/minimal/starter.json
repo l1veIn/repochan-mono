@@ -3,7 +3,11 @@
   "name": "Minimal Hero",
   "description": "简化测试用 starter:只含 Hero section,用于迁移管道测试。构造同 constructivist 但剥离了 features/gallery/pipeline/protocol/workflow/cta 等非必要 section。",
   "style": "constructivist",
+  "tags": ["landing", "hero", "test", "minimal"],
   "default": false,
+  "blankZones": [
+    { "side": "left", "ratio": 0.55, "desc": "左侧 55% 暗色留白,留给 HTML 文字层" }
+  ],
   "assets": [
     {
       "slot": "hero-composite",
@@ -12,7 +16,8 @@
       "migrateTemplate": "official/hero-character-migrate",
       "migrateSize": "2560x1440",
       "migrateQuality": "high",
-      "migrateRole": "composition"
+      "migrateRole": "composition",
+      "localizeTemplate": "official/hero-character-localize"
     },
     {
       "slot": "texture-hero-bg",
