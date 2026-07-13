@@ -74,7 +74,7 @@ RepoChan 给 agent 提供一套**交付拓扑**：每个角色的工作目标不
 **职责**：定义 agent 最终要交付什么形状的东西。消除 LLM 自由格式输出。
 
 - 入口：`packages/core/src/schemas/index.ts`
-- Artifact 形状：`PersonaArtifactSchema`、`OrderResultVersionSchema`、`InterviewArtifactSchema`、`PageArtifactSchema`、`AnalysisArtifactSchema` 等。
+- Artifact 形状：`PersonaArtifactSchema`、`OrderResultVersionSchema`、`InterviewArtifactSchema`、`AnalysisArtifactSchema` 等。
 - 每个 artifact 带 `schemaVersion`、`generatedAt`、`provenance`。
 - 写操作 params gate：`*ParamsSchema`；`WriteOpSchemas` 把 action 名映射到 schema。
 - 校验入口：`packages/core/src/validate.ts` 的 `validateInput(action, schema, params)`。
@@ -89,7 +89,7 @@ RepoChan 给 agent 提供一套**交付拓扑**：每个角色的工作目标不
 - **双轨制**：`current.json`（当前真相）+ `versions/<timestamp>.json`（不可变历史）。
 - **安全写入**：`writeJson(..., overwrite)` 在 `overwrite=false` 时拒绝覆盖。
 - **路径安全**：`safeProtocolPath` 拦截 path traversal，所有写入必须落在 `.repochan/` 内。
-- **依赖链检查**：`requireAnalysis` / `requirePersona` / `requireInterview` / `requirePage`。
+- **依赖链检查**：`requireAnalysis` / `requirePersona` / `requireInterview`。
 
 **目录布局**（`initProtocol`）：
 

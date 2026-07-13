@@ -47,10 +47,10 @@ repochan order get-result ord-xxx <versionId> --json
 读取或创建页面工程，并审计 `src/config/assets.ts`：
 
 ```
-repochan page generate-project --starter constructivist --output-dir repochan-page
+repochan page generate-project --starter constructivist --output-dir .repochan/web-starter
 ```
 
-- 已交付图片：复制到 `repochan-page/public/repochan-assets/<orderId>/<versionId>/<file>`，并在 `assets.ts` 标为 `ready`
+- 已交付图片：复制到 `.repochan/web-starter/public/repochan-assets/<orderId>/<versionId>/<file>`，并在 `assets.ts` 标为 `ready`
 - 未交付图片：保留 orderId，标为 `pending`，让组件显示 fallback
 - 不要把未交付图片写成虚假的 `src`
 
@@ -86,4 +86,4 @@ EOF
 
 #### 检查点
 
-只有 `page.check_assets` 返回 `ok=true` 才能进入 Phase 2。
+审计 `assets.ts`（ready vs pending）确认关键资产就绪后进入 Phase 2。

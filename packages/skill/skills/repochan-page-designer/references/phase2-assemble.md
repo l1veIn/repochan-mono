@@ -3,10 +3,10 @@
 #### 步骤 6：生成或打开页面工程
 
 ```
-repochan page generate-project --starter constructivist --output-dir repochan-page
+repochan page generate-project --starter constructivist --output-dir .repochan/web-starter
 ```
 
-如果 `repochan-page/` 已存在，不要覆盖；直接读取它的 README、`src/i18n/*.json`、`src/config/*.ts` 和组件结构。
+如果 `.repochan/web-starter/` 已存在，不要覆盖；直接读取它的 README、`src/i18n/*.json`、`src/config/*.ts` 和组件结构。
 
 #### 步骤 7：确定 theme
 
@@ -65,7 +65,7 @@ style 选择：
 
 **page-designer 是 image-edit 的唯一设计层用户。** Painter 交付的是原始 PNG（网格拼图、4K 合成图、matte 底角色图、icon 单图），它们大多不能被网站直接消费——需要先经过 `repochan image edit <op>` 后处理。这一步只有你负责。
 
-**核心原则：派生产物写入 `repochan-page/public/`，绝不回灌 `.repochan/`。** `.repochan/` 只存 Painter 交付的原始版本（invariant #4）；后处理产物是网站工程目录里的派生资产。
+**核心原则：派生产物写入 `.repochan/web-starter/public/`，绝不回灌 `.repochan/`。** `.repochan/` 只存 Painter 交付的原始版本（invariant #4）；后处理产物是网站工程目录里的派生资产。
 
 ##### image-edit 后处理清单（按 op）
 
@@ -88,7 +88,7 @@ style 选择：
 
 ```bash
 repochan image edit compress <source.png> \
-  --out repochan-page/public/assets/<name>.webp \
+  --out .repochan/web-starter/public/assets/<name>.webp \
   --format webp --quality 82 --max-width 2560 --overwrite
 ```
 
@@ -108,13 +108,13 @@ repochan image edit compress <source.png> \
 # chibi 3×3 → 9 张独立表情
 repochan image edit slice <grid.png> \
   --rows 3 --cols 3 \
-  --out repochan-page/public/assets/chibi \
+  --out .repochan/web-starter/public/assets/chibi \
   --padding 0 --overwrite
 
 # pattern 2×2 → 4 张独立纹理
 repochan image edit slice <pattern-grid.png> \
   --rows 2 --cols 2 \
-  --out repochan-page/public/textures \
+  --out .repochan/web-starter/public/textures \
   --overwrite
 ```
 
@@ -129,7 +129,7 @@ repochan image edit slice <pattern-grid.png> \
 ```bash
 repochan image edit extract-stickers <chibi-grid.png> \
   --rows 3 --cols 3 \
-  --out repochan-page/public/assets/chibi \
+  --out .repochan/web-starter/public/assets/chibi \
   --model small --overwrite
 ```
 
@@ -141,7 +141,7 @@ Painter 的 `character-cutout` 模板用特定 matte 色（`{{matte_color}}`）�
 
 ```bash
 repochan image edit chroma-key <character.png> \
-  --out repochan-page/public/assets/character/hero-character.png \
+  --out .repochan/web-starter/public/assets/character/hero-character.png \
   --matte auto --threshold 28 --softness 34 --spill 0.85
 ```
 
@@ -153,7 +153,7 @@ repochan image edit chroma-key <character.png> \
 
 ```bash
 repochan image edit bg-remove <image.png> \
-  --out repochan-page/public/assets/<name>.png \
+  --out .repochan/web-starter/public/assets/<name>.png \
   --model small --overwrite
 ```
 
@@ -166,7 +166,7 @@ repochan image edit bg-remove <image.png> \
 ```bash
 repochan image edit resize <icon-single.png> \
   --sizes 16,32,48,180,192,512 \
-  --out repochan-page/public/assets/favicon \
+  --out .repochan/web-starter/public/assets/favicon \
   --fit inside --overwrite
 ```
 
@@ -176,7 +176,7 @@ repochan image edit resize <icon-single.png> \
 
 ```bash
 repochan image edit favicon <icon-single.png> \
-  --out repochan-page/public/favicon.ico \
+  --out .repochan/web-starter/public/favicon.ico \
   --sizes 16,32,48,180,256 --overwrite
 ```
 
@@ -186,19 +186,19 @@ repochan image edit favicon <icon-single.png> \
 
 ```bash
 repochan image edit gif-from-frames <f1.png> <f2.png> <f3.png> \
-  --out repochan-page/public/assets/demo.gif \
+  --out .repochan/web-starter/public/assets/demo.gif \
   --fps 12 --loop 0 --overwrite
 ```
 
 ##### 文件命名与 manifest
 
 - 用语义化文件名（`foundation.webp`、`banner.webp`、`poster.webp`），而非 order/version 路径——模板内部通过 `src/config/assets.ts` 的 key 映射到文件。
-- 纹理按用途落到 `repochan-page/public/textures/`，文件名必须与 `src/config/site.ts` 的 `textures[].src` 匹配：
+- 纹理按用途落到 `.repochan/web-starter/public/textures/`，文件名必须与 `src/config/site.ts` 的 `textures[].src` 匹配：
   ```
-  repochan-page/public/textures/hero-bg.png     # hero section 背景纹理
-  repochan-page/public/textures/divider.png      # 边框/分割线纹理
-  repochan-page/public/textures/sideband.png     # 侧边装饰纹理
-  repochan-page/public/textures/cta-bg.png       # CTA 底纹
+  .repochan/web-starter/public/textures/hero-bg.png     # hero section 背景纹理
+  .repochan/web-starter/public/textures/divider.png      # 边框/分割线纹理
+  .repochan/web-starter/public/textures/sideband.png     # 侧边装饰纹理
+  .repochan/web-starter/public/textures/cta-bg.png       # CTA 底纹
   ```
 - 后处理完成后更新 `src/config/assets.ts`。未交付的视觉原型保留为 `status: "pending"`，不要伪造图片结果。
 
@@ -218,7 +218,7 @@ repochan image edit gif-from-frames <f1.png> <f2.png> <f3.png> \
 
 #### 步骤 10：验证
 
-在 `repochan-page/` 内运行：
+在 `.repochan/web-starter/` 内运行：
 
 ```
 pnpm install

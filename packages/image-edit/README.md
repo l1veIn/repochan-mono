@@ -4,7 +4,7 @@ Zero-credential local pixel operations for RepoChan: slicing, matting, compressi
 
 Pure pixel functions — **no network, no credentials, no `.repochan/` protocol awareness.** Input is an image path (and params); output is derived images or metadata. Persistence into protocol directories is the caller's job (the CLI orchestrates that via `@repochan/core`).
 
-> **Design-layer user:** the `repochan-page-designer` skill is the sole design-layer consumer of these operations. It post-processes upstream Painter deliveries into site-ready assets and writes them into the web project (`repochan-page/public/`), never back into `.repochan/`. See `AGENTS.md` product invariant #5.
+> **Design-layer user:** the `repochan-page-designer` skill is the sole design-layer consumer of these operations. It post-processes upstream Painter deliveries into site-ready assets and writes them into the web project (`.repochan/web-starter/public/`), never back into `.repochan/`. See `AGENTS.md` product invariant #5.
 
 ## API
 

@@ -64,7 +64,6 @@ Every role produces a **schema-validated, versioned artifact** under `.repochan/
   persona/current.json           # Creative team
   orders/<id>/order.json         # Art director briefs
   orders/<id>/versions/<vid>/    # Painter results (meta + images)
-  pages/current.json             # Page designer
 ```
 
 ### Default experience: one sentence → full brand
@@ -167,7 +166,7 @@ repochan order create-result|list-results|get-result|set-current|…
 repochan order candidate create|promote
 repochan order slice|extract-stickers
 repochan foundation find
-repochan page get|create|check-assets|generate-project
+repochan page generate-project
 repochan review create
 repochan protocol inspect|read|write
 ```

@@ -6,9 +6,6 @@ import {
   writeJson,
   safeProtocolPath,
   findFoundationSheet,
-  createOrUpdatePage,
-  checkPageAssets,
-  readPage,
   createReview,
 } from "@repochan/core";
 import { emitResult, type OutputOptions, UsageError } from "../lib/output.js";
@@ -23,33 +20,14 @@ export async function runFoundationFind(cwd: string, options: OutputOptions) {
 }
 
 // ---------------------------------------------------------------------------
-// page get / create / check-assets / generate-project
+// page generate-project — scaffold a starter into .repochan/web-starter/
 // ---------------------------------------------------------------------------
-export async function runPageGet(cwd: string, options: OutputOptions) {
-  const data = await readPage(cwd);
-  if (!data) throw new UsageError("No page found. Run `repochan page create` with a JSON payload first.");
-  emitResult(options, JSON.stringify(data, null, 2), data);
-}
-
-export async function runPageCreate(cwd: string, dataFile: string | undefined, options: OutputOptions) {
-  const params = readDataFile(dataFile);
-  const { data, versionName } = await createOrUpdatePage(cwd, params);
-  emitResult(options, `Wrote page current and page/versions/${versionName}`, data);
-}
-
-export async function runPageCheckAssets(cwd: string, options: OutputOptions) {
-  const page = await readPage(cwd);
-  if (!page) throw new UsageError("No page found.");
-  const result = await checkPageAssets(cwd, page);
-  emitResult(options, result.ok ? `All ${result.total} asset(s) present.` : `Missing ${result.missing.length} of ${result.total} asset(s).`, result);
-}
-
 export async function runPageGenerateProject(
   cwd: string,
   options: OutputOptions & { outputDir?: string; templateDir?: string; starter?: string; overwrite?: boolean },
 ) {
   const { promises: fs } = await import("node:fs");
-  const outputDir = options.outputDir ? path.resolve(cwd, options.outputDir) : path.join(cwd, "repochan-page");
+  const outputDir = options.outputDir ? path.resolve(cwd, options.outputDir) : path.join(cwd, ".repochan", "web-starter");
 
   // Resolve the template source: explicit --template-dir wins (escape hatch for
   // local/custom dirs); otherwise resolve a starter by id from @repochan/starters.

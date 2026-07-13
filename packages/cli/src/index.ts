@@ -128,21 +128,25 @@ cli.command("foundation <sub>", "Foundation sheet (visual anchor)")
   });
 
 // ---- page ----
-cli.command("page <sub>", "Manage the landing page spec")
+cli.command("page <sub>", "Scaffold a landing-page starter")
   .option("--json", "Machine-readable JSON output")
-  .option("--data-file <path>", "JSON payload from file, - for stdin, or omit when piping")
-  .option("--output-dir <dir>", "Output directory (generate-project)")
-  .option("--template-dir <dir>", "Template directory (generate-project, overrides --starter)")
-  .option("--starter <id>", "Starter id (generate-project, default: constructivist)")
+  .option("--output-dir <dir>", "Output directory (default: .repochan/web-starter)")
+  .option("--template-dir <dir>", "Template directory (overrides --starter)")
+  .option("--starter <id>", "Starter id (default: constructivist)")
   .option("--overwrite", "Overwrite existing")
   .action(async (_p: any, opts: any) => {
     const [sub] = cli.args;
     switch (sub) {
-      case "get": return await ent.runPageGet(process.cwd(), opts);
-      case "create": return await ent.runPageCreate(process.cwd(), opts.dataFile, opts);
-      case "check-assets": return await ent.runPageCheckAssets(process.cwd(), opts);
-      case "generate-project": return await ent.runPageGenerateProject(process.cwd(), opts);
-      default: throw new Error(`Unknown page subcommand: ${sub}. Use: get | create | check-assets | generate-project`);
+      case "generate-project": {
+        const stray = cli.args.slice(1);
+        if (stray.length > 0) {
+          throw new Error(
+            `Unexpected positional argument(s) after "page generate-project": ${stray.map(s => `"${s}"`).join(", ")}.`,
+          );
+        }
+        return await ent.runPageGenerateProject(process.cwd(), opts);
+      }
+      default: throw new Error(`Unknown page subcommand: ${sub}. Use: generate-project`);
     }
   });
 

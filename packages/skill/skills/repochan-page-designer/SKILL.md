@@ -13,25 +13,23 @@ description: >
 
 首要内容来源是 **analysis**、**README**、persona 的视觉品牌字段，以及页面模板。角色素材是**视觉增强（调味料）**，不是主菜。
 
-> **你是 image-edit 的唯一设计层用户。** 上游（Painter）交付的是原始 PNG：网格拼图、4K 合成图、matte 底角色图、icon 单图。这些原料需要通过 `repochan image edit <op>` 后处理（压扁 / 切片 / 抠图 / 改尺寸 / favicon）才能被网站直接消费。这个后处理步骤**只有你负责**——Painter 只画不切，Art Director 被禁止碰图像工具。具体 op 清单与触发条件见 `references/phase2-assemble.md` 的「image-edit 后处理清单」。**派生产物写入 `repochan-page/public/`，不回灌 `.repochan/`**（后者只存 Painter 交付的原始版本）。
+> **你是 image-edit 的唯一设计层用户。** 上游（Painter）交付的是原始 PNG：网格拼图、4K 合成图、matte 底角色图、icon 单图。这些原料需要通过 `repochan image edit <op>` 后处理（压扁 / 切片 / 抠图 / 改尺寸 / favicon）才能被网站直接消费。这个后处理步骤**只有你负责**——Painter 只画不切，Art Director 被禁止碰图像工具。具体 op 清单与触发条件见 `references/phase2-assemble.md` 的「image-edit 后处理清单」。**派生产物写入 `.repochan/web-starter/public/`，不回灌 `.repochan/`**（后者只存 Painter 交付的原始版本）。
 
 > **Progressive disclosure**：主流程在本文件；数据表、Phase 细节与陷阱在 `references/`，按需读取。
 
 ## 当前默认产物：Astro/Tailwind 页面工程
 
 ```
-repochan page generate-project --starter constructivist --output-dir repochan-page
+repochan page generate-project --starter constructivist --output-dir .repochan/web-starter
 ```
 
-从 `@repochan/starters` 包 scaffold 一个可编辑站点实例。**starter 源目录（`packages/starters/<id>/`）是只读的**——`generate-project` 把它复制到 output dir（默认 `repochan-page/`），你只编辑这个副本。
+从 `@repochan/starters` 包 scaffold 一个可编辑站点实例。**starter 源目录（`packages/starters/<id>/`）是只读的**——`generate-project` 把它复制到 output dir（默认 `.repochan/web-starter/`），你只编辑这个副本。
 
-默认维护 `repochan-page/` Web 项目，你负责填充：
+默认维护 `.repochan/web-starter/` Web 项目，你负责填充：
 
 - `src/i18n/zh.json` / `en.json`
 - `src/config/theme.ts` / `assets.ts`
 - `public/repochan-assets/<orderId>/<versionId>/<file>`
-
-旧的 `page.create` / `page.render` 仅用于 demo/协议验证，不是生产官网路线。
 
 你在为**用户的仓库**设计页面（hero / features / stats / CTA），角色可出现在 hero 点缀或 footer，但页面**不是**角色展示页。
 
@@ -52,7 +50,7 @@ repochan page generate-project --starter constructivist --output-dir repochan-pa
 
 1. hero 图必须是**为网页设计的**（项目截图或专属 hero 插画），不是设定集裁切。
 2. 未交付图片在 `assets.ts` 标 `pending`，**禁止**假 ready。
-3. 只有 `page.check_assets` 返回 `ok=true` 才能进 Phase 2。
+3. 进入 Phase 2 前，审计 `assets.ts`（ready vs pending）确认关键资产就绪。
 4. hero headline = 项目价值，不是角色口号。
 5. 数据映射与 section 图片要求见 references。
 
@@ -70,7 +68,7 @@ repochan page generate-project --starter constructivist --output-dir repochan-pa
 4. `repochan page generate-project`，审计 `assets.ts`（ready vs pending）。
 5. 缺图则 `order create` 后移交 Painter；或改用无图 hero centered。
 
-**检查点**：`page.check_assets` ok 后才能 Phase 2。
+**检查点**：审计 `assets.ts`（ready vs pending）确认关键资产就绪后进入 Phase 2。
 
 ### Phase 2：组装 Astro 页面工程
 
@@ -78,7 +76,7 @@ repochan page generate-project --starter constructivist --output-dir repochan-pa
 
 摘要步骤：
 
-6. 打开/生成 `repochan-page/`（已存在则不覆盖）。
+6. 打开/生成 `.repochan/web-starter/`（已存在则不覆盖）。
 7. 写 theme（persona 配色 + style：modern/minimal/playful/techy/elegant）。
 8. 填 i18n 文案（主来源 analysis/README；persona 仅视觉）。
 9. 复制已交付图到 `public/repochan-assets/...`，更新 `assets.ts`。

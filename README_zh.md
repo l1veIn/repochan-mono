@@ -64,7 +64,6 @@ cli ──┬──> core
   persona/current.json           # 创意团队
   orders/<id>/order.json         # 美术总监简报
   orders/<id>/versions/<vid>/    # 画师结果（meta + 图）
-  pages/current.json             # 页面设计
 ```
 
 ### 默认体验：一句话 → 全套品牌
@@ -167,7 +166,7 @@ repochan order create-result|list-results|get-result|set-current|…
 repochan order candidate create|promote
 repochan order slice|extract-stickers
 repochan foundation find
-repochan page get|create|check-assets|generate-project
+repochan page generate-project
 repochan review create
 repochan protocol inspect|read|write
 ```
