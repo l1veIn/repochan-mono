@@ -2,42 +2,29 @@ id: "official/hero-character-migrate"
 asset_type: "hero_composite"
 label: "Hero 角色迁移"
 description: >
-  把 starter 的 hero 合成图里的角色替换成项目的 foundation 角色,保留原图的构图、
-  人物位置、留白区域。参考图(starter hero-composite)通过 order references 的
-  {type:"file"} 传入,foundation 角色通过 {orderId} 传入。
+  把 starter hero 合成图里的角色替换成项目的 foundation 角色。构图、人物姿态、
+  留白位置完全参考第一张参考图(starter hero);背景、色彩、人物身份完全参考
+  第二张参考图(foundation)。提示词只需带过意图,细节交给参考图。
 tags: ["hero", "migrate", "web", "landing"]
 size: "2560x1440"
 quality: "high"
 
 prompt_template: |
-  Cinematic hero composite background for a landing page, 16:9 widescreen.
-  Migrate the character identity from the foundation reference into the composition
-  shown in the layout reference image.
-
-  Character: {{character_visual}} — {{character_name}}.
-  Preserve this character's identity faithfully: hair color and style, eye color,
-  signature outfit details, and props from {{outfit_details}}.
-  Signature pose/action: {{signature_pose}}, {{signature_action}}.
-
-  Composition (match the layout reference exactly):
-  - The character occupies the RIGHT side of the frame (~40-45% width).
-  - The LEFT side (~50-55%) is a dark, empty zone — keep it clean and atmospheric
-    (subtle gradient, faint texture, no text, no UI elements, no decorative symbols).
-    This blank area is reserved for HTML text overlay.
-  - Background style: {{design_language}} — hard geometric edges, flat color blocks,
-    {{key_motifs}} as industrial symbols integrated into the geometry.
-  - Palette: {{color_palette}} with a dark, moody atmosphere on the left transitioning
-    to the character's warmer tones on the right.
-
-  Art style: {{art_style}}. Cel-shaded, clean linework, flat color blocks,
-  geometric precision. The character and background must be seamlessly fused —
-  no cutout edges, no matte halo.
-
-  CRITICAL: Do NOT render any text, buttons, labels, navigation, or UI elements.
-  The left blank zone must stay empty for HTML overlay.
+  Hero composite background image for a landing page, 16:9 widescreen.
+  Two reference images are provided. The FIRST is the layout/composition reference —
+  match its character pose, body language, and blank-zone layout exactly.
+  The SECOND is the character identity reference — take the character from it.
+  Replace the character in the first image with the character from the second,
+  keeping the pose and composition identical. Redesign the background and colors
+  to match the second reference's palette and atmosphere. Seamless composite,
+  no cutout edges. No text, no UI elements.
 
 constraints:
-  - "Character must be on the right side; left side must be blank/dark"
-  - "No text or UI elements rendered in the image"
+  - "Character pose must match the layout reference exactly"
+  - "Left blank zone must stay empty for HTML overlay"
+  - "No text or UI elements"
   - "Character identity must match the foundation reference"
-  - "Character and background must be seamlessly composited"
+
+# 参考图通过 order references 传入:
+#   references[0] = {type:"file", path: "<starter hero-composite>", role: "composition"}
+#   references[1] = {type:"order", orderId: "<foundation>", role: "character"}

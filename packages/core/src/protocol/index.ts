@@ -160,6 +160,11 @@ export function orderVersionsDir(projectRoot: string, orderId: string) {
   return path.join(orderDir(projectRoot, orderId), "versions");
 }
 
+/** Directory for materialized file-reference images: orders/<orderId>/references/ */
+export function orderReferencesDir(projectRoot: string, orderId: string) {
+  return path.join(orderDir(projectRoot, orderId), "references");
+}
+
 export function orderVersionDir(projectRoot: string, orderId: string, versionId: string) {
   return path.join(orderVersionsDir(projectRoot, orderId), validateVersionIdForPath(versionId));
 }
