@@ -193,11 +193,21 @@ const DeliverableSchema = Type.Object({
   transparentBackground: Type.Optional(Type.Boolean()),
 });
 
-const OrderReferenceSchema = Type.Object({
-  orderId: OrderIdSchema,
-  role: Type.Union([Type.Literal("character"), Type.Literal("style"), Type.Literal("composition")]),
-  versionId: Type.Optional(VersionIdSchema),
-});
+const OrderReferenceSchema = Type.Union([
+  // order variant — `type` optional (omitted ⇒ order, for backward compat)
+  Type.Object({
+    type: Type.Optional(Type.Literal("order")),
+    orderId: OrderIdSchema,
+    role: Type.Union([Type.Literal("character"), Type.Literal("style"), Type.Literal("composition")]),
+    versionId: Type.Optional(VersionIdSchema),
+  }),
+  // file variant — references an arbitrary image file by path
+  Type.Object({
+    type: Type.Literal("file"),
+    path: Type.String({ description: "File path relative to projectRoot, or absolute." }),
+    role: Type.Union([Type.Literal("character"), Type.Literal("style"), Type.Literal("composition")]),
+  }),
+]);
 
 const SingleOrderSchema = Type.Object({
   orderId: OrderIdSchema,

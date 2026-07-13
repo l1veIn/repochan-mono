@@ -24,8 +24,8 @@ packages/
 ├── cli          repochan               唯一 bin — 子命令、setup、无 runtime
 ├── image-gen    @repochan/image-gen    prompt → PNG（OpenAI-compatible endpoint）
 ├── image-edit   @repochan/image-edit   切图 / 抠图 / GIF（本地、零凭证）
-└── templates    @repochan/templates    内置资产 YAML 模板
-repochan-page/                          狗粮 Astro + Tailwind 站点
+├── templates    @repochan/templates    内置资产 YAML 模板
+└── starters     @repochan/starters     落地页 starter（完整 Astro/Tailwind 脚手架）
 ```
 
 ### 依赖方向

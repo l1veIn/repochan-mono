@@ -77,15 +77,29 @@ export function isFoundationAssetType(assetType: string): boolean {
 }
 
 function normalizeReference(ref: unknown): OrderReference {
-  if (!isPlainObject(ref)) throw new Error("Each reference must be an object with orderId and role.");
-  const orderId = ref.orderId;
+  if (!isPlainObject(ref)) throw new Error("Each reference must be an object describing an order or file reference.");
   const role = ref.role;
-  if (typeof orderId !== "string" || !orderId.trim()) throw new Error("reference.orderId is required.");
-  validateOrderId(orderId);
   if (typeof role !== "string" || !VALID_REFERENCE_ROLES.has(role as ReferenceRole)) {
     throw new Error(`reference.role must be one of: character, style, composition. Got: ${String(role)}`);
   }
-  const result: OrderReference = { orderId, role: role as ReferenceRole };
+  const typedRole = role as ReferenceRole;
+
+  // file variant: { type: "file", path, role }
+  if (ref.type === "file") {
+    const filePath = ref.path;
+    if (typeof filePath !== "string" || !filePath.trim()) {
+      throw new Error("file reference requires a non-empty `path`.");
+    }
+    return { type: "file", path: filePath, role: typedRole };
+  }
+
+  // order variant (default when type omitted, or type === "order")
+  const orderId = ref.orderId;
+  if (typeof orderId !== "string" || !orderId.trim()) {
+    throw new Error("order reference requires a non-empty `orderId` (or use type:\"file\" with a `path`).");
+  }
+  validateOrderId(orderId);
+  const result: OrderReference = { orderId, role: typedRole };
   if (typeof ref.versionId === "string" && ref.versionId.trim()) {
     result.versionId = ref.versionId;
   }

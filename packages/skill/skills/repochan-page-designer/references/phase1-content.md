@@ -47,7 +47,7 @@ repochan order get-result ord-xxx <versionId> --json
 读取或创建页面工程，并审计 `src/config/assets.ts`：
 
 ```
-repochan page generate-project --output-dir repochan-page
+repochan page generate-project --starter constructivist --output-dir repochan-page
 ```
 
 - 已交付图片：复制到 `repochan-page/public/repochan-assets/<orderId>/<versionId>/<file>`，并在 `assets.ts` 标为 `ready`

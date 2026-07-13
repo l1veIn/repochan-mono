@@ -7,15 +7,39 @@ export type OrderPriority = "low" | "normal" | "high";
 /** Reference role: how a referenced order result constrains generation. */
 export type ReferenceRole = "character" | "style" | "composition";
 
-/** A reference to another order's result, used as a visual anchor for generation. */
-export type OrderReference = {
-  /** The orderId to reference (e.g. "ord-foundation-001"). */
-  orderId: string;
-  /** Specific version to use. If omitted, uses the order's currentVersion. */
-  versionId?: string;
-  /** How this reference constrains the generation. */
-  role: ReferenceRole;
-};
+/**
+ * A reference to a visual anchor for generation.
+ *
+ * Two variants:
+ * - **order** (default when `type` is omitted): references another order's
+ *   currentVersion (or explicit `versionId`) result. The historical
+ *   `{orderId, role}` shape stays valid — `type` is optional for it.
+ * - **file**: references an arbitrary image file by path (relative to
+ *   `projectRoot`, or absolute). Used for starter reference images and other
+ *   out-of-protocol anchors.
+ */
+export type OrderReference =
+  | {
+      /** Discriminator. Omitted or `"order"` → reference an order's result. */
+      type?: "order";
+      /** The orderId to reference (e.g. "ord-foundation-001"). */
+      orderId: string;
+      /** Specific version to use. If omitted, uses the order's currentVersion. */
+      versionId?: string;
+      /** How this reference constrains the generation. */
+      role: ReferenceRole;
+    }
+  | {
+      /** Discriminator. `"file"` → reference an arbitrary image file path. */
+      type: "file";
+      /**
+       * File path (relative to projectRoot or absolute). Resolved by the
+       * resolver, not normalized here — existence is checked at resolve time.
+       */
+      path: string;
+      /** How this reference constrains the generation. */
+      role: ReferenceRole;
+    };
 
 /** Asset types that serve as the project's visual foundation (anchor for all downstream orders). */
 export const FOUNDATION_ASSET_TYPES = ["foundation_sheet", "cover_sheet"] as const;

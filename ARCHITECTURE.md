@@ -191,9 +191,11 @@ packages/
 ├── cli          repochan               唯一 bin。路由子命令；setup 分发 skill。无内嵌 runtime。
 ├── image-gen    @repochan/image-gen    库：prompt → PNG（AI SDK，OpenAI-compatible endpoint）。自管凭证。
 ├── image-edit   @repochan/image-edit   库：切图 / 抠图 / GIF。零凭证、纯本地。
-└── templates    @repochan/templates    纯数据：内置资产 YAML 模板。
+├── templates    @repochan/templates    纯数据：内置资产 YAML 模板。
+└── starters     @repochan/starters     纯数据：落地页 starter（完整 Astro/Tailwind 脚手架目录）。
 
-repochan-page/   狗粮 Astro + Tailwind 站点（可演进为独立模板仓库）
+> 落地页 starter 已从根目录 `repochan-page/` 迁入 `packages/starters/`（首个 starter：`constructivist`）。
+> `repochan page generate-project --starter <id>` 从包内 scaffold 出可编辑实例。
 ```
 
 ### 依赖方向（必须单向）
@@ -365,7 +367,7 @@ Schema 保证「合法」，不保证「好看」或命中 `emotionalGoal`。质
 
 #### 待演进
 
-- `repochan-page/` 迁出为独立在线模板仓库（ADR §九）。
+- ~~`repochan-page/` 迁出为独立在线模板仓库（ADR §九）。~~ ✅ 已迁入 `packages/starters/`（2026-07-13）。
 - 可选 MCP-over-CLI 薄壳（仅在 CLI 体验证伪时）。
 - 远程模板 registry（当前 ~12 个官方 YAML 随包发布足够）。
 

@@ -14,7 +14,7 @@
 
 ### 品牌纹理 / pattern 特殊引导（assetType=visual_pattern）
 
-Pattern 是**可切分消费型资产**——下游用 slice/bg-remove 抠出 4 块矩形纹理给落地页/CSS。
+Pattern 是**可切分消费型资产**——下游 page-designer 用 `repochan image edit slice` / `bg-remove` 抠出 4 块矩形纹理给落地页/CSS。你（Painter）只负责画得可被切片，**不要**自己跑 image-edit（后处理是 page-designer 的职责）。
 
 **必须**：
 - **纯白底板 + 白 gutter**：四格之间用厚纯白分隔，方便抠图。
@@ -24,7 +24,7 @@ Pattern 是**可切分消费型资产**——下游用 slice/bg-remove 抠出 4 
 
 ### 贴纸表特殊引导（assetType=chibi_emojis / sticker_sheet）
 
-贴纸表是**可切片资产**——生成后会按网格切成独立表情贴纸。切分质量直接取决于图像的间距、背景和简洁度。
+贴纸表是**可切片资产**——下游 page-designer 生成后会用 `repochan image edit extract-stickers`（或 `slice`）按网格切成独立表情贴纸。切分质量直接取决于图像的间距、背景和简洁度。你（Painter）只负责画得可被切片，**不要**自己跑 image-edit。
 
 **贴纸表必须**：
 - **精简每个 cell 的内容**：每个表情 cell 只保留角色头像/半身 + 表情 + 简单配色。**不要**在 cell 内注入背景配饰、文字标签、复杂场景、额外道具。`{{key_motifs}}` 和 `{{color_palette}}` 只用于角色本身的配色呼应，不要变成 cell 内的装饰物。

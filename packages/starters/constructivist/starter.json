@@ -1,0 +1,49 @@
+{
+  "id": "constructivist",
+  "name": "Constructivist Landing",
+  "description": "构成主义风格:硬边色块、菱形 motif、角色-留白合成 hero。角色在右,左侧暗区留给 HTML 文字层。",
+  "style": "constructivist",
+  "default": true,
+  "assets": [
+    {
+      "slot": "hero-composite",
+      "reference": "public/assets/hero-composite.webp",
+      "description": "4K L1L2 合成背景图(角色+背景已融合),左侧暗区留白给文字层"
+    },
+    {
+      "slot": "character-cutout",
+      "reference": "public/assets/character/hero-character.png",
+      "description": "matte 底角色独立图,chroma-key 抠透明后可独立运动(策略 D 备选)"
+    },
+    {
+      "slot": "chibi-grid",
+      "reference": "public/assets/chibi",
+      "description": "chibi 3×3 表情网格,切片后用于 features/gallery 装饰"
+    },
+    {
+      "slot": "texture-hero-bg",
+      "reference": "public/textures/hero-bg.png",
+      "description": "hero section 四方连续背景纹理"
+    },
+    {
+      "slot": "texture-divider",
+      "reference": "public/textures/divider.png",
+      "description": "边框/分割线四方连续纹理"
+    },
+    {
+      "slot": "texture-sideband",
+      "reference": "public/textures/sideband.png",
+      "description": "侧边装饰四方连续纹理"
+    },
+    {
+      "slot": "texture-cta",
+      "reference": "public/textures/cta-bg.png",
+      "description": "CTA 底纹四方连续纹理"
+    },
+    {
+      "slot": "favicon",
+      "reference": "public/favicon.ico",
+      "description": "多分辨率 favicon.ico(由 icon-single resize+favicon 生成)"
+    }
+  ]
+}

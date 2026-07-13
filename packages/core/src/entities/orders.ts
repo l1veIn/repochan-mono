@@ -486,13 +486,28 @@ export async function resolveOrderReferences(
 ): Promise<
   Array<{
     role: string;
-    orderId: string;
-    versionId: string;
+    /** Present for order references; absent for file references. */
+    orderId?: string;
+    /** Present for order references; absent for file references. */
+    versionId?: string;
+    /** Resolved absolute image file path(s). */
     files: string[];
   }>
 > {
-  const resolved: Array<{ role: string; orderId: string; versionId: string; files: string[] }> = [];
+  const resolved: Array<{ role: string; orderId?: string; versionId?: string; files: string[] }> = [];
   for (const ref of normalizeReferences(references)) {
+    // file variant — resolve a single image path relative to projectRoot
+    if (ref.type === "file") {
+      const abs = path.resolve(projectRoot, ref.path);
+      if (!(await exists(abs))) throw new Error(`Reference file '${ref.path}' does not exist (resolved: ${abs}).`);
+      if (!IMAGE_EXTENSIONS.includes(path.extname(abs).toLowerCase())) {
+        throw new Error(`Reference file '${ref.path}' is not a recognized image (got extension '${path.extname(abs)}').`);
+      }
+      resolved.push({ role: ref.role, files: [abs] });
+      continue;
+    }
+
+    // order variant
     const order = await readOrder(projectRoot, ref.orderId).catch(() => null);
     if (!order) throw new Error(`Reference orderId '${ref.orderId}' does not exist.`);
     const versionId = ref.versionId ?? order.currentVersion;

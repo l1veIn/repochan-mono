@@ -12,13 +12,14 @@
 - **`packages/skill`** is pure markdown (no build). It teaches agents how to run `repochan` subcommands and make creative judgments. Skills must not instruct agents to hand-edit `.repochan/` — writes go through the CLI.
 - **`packages/cli`** (`repochan`) is the only published bin and the only binding surface. It must not embed an agent runtime or model loop. Business rules are delegated to `@repochan/core`.
 - **`packages/image-gen`** is a library: prompt → image bytes. It may hold credentials (`~/.repochan/image.json` + env). Per-endpoint `mode` defaults to **`auto`** (classic OpenAI submit; host rules / explicit `openai-async` only when needed). It must **not** write protocol artifacts under `.repochan/`.
-- **`packages/image-edit`** is a library: local pixel ops (slice / bg-remove / GIF). Zero network, zero credentials, no protocol awareness.
+- **`packages/image-edit`** is a library: local pixel ops (slice / bg-remove / chroma-key / compress / resize / favicon / GIF). Zero network, zero credentials, no protocol awareness.
 - **`packages/templates`** is pure YAML data for asset templates. Agents consume templates only via `repochan template list|get`.
+- **`packages/starters`** is pure scaffold data: complete Astro/Tailwind project directories consumed via `repochan page generate-project --starter <id>`. No build, no code exports. Each starter is a subdirectory (`constructivist/`, …) with its own Astro `package.json` + a `starter.json` manifest. Mirrors `@repochan/templates` structure but holds whole-site scaffolds, not prompt YAML.
 
 ## Dependency direction (must stay acyclic)
 
 ```text
-cli → core | skill | image-gen | image-edit | templates
+cli → core | skill | image-gen | image-edit | templates | starters
 ```
 
 Leaves never import `cli` or each other (except that `cli` alone aggregates).
@@ -36,3 +37,4 @@ Leaves never import `cli` or each other (except that `cli` alone aggregates).
 2. Foundation sheet first for visual consistency; downstream orders reference it.
 3. Destructive overwrites require explicit `overwrite=true` (or equivalent).
 4. Version `current.json` before replace; never silently drop history.
+5. **`image-edit` has one design-layer user: the `repochan-page-designer` skill.** Post-processing of upstream-generated images (compress / slice / chroma-key / bg-remove / resize / favicon) happens during page assembly and writes derived assets into the scaffolded site's `public/`; derived assets never flow back into `.repochan/`. The starter source (`packages/starters/<id>/`) is read-only — `generate-project` copies it into the output dir (default `repochan-page/`) and the page-designer edits only the copy. `repochan order slice` / `order extract-stickers` remain available for versioning slices as protocol artifacts, but that is an advanced path, not the page-designer default.

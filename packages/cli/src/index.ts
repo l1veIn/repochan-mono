@@ -132,7 +132,8 @@ cli.command("page <sub>", "Manage the landing page spec")
   .option("--json", "Machine-readable JSON output")
   .option("--data-file <path>", "JSON payload from file, - for stdin, or omit when piping")
   .option("--output-dir <dir>", "Output directory (generate-project)")
-  .option("--template-dir <dir>", "Template directory (generate-project)")
+  .option("--template-dir <dir>", "Template directory (generate-project, overrides --starter)")
+  .option("--starter <id>", "Starter id (generate-project, default: constructivist)")
   .option("--overwrite", "Overwrite existing")
   .action(async (_p: any, opts: any) => {
     const [sub] = cli.args;

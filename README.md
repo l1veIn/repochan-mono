@@ -24,8 +24,8 @@ packages/
 ├── cli          repochan               Sole bin — subcommands, setup, no runtime
 ├── image-gen    @repochan/image-gen    prompt → PNG (OpenAI-compatible endpoints)
 ├── image-edit   @repochan/image-edit   Slice / bg-remove / GIF (local, zero credentials)
-└── templates    @repochan/templates    Built-in asset YAML templates
-repochan-page/                          Dogfooded Astro + Tailwind site
+├── templates    @repochan/templates    Built-in asset YAML templates
+└── starters     @repochan/starters     Landing-page starters (full Astro/Tailwind scaffolds)
 ```
 
 ### Dependency direction

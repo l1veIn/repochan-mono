@@ -1,6 +1,6 @@
 packages:
   - 'packages/*'
-  - 'repochan-page'
+  - 'packages/starters/*'
 allowBuilds:
   '@google/genai': set this to true or false
   esbuild: set this to true or false

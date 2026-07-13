@@ -44,14 +44,34 @@ export async function runPageCheckAssets(cwd: string, options: OutputOptions) {
   emitResult(options, result.ok ? `All ${result.total} asset(s) present.` : `Missing ${result.missing.length} of ${result.total} asset(s).`, result);
 }
 
-export async function runPageGenerateProject(cwd: string, options: OutputOptions & { outputDir?: string; templateDir?: string; overwrite?: boolean }) {
+export async function runPageGenerateProject(
+  cwd: string,
+  options: OutputOptions & { outputDir?: string; templateDir?: string; starter?: string; overwrite?: boolean },
+) {
   const { promises: fs } = await import("node:fs");
   const outputDir = options.outputDir ? path.resolve(cwd, options.outputDir) : path.join(cwd, "repochan-page");
-  const templateDir = options.templateDir ? path.resolve(cwd, options.templateDir) : path.join(cwd, "repochan-page");
-  if (path.resolve(outputDir) === path.resolve(templateDir)) {
-    return void emitResult(options, `Page project template already present at ${outputDir}.`, { outputDir, templateDir, generated: false });
+
+  // Resolve the template source: explicit --template-dir wins (escape hatch for
+  // local/custom dirs); otherwise resolve a starter by id from @repochan/starters.
+  let templateDir: string;
+  let starterId: string | undefined;
+  if (options.templateDir) {
+    templateDir = path.resolve(cwd, options.templateDir);
+  } else {
+    const { getStarterDir, getDefaultStarterId } = await import("../lib/starter-loader.js");
+    starterId = options.starter ?? (await getDefaultStarterId());
+    templateDir = await getStarterDir(starterId);
   }
-  if (!(await exists(templateDir))) throw new UsageError(`templateDir not found: ${templateDir}. Pass --template-dir.`);
+
+  if (path.resolve(outputDir) === path.resolve(templateDir)) {
+    return void emitResult(options, `Page project template already present at ${outputDir}.`, {
+      outputDir,
+      templateDir,
+      starter: starterId,
+      generated: false,
+    });
+  }
+  if (!(await exists(templateDir))) throw new UsageError(`templateDir not found: ${templateDir}. Pass --template-dir or --starter.`);
   if ((await exists(outputDir)) && !options.overwrite) throw new UsageError(`outputDir exists: ${outputDir}. Pass --overwrite to replace.`);
   if (options.overwrite) await fs.rm(outputDir, { recursive: true, force: true });
   await fs.mkdir(path.dirname(outputDir), { recursive: true });
@@ -60,10 +80,15 @@ export async function runPageGenerateProject(cwd: string, options: OutputOptions
     filter: (src) => {
       const rel = path.relative(templateDir, src);
       if (!rel) return true;
-      return !rel.split(path.sep).some((part) => ["node_modules", "dist", ".astro"].includes(part));
+      return !rel.split(path.sep).some((part) => ["node_modules", "dist", ".astro", "starter.json"].includes(part));
     },
   });
-  emitResult(options, `Generated editable page project at ${outputDir}`, { outputDir, templateDir, generated: true });
+  emitResult(options, `Generated editable page project at ${outputDir}`, {
+    outputDir,
+    templateDir,
+    starter: starterId,
+    generated: true,
+  });
 }
 
 // ---------------------------------------------------------------------------
