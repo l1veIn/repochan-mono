@@ -14,7 +14,7 @@
 - **`packages/image-gen`** is a library: prompt → image bytes. It may hold credentials (`~/.repochan/image.json` + env). Per-endpoint `mode` defaults to **`auto`** (classic OpenAI submit; host rules / explicit `openai-async` only when needed). It must **not** write protocol artifacts under `.repochan/`.
 - **`packages/image-edit`** is a library: local pixel ops (slice / bg-remove / chroma-key / compress / resize / favicon / GIF). Zero network, zero credentials, no protocol awareness.
 - **`packages/templates`** is pure YAML data for asset templates. Agents consume templates only via `repochan template list|get`.
-- **`packages/starters`** is pure scaffold data: complete Astro/Tailwind project directories consumed via `repochan starter pull --starter <id>`. No build, no code exports. Each starter is a subdirectory (`constructivist/`, …) with its own Astro `package.json` + a `starter.json` manifest. Mirrors `@repochan/templates` structure but holds whole-site scaffolds, not prompt YAML.
+- **`packages/starters`** is pure scaffold data: complete Astro/Tailwind project directories consumed via `repochan starter pull --starter <id>`. No build, no code exports. Each starter is a subdirectory with its own Astro `package.json` and sole manifest at `repochan/starter.json`. Mirrors `@repochan/templates` structure but holds whole-site scaffolds, not prompt YAML.
 
 ## Dependency direction (must stay acyclic)
 

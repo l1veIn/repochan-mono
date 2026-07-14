@@ -30,9 +30,13 @@ repochan order list --json
 repochan image gen --prompt "a chibi mascot" --out /tmp/t.png
 
 # Landing-page starters
-repochan starter list                     # list available starters (--tag to filter)
-repochan starter get constructivist       # inspect a starter's assets/order/postprocess
-repochan starter pull                     # scaffold default starter → .repochan/web-starter/
+repochan starter list
+repochan starter get minimal --json
+repochan starter pull                     # scaffold default → .repochan/web-starter/
+repochan starter configure                # analysis/persona → repochan/site.json
+repochan starter create-order hero-composite --intent "..." --foundation ord-found-001
+repochan starter asset-apply hero-composite --order ord-hero-001 --overwrite
+repochan starter validate --output-dir .repochan/web-starter
 ```
 
 ## Image endpoints

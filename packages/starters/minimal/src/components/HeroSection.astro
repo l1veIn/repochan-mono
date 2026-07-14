@@ -5,35 +5,34 @@
 // The composite image IS the container — elements are positioned over it.
 
 type Props = {
+  heroSrc: string;
   content: {
-    eyebrow: string;
+    ariaLabel: string;
     headline: string;
     body: string;
-    primaryCta: string;
-    secondaryCta: string;
-    githubUrl: string;
+    primaryCta: { label: string; href: string };
+    repositoryLabel: string;
     brandName: string;
-    ctaStart: string;
     tags: string[];
-    describe: string;
-    typography: {
-      give: string;
-      this: string;
-      a: string;
-      repo: string;
-      soul: string;
+    aside: string;
+    posterTypography: {
+      row1Word: string;
+      row1Sentence: string;
+      row2Word: string;
+      row2Sentence: string;
+      row3: string;
     };
   };
 };
 
-const { content } = Astro.props;
+const { content, heroSrc } = Astro.props;
 ---
 
-<section class="hero" aria-label="RepoChan">
+<section class="hero" aria-label={content.ariaLabel}>
   <!-- L1+L2: composite background (WebP, 0.29MB) -->
   <div class="layer-bg" aria-hidden="true">
     <img
-      src="/assets/hero-composite.webp"
+      src={heroSrc}
       alt=""
       decoding="async"
       fetchpriority="high"
@@ -44,20 +43,20 @@ const { content } = Astro.props;
   <!-- L3: typography -->
   <div class="layer-type">
     <div class="layer-row row-1">
-      <span class="type-word give">{content.typography.row1_word}</span>
+      <span class="type-word give">{content.posterTypography.row1Word}</span>
       <span class="type-sentence">
-        <span class="type-line this">{content.typography.row1_sentence}</span>
+        <span class="type-line this">{content.posterTypography.row1Sentence}</span>
       </span>
     </div>
     <div class="layer-row row-2">
-      <span class="type-word a">{content.typography.row2_word}</span>
+      <span class="type-word a">{content.posterTypography.row2Word}</span>
       <span class="type-sentence">
-        <span class="type-line repo">{content.typography.row2_sentence}</span>
+        <span class="type-line repo">{content.posterTypography.row2Sentence}</span>
       </span>
     </div>
     <div class="layer-row row-3">
       <span class="type-sentence">
-        <span class="type-line soul">{content.typography.row3}</span>
+        <span class="type-line soul">{content.posterTypography.row3}</span>
       </span>
     </div>
   </div>
@@ -68,7 +67,12 @@ const { content } = Astro.props;
     <span class="tech-tag t-mascot">{content.tags[0]}</span>
     <span class="tech-tag t-local">{content.tags[1]}</span>
     <span class="tech-tag t-pipeline">{content.tags[2]}</span>
-    <span class="tech-tag t-discribe">{content.describe}</span>
+    <span class="tech-tag t-discribe">{content.aside}</span>
+
+    <div class="hero-summary">
+      <h1>{content.headline}</h1>
+      <p>{content.body}</p>
+    </div>
 
     <!-- Brand badge (top-left) -->
     <a class="brand-badge" href="/" aria-label={content.brandName}>
@@ -94,10 +98,10 @@ const { content } = Astro.props;
     <!-- GitHub Repository (top-right) -->
     <a
       class="github-badge"
-      href={content.githubUrl}
+      href={content.primaryCta.href}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="GitHub Repository"
+      aria-label={content.repositoryLabel}
     >
       <span class="github-badge-face">
         <svg
@@ -119,8 +123,10 @@ const { content } = Astro.props;
     <a
       id="start"
       class="cta-start"
-      href="#features"
-      aria-label={content.primaryCta}
+      href={content.primaryCta.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={content.primaryCta.label}
     >
       <span class="cta-start-face">
         <span class="cta-arrow" aria-hidden="true">
@@ -133,7 +139,7 @@ const { content } = Astro.props;
               stroke-linejoin="round"></path>
           </svg>
         </span>
-        <span class="cta-label">{content.ctaStart}</span>
+        <span class="cta-label">{content.primaryCta.label}</span>
       </span>
     </a>
 
@@ -350,6 +356,27 @@ const { content } = Astro.props;
     content: "|";
     margin-left: 4px;
     color: var(--c-primary);
+  }
+
+  .hero-summary {
+    position: absolute;
+    left: 5%;
+    bottom: 8%;
+    width: min(36rem, 42%);
+    color: var(--hero-foreground);
+    text-shadow: 0 3px 14px rgb(var(--c-base-rgb) / 0.7);
+  }
+
+  .hero-summary h1 {
+    margin: 0;
+    font: 700 clamp(1.25rem, 2.5vw, 2.8rem) / 1.05 var(--font-display);
+    letter-spacing: -0.03em;
+  }
+
+  .hero-summary p {
+    max-width: 44ch;
+    margin: 0.7rem 0 0;
+    font: 500 clamp(0.72rem, 1.05vw, 1rem) / 1.5 var(--font-display);
   }
 
   @keyframes burst-blink {
@@ -913,6 +940,10 @@ const { content } = Astro.props;
 
     .layer-bg img {
       object-position: 75% 50%;
+    }
+
+    .hero-summary {
+      display: none;
     }
   }
 

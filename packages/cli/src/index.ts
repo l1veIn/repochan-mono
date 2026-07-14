@@ -132,9 +132,16 @@ cli.command("foundation <sub>", "Foundation sheet (visual anchor)")
 cli.command("starter <sub>", "Landing-page starters")
   .option("--json", "Machine-readable JSON output")
   .option("--tag <tag>", "Filter starter list by tag")
-  .option("--output-dir <dir>", "Output directory (pull, default: .repochan/web-starter)")
-  .option("--starter <id>", "Starter id (pull, default: constructivist)")
-  .option("--overwrite", "Overwrite existing (pull)")
+  .option("--output-dir <dir>", "Starter instance directory (default: .repochan/web-starter)")
+  .option("--starter <id>", "Starter id (pull; otherwise uses the sole default)")
+  .option("--overwrite", "Allow replacing an existing output or generated config")
+  .option("--content-file <path>", "Locale content JSON for configure")
+  .option("--all", "Validate every built-in starter")
+  .option("--foundation <order-id>", "Foundation order reference (create-order)")
+  .option("--intent <text>", "Creative intent (create-order)")
+  .option("--status <status>", "Initial order status (create-order, default: draft)")
+  .option("--order <order-id>", "Delivered order to apply (asset-apply)")
+  .option("--version <version-id>", "Specific delivered result version (asset-apply)")
   .action(async (_p: any, opts: any) => {
     const args = cli.args;
     const sub = args[0];
@@ -142,7 +149,11 @@ cli.command("starter <sub>", "Landing-page starters")
       case "list": return await starter.runStarterList(process.cwd(), opts);
       case "get": return await starter.runStarterGet(process.cwd(), args[1], opts);
       case "pull": return await starter.runStarterPull(process.cwd(), opts);
-      default: throw new Error(`Unknown starter subcommand: ${sub}. Use: list | get | pull`);
+      case "configure": return await starter.runStarterConfigure(process.cwd(), opts);
+      case "create-order": return await starter.runStarterCreateOrder(process.cwd(), args[1], opts);
+      case "asset-apply": return await starter.runStarterAssetApply(process.cwd(), args[1], opts);
+      case "validate": return await starter.runStarterValidate(process.cwd(), args[1], opts);
+      default: throw new Error(`Unknown starter subcommand: ${sub}. Use: list | get | pull | configure | create-order | asset-apply | validate`);
     }
   });
 

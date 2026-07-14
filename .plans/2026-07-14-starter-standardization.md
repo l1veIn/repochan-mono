@@ -1,6 +1,6 @@
 # Starter v1 标准化与 Minimal 收敛计划
 
-> 状态：READY FOR IMPLEMENTATION
+> 状态：IMPLEMENTED
 > 日期：2026-07-14
 > 范围：`@repochan/core` starter schema、`repochan` starter 原子命令、`@repochan/starters` 配置布局、`repochan-page-designer` 工作流，以及 `minimal` 的 Hero-only 收敛。
 > 架构基准：`.plans/2026-07-09-repositioning.md`、`ARCHITECTURE.md`、根目录 `AGENTS.md`。

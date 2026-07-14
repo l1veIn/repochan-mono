@@ -2,13 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ============================================================
-   RepoChan — Constructivist visual system
-   All color/texture values are injected by SiteLayout as CSS
-   variables from the persona JSON. This file only defines
-   structural classes; config/site.ts owns palette defaults.
-   ============================================================ */
-
 * {
   box-sizing: border-box;
 }
@@ -28,97 +21,4 @@ body {
 a {
   color: inherit;
   text-decoration: none;
-}
-
-/* ── Layout container ──────────────────────────────────────── */
-
-.content-wrap {
-  width: min(1120px, calc(100% - 32px));
-  margin-inline: auto;
-}
-
-/* ── Constructivist primitives ─────────────────────────────── */
-/* Hard edges, no rounded corners. Bold black grid lines.
-   These are the building blocks of the Mondrian-meets-protocol
-   aesthetic that Chan's artStyle ("Cel-shading + Constructivism")
-   demands. */
-
-.construct-block {
-  border-radius: var(--construct-radius);
-  border: var(--construct-line) solid var(--construct-line-color);
-}
-
-/* A thick divider line — the signature constructivist horizontal split */
-.construct-divider {
-  height: var(--construct-line);
-  background: var(--construct-line-color);
-  border: none;
-  margin: 0;
-}
-
-/* Diamond motif — Chan's primary key motif (cursor mark).
-   Used as bullets, step numbers, and section accents. */
-.construct-diamond {
-  display: inline-block;
-  width: 0.7em;
-  height: 0.7em;
-  background: var(--c-primary);
-  transform: rotate(45deg);
-  flex-shrink: 0;
-}
-
-.construct-diamond-outline {
-  display: inline-block;
-  width: 0.7em;
-  height: 0.7em;
-  border: 2px solid var(--c-primary);
-  transform: rotate(45deg);
-  flex-shrink: 0;
-}
-
-/* ── Texture overlays ──────────────────────────────────────── */
-/* White-background texture tiles are overlaid on color blocks via
-   mix-blend-mode: multiply — the white disappears, the pattern
-   shows through at reduced opacity. This lets one tile work on
-   any background color. */
-
-.texture-multiply {
-  background-image: var(--texture-hero);
-  background-size: 280px;
-  background-repeat: repeat;
-  mix-blend-mode: multiply;
-  opacity: 0.10;
-  pointer-events: none;
-}
-
-.texture-divider {
-  background-image: var(--texture-divider);
-  background-size: 140px;
-  background-repeat: repeat;
-  opacity: 0.15;
-  pointer-events: none;
-}
-
-.texture-sideband {
-  background-image: var(--texture-sideband);
-  background-size: 120px;
-  background-repeat: repeat;
-  opacity: 0.12;
-  pointer-events: none;
-}
-
-.texture-cta {
-  background-image: var(--texture-cta);
-  background-size: 200px;
-  background-repeat: repeat;
-  mix-blend-mode: multiply;
-  opacity: 0.20;
-  pointer-events: none;
-}
-
-/* ── Focus ring (keyboard accessibility) ────────────────────── */
-
-.focus-ring:focus-visible {
-  outline: 3px solid var(--c-primary);
-  outline-offset: 3px;
 }

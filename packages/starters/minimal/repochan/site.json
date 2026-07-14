@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "RepoChan",
+    "description": "Turn a repository into a durable creative identity.",
+    "repositoryUrl": "https://github.com/l1veIn/repochan-mono"
+  },
+  "theme": {
+    "primary": "#6ee7ff",
+    "base": "#0f172a",
+    "accents": ["#a78bfa", "#f9a8d4"]
+  },
+  "brand": {
+    "artStyle": "Cel-shading with precise editorial geometry.",
+    "motifs": ["diamond cursor", "git graph", "version tag"],
+    "patterns": []
+  },
+  "locales": {
+    "default": "en",
+    "supported": ["en", "zh"]
+  }
+}

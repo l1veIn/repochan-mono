@@ -168,6 +168,10 @@ repochan order candidate create|promote
 repochan order slice|extract-stickers
 repochan foundation find
 repochan starter list [--tag] | get <id> | pull [--starter <id>]
+repochan starter configure [--content-file <path>]
+repochan starter create-order <slot> --intent <text> [--foundation <order-id>]
+repochan starter asset-apply <slot> --order <order-id> [--version <id>]
+repochan starter validate <id> | --all | --output-dir <dir>
 repochan review create
 repochan protocol inspect|read|write
 ```

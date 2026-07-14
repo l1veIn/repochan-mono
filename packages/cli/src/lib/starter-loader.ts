@@ -1,125 +1,76 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
+import {
+  validateStarterManifest,
+  type StarterManifest,
+} from "@repochan/core";
 
 const require = createRequire(import.meta.url);
+export const STARTER_MANIFEST_PATH = path.join("repochan", "starter.json");
 
-/** A partial order embedded in a starter asset slot. Page-designer merges this with project-specific fields (orderId, intent, foundation reference) to create the real order. */
-export type StarterAssetOrder = {
-  assetType?: string;
-  templateId?: string;
-  brief?: {
-    intent?: string;
-    mustInclude?: string[];
-    avoid?: string[];
-    creativeFreedom?: string[];
-  };
-  deliverables?: Array<{ name: string; format: string; width?: number; height?: number; aspectRatio?: string }>;
-  references?: Array<Record<string, unknown>>;
-};
+export type StarterMeta = StarterManifest & { dir: string };
 
-/** A post-processing step declared in a starter asset slot. Page-designer executes these via `repochan image edit <op>` after the painter delivers the raw image. */
-export type PostprocessStep = {
-  /** image-edit operation: compress | slice | extract-stickers | chroma-key | bg-remove | resize | favicon | gif-from-frames */
-  op: string;
-  /** CLI flags as key-value (e.g. {"format":"webp","quality":82,"maxWidth":2560}). Keys map to --<key> flags. */
-  args?: Record<string, unknown>;
-  /** Output path relative to the scaffolded site root (e.g. "public/assets/hero-composite.webp"). */
-  out?: string;
-};
-
-/** A single asset slot declared in a starter's starter.json. */
-export type StarterAssetSlot = {
-  slot: string;
-  reference: string;
-  description?: string;
-  /** Partial order template — page-designer merges + supplements to create the real order. */
-  order?: StarterAssetOrder;
-  /** Post-processing steps to run on the delivered image before it enters the site. */
-  postprocess?: PostprocessStep[];
-};
-
-/** Parsed starter manifest (starter.json). */
-export type StarterMeta = {
-  id: string;
-  name?: string;
-  description?: string;
-  style?: string;
-  tags?: string[];
-  default?: boolean;
-  assets?: StarterAssetSlot[];
-  /** Absolute path to the starter directory (the Astro project root). */
-  dir: string;
-};
-
-/**
- * Resolve the built-in starters package directory shipped with @repochan/starters.
- * Each starter is a subdirectory containing an Astro project + starter.json.
- */
 export async function getBuiltinStartersDir(): Promise<string> {
   const pkgJsonPath = require.resolve("@repochan/starters/package.json");
   return path.dirname(pkgJsonPath);
 }
 
-async function readStarterManifest(starterDir: string): Promise<StarterMeta | null> {
-  const manifestPath = path.join(starterDir, "starter.json");
+export async function readStarterManifest(starterDir: string): Promise<StarterMeta | null> {
+  const manifestPath = path.join(starterDir, STARTER_MANIFEST_PATH);
   let raw: string;
   try {
     raw = await fs.readFile(manifestPath, "utf8");
-  } catch {
-    return null; // not a starter directory (no manifest)
+  } catch (error: any) {
+    if (error?.code === "ENOENT") return null;
+    throw error;
   }
-  let parsed: any;
+  let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
-  } catch {
-    return null;
+  } catch (error) {
+    throw new Error(`Invalid starter manifest JSON at ${manifestPath}: ${error instanceof Error ? error.message : String(error)}`);
   }
-  return {
-    id: String(parsed.id ?? path.basename(starterDir)),
-    name: parsed.name,
-    description: parsed.description,
-    style: parsed.style,
-    tags: Array.isArray(parsed.tags) ? parsed.tags : [],
-    default: parsed.default === true,
-    assets: Array.isArray(parsed.assets) ? parsed.assets : [],
-    dir: starterDir,
-  };
+  try {
+    return { ...validateStarterManifest(parsed), dir: starterDir };
+  } catch (error) {
+    throw new Error(`Invalid starter manifest at ${manifestPath}: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }
 
-/**
- * List all available built-in starters by scanning subdirectories of the
- * @repochan/starters package for starter.json manifests.
- */
+export async function readStarterInstance(siteDir: string): Promise<StarterMeta> {
+  const starter = await readStarterManifest(siteDir);
+  if (!starter) throw new Error(`Missing starter manifest: ${path.join(siteDir, STARTER_MANIFEST_PATH)}`);
+  return starter;
+}
+
 export async function listStarters(): Promise<StarterMeta[]> {
   const root = await getBuiltinStartersDir();
   const entries = await fs.readdir(root, { withFileTypes: true });
-  const dirs = entries.filter((e) => e.isDirectory()).map((e) => path.join(root, e.name));
-  const results = await Promise.all(dirs.map(readStarterManifest));
-  return results.filter((s): s is StarterMeta => s !== null);
+  const results: StarterMeta[] = [];
+  for (const entry of entries.filter((item) => item.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))) {
+    const manifest = await readStarterManifest(path.join(root, entry.name));
+    if (manifest) results.push(manifest);
+  }
+  return results;
 }
 
-/**
- * Resolve the default starter id (the one with `default: true`, else the first).
- */
 export async function getDefaultStarterId(): Promise<string> {
   const starters = await listStarters();
-  const marked = starters.find((s) => s.default);
-  if (marked) return marked.id;
-  if (starters.length === 0) throw new Error("No starters found in @repochan/starters.");
+  const marked = starters.filter((starter) => starter.default);
+  if (marked.length > 1) throw new Error(`Multiple default starters: ${marked.map((starter) => starter.id).join(", ")}`);
+  if (marked[0]) return marked[0].id;
+  if (starters.length === 0) throw new Error("No Starter v1 manifests found in @repochan/starters.");
   return starters[0].id;
 }
 
-/**
- * Resolve a starter by id to its absolute directory path.
- * Throws if the id is unknown.
- */
-export async function getStarterDir(id: string): Promise<string> {
+export async function getStarter(id: string): Promise<StarterMeta> {
   const starters = await listStarters();
-  const match = starters.find((s) => s.id === id);
-  if (!match) {
-    const available = starters.map((s) => s.id).join(", ") || "(none)";
-    throw new Error(`Unknown starter '${id}'. Available: ${available}`);
-  }
-  return match.dir;
+  const match = starters.find((starter) => starter.id === id);
+  if (!match) throw new Error(`Unknown starter '${id}'. Available: ${starters.map((starter) => starter.id).join(", ") || "(none)"}`);
+  return match;
+}
+
+export async function getStarterDir(id: string): Promise<string> {
+  return (await getStarter(id)).dir;
 }

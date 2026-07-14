@@ -1,6 +1,6 @@
 ---
 import "../styles/global.css";
-import { site, buildCssVars } from "../config/site";
+import { site, buildCssVars } from "../lib/site";
 
 type Props = {
   title: string;
@@ -18,7 +18,7 @@ const cssVars = buildCssVars();
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content={site.palette.primary} />
+    <meta name="theme-color" content={site.theme.primary} />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <title>{title}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />

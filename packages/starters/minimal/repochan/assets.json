@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "repochan.starter-assets.v1",
+  "assets": {
+    "hero-composite": {
+      "src": "/assets/hero-composite.webp",
+      "status": "ready"
+    }
+  }
+}

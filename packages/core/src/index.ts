@@ -6,3 +6,4 @@ export * from "./validate.js";
 export * from "./entities/index.js";
 export * from "./analysis.js";
 export * from "./validation.js";
+export * from "./starter.js";

@@ -194,8 +194,8 @@ packages/
 ├── templates    @repochan/templates    纯数据：内置资产 YAML 模板。
 └── starters     @repochan/starters     纯数据：落地页 starter（完整 Astro/Tailwind 脚手架目录）。
 
-> 落地页 starter 已从根目录 `repochan-page/` 迁入 `packages/starters/`（首个 starter：`constructivist`）。
-> `repochan starter pull --starter <id>` 从包内 scaffold 出可编辑实例。
+> 落地页 starter 位于 `packages/starters/`；当前 Starter v1 默认实现为 Hero-only 的 `minimal`。
+> `repochan starter pull --starter <id>` 从包内 scaffold 出可编辑实例；实例与 source 都以 `repochan/starter.json` 为唯一 manifest。
 ```
 
 ### 依赖方向（必须单向）
@@ -206,13 +206,13 @@ cli ──┬──> core
       ├──> image-gen      # repochan image gen / configure
       ├──> image-edit     # repochan image edit …
       ├──> templates      # repochan template list|get
-      └──> starters       # repochan starter list|get|pull
+      └──> starters       # repochan starter list|get|pull|configure|create-order|asset-apply|validate
 
 core          叶子：不依赖任何其他 repochan 包
 image-gen     叶子：不写 .repochan/，不知协议
 image-edit    叶子：不写 .repochan/，不知协议
 templates     叶子：纯 YAML
-starters      叶子：纯 scaffold 数据（Astro 项目目录 + starter.json）
+starters      叶子：纯 scaffold 数据（Astro 项目目录 + repochan/starter.json）
 skill         叶子：纯 markdown
 ```
 
