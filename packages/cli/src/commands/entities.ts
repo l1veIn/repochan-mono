@@ -20,56 +20,7 @@ export async function runFoundationFind(cwd: string, options: OutputOptions) {
 }
 
 // ---------------------------------------------------------------------------
-// page generate-project — scaffold a starter into .repochan/web-starter/
-// ---------------------------------------------------------------------------
-export async function runPageGenerateProject(
-  cwd: string,
-  options: OutputOptions & { outputDir?: string; templateDir?: string; starter?: string; overwrite?: boolean },
-) {
-  const { promises: fs } = await import("node:fs");
-  const outputDir = options.outputDir ? path.resolve(cwd, options.outputDir) : path.join(cwd, ".repochan", "web-starter");
-
-  // Resolve the template source: explicit --template-dir wins (escape hatch for
-  // local/custom dirs); otherwise resolve a starter by id from @repochan/starters.
-  let templateDir: string;
-  let starterId: string | undefined;
-  if (options.templateDir) {
-    templateDir = path.resolve(cwd, options.templateDir);
-  } else {
-    const { getStarterDir, getDefaultStarterId } = await import("../lib/starter-loader.js");
-    starterId = options.starter ?? (await getDefaultStarterId());
-    templateDir = await getStarterDir(starterId);
-  }
-
-  if (path.resolve(outputDir) === path.resolve(templateDir)) {
-    return void emitResult(options, `Page project template already present at ${outputDir}.`, {
-      outputDir,
-      templateDir,
-      starter: starterId,
-      generated: false,
-    });
-  }
-  if (!(await exists(templateDir))) throw new UsageError(`templateDir not found: ${templateDir}. Pass --template-dir or --starter.`);
-  if ((await exists(outputDir)) && !options.overwrite) throw new UsageError(`outputDir exists: ${outputDir}. Pass --overwrite to replace.`);
-  if (options.overwrite) await fs.rm(outputDir, { recursive: true, force: true });
-  await fs.mkdir(path.dirname(outputDir), { recursive: true });
-  await fs.cp(templateDir, outputDir, {
-    recursive: true,
-    filter: (src) => {
-      const rel = path.relative(templateDir, src);
-      if (!rel) return true;
-      return !rel.split(path.sep).some((part) => ["node_modules", "dist", ".astro", "starter.json"].includes(part));
-    },
-  });
-  emitResult(options, `Generated editable page project at ${outputDir}`, {
-    outputDir,
-    templateDir,
-    starter: starterId,
-    generated: true,
-  });
-}
-
-// ---------------------------------------------------------------------------
+// review create --data-file
 // review create --data-file
 // ---------------------------------------------------------------------------
 export async function runReviewCreate(cwd: string, dataFile: string | undefined, options: OutputOptions) {

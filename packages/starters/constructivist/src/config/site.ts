@@ -157,7 +157,7 @@ const patterns = p.signaturePatterns ?? [];
 
 const textures: TextureSlot[] = [
   {
-    src: "/textures/hero-bg.png",
+    src: "/textures/texture1.webp",
     usage: "hero-bg",
     desc: patterns[0] ?? "Subtle hero background texture",
   },

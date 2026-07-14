@@ -166,7 +166,7 @@ repochan order create-result|list-results|get-result|set-current|…
 repochan order candidate create|promote
 repochan order slice|extract-stickers
 repochan foundation find
-repochan page generate-project
+repochan starter pull
 repochan review create
 repochan protocol inspect|read|write
 ```

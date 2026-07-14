@@ -3,7 +3,7 @@
 #### 步骤 6：生成或打开页面工程
 
 ```
-repochan page generate-project --starter constructivist --output-dir .repochan/web-starter
+repochan starter pull --starter constructivist --output-dir .repochan/web-starter
 ```
 
 如果 `.repochan/web-starter/` 已存在，不要覆盖；直接读取它的 README、`src/i18n/*.json`、`src/config/*.ts` 和组件结构。

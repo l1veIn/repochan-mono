@@ -32,8 +32,14 @@
     },
     {
       "slot": "texture-hero-bg",
-      "reference": "public/textures/hero-bg.png",
-      "description": "hero section 四方连续背景纹理"
+      "reference": "public/textures/texture1.webp",
+      "description": "hero section 四方连续背景纹理",
+      "order":{
+        "templateId": "official/pattern-tile"
+      },
+      "postprocess": [
+        {"op": "compress", "args": {"format": "webp", "quality": 82, "maxWidth": 2560}, "out": "public/assets/texture1.webp"}
+      ]
     },
     {
       "slot": "favicon",

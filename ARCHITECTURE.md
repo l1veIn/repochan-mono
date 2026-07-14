@@ -195,7 +195,7 @@ packages/
 └── starters     @repochan/starters     纯数据：落地页 starter（完整 Astro/Tailwind 脚手架目录）。
 
 > 落地页 starter 已从根目录 `repochan-page/` 迁入 `packages/starters/`（首个 starter：`constructivist`）。
-> `repochan page generate-project --starter <id>` 从包内 scaffold 出可编辑实例。
+> `repochan starter pull --starter <id>` 从包内 scaffold 出可编辑实例。
 ```
 
 ### 依赖方向（必须单向）

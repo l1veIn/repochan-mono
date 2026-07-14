@@ -10,6 +10,7 @@ import * as order from "./commands/order.js";
 import * as ent from "./commands/entities.js";
 import * as setup from "./commands/setup.js";
 import * as template from "./commands/template.js";
+import * as starter from "./commands/starter.js";
 import * as image from "./commands/image.js";
 
 // Read version from package.json at runtime so there's a single source of
@@ -127,26 +128,21 @@ cli.command("foundation <sub>", "Foundation sheet (visual anchor)")
     throw new Error(`Unknown foundation subcommand: ${sub}. Use: find`);
   });
 
-// ---- page ----
-cli.command("page <sub>", "Scaffold a landing-page starter")
+// ---- starter ----
+cli.command("starter <sub>", "Landing-page starters")
   .option("--json", "Machine-readable JSON output")
-  .option("--output-dir <dir>", "Output directory (default: .repochan/web-starter)")
-  .option("--template-dir <dir>", "Template directory (overrides --starter)")
-  .option("--starter <id>", "Starter id (default: constructivist)")
-  .option("--overwrite", "Overwrite existing")
+  .option("--tag <tag>", "Filter starter list by tag")
+  .option("--output-dir <dir>", "Output directory (pull, default: .repochan/web-starter)")
+  .option("--starter <id>", "Starter id (pull, default: constructivist)")
+  .option("--overwrite", "Overwrite existing (pull)")
   .action(async (_p: any, opts: any) => {
-    const [sub] = cli.args;
+    const args = cli.args;
+    const sub = args[0];
     switch (sub) {
-      case "generate-project": {
-        const stray = cli.args.slice(1);
-        if (stray.length > 0) {
-          throw new Error(
-            `Unexpected positional argument(s) after "page generate-project": ${stray.map(s => `"${s}"`).join(", ")}.`,
-          );
-        }
-        return await ent.runPageGenerateProject(process.cwd(), opts);
-      }
-      default: throw new Error(`Unknown page subcommand: ${sub}. Use: generate-project`);
+      case "list": return await starter.runStarterList(process.cwd(), opts);
+      case "get": return await starter.runStarterGet(process.cwd(), args[1], opts);
+      case "pull": return await starter.runStarterPull(process.cwd(), opts);
+      default: throw new Error(`Unknown starter subcommand: ${sub}. Use: list | get | pull`);
     }
   });
 

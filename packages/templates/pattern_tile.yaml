@@ -1,7 +1,7 @@
 id: "official/pattern-tile"
 asset_type: "visual_pattern"
 label: "单张四方连续纹理"
-description: "一张独立、无缝、可平铺的品牌纹理。用于页面 section 背景、边框、分割线或 CTA 底纹。"
+description: "一张独立、无缝、四方连续、可平铺的品牌纹理。用于页面 section 背景、边框、分割线或 CTA 底纹。"
 tags: ["visual_pattern", "pattern", "texture", "background", "page"]
 size: "768x768"
 
