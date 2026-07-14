@@ -1,0 +1,4 @@
+interface:
+  display_name: "RepoChan Starter Designer"
+  short_description: "Design reusable image-driven RepoChan starters"
+  default_prompt: "Use $repochan-starter-designer to design a reusable multi-section RepoChan starter."

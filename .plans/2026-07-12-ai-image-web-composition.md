@@ -1,7 +1,8 @@
-# AI 生图驱动的网页构成工艺
+# AI 生图驱动的网页构成工艺（历史策略模型）
 
-> 状态：METHODOLOGY（从 dogfood 实践中提炼的设计方法论）
+> 状态：SUPERSEDED BY BAKE-MASK MODEL
 > 背景：RepoChan 狗粮站 hero 经过多轮迭代（手工拼接 → screenshot-to-code → L1L2 分层 → L1L2 合成），总结出了一套基于 AI 生图的网页 section 构成方法论。
+> 后续：四种策略仍作为历史案例保留；当前权威模型见 [2026-07-14-multisection-starter-research.md](./2026-07-14-multisection-starter-research.md) 和 `repochan-starter-designer/references/layer-methodology.md`。004 的完整稿是设计原型，最终 minimal 实现属于 baked L1+L2、live L3+L4。
 
 ---
 

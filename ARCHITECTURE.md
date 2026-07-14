@@ -126,6 +126,7 @@ RepoChan 给 agent 提供一套**交付拓扑**：每个角色的工作目标不
 - 入口：`packages/skill/skills/*/SKILL.md`（纯 markdown，无构建步骤）。
 - **C 位是向导 skill `repochan`**：默认一句话调度全流程；yolo 跳过检查点；逐团队是高级模式。
 - 团队 skill：`repochan-analysis` / `repochan-interviewer` / `repochan-persona` / `repochan-art-director` / `repochan-painter` / `repochan-page-designer`。
+- 维护者 skill：`repochan-starter-designer`。它设计 `packages/starters/<id>/` source starter，不属于普通项目生成流水线，也不改变 Page Designer 只能编辑 pull 后实例的边界。
 - 采用 progressive disclosure：精炼 `SKILL.md` + 按需 `references/`。
 - skill **不亲自执行代码**——它告诉 agent 该想什么、该跑哪条 `repochan` 子命令、该读哪个上游产物。
 

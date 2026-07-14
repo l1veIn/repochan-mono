@@ -13,6 +13,7 @@ This is a pure-markdown package (no build step, no code). It is the C-position o
 - `repochan-art-director` — Art Director: create the foundation sheet (visual anchor) + downstream tasks.
 - `repochan-painter` — Painter: execute image generation tasks.
 - `repochan-page-designer` — Page Designer (optional): build the landing page.
+- `repochan-starter-designer` — Starter Designer (maintainer): author reusable image-driven source starters and their composition recipes. It is not part of the normal project pipeline.
 
 ## Asset templates (not in this package)
 
