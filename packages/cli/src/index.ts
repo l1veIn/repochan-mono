@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { createRequire } from "node:module";
+import { execSync } from "node:child_process";
 import { cac } from "cac";
 import { printError } from "./lib/output.js";
 import * as top from "./commands/toplevel.js";
@@ -13,10 +14,25 @@ import * as template from "./commands/template.js";
 import * as starter from "./commands/starter.js";
 import * as image from "./commands/image.js";
 
+/** Append `+g<hash>` (or `+g<hash>-dirty`) from git so every local build is identifiable. */
+function getGitSuffix(): string {
+  try {
+    const short = execSync("git rev-parse --short HEAD", { encoding: "utf8", timeout: 2000 }).trim();
+    const dirty = execSync("git status --porcelain", { encoding: "utf8", timeout: 2000 }).trim().length > 0;
+    return `+g${short}${dirty ? "-dirty" : ""}`;
+  } catch {
+    return ""; // not a git repo or git unavailable — bare version is fine
+  }
+}
+
 // Read version from package.json at runtime so there's a single source of
 // truth — bumping package.json version is enough, no hardcoded constant to sync.
+// Append git short hash (+dirty if working tree is not clean) so local builds
+// are always identifiable without manual version bumps.
 const require = createRequire(import.meta.url);
-const { version: VERSION } = require("../package.json") as { version: string };
+const { version: PKG_VERSION } = require("../package.json") as { version: string };
+const VERSION = PKG_VERSION + getGitSuffix();
+const cli = cac("repochan");
 const cli = cac("repochan");
 
 // cac passes positional args unreliably to actions (variadic args collapse),
