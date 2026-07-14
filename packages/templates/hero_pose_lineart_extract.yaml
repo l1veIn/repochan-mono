@@ -24,7 +24,8 @@ prompt_template: |
 
   REMOVE (do not draw):
   - All colors, shading, gradients, shadows, highlights
-  - All clothing details: folds, textures, patterns, accessories, props
+  - All clothing details: folds, textures, patterns, accessories
+  - All held/carried objects and props — keep only the hand gesture/position
   - All facial features: eyes, hair, expression details
   - All background elements: textures, atmosphere, particles, decorations
   - All material rendering: metal, fabric, skin tones
