@@ -8,7 +8,7 @@
   "assets": [
     {
       "slot": "hero-composite",
-      "reference": "public/assets/hero-composite.webp",
+      "reference": "public/assets/hero-pose-lineart.webp",
       "description": "4K L1L2 合成背景图(角色+背景已融合),角色在右侧抬腿伸手,左侧暗区留白给文字层。抬手下方自然形成的负空间用于 CTA 按钮。",
       "order": {
         "assetType": "hero_composite",
