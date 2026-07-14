@@ -4,13 +4,6 @@ import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 
-/** A single asset slot declared in a starter's starter.json. */
-export type StarterAssetSlot = {
-  slot: string;
-  reference: string;
-  description?: string;
-};
-
 /** A blank-zone declaration: which side of the frame should stay empty for HTML overlay. */
 export type BlankZone = {
   /** Which side: left, right, top, or bottom. */
@@ -18,6 +11,15 @@ export type BlankZone = {
   /** Fraction of that dimension to keep blank (0–1, e.g. 0.55 = 55%). */
   ratio: number;
   desc?: string;
+};
+
+/** A single asset slot declared in a starter's starter.json. */
+export type StarterAssetSlot = {
+  slot: string;
+  reference: string;
+  description?: string;
+  /** Blank zones for this asset — passed to the migration order's mustInclude. */
+  blankZones?: BlankZone[];
 };
 
 /** Parsed starter manifest (starter.json). */
@@ -28,8 +30,6 @@ export type StarterMeta = {
   style?: string;
   tags?: string[];
   default?: boolean;
-  /** Zones the page-designer must pass to orders as blank-zone constraints. */
-  blankZones?: BlankZone[];
   assets?: StarterAssetSlot[];
   /** Absolute path to the starter directory (the Astro project root). */
   dir: string;
@@ -65,7 +65,6 @@ async function readStarterManifest(starterDir: string): Promise<StarterMeta | nu
     style: parsed.style,
     tags: Array.isArray(parsed.tags) ? parsed.tags : [],
     default: parsed.default === true,
-    blankZones: Array.isArray(parsed.blankZones) ? parsed.blankZones : [],
     assets: Array.isArray(parsed.assets) ? parsed.assets : [],
     dir: starterDir,
   };

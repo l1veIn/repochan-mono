@@ -5,19 +5,19 @@
   "style": "constructivist",
   "tags": ["landing", "hero", "test", "minimal"],
   "default": false,
-  "blankZones": [
-    { "side": "left", "ratio": 0.55, "desc": "左侧 55% 暗色留白,留给 HTML 文字层" }
-  ],
   "assets": [
     {
       "slot": "hero-composite",
       "reference": "public/assets/hero-composite.webp",
-      "description": "4K L1L2 合成背景图(角色+背景已融合),角色在右侧抬腿伸手,左侧暗区留白给文字层",
+      "description": "4K L1L2 合成背景图(角色+背景已融合),角色在右侧抬腿伸手,左侧暗区留白给文字层。抬手下方自然形成的负空间用于 CTA 按钮。",
       "migrateTemplate": "official/hero-character-migrate",
       "migrateSize": "2560x1440",
       "migrateQuality": "high",
       "migrateRole": "composition",
-      "localizeTemplate": "official/hero-character-localize"
+      "localizeTemplate": "official/hero-character-localize",
+      "blankZones": [
+        { "side": "left", "ratio": 0.55, "desc": "左侧 55% 暗色留白,留给 HTML 文字层" }
+      ]
     },
     {
       "slot": "texture-hero-bg",

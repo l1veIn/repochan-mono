@@ -110,35 +110,38 @@ repochan page generate-project --starter <id> --json   # 输出里有 starterId
 # 或直接读 packages/starters/<id>/starter.json（你知道 starter id 时）
 ```
 
-从 starter.json 读取：
-- `assets[].migrateTemplate` / `localizeTemplate` — 用哪个迁移模板
-- `assets[].migrateSize` / `migrateQuality` — 输出尺寸和质量
-- `assets[].migrateRole` — 参考图角色（通常是 `composition`）
-- `blankZones[]` — **留白约束**（side + ratio）
+从 asset slot 读取（以 hero-composite 为例）：
+- `migrateTemplate` / `localizeTemplate` — 用哪个迁移模板
+- `migrateSize` / `migrateQuality` — 输出尺寸和质量
+- `migrateRole` — 参考图角色（通常是 `composition`）
+- `description` — **设计知识描述**（自然语言），直接作为信息传递通道
+- `blankZones[]` — **留白约束**（per-asset，side + ratio）
 
-#### 步骤 2：把 blankZones 转成 mustInclude 文字
+#### 步骤 2：把 description + blankZones 转成 mustInclude 文字
 
-starter.json 的 `blankZones` 是结构化数据，画师需要自然语言。**你负责翻译**：
+asset 的 `description` 和 `blankZones` 都是需要传递给画师的设计知识。**你负责把它们翻译成 order brief.mustInclude 的自然语言条目**：
 
 ```json
-// starter.json
-"blankZones": [
-  { "side": "left", "ratio": 0.55 }
-]
+// starter.json 的 asset slot:
+{
+  "description": "4K L1L2 合成背景图,角色在右侧抬腿伸手,左侧暗区留白给文字层。抬手下方自然形成的负空间用于 CTA 按钮。",
+  "blankZones": [
+    { "side": "left", "ratio": 0.55, "desc": "左侧 55% 暗色留白" }
+  ]
+}
 ```
 ↓ 翻译成 order brief.mustInclude：
 ```json
 "mustInclude": [
   "left 55% of the frame must remain empty (dark, atmospheric) for HTML text overlay",
+  "the negative space below the character's raised arm is reserved for a CTA button placement",
   "character identity from the foundation reference"
 ]
 ```
 
-多个方向时拼合成一句：
-```json
-// blankZones: left 0.3, right 0.3, top 0.2, bottom 0.2
-// → "a center region (30% from each side, 20% from top and bottom) must remain empty for HTML overlay"
-```
+- `description` 里的设计知识（如"抬手下方负空间用于 CTA"）直接作为 mustInclude 条目传入
+- `blankZones` 翻译成自然语言："left 55% of the frame must remain empty"
+- 多个方向时拼合成一句：`blankZones: left 0.3, right 0.3, top 0.2, bottom 0.2` → "a center region (30% from each side, 20% from top and bottom) must remain empty for HTML overlay"
 
 #### 步骤 3：创建迁移订单
 
