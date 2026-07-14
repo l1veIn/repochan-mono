@@ -81,10 +81,10 @@ const { content } = Astro.props;
           >
             <path
               d="M12 3.5L4.5 7.5v9L12 20.5l7.5-4v-9L12 3.5z"
-              stroke="#fff"
+              stroke="currentColor"
               stroke-width="1.6"
               stroke-linejoin="round"></path>
-            <circle cx="12" cy="12" r="2.2" fill="#fff"></circle>
+            <circle cx="12" cy="12" r="2.2" fill="currentColor"></circle>
           </svg>
         </span>
         <span class="brand-name">{content.brandName}</span>
@@ -174,19 +174,23 @@ const { content } = Astro.props;
 
   /* ── Variables ── */
   :root {
-    --cyan: #5ef0ff;
-    --glass: rgba(8, 16, 36, 0.55);
-    --glass-border: rgba(120, 200, 255, 0.35);
+    --hero-foreground: color-mix(
+      in srgb,
+      var(--c-primary) 72%,
+      var(--c-accent-2)
+    );
+    --hero-glass: rgb(var(--c-base-rgb) / 0.92);
+    --hero-glass-hover: rgb(var(--c-primary-rgb) / 0.15);
     --font-display: "Outfit", "SF Pro Display", system-ui, sans-serif;
     --font-jp: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
     --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
     --tilt-type: -11deg;
     --tilt-badge: -4deg;
     --tilt-start: -11deg;
-    --rim-tight: drop-shadow(0 0 1.2px rgba(210, 252, 255, 0.9))
-      drop-shadow(0 0 7px rgba(90, 230, 255, 0.58));
-    --rim-tight-hot: drop-shadow(0 0 1.4px rgba(230, 255, 255, 0.98))
-      drop-shadow(0 0 10px rgba(110, 240, 255, 0.68));
+    --rim-tight: drop-shadow(0 0 1.2px rgb(var(--c-primary-rgb) / 0.9))
+      drop-shadow(0 0 7px rgb(var(--c-primary-rgb) / 0.58));
+    --rim-tight-hot: drop-shadow(0 0 1.4px rgb(var(--c-primary-rgb) / 0.98))
+      drop-shadow(0 0 10px rgb(var(--c-primary-rgb) / 0.68));
   }
 
   /* ── Hero shell ── */
@@ -224,7 +228,7 @@ const { content } = Astro.props;
     border-radius: 50%;
     background: radial-gradient(
       circle,
-      rgba(0, 180, 255, 0.22) 0%,
+      rgb(var(--c-primary-rgb) / 0.22) 0%,
       transparent 68%
     );
     filter: blur(8px);
@@ -253,7 +257,6 @@ const { content } = Astro.props;
     width: 45%;
     height: 20vh;
     --box-h: 40vh;
-    /* border: 2px solid red; */
     pointer-events: none;
     display: flex;
     flex-direction: column;
@@ -268,10 +271,6 @@ const { content } = Astro.props;
     box-sizing: border-box;
     display: flex;
     align-items: flex-end;
-  }
-
-  .layer-row:not(:last-child) {
-    /* border-bottom: 2px solid red; */
   }
 
   .layer-row.row-1 {
@@ -295,10 +294,11 @@ const { content } = Astro.props;
     font-family: var(--font-mono, monospace);
     font-size: clamp(0.7rem, 1.4vw, 0.9rem);
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.85);
+    color: color-mix(in srgb, var(--hero-foreground) 85%, transparent);
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    border-bottom: 1.5px solid rgba(255, 255, 255, 0.65);
+    border-bottom: 1.5px solid
+      color-mix(in srgb, var(--hero-foreground) 65%, transparent);
     padding-bottom: 2px;
     display: inline-flex;
     align-items: center;
@@ -349,7 +349,7 @@ const { content } = Astro.props;
   .tech-tag::after {
     content: "|";
     margin-left: 4px;
-    color: var(--c-primary, #3de0ff);
+    color: var(--c-primary);
   }
 
   @keyframes burst-blink {
@@ -363,7 +363,7 @@ const { content } = Astro.props;
   .type-word {
     font-family: "Oswald", var(--font-display);
     font-weight: 600;
-    color: #fff;
+    color: var(--hero-foreground);
     line-height: 0.9;
     flex-shrink: 0;
     padding: 0.12em 0;
@@ -380,7 +380,7 @@ const { content } = Astro.props;
   .type-line {
     font-family: "Oswald", var(--font-display);
     font-weight: 600;
-    color: #fff;
+    color: var(--hero-foreground);
     line-height: 0.9;
     padding: 0.12em 0;
     margin: -0.12em 0;
@@ -391,19 +391,19 @@ const { content } = Astro.props;
     transform: scaleY(1.25);
     transform-origin: left bottom;
     display: inline-block;
-    text-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+    text-shadow: 0 4px 18px rgb(var(--c-base-rgb) / 0.45);
   }
 
   .type-line.this {
     font-size: 0.45em;
     margin-bottom: 0.35em;
-    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+    text-shadow: 0 3px 12px rgb(var(--c-base-rgb) / 0.4);
   }
 
   .type-word.a {
     font-size: 0.45em;
     margin-bottom: 0.25em;
-    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+    text-shadow: 0 3px 12px rgb(var(--c-base-rgb) / 0.4);
   }
 
   .type-line.repo {
@@ -412,16 +412,16 @@ const { content } = Astro.props;
     letter-spacing: -0.04em;
     background: linear-gradient(
       105deg,
-      #9af8ff 0%,
-      #3de0ff 28%,
-      #2aa8ff 62%,
-      #4d7cff 100%
+      var(--hero-foreground) 0%,
+      var(--c-primary) 28%,
+      var(--c-accent-1) 62%,
+      var(--c-accent-2) 100%
     );
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     filter: url(#glitch-displacement)
-      drop-shadow(0 6px 18px rgba(0, 0, 0, 0.38));
+      drop-shadow(0 6px 18px rgb(var(--c-base-rgb) / 0.38));
   }
 
   .type-line.soul {
@@ -431,12 +431,18 @@ const { content } = Astro.props;
     line-height: 0.8;
     background: 
       url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.4' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"),
-      linear-gradient(135deg, #3b4eff 0%, #9b37ff 45%, #ff4fa8 80%, #ff7de1 100%);
+      linear-gradient(
+        135deg,
+        var(--c-accent-1) 0%,
+        var(--c-primary) 45%,
+        var(--c-accent-2) 80%,
+        var(--hero-foreground) 100%
+      );
     background-blend-mode: overlay;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.38));
+    filter: drop-shadow(0 6px 18px rgb(var(--c-base-rgb) / 0.38));
     display: inline-block;
   }
 
@@ -464,7 +470,7 @@ const { content } = Astro.props;
     border: none;
     background: transparent;
     text-decoration: none;
-    color: var(--fg);
+    color: var(--hero-foreground);
     filter: var(--rim-tight);
     opacity: 0;
     transform: rotate(var(--tilt-badge));
@@ -484,7 +490,7 @@ const { content } = Astro.props;
     border: none;
     background: transparent;
     text-decoration: none;
-    color: var(--fg);
+    color: var(--hero-foreground);
     filter: var(--rim-tight);
     opacity: 0;
     transform: rotate(var(--tilt-badge));
@@ -501,7 +507,7 @@ const { content } = Astro.props;
     align-items: center;
     gap: 0.85rem;
     padding: 0.72rem 1.55rem 0.72rem 0.72rem;
-    background: rgba(6, 14, 32, 0.92);
+    background: var(--hero-glass);
     clip-path: polygon(
       var(--cut) 0,
       calc(100% - var(--cut)) 0,
@@ -512,11 +518,11 @@ const { content } = Astro.props;
       0 calc(100% - var(--cut)),
       0 var(--cut)
     );
-    /* Inward micro-glow (no extra filter): 1) 1px border highlight 2) inset cyan light bleeding inward 3) mid-range soft mist for volume */
+    /* Inward micro-glow: border highlight, inner light, then soft mist. */
     box-shadow:
-      0 0 0 1px rgba(200, 250, 255, 0.7) inset,
-      0 0 12px rgba(90, 230, 255, 0.38) inset,
-      0 0 26px rgba(70, 180, 255, 0.16) inset;
+      0 0 0 1px rgb(var(--c-primary-rgb) / 0.7) inset,
+      0 0 12px rgb(var(--c-primary-rgb) / 0.38) inset,
+      0 0 26px rgb(var(--c-accent-1-rgb) / 0.16) inset;
   }
 
   /* Clipped corner highlight points + thin gradient band bleeding inward along edges */
@@ -526,10 +532,10 @@ const { content } = Astro.props;
     inset: 0;
     pointer-events: none;
     background:
-      linear-gradient(180deg, rgba(170, 240, 255, 0.16) 0%, transparent 42%),
-      linear-gradient(0deg, rgba(100, 190, 255, 0.1) 0%, transparent 38%),
-      linear-gradient(90deg, rgba(140, 230, 255, 0.1) 0%, transparent 28%),
-      linear-gradient(270deg, rgba(140, 230, 255, 0.08) 0%, transparent 28%);
+      linear-gradient(180deg, rgb(var(--c-primary-rgb) / 0.16) 0%, transparent 42%),
+      linear-gradient(0deg, rgb(var(--c-accent-1-rgb) / 0.1) 0%, transparent 38%),
+      linear-gradient(90deg, rgb(var(--c-primary-rgb) / 0.1) 0%, transparent 28%),
+      linear-gradient(270deg, rgb(var(--c-accent-2-rgb) / 0.08) 0%, transparent 28%);
     opacity: 0.95;
   }
 
@@ -541,12 +547,12 @@ const { content } = Astro.props;
     background:
       linear-gradient(
         135deg,
-        rgba(200, 245, 255, 0.9) var(--cut),
+        rgb(var(--c-primary-rgb) / 0.9) var(--cut),
         transparent calc(var(--cut) + 1.5px)
       ),
       linear-gradient(
         -45deg,
-        rgba(140, 210, 255, 0.55) var(--cut),
+        rgb(var(--c-accent-1-rgb) / 0.55) var(--cut),
         transparent calc(var(--cut) + 1.5px)
       );
     opacity: 0.9;
@@ -560,13 +566,13 @@ const { content } = Astro.props;
 
   .brand-badge:hover .brand-badge-face {
     box-shadow:
-      0 0 0 1px rgba(220, 255, 255, 0.82) inset,
-      0 0 14px rgba(110, 240, 255, 0.46) inset,
-      0 0 30px rgba(80, 200, 255, 0.2) inset;
+      0 0 0 1px rgb(var(--c-primary-rgb) / 0.82) inset,
+      0 0 14px rgb(var(--c-primary-rgb) / 0.46) inset,
+      0 0 30px rgb(var(--c-accent-1-rgb) / 0.2) inset;
   }
 
   .brand-badge:focus-visible {
-    outline: 2px solid var(--cyan);
+    outline: 2px solid var(--c-primary);
     outline-offset: 3px;
   }
 
@@ -577,7 +583,7 @@ const { content } = Astro.props;
     justify-content: center;
     width: 44px;
     height: 44px;
-    background: rgba(6, 14, 32, 0.92);
+    background: var(--hero-glass);
     clip-path: polygon(
       8px 0,
       calc(100% - 8px) 0,
@@ -589,18 +595,18 @@ const { content } = Astro.props;
       0 8px
     );
     box-shadow:
-      0 0 0 1px rgba(200, 250, 255, 0.7) inset,
-      0 0 12px rgba(90, 230, 255, 0.38) inset,
-      0 0 26px rgba(70, 180, 255, 0.16) inset;
+      0 0 0 1px rgb(var(--c-primary-rgb) / 0.7) inset,
+      0 0 12px rgb(var(--c-primary-rgb) / 0.38) inset,
+      0 0 26px rgb(var(--c-accent-1-rgb) / 0.16) inset;
     transition: background 0.2s ease, box-shadow 0.2s ease;
   }
 
   .github-badge:hover .github-badge-face {
-    background: rgba(140, 230, 255, 0.15);
+    background: var(--hero-glass-hover);
     box-shadow:
-      0 0 0 1px rgba(220, 255, 255, 0.82) inset,
-      0 0 14px rgba(110, 240, 255, 0.46) inset,
-      0 0 30px rgba(80, 200, 255, 0.2) inset;
+      0 0 0 1px rgb(var(--c-primary-rgb) / 0.82) inset,
+      0 0 14px rgb(var(--c-primary-rgb) / 0.46) inset,
+      0 0 30px rgb(var(--c-accent-1-rgb) / 0.2) inset;
   }
 
   .github-badge:hover {
@@ -609,7 +615,7 @@ const { content } = Astro.props;
   }
 
   .github-badge:focus-visible {
-    outline: 2px solid var(--cyan);
+    outline: 2px solid var(--c-primary);
     outline-offset: 3px;
   }
 
@@ -622,9 +628,10 @@ const { content } = Astro.props;
     clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
     display: grid;
     place-items: center;
-    background: linear-gradient(145deg, #3de0ff, #5a6bff);
+    background: linear-gradient(145deg, var(--c-primary), var(--c-accent-1));
+    color: var(--hero-foreground);
     /* Small icon: single layer of shadow is sufficient, do not stack filter */
-    box-shadow: 0 0 12px rgba(80, 200, 255, 0.55);
+    box-shadow: 0 0 12px rgb(var(--c-primary-rgb) / 0.55);
     flex-shrink: 0;
   }
 
@@ -654,7 +661,7 @@ const { content } = Astro.props;
     padding: 0;
     border: none;
     background: transparent;
-    color: #e8f7ff;
+    color: var(--hero-foreground);
     font-family: var(--font-display);
     font-size: clamp(1.25rem, 2.1vw, 1.7rem);
     font-weight: 500;
@@ -678,8 +685,8 @@ const { content } = Astro.props;
     padding: 0.8rem 3.9rem 0.8rem 3.4rem;
     background: linear-gradient(
       135deg,
-      rgba(6, 18, 42, 0.94),
-      rgba(10, 32, 72, 0.9)
+      rgb(var(--c-base-rgb) / 0.94),
+      color-mix(in srgb, var(--c-base) 90%, var(--c-accent-1))
     );
     clip-path: polygon(
       var(--cut) 0,
@@ -692,9 +699,9 @@ const { content } = Astro.props;
       0 var(--cut)
     );
     box-shadow:
-      0 0 0 1px rgba(200, 250, 255, 0.7) inset,
-      0 0 14px rgba(90, 230, 255, 0.4) inset,
-      0 0 28px rgba(70, 180, 255, 0.18) inset;
+      0 0 0 1px rgb(var(--c-primary-rgb) / 0.7) inset,
+      0 0 14px rgb(var(--c-primary-rgb) / 0.4) inset,
+      0 0 28px rgb(var(--c-accent-1-rgb) / 0.18) inset;
     overflow: hidden;
     transform-origin: center center;
     /* 周期轻晃：只动 transform，不碰 filter，避免卡顿 */
@@ -715,10 +722,10 @@ const { content } = Astro.props;
     inset: 0;
     pointer-events: none;
     background:
-      linear-gradient(180deg, rgba(170, 240, 255, 0.18) 0%, transparent 44%),
-      linear-gradient(0deg, rgba(100, 190, 255, 0.12) 0%, transparent 40%),
-      linear-gradient(90deg, rgba(140, 230, 255, 0.1) 0%, transparent 30%),
-      linear-gradient(270deg, rgba(140, 230, 255, 0.09) 0%, transparent 30%);
+      linear-gradient(180deg, rgb(var(--c-primary-rgb) / 0.18) 0%, transparent 44%),
+      linear-gradient(0deg, rgb(var(--c-accent-1-rgb) / 0.12) 0%, transparent 40%),
+      linear-gradient(90deg, rgb(var(--c-primary-rgb) / 0.1) 0%, transparent 30%),
+      linear-gradient(270deg, rgb(var(--c-accent-2-rgb) / 0.09) 0%, transparent 30%);
     opacity: 0.95;
   }
 
@@ -730,12 +737,12 @@ const { content } = Astro.props;
     background:
       linear-gradient(
         135deg,
-        rgba(220, 250, 255, 0.95) var(--cut),
+        rgb(var(--c-primary-rgb) / 0.95) var(--cut),
         transparent calc(var(--cut) + 1.5px)
       ),
       linear-gradient(
         -45deg,
-        rgba(150, 220, 255, 0.7) var(--cut),
+        rgb(var(--c-accent-1-rgb) / 0.7) var(--cut),
         transparent calc(var(--cut) + 1.5px)
       );
     opacity: 0.9;
@@ -750,13 +757,13 @@ const { content } = Astro.props;
   .cta-start:hover .cta-start-face {
     background: linear-gradient(
       135deg,
-      rgba(12, 40, 82, 0.96),
-      rgba(22, 58, 110, 0.92)
+      color-mix(in srgb, var(--c-base) 82%, var(--c-primary)),
+      color-mix(in srgb, var(--c-base) 72%, var(--c-accent-1))
     );
     box-shadow:
-      0 0 0 1px rgba(220, 255, 255, 0.82) inset,
-      0 0 16px rgba(110, 240, 255, 0.48) inset,
-      0 0 32px rgba(80, 200, 255, 0.22) inset;
+      0 0 0 1px rgb(var(--c-primary-rgb) / 0.82) inset,
+      0 0 16px rgb(var(--c-primary-rgb) / 0.48) inset,
+      0 0 32px rgb(var(--c-accent-1-rgb) / 0.22) inset;
   }
 
   .cta-start:active {
@@ -765,7 +772,7 @@ const { content } = Astro.props;
   }
 
   .cta-start:focus-visible {
-    outline: 2px solid var(--cyan);
+    outline: 2px solid var(--c-primary);
     outline-offset: 4px;
   }
 
@@ -788,7 +795,7 @@ const { content } = Astro.props;
   .cta-label {
     position: relative;
     z-index: 1;
-    text-shadow: 0 2px 10px rgba(0, 12, 30, 0.45);
+    text-shadow: 0 2px 10px rgb(var(--c-base-rgb) / 0.45);
   }
 
   /* ── Keyframes ── */

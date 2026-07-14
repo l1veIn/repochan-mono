@@ -6,24 +6,8 @@
    RepoChan — Constructivist visual system
    All color/texture values are injected by SiteLayout as CSS
    variables from the persona JSON. This file only defines
-   structural classes and fallback defaults.
+   structural classes; config/site.ts owns palette defaults.
    ============================================================ */
-
-:root {
-  /* Fallbacks — overridden at runtime by <style is:inline> in SiteLayout */
-  --c-primary: #6ee7ff;
-  --c-base: #0f172a;
-  --c-accent-1: #a78bfa;
-  --c-accent-2: #f9a8d4;
-  --c-primary-rgb: 110 231 255;
-  --c-base-rgb: 15 23 42;
-  --c-accent-1-rgb: 167 139 250;
-  --c-accent-2-rgb: 249 168 212;
-  --construct-radius: 0px;
-  --construct-line: 3px;
-  --construct-line-color: #0f172a;
-  --construct-gap: 3px;
-}
 
 * {
   box-sizing: border-box;

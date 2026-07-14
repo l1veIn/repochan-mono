@@ -2,8 +2,8 @@
  * Build-time persona → design-tokens loader.
  *
  * Reads `.repochan/persona/current.json` from the monorepo root (resolved
- * relative to this file). If the persona is absent, falls back to a hardcoded
- * "Chan" persona so the site never breaks during development.
+ * relative to this file). If the persona is absent, falls back to the bundled
+ * "Chan" theme so the site never breaks during development.
  *
  * The exported `site` object is the single source of truth consumed by
  * SiteLayout (CSS variable injection) and by individual components.
@@ -101,8 +101,14 @@ try {
 }
 
 // ---------------------------------------------------------------------------
-// Fallback persona — Chan (酱酱) hardcoded so the site builds without .repochan
+// Fallback persona — the only source of default palette values
 // ---------------------------------------------------------------------------
+
+const fallbackPalette = {
+  mainColor: "#6ee7ff",
+  secondaryColor: "#0f172a",
+  accentColors: ["#a78bfa", "#f9a8d4"],
+};
 
 const fallback: PersonaJson = {
   name: "Chan",
@@ -110,9 +116,7 @@ const fallback: PersonaJson = {
   catchphrase: "Don't rush — good characters need to compile.",
   personality:
     "A warm, reliable atelier senior with a perfectionist streak. Obsessive about color palettes. Deadpan humor.",
-  mainColor: "#6ee7ff",
-  secondaryColor: "#0f172a",
-  accentColors: ["#a78bfa", "#f9a8d4"],
+  ...fallbackPalette,
   signaturePatterns: [
     "Diamond cursor marks and version-number digits in a low-contrast seamless repeat.",
     "Git DAG node-connection lines forming a thin geometric grid.",
@@ -135,10 +139,10 @@ const p = persona ?? fallback;
 // ---------------------------------------------------------------------------
 
 const palette: SitePalette = {
-  primary: p.mainColor ?? "#6ee7ff",
-  base: p.secondaryColor ?? "#0f172a",
-  accent1: p.accentColors?.[0] ?? "#a78bfa",
-  accent2: p.accentColors?.[1] ?? "#f9a8d4",
+  primary: p.mainColor ?? fallbackPalette.mainColor,
+  base: p.secondaryColor ?? fallbackPalette.secondaryColor,
+  accent1: p.accentColors?.[0] ?? fallbackPalette.accentColors[0],
+  accent2: p.accentColors?.[1] ?? fallbackPalette.accentColors[1],
   get primaryRgb() {
     return hexToRgb(this.primary);
   },
@@ -177,7 +181,7 @@ export const site: SiteConfig = {
   construct: {
     radius: "0px",
     lineWeight: "3px",
-    lineColor: p.secondaryColor ?? "#0f172a",
+    lineColor: p.secondaryColor ?? fallbackPalette.secondaryColor,
     gridGap: "3px",
   },
 };
