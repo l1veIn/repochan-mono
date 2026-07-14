@@ -4,13 +4,18 @@ import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 
-/** A blank-zone declaration: which side of the frame should stay empty for HTML overlay. */
-export type BlankZone = {
-  /** Which side: left, right, top, or bottom. */
-  side: "left" | "right" | "top" | "bottom";
-  /** Fraction of that dimension to keep blank (0–1, e.g. 0.55 = 55%). */
-  ratio: number;
-  desc?: string;
+/** A partial order embedded in a starter asset slot. Page-designer merges this with project-specific fields (orderId, intent, foundation reference) to create the real order. */
+export type StarterAssetOrder = {
+  assetType?: string;
+  templateId?: string;
+  brief?: {
+    intent?: string;
+    mustInclude?: string[];
+    avoid?: string[];
+    creativeFreedom?: string[];
+  };
+  deliverables?: Array<{ name: string; format: string; width?: number; height?: number; aspectRatio?: string }>;
+  references?: Array<Record<string, unknown>>;
 };
 
 /** A single asset slot declared in a starter's starter.json. */
@@ -18,8 +23,8 @@ export type StarterAssetSlot = {
   slot: string;
   reference: string;
   description?: string;
-  /** Blank zones for this asset — passed to the migration order's mustInclude. */
-  blankZones?: BlankZone[];
+  /** Partial order template — page-designer merges + supplements to create the real order. */
+  order?: StarterAssetOrder;
 };
 
 /** Parsed starter manifest (starter.json). */

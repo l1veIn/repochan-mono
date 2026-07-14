@@ -88,60 +88,35 @@ repochan page generate-project --starter constructivist --output-dir .repochan/w
 
 Starter 自带**默认参考资产**（hero 合成图等），它们编码了设计知识（构图、人物姿态、留白位置、设计语言）。但这些资产里的角色是 starter 的默认角色，不是用户项目的角色。**你需要创建迁移订单，让画师把默认资产里的角色替换成项目的 foundation 角色。**
 
-### 迁移 vs 本地化
+### 迁移模板
 
-starter.json 的每个 asset slot 有两个迁移模板字段：
+每个需要迁移的 asset slot 内嵌一个 **partial order**（`assets[].order` 字段），结构上和 `order.json` 一致。它已经包含了 starter 作者预设的：
+- `templateId` — 迁移模板（如 `official/hero-character-migrate` 严格保姿态，或 `official/hero-character-migrate-localize` 借鉴风格自由发挥）
+- `brief.mustInclude` — 留白约束、设计知识（自然语言，画师直接嵌入 prompt）
+- `brief.avoid` / `creativeFreedom` — 约束
+- `deliverables` — 输出尺寸
+- `references` — starter 参考图（file 引用，role 通常是 `composition`）
 
-| 字段 | 模板 | 语义 |
-|---|---|---|
-| `migrateTemplate` | `official/hero-character-migrate` | **换皮保骨架**：角色姿态、构图、留白严格照搬 starter 原图，只换角色身份和配色 |
-| `localizeTemplate` | `official/hero-character-localize` | **借鉴风格自由发挥**：借鉴设计语言（风格/氛围），但不锁姿态，自由构图，只要遵守留白约束 |
-
-默认用 `migrateTemplate`（保留 starter 精心设计的构图）。用户要求更有创意的重新诠释时用 `localizeTemplate`。
-
-### 迁移订单创建流程
+### 迁移订单创建流程：合并 + 补全
 
 #### 步骤 1：读 starter.json
 
-```bash
-# scaffold 后,starter.json 不会被复制到输出目录（generate-project 排除了它）。
-# 从 @repochan/starters 包读取:
-repochan page generate-project --starter <id> --json   # 输出里有 starterId
-# 或直接读 packages/starters/<id>/starter.json（你知道 starter id 时）
-```
+scaffold 后 `starter.json` 不会被复制到输出目录（`generate-project` 排除了它）。从 `@repochan/starters` 包读取 asset slot 的 `order` 字段。
 
-从 asset slot 读取（以 hero-composite 为例）：
-- `migrateTemplate` / `localizeTemplate` — 用哪个迁移模板
-- `migrateSize` / `migrateQuality` — 输出尺寸和质量
-- `migrateRole` — 参考图角色（通常是 `composition`）
-- `description` — **设计知识描述**（自然语言），直接作为信息传递通道
-- `blankZones[]` — **留白约束**（per-asset，side + ratio）
+#### 步骤 2：补全 partial order
 
-#### 步骤 2：把 description + blankZones 转成 mustInclude 文字
+starter 的 `order` 是**不完整的**——缺项目特定的字段。你补全：
 
-asset 的 `description` 和 `blankZones` 都是需要传递给画师的设计知识。**你负责把它们翻译成 order brief.mustInclude 的自然语言条目**：
+| 字段 | 来源 |
+|---|---|
+| `orderId` | 你生成（如 `ord-hero-migrate-001`） |
+| `requestType` | 固定 `"new_asset"` |
+| `brief.intent` | 从 analysis 来（如"为 redis 落地页生成 hero 背景合成图"） |
+| `references` += | `{"type":"order", "orderId":"<foundation>", "role":"character"}` |
+| `references[0].path` | starter 相对路径 → 用 `getStarterDir(id)` 拼成绝对路径 |
+| `acceptanceCriteria` | 从 `mustInclude` 派生 |
 
-```json
-// starter.json 的 asset slot:
-{
-  "description": "4K L1L2 合成背景图,角色在右侧抬腿伸手,左侧暗区留白给文字层。抬手下方自然形成的负空间用于 CTA 按钮。",
-  "blankZones": [
-    { "side": "left", "ratio": 0.55, "desc": "左侧 55% 暗色留白" }
-  ]
-}
-```
-↓ 翻译成 order brief.mustInclude：
-```json
-"mustInclude": [
-  "left 55% of the frame must remain empty (dark, atmospheric) for HTML text overlay",
-  "the negative space below the character's raised arm is reserved for a CTA button placement",
-  "character identity from the foundation reference"
-]
-```
-
-- `description` 里的设计知识（如"抬手下方负空间用于 CTA"）直接作为 mustInclude 条目传入
-- `blankZones` 翻译成自然语言："left 55% of the frame must remain empty"
-- 多个方向时拼合成一句：`blankZones: left 0.3, right 0.3, top 0.2, bottom 0.2` → "a center region (30% from each side, 20% from top and bottom) must remain empty for HTML overlay"
+**references 中的 file path 解析**：starter 的 `order.references[0].path` 是相对于 starter 目录的（如 `public/assets/hero-composite.webp`）。你需要用 starter 目录的绝对路径拼出完整路径，传给 `order create`。`materializeOrderReferences` 会自动把它复制进 order 的 `references/` 目录。
 
 #### 步骤 3：创建迁移订单
 
@@ -154,18 +129,17 @@ repochan order create --data-file <<'EOF'
     "assetType": "hero_composite",
     "templateId": "official/hero-character-migrate",
     "brief": {
-      "summary": "把 starter hero 的角色迁移成 <persona-name>",
-      "visualDescription": "<从 deliverables 或 starter 描述>",
       "intent": "为 <repo> 落地页生成 hero 背景合成图",
       "mustInclude": [
-        "<blankZone 翻译的自然语言>",
+        "left 55% of the frame must remain empty (dark, atmospheric) for HTML text overlay",
+        "the negative space below the character's raised arm is reserved for CTA button placement",
         "character identity from the foundation reference"
       ],
       "avoid": ["any text or UI elements", "deviating from foundation character identity"],
       "creativeFreedom": ["low"]
     },
     "deliverables": [{"name": "hero-composite", "format": "png", "width": 2560, "height": 1440, "aspectRatio": "16:9"}],
-    "acceptanceCriteria": ["<mustInclude 的验收版>"],
+    "acceptanceCriteria": ["角色姿态匹配 starter hero", "左侧留白", "角色身份匹配 foundation"],
     "references": [
       { "type": "file", "path": "<starter hero-composite.webp 绝对路径>", "role": "composition" },
       { "type": "order", "orderId": "<foundation orderId>", "role": "character" }
@@ -175,7 +149,7 @@ repochan order create --data-file <<'EOF'
 EOF
 ```
 
-**关键**：references 里 `composition`（starter 参考）在前、`character`（foundation）在后。`resolve-references` 会按 role 排序（composition → character），保证模板 prompt 的 FIRST/SECOND 语义对齐。
+**关键**：`mustInclude` 里的留白约束和设计知识来自 starter.json 的 `order.brief.mustInclude`——原样透传，不需要翻译。`resolve-references` 会按 role 排序（composition → character），保证模板 prompt 的 FIRST/SECOND 语义对齐。
 
 #### 步骤 4：批准 + 移交画师
 

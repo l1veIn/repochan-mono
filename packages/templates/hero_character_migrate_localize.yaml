@@ -1,11 +1,11 @@
-id: "official/hero-character-localize"
+id: "official/hero-character-migrate-localize"
 asset_type: "hero_composite"
 label: "Hero 角色本地化"
 description: >
   借鉴 starter hero 的设计语言(风格、氛围、构图思路),但不锁定姿态。
   用 foundation 角色 + 配色本地化重绘。留白位置由 order 的 mustInclude 指定,
   不写死在模板里——同一个模板能服务于不同留白位置的 starter。
-tags: ["hero", "localize", "web", "landing"]
+tags: ["hero", "migrate", "web", "landing"]
 size: "2560x1440"
 quality: "high"
 
@@ -24,8 +24,3 @@ constraints:
   - "Character identity must match the foundation reference"
   - "No text or UI elements"
   - "Blank zones (specified in the order) must stay empty for HTML overlay"
-
-# 留白位置由 page-designer 从 starter.json 的 blankZones 读出,
-# 写进 order 的 brief.mustInclude,例如:
-#   "left 55% of the frame must remain empty for text overlay"
-# 画师从 mustInclude 读到后嵌入 prompt。
