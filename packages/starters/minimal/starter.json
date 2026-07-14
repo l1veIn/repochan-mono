@@ -44,7 +44,14 @@
     {
       "slot": "favicon",
       "reference": "public/favicon.ico",
-      "description": "favicon.ico"
+      "description": "favicon.ico",
+      "order":{
+        "templateId": "official/icon-single"
+      },
+      "postprocess": [
+        {"op": "resize", "args": {"sizes": [16, 32, 48, 180, 192, 512]}, "out": "public/assets/favicon/"},
+        {"op": "favicon", "args": {"sizes": [16, 32, 48, 180, 256]}, "out": "public/favicon.ico"}
+      ]
     }
   ]
 }

@@ -98,8 +98,8 @@ RepoChan 给 agent 提供一套**交付拓扑**：每个角色的工作目标不
   analysis/{current.json, versions/}
   persona/{current.json, versions/, candidates/, reviews/}
   interview/{current.json, versions/}
-  orders/<order-id>/{order.json, versions/<version-id>/, reviews/}
-  pages/{current.json, versions/}
+  orders/<order-id>/{order.json, versions/<version-id>/, references/, reviews/}
+  web-starter/        # scaffold 出的可编辑站点（repochan starter pull）
   templates/          # 可选：项目级资产模板覆盖
 ```
 
@@ -110,7 +110,7 @@ RepoChan 给 agent 提供一套**交付拓扑**：每个角色的工作目标不
 
 **职责**：定义「能不能从一个合法节点走到下一个合法节点」。
 
-- 入口：`packages/core/src/entities/`（按实体拆分：`persona.ts`、`orders.ts`、`interview.ts`、`pages.ts`、`review.ts`、`persona-review.ts`）。
+- 入口：`packages/core/src/entities/`（按实体拆分：`persona.ts`、`orders.ts`、`interview.ts`、`review.ts`、`persona-review.ts`）。
 - **状态机**：`OrderStatus` 六态（`draft` / `approved` / `in_progress` / `delivered` / `needs_revision` / `cancelled`），非法跳变被拒绝。
 - **依赖门**：例如 `createOrders` 要求 analysis + persona；`createOrderResult` 还要求订单已审批。
 - **审批门**：`ensureOrderApprovedForExecution` — 默认只有 `approved` / `in_progress` 才能交付结果（`allowUnapprovedOrder` 是显式 escape hatch）。
@@ -205,12 +205,14 @@ cli ──┬──> core
       ├──> skill          # setup 时拷贝 skill 资源
       ├──> image-gen      # repochan image gen / configure
       ├──> image-edit     # repochan image edit …
-      └──> templates      # repochan template list|get
+      ├──> templates      # repochan template list|get
+      └──> starters       # repochan starter list|get|pull
 
 core          叶子：不依赖任何其他 repochan 包
 image-gen     叶子：不写 .repochan/，不知协议
 image-edit    叶子：不写 .repochan/，不知协议
 templates     叶子：纯 YAML
+starters      叶子：纯 scaffold 数据（Astro 项目目录 + starter.json）
 skill         叶子：纯 markdown
 ```
 
@@ -353,7 +355,7 @@ image-gen 把所有后端视为 **OpenAI-compatible** endpoint（`baseURL` + `ap
 
 #### 失效传播（stale propagation）
 
-改 persona 不会自动标记依赖它的 order / page 为 stale。正向引用解析（`collectAssetRefs` / `checkPageAssets`）存在；反向 stale 图不存在。
+改 persona 不会自动标记依赖它的 order 为 stale。正向引用解析（`resolveOrderReferences`，按 role 排序 composition→character→style）存在；反向 stale 图不存在。
 
 **理由**：本地优先、单用户主导规模下，用户可见上游变化并手动重跑。实现 event-sourced dependency graph 成本远超收益。多 agent 并行或重度 CI 时再评估。
 

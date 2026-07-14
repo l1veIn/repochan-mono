@@ -28,6 +28,11 @@ repochan analysis run
 repochan persona get --json
 repochan order list --json
 repochan image gen --prompt "a chibi mascot" --out /tmp/t.png
+
+# Landing-page starters
+repochan starter list                     # list available starters (--tag to filter)
+repochan starter get constructivist       # inspect a starter's assets/order/postprocess
+repochan starter pull                     # scaffold default starter → .repochan/web-starter/
 ```
 
 ## Image endpoints
@@ -43,18 +48,18 @@ Config: `~/.repochan/image.json` (credentials stay in image-gen; not in project 
 ```bash
 repochan image configure   # interactive
 repochan image probe
-repochan image gen --prompt "…" [--reference path] [--aspect landscape|square|portrait]
+repochan image gen --prompt "…" [--reference path] [--reference path2] [--aspect landscape|square|portrait] [--quality low|medium|high|auto]
+# Multiple --reference flags: each gets its own flag (--reference A --reference B)
 ```
 
 ## Packages (also published)
 
-- `@repochan/core` — protocol / schema / rules  
-- `@repochan/image-gen` — prompt → PNG  
-- `@repochan/image-edit` — slice / bg-remove / GIF  
-
-
-- `@repochan/skill` — agent skill markdown  
-- `@repochan/templates` — asset YAML templates  
+- `@repochan/core` — protocol / schema / rules
+- `@repochan/image-gen` — prompt → PNG
+- `@repochan/image-edit` — slice / bg-remove / chroma-key / compress / resize / favicon
+- `@repochan/skill` — agent skill markdown
+- `@repochan/templates` — asset YAML templates
+- `@repochan/starters` — landing-page scaffolds (Astro/Tailwind project directories)
 
 ## Docs
 

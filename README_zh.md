@@ -163,10 +163,11 @@ repochan interview get|create|append
 repochan persona get|create|update|review|candidate …
 repochan order list|get|create|update|set-status|add-revision|…
 repochan order create-result|list-results|get-result|set-current|…
+repochan order resolve-references <id>
 repochan order candidate create|promote
 repochan order slice|extract-stickers
 repochan foundation find
-repochan starter pull
+repochan starter list [--tag] | get <id> | pull [--starter <id>]
 repochan review create
 repochan protocol inspect|read|write
 ```

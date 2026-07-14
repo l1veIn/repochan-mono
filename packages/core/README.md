@@ -40,8 +40,7 @@ Write-operation params gates and the `WriteOpSchemas` registry. `validate.ts` ex
 
 - **Persona**: create/update, candidates, promote
 - **Interview**: create/update, append
-- **Orders**: CRUD-ish ops, status machine, results, candidates, foundation find, reference resolve
-- **Pages**: create/update, asset ref collect/check
+- **Orders**: CRUD-ish ops, status machine, results, candidates, foundation find, reference resolve (role-sorted), file-reference materialization
 - **Reviews**: order review, persona review
 - Approval gate: `ensureOrderApprovedForExecution`
 
