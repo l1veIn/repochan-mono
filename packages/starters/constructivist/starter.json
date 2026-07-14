@@ -25,17 +25,26 @@
         "references": [
           {"type": "file", "path": "public/assets/hero-composite.webp", "role": "composition"}
         ]
-      }
+      },
+      "postprocess": [
+        {"op": "compress", "args": {"format": "webp", "quality": 82, "maxWidth": 2560}, "out": "public/assets/hero-composite.webp"}
+      ]
     },
     {
       "slot": "character-cutout",
       "reference": "public/assets/character/hero-character.png",
-      "description": "matte 底角色独立图,chroma-key 抠透明后可独立运动(策略 D 备选)"
+      "description": "matte 底角色独立图,chroma-key 抠透明后可独立运动(策略 D 备选)",
+      "postprocess": [
+        {"op": "chroma-key", "args": {"matte": "auto"}, "out": "public/assets/character/hero-character.png"}
+      ]
     },
     {
       "slot": "chibi-grid",
       "reference": "public/assets/chibi",
-      "description": "chibi 3×3 表情网格,切片后用于 features/gallery 装饰"
+      "description": "chibi 3×3 表情网格,切片后用于 features/gallery 装饰",
+      "postprocess": [
+        {"op": "slice", "args": {"rows": 3, "cols": 3}, "out": "public/assets/chibi/"}
+      ]
     },
     {
       "slot": "texture-hero-bg",
@@ -60,7 +69,11 @@
     {
       "slot": "favicon",
       "reference": "public/favicon.ico",
-      "description": "多分辨率 favicon.ico(由 icon-single resize+favicon 生成)"
+      "description": "多分辨率 favicon.ico(由 icon-single resize+favicon 生成)",
+      "postprocess": [
+        {"op": "resize", "args": {"sizes": [16, 32, 48, 180, 192, 512]}, "out": "public/assets/favicon/"},
+        {"op": "favicon", "args": {"sizes": [16, 32, 48, 180, 256]}, "out": "public/favicon.ico"}
+      ]
     }
   ]
 }

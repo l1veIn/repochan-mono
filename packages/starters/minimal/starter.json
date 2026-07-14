@@ -25,7 +25,10 @@
         "references": [
           {"type": "file", "path": "public/assets/hero-composite.webp", "role": "composition"}
         ]
-      }
+      },
+      "postprocess": [
+        {"op": "compress", "args": {"format": "webp", "quality": 82, "maxWidth": 2560}, "out": "public/assets/hero-composite.webp"}
+      ]
     },
     {
       "slot": "texture-hero-bg",

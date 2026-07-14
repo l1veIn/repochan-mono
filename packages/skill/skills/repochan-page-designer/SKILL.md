@@ -13,7 +13,7 @@ description: >
 
 首要内容来源是 **analysis**、**README**、persona 的视觉品牌字段，以及页面模板。角色素材是**视觉增强（调味料）**，不是主菜。
 
-> **你是 image-edit 的唯一设计层用户。** 上游（Painter）交付的是原始 PNG：网格拼图、4K 合成图、matte 底角色图、icon 单图。这些原料需要通过 `repochan image edit <op>` 后处理（压扁 / 切片 / 抠图 / 改尺寸 / favicon）才能被网站直接消费。这个后处理步骤**只有你负责**——Painter 只画不切，Art Director 被禁止碰图像工具。具体 op 清单与触发条件见 `references/phase2-assemble.md` 的「image-edit 后处理清单」。**派生产物写入 `.repochan/web-starter/public/`，不回灌 `.repochan/`**（后者只存 Painter 交付的原始版本）。
+> **你是 image-edit 的唯一设计层用户。** 上游（Painter）交付的是原始 PNG：网格拼图、4K 合成图、matte 底角色图、icon 单图。这些原料需要通过 `repochan image edit <op>` 后处理（压扁 / 切片 / 抠图 / 改尺寸 / favicon）才能被网站直接消费。这个后处理步骤**只有你负责**——Painter 只画不切，Art Director 被禁止碰图像工具。**后处理策略由 starter.json 的 `assets[].postprocess` 声明**——你读 postprocess 数组，逐条执行 `repochan image edit <op>`，不需要自己判断"该跑哪个 op"。详见 `references/phase2-assemble.md`。**派生产物写入 `.repochan/web-starter/public/`，不回灌 `.repochan/`**（后者只存 Painter 交付的原始版本）。
 
 > **Progressive disclosure**：主流程在本文件；数据表、Phase 细节与陷阱在 `references/`，按需读取。
 

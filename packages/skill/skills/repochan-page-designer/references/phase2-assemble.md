@@ -65,156 +65,60 @@ style 选择：
 
 **page-designer 是 image-edit 的唯一设计层用户。** Painter 交付的是原始 PNG（网格拼图、4K 合成图、matte 底角色图、icon 单图），它们大多不能被网站直接消费——需要先经过 `repochan image edit <op>` 后处理。这一步只有你负责。
 
-**核心原则：派生产物写入 `.repochan/web-starter/public/`，绝不回灌 `.repochan/`。** `.repochan/` 只存 Painter 交付的原始版本（invariant #4）；后处理产物是网站工程目录里的派生资产。
+**核心原则：派生产物写入 `.repochan/web-starter/public/`，绝不回灌 `.repochan/`。**
 
-##### image-edit 后处理清单（按 op）
+##### 后处理策略：读 starter.json 的 postprocess 数组
 
-下表是 op → 触发条件 → 目标目录的完整映射。不是每张图都要跑全部 op——按资产类别挑需要的。
+**不需要自己判断"该跑哪个 op"**——后处理策略由 starter.json 的 `assets[].postprocess` 声明。每个 asset slot 可能有一个 `postprocess` 数组，每条声明一个 image-edit 操作：
 
-| op | 何时用 | 目标目录 | 典型资产 |
-|---|---|---|---|
-| `compress` | 任何 >200KB 的展示图/背景图进 `public/` 前 | `public/assets/` | hero 合成图、poster、gallery |
-| `slice` | Painter 交付了网格拼图（chibi 网格、icon 矩阵、pattern 2×2） | `public/assets/<class>/` | chibi_3x3、iconfont_4x4、pattern_2x2 |
-| `extract-stickers` | chibi/贴纸网格需要透明背景的独立贴纸 | `public/assets/chibi/` | sticker_sheet、chibi_emojis |
-| `chroma-key` | Painter 交付了 matte 底角色图（character-cutout），需要透明角色叠到背景上 | `public/assets/character/` | character_cutout |
-| `bg-remove` | 简单背景抠图（ISNet matting），用于非 matte 底的图 | `public/assets/<class>/` | 偶发抠图需求 |
-| `resize` | 一个 icon 单图要出多尺寸（favicon/app-icon/og-image） | `public/assets/favicon/` | icon-single |
-| `favicon` | 落地页需要 `.ico`（浏览器标签页） | `public/favicon.ico` | icon-single |
-| `gif-from-frames` | 有动画帧序列要合成 GIF（少见） | `public/assets/` | 演示动画 |
-
-##### op 详解与示例
-
-**1. compress — 压缩为 WebP（最高频）**
-
-```bash
-repochan image edit compress <source.png> \
-  --out .repochan/web-starter/public/assets/<name>.webp \
-  --format webp --quality 82 --max-width 2560 --overwrite
+```json
+// starter.json 示例
+{
+  "slot": "hero-composite",
+  "postprocess": [
+    {"op": "compress", "args": {"format": "webp", "quality": 82, "maxWidth": 2560}, "out": "public/assets/hero-composite.webp"}
+  ]
+}
+{
+  "slot": "chibi-grid",
+  "postprocess": [
+    {"op": "slice", "args": {"rows": 3, "cols": 3}, "out": "public/assets/chibi/"}
+  ]
+}
+{
+  "slot": "favicon",
+  "postprocess": [
+    {"op": "resize", "args": {"sizes": [16,32,48,180,192,512]}, "out": "public/assets/favicon/"},
+    {"op": "favicon", "args": {"sizes": [16,32,48,180,256]}, "out": "public/favicon.ico"}
+  ]
+}
 ```
 
-压缩规则按资产类别分档：
-- 全屏背景图（hero/section 底图）：`--max-width 2560 --quality 82`
-- 展示图（gallery/poster/foundation）：`--max-width 1920 --quality 85`
-- 表情/icon/小图（<500px）：**不压缩**，直接用 PNG
-- 纹理（四方连续）：**不压缩**，直接用 PNG
+**执行规则**：
+1. 画师交付图后（`order get-result` 拿到路径），读对应 asset slot 的 `postprocess` 数组
+2. 逐条执行：`repochan image edit <op> <交付图路径> --out .repochan/web-starter/<out> <args 转 CLI flags> --overwrite`
+3. `args` 的 key 直接映射到 CLI flag（`maxWidth` → `--max-width`，`sizes` 数组 → 逗号分隔）
+4. asset 没有 `postprocess` 字段时，直接把交付图复制到 `public/` 对应位置（纹理、小图通常如此）
+5. **不要把原始大 PNG 放进 `public/`**——PNG 留在 `.repochan/orders/` 存档，`public/` 里只放后处理产物
 
-**不要把原始大 PNG 放进 `public/`**——PNG 留在 `.repochan/orders/` 存档，`public/` 里只放压缩后的 WebP。部署时 `public/` 所有内容都会上传，大 PNG 会浪费带宽。
+##### op 参考手册
 
-**2. slice — 网格切片**
-
-当 Painter 交付的是一张网格拼图（chibi 3×3、iconfont 4×4、pattern 2×2），先切片再进 `public/`：
-
-```bash
-# chibi 3×3 → 9 张独立表情
-repochan image edit slice <grid.png> \
-  --rows 3 --cols 3 \
-  --out .repochan/web-starter/public/assets/chibi \
-  --padding 0 --overwrite
-
-# pattern 2×2 → 4 张独立纹理
-repochan image edit slice <pattern-grid.png> \
-  --rows 2 --cols 2 \
-  --out .repochan/web-starter/public/textures \
-  --overwrite
-```
-
-切片产物默认保留 PNG（小图不值得压 WebP）。如果单格 >500px 且数量多，可对每格再跑 compress。
-
-> Painter 被要求画「可切片」的网格（白底、留 gutter、1:1）——见 painter `asset-type-guides.md`。你切的成败取决于 Painter 遵守约束的程度；切片后肉眼检查是否有粘连/截断。
-
-**3. extract-stickers — 透明贴纸（ISNet 抠图）**
-
-贴纸网格要变成**透明背景的独立贴纸**（用于浮动装饰、gallery hover 等），用 extract-stickers（内置 ISNet matting + blob 检测）：
-
-```bash
-repochan image edit extract-stickers <chibi-grid.png> \
-  --rows 3 --cols 3 \
-  --out .repochan/web-starter/public/assets/chibi \
-  --model small --overwrite
-```
-
-首次运行会下载 ~40MB 模型。`extract-stickers` 和 `slice` 的区别：前者抠出透明 PNG（去掉白底），后者只按网格裁切（保留背景）。需要透明贴纸用 extract-stickers，只需裁切用 slice。
-
-**4. chroma-key — matte 底角色抠图**
-
-Painter 的 `character-cutout` 模板用特定 matte 色（`{{matte_color}}`）做底，方便 chroma-key 抠出透明角色，叠到 hero/section 背景上：
-
-```bash
-repochan image edit chroma-key <character.png> \
-  --out .repochan/web-starter/public/assets/character/hero-character.png \
-  --matte auto --threshold 28 --softness 34 --spill 0.85
-```
-
-`--matte auto` 自动估计底色；也可显式指定 `--matte "#ff00ff"`（模板里渲染了什么色就填什么）。注意：发梢、半透明材质在 chroma-key 下可能有残留——方法论文档（`.plans/2026-07-12-ai-image-web-composition.md` 策略 D）记录了这个限制。
-
-**5. bg-remove — 通用抠图（ISNet）**
-
-非 matte 底的简单背景图，用 ISNet matting 抠图：
-
-```bash
-repochan image edit bg-remove <image.png> \
-  --out .repochan/web-starter/public/assets/<name>.png \
-  --model small --overwrite
-```
-
-与 chroma-key 的区别：chroma-key 适合**已知纯色底**（速度快、确定性）；bg-remove 适合**任意背景**（ML 抠图，质量取决于背景复杂度）。优先用 chroma-key（Painter 已按 matte 策略出图）；bg-remove 是兜底。
-
-**6. resize — 多尺寸输出**
-
-一个 icon 单图要出多尺寸（favicon、app-icon、og-image）：
-
-```bash
-repochan image edit resize <icon-single.png> \
-  --sizes 16,32,48,180,192,512 \
-  --out .repochan/web-starter/public/assets/favicon \
-  --fit inside --overwrite
-```
-
-**7. favicon — 生成 .ico**
-
-落地页标准资产，从 icon-single 生成多分辨率 `.ico`：
-
-```bash
-repochan image edit favicon <icon-single.png> \
-  --out .repochan/web-starter/public/favicon.ico \
-  --sizes 16,32,48,180,256 --overwrite
-```
-
-确认 HTML `<link rel="icon" href="/favicon.ico">` 存在。
-
-**8. gif-from-frames — 帧序列合成 GIF（少见）**
-
-```bash
-repochan image edit gif-from-frames <f1.png> <f2.png> <f3.png> \
-  --out .repochan/web-starter/public/assets/demo.gif \
-  --fps 12 --loop 0 --overwrite
-```
+| op | 关键 args | 说明 |
+|---|---|---|
+| `compress` | `format`, `quality`, `maxWidth` | 压缩为 WebP/JPEG/AVIF。大展示图必跑。 |
+| `slice` | `rows`, `cols`, `padding` | 网格裁切。chibi/icon/pattern 网格用。 |
+| `extract-stickers` | `rows`, `cols`, `model` | ISNet 抠图+裁切，产出透明贴纸 PNG。首次运行下载 ~40MB 模型。 |
+| `chroma-key` | `matte`, `threshold`, `softness`, `spill` | matte 底角色抠图。`matte: "auto"` 自动估计底色。 |
+| `bg-remove` | `model` | ISNet 通用抠图。非 matte 底的兜底方案。 |
+| `resize` | `sizes`, `fit` | 多尺寸 PNG 输出。favicon/app-icon 管线用。 |
+| `favicon` | `sizes` | 生成多分辨率 .ico 文件。 |
+| `gif-from-frames` | `fps`, `loop` | 帧序列合成 GIF（少见）。 |
 
 ##### 文件命名与 manifest
 
 - 用语义化文件名（`foundation.webp`、`banner.webp`、`poster.webp`），而非 order/version 路径——模板内部通过 `src/config/assets.ts` 的 key 映射到文件。
-- 纹理按用途落到 `.repochan/web-starter/public/textures/`，文件名必须与 `src/config/site.ts` 的 `textures[].src` 匹配：
-  ```
-  .repochan/web-starter/public/textures/hero-bg.png     # hero section 背景纹理
-  .repochan/web-starter/public/textures/divider.png      # 边框/分割线纹理
-  .repochan/web-starter/public/textures/sideband.png     # 侧边装饰纹理
-  .repochan/web-starter/public/textures/cta-bg.png       # CTA 底纹
-  ```
+- 纹理按用途落到 `.repochan/web-starter/public/textures/`，文件名必须与 `src/config/site.ts` 的 `textures[].src` 匹配。
 - 后处理完成后更新 `src/config/assets.ts`。未交付的视觉原型保留为 `status: "pending"`，不要伪造图片结果。
-
-##### 决策速查：拿到一张图该跑哪个 op？
-
-```
-这张图是网格拼图吗？
-├─ 是 → 需要透明贴纸？
-│        ├─ 是 → extract-stickers
-│        └─ 否 → slice
-└─ 否 → 需要透明背景（角色/贴纸）？
-         ├─ 是 → 已知 matte 底色？chroma-key : bg-remove
-         └─ 否 → 是 icon 单图要出多尺寸？resize（+ favicon 生成 .ico）
-                  └─ 否 → 是大展示图（>200KB）？compress
-                           └─ 否（小图/纹理）→ 直接复制 PNG，不处理
-```
 
 #### 步骤 10：验证
 

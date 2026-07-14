@@ -18,6 +18,16 @@ export type StarterAssetOrder = {
   references?: Array<Record<string, unknown>>;
 };
 
+/** A post-processing step declared in a starter asset slot. Page-designer executes these via `repochan image edit <op>` after the painter delivers the raw image. */
+export type PostprocessStep = {
+  /** image-edit operation: compress | slice | extract-stickers | chroma-key | bg-remove | resize | favicon | gif-from-frames */
+  op: string;
+  /** CLI flags as key-value (e.g. {"format":"webp","quality":82,"maxWidth":2560}). Keys map to --<key> flags. */
+  args?: Record<string, unknown>;
+  /** Output path relative to the scaffolded site root (e.g. "public/assets/hero-composite.webp"). */
+  out?: string;
+};
+
 /** A single asset slot declared in a starter's starter.json. */
 export type StarterAssetSlot = {
   slot: string;
@@ -25,6 +35,8 @@ export type StarterAssetSlot = {
   description?: string;
   /** Partial order template — page-designer merges + supplements to create the real order. */
   order?: StarterAssetOrder;
+  /** Post-processing steps to run on the delivered image before it enters the site. */
+  postprocess?: PostprocessStep[];
 };
 
 /** Parsed starter manifest (starter.json). */
