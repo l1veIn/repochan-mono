@@ -33,7 +33,6 @@ const require = createRequire(import.meta.url);
 const { version: PKG_VERSION } = require("../package.json") as { version: string };
 const VERSION = PKG_VERSION + getGitSuffix();
 const cli = cac("repochan");
-const cli = cac("repochan");
 
 // cac passes positional args unreliably to actions (variadic args collapse),
 // so each grouped handler reads positionals from `cli.args` (which always holds
