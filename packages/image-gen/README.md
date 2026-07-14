@@ -17,6 +17,8 @@ Host rules live in `src/hostRules.ts` (empty by default; add only when a host *r
 ## API
 
 - `generate(params, config, options?)` → `{ success, image, mode, effectiveMode, modeSource, jobId?, billedRisk?, … }`
+  - `params.referenceImages` — array of `{data, mimeType}` for image-to-image conditioning. When provided, uses `/images/edits` (multipart); otherwise uses `/images/generations` (JSON). Multiple reference images are sent as repeated `image[]` multipart parts.
+  - `params.quality` — `"low" | "medium" | "high" | "auto"` (provider-side rendering quality). Typically sourced from the asset template's `quality` field.
 - `loadConfig` / `saveGlobalConfig` — `~/.repochan/image.json`
 - `listEndpointStatuses` — configured + effective mode (no secrets)
 - `probeEndpoint` — `GET /models` (no bill)

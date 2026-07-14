@@ -103,7 +103,7 @@ export async function generate(
   const timeoutMs = options.timeoutMs ?? defaultTimeout;
   const fetchFn = createImageFetch(timeoutMs);
 
-  const size: `${number}x${number}` =
+  const size: string =
     params.size ??
     (params.aspectRatio ? SIZE_FOR_RATIO[params.aspectRatio] : config.size ?? "1024x1024");
 

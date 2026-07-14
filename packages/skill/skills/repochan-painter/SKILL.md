@@ -83,15 +83,28 @@ repochan order resolve-references <orderId> --json
 
 **硬约束（非 foundation 资产必读）**：如果 order 有 `references` 但 resolve 返回空，**必须停下报错**。检查 foundation 是否 `delivered`、versionId 是否正确，修复后再生成。
 
-**绝不能跳过 resolve-references**——解析出的绝对路径作为 `repochan image gen --reference <path...>`。
+**绝不能跳过 resolve-references**——解析出的绝对路径作为 `repochan image gen` 的参考图传入。
 
 ### 步骤 3：注入引用到生成调用
 
+**每个参考图必须用独立的 `--reference` flag**——不要把多个路径挂在同一个 flag 后面（那会让 CLI 丢弃第二个之后的路径）：
+
 ```bash
-repochan image gen --prompt "<精炼后的画师简报>" --reference "<resolve出的路径1>" "<resolve出的路径2>" --aspect landscape|square|portrait --size 1024x1024
+# ✅ 正确：每个路径一个 --reference
+repochan image gen --prompt "<精炼后的画师简报>" \
+  --reference "<resolve出的路径1>" \
+  --reference "<resolve出的路径2>" \
+  --aspect landscape|square|portrait --size 1024x1024
+
+# ❌ 错误：多路径挂一个 flag → 第二个路径被当位置参数丢弃
+repochan image gen --prompt "..." --reference "<路径1>" "<路径2>" --aspect landscape
 ```
 
-CLI 关键参数：`--prompt`、`--reference <path...>`、`--out`（默认勿传，CLI 写 `~/.cache/repochan/`）、`--aspect`、`--size`。一般**不要**传 `--mode`（默认 auto）。诊断：`repochan image status`、`repochan image probe`。
+CLI 关键参数：`--prompt`、`--reference <path>`（可重复，每个参考图一个 flag）、`--out`（默认勿传，CLI 写 `~/.cache/repochan/`）、`--aspect`、`--size`、`--quality`。一般**不要**传 `--mode`（默认 auto）。诊断：`repochan image status`、`repochan image probe`。
+
+**`--quality` 从模板读取**：`repochan template get <templateId> --json` 返回的 `quality` 字段（`low` | `medium` | `high` | `auto`）直接传给 `image gen --quality`。模板没声明 quality 时不传（走默认）。
+
+**`--size` 也从模板读取**：模板的 `size` 字段（如 `2560x1440`）直接传给 `image gen --size`。用户明确指定尺寸时覆盖模板。
 
 foundation_sheet 本身是锚点，不需要 `--reference`。
 
@@ -112,7 +125,7 @@ foundation_sheet 本身是锚点，不需要 `--reference`。
 ### 步骤 4：参考图使用规则
 
 1. 先 `resolve-references` 取得绝对路径。
-2. 传入 `repochan image gen --reference <paths...>`。
+2. 传入 `repochan image gen`，每个路径用独立的 `--reference` flag。
 3. 在结果 `meta` 中记录 `referenceImagesUsed: true` 和引用来源；不要存储绝对路径。
 
 ## Prompt 构建（摘要）
@@ -185,7 +198,7 @@ EOF
 
 ### 多个不同角色的引用
 
-全部 resolve，所有路径进同一个 `--reference`；prompt 说明各引用角色（character/style/composition）。
+全部 resolve，每个路径用独立的 `--reference` flag 传入；prompt 说明各引用角色（character/style/composition）。
 
 ## 端到端示例
 

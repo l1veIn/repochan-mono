@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "zh",
+  "meta": {
+    "title": "RepoChan — 给每个仓库一套创意身份",
+    "description": "RepoChan 把 git 仓库转化为角色人设、可追踪视觉资产和可继续编辑的项目主页。"
+  },
+  "content": {
+    "hero": {
+      "ariaLabel": "RepoChan 项目介绍",
+      "headline": "把一个仓库变成鲜活的创意身份。",
+      "body": "生成角色、可追踪视觉资产和可继续编辑的主页，让每一步创意生产都有据可查。",
+      "primaryCta": {
+        "label": "查看仓库",
+        "href": "https://github.com/l1veIn/repochan-mono"
+      },
+      "repositoryLabel": "GitHub 仓库",
+      "brandName": "RepoChan",
+      "tags": ["角色", "本地优先", "可追踪"],
+      "aside": "给这个仓库一个灵魂。",
+      "posterTypography": {
+        "row1Word": "give",
+        "row1Sentence": "this",
+        "row2Word": "repo",
+        "row2Sentence": "a",
+        "row3": "soul"
+      }
+    }
+  }
+}

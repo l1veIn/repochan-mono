@@ -6,9 +6,6 @@ import {
   writeJson,
   safeProtocolPath,
   findFoundationSheet,
-  createOrUpdatePage,
-  checkPageAssets,
-  readPage,
   createReview,
 } from "@repochan/core";
 import { emitResult, type OutputOptions, UsageError } from "../lib/output.js";
@@ -23,50 +20,7 @@ export async function runFoundationFind(cwd: string, options: OutputOptions) {
 }
 
 // ---------------------------------------------------------------------------
-// page get / create / check-assets / generate-project
-// ---------------------------------------------------------------------------
-export async function runPageGet(cwd: string, options: OutputOptions) {
-  const data = await readPage(cwd);
-  if (!data) throw new UsageError("No page found. Run `repochan page create` with a JSON payload first.");
-  emitResult(options, JSON.stringify(data, null, 2), data);
-}
-
-export async function runPageCreate(cwd: string, dataFile: string | undefined, options: OutputOptions) {
-  const params = readDataFile(dataFile);
-  const { data, versionName } = await createOrUpdatePage(cwd, params);
-  emitResult(options, `Wrote page current and page/versions/${versionName}`, data);
-}
-
-export async function runPageCheckAssets(cwd: string, options: OutputOptions) {
-  const page = await readPage(cwd);
-  if (!page) throw new UsageError("No page found.");
-  const result = await checkPageAssets(cwd, page);
-  emitResult(options, result.ok ? `All ${result.total} asset(s) present.` : `Missing ${result.missing.length} of ${result.total} asset(s).`, result);
-}
-
-export async function runPageGenerateProject(cwd: string, options: OutputOptions & { outputDir?: string; templateDir?: string; overwrite?: boolean }) {
-  const { promises: fs } = await import("node:fs");
-  const outputDir = options.outputDir ? path.resolve(cwd, options.outputDir) : path.join(cwd, "repochan-page");
-  const templateDir = options.templateDir ? path.resolve(cwd, options.templateDir) : path.join(cwd, "repochan-page");
-  if (path.resolve(outputDir) === path.resolve(templateDir)) {
-    return void emitResult(options, `Page project template already present at ${outputDir}.`, { outputDir, templateDir, generated: false });
-  }
-  if (!(await exists(templateDir))) throw new UsageError(`templateDir not found: ${templateDir}. Pass --template-dir.`);
-  if ((await exists(outputDir)) && !options.overwrite) throw new UsageError(`outputDir exists: ${outputDir}. Pass --overwrite to replace.`);
-  if (options.overwrite) await fs.rm(outputDir, { recursive: true, force: true });
-  await fs.mkdir(path.dirname(outputDir), { recursive: true });
-  await fs.cp(templateDir, outputDir, {
-    recursive: true,
-    filter: (src) => {
-      const rel = path.relative(templateDir, src);
-      if (!rel) return true;
-      return !rel.split(path.sep).some((part) => ["node_modules", "dist", ".astro"].includes(part));
-    },
-  });
-  emitResult(options, `Generated editable page project at ${outputDir}`, { outputDir, templateDir, generated: true });
-}
-
-// ---------------------------------------------------------------------------
+// review create --data-file
 // review create --data-file
 // ---------------------------------------------------------------------------
 export async function runReviewCreate(cwd: string, dataFile: string | undefined, options: OutputOptions) {

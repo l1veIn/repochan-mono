@@ -74,7 +74,7 @@ RepoChan 给 agent 提供一套**交付拓扑**：每个角色的工作目标不
 **职责**：定义 agent 最终要交付什么形状的东西。消除 LLM 自由格式输出。
 
 - 入口：`packages/core/src/schemas/index.ts`
-- Artifact 形状：`PersonaArtifactSchema`、`OrderResultVersionSchema`、`InterviewArtifactSchema`、`PageArtifactSchema`、`AnalysisArtifactSchema` 等。
+- Artifact 形状：`PersonaArtifactSchema`、`OrderResultVersionSchema`、`InterviewArtifactSchema`、`AnalysisArtifactSchema` 等。
 - 每个 artifact 带 `schemaVersion`、`generatedAt`、`provenance`。
 - 写操作 params gate：`*ParamsSchema`；`WriteOpSchemas` 把 action 名映射到 schema。
 - 校验入口：`packages/core/src/validate.ts` 的 `validateInput(action, schema, params)`。
@@ -89,7 +89,7 @@ RepoChan 给 agent 提供一套**交付拓扑**：每个角色的工作目标不
 - **双轨制**：`current.json`（当前真相）+ `versions/<timestamp>.json`（不可变历史）。
 - **安全写入**：`writeJson(..., overwrite)` 在 `overwrite=false` 时拒绝覆盖。
 - **路径安全**：`safeProtocolPath` 拦截 path traversal，所有写入必须落在 `.repochan/` 内。
-- **依赖链检查**：`requireAnalysis` / `requirePersona` / `requireInterview` / `requirePage`。
+- **依赖链检查**：`requireAnalysis` / `requirePersona` / `requireInterview`。
 
 **目录布局**（`initProtocol`）：
 
@@ -98,8 +98,8 @@ RepoChan 给 agent 提供一套**交付拓扑**：每个角色的工作目标不
   analysis/{current.json, versions/}
   persona/{current.json, versions/, candidates/, reviews/}
   interview/{current.json, versions/}
-  orders/<order-id>/{order.json, versions/<version-id>/, reviews/}
-  pages/{current.json, versions/}
+  orders/<order-id>/{order.json, versions/<version-id>/, references/, reviews/}
+  web-starter/        # scaffold 出的可编辑站点（repochan starter pull）
   templates/          # 可选：项目级资产模板覆盖
 ```
 
@@ -110,7 +110,7 @@ RepoChan 给 agent 提供一套**交付拓扑**：每个角色的工作目标不
 
 **职责**：定义「能不能从一个合法节点走到下一个合法节点」。
 
-- 入口：`packages/core/src/entities/`（按实体拆分：`persona.ts`、`orders.ts`、`interview.ts`、`pages.ts`、`review.ts`、`persona-review.ts`）。
+- 入口：`packages/core/src/entities/`（按实体拆分：`persona.ts`、`orders.ts`、`interview.ts`、`review.ts`、`persona-review.ts`）。
 - **状态机**：`OrderStatus` 六态（`draft` / `approved` / `in_progress` / `delivered` / `needs_revision` / `cancelled`），非法跳变被拒绝。
 - **依赖门**：例如 `createOrders` 要求 analysis + persona；`createOrderResult` 还要求订单已审批。
 - **审批门**：`ensureOrderApprovedForExecution` — 默认只有 `approved` / `in_progress` 才能交付结果（`allowUnapprovedOrder` 是显式 escape hatch）。
@@ -191,9 +191,11 @@ packages/
 ├── cli          repochan               唯一 bin。路由子命令；setup 分发 skill。无内嵌 runtime。
 ├── image-gen    @repochan/image-gen    库：prompt → PNG（AI SDK，OpenAI-compatible endpoint）。自管凭证。
 ├── image-edit   @repochan/image-edit   库：切图 / 抠图 / GIF。零凭证、纯本地。
-└── templates    @repochan/templates    纯数据：内置资产 YAML 模板。
+├── templates    @repochan/templates    纯数据：内置资产 YAML 模板。
+└── starters     @repochan/starters     纯数据：落地页 starter（完整 Astro/Tailwind 脚手架目录）。
 
-repochan-page/   狗粮 Astro + Tailwind 站点（可演进为独立模板仓库）
+> 落地页 starter 位于 `packages/starters/`；当前 Starter v1 默认实现为 Hero-only 的 `minimal`。
+> `repochan starter pull --starter <id>` 从包内 scaffold 出可编辑实例；实例与 source 都以 `repochan/starter.json` 为唯一 manifest。
 ```
 
 ### 依赖方向（必须单向）
@@ -203,12 +205,14 @@ cli ──┬──> core
       ├──> skill          # setup 时拷贝 skill 资源
       ├──> image-gen      # repochan image gen / configure
       ├──> image-edit     # repochan image edit …
-      └──> templates      # repochan template list|get
+      ├──> templates      # repochan template list|get
+      └──> starters       # repochan starter list|get|pull|configure|create-order|asset-apply|validate
 
 core          叶子：不依赖任何其他 repochan 包
 image-gen     叶子：不写 .repochan/，不知协议
 image-edit    叶子：不写 .repochan/，不知协议
 templates     叶子：纯 YAML
+starters      叶子：纯 scaffold 数据（Astro 项目目录 + repochan/starter.json）
 skill         叶子：纯 markdown
 ```
 
@@ -351,7 +355,7 @@ image-gen 把所有后端视为 **OpenAI-compatible** endpoint（`baseURL` + `ap
 
 #### 失效传播（stale propagation）
 
-改 persona 不会自动标记依赖它的 order / page 为 stale。正向引用解析（`collectAssetRefs` / `checkPageAssets`）存在；反向 stale 图不存在。
+改 persona 不会自动标记依赖它的 order 为 stale。正向引用解析（`resolveOrderReferences`，按 role 排序 composition→character→style）存在；反向 stale 图不存在。
 
 **理由**：本地优先、单用户主导规模下，用户可见上游变化并手动重跑。实现 event-sourced dependency graph 成本远超收益。多 agent 并行或重度 CI 时再评估。
 
@@ -365,7 +369,7 @@ Schema 保证「合法」，不保证「好看」或命中 `emotionalGoal`。质
 
 #### 待演进
 
-- `repochan-page/` 迁出为独立在线模板仓库（ADR §九）。
+- ~~`repochan-page/` 迁出为独立在线模板仓库（ADR §九）。~~ ✅ 已迁入 `packages/starters/`（2026-07-13）。
 - 可选 MCP-over-CLI 薄壳（仅在 CLI 体验证伪时）。
 - 远程模板 registry（当前 ~12 个官方 YAML 随包发布足够）。
 

@@ -24,7 +24,7 @@ Core has **no agent runtime**, **no image credentials**, and **no pixel-processi
 
 Artifact shapes (written under `.repochan/`):
 
-- `PersonaArtifactSchema`, `InterviewArtifactSchema`, `OrderResultVersionSchema`, `PageArtifactSchema`, `AnalysisArtifactSchema`
+- `PersonaArtifactSchema`, `InterviewArtifactSchema`, `OrderResultVersionSchema`, `AnalysisArtifactSchema`
 - Each carries `schemaVersion`, `generatedAt`, `provenance`.
 
 Write-operation params gates and the `WriteOpSchemas` registry. `validate.ts` exposes `validateInput(action, schema, params)`.
@@ -34,14 +34,13 @@ Write-operation params gates and the `WriteOpSchemas` registry. `validate.ts` ex
 - `PROTOCOL_DIR` (`.repochan`), `protocolRoot`, `safeProtocolPath`, `writeJson` / `readJson`
 - `initProtocol` / `inspectProtocol`
 - Versioning helpers and order/review/persona-candidate path helpers
-- Dependency gates: `requireAnalysis`, `requirePersona`, `requireInterview`, `requirePage`
+- Dependency gates: `requireAnalysis`, `requirePersona`, `requireInterview`
 
 ### Business rules — `src/entities/`
 
 - **Persona**: create/update, candidates, promote
 - **Interview**: create/update, append
-- **Orders**: CRUD-ish ops, status machine, results, candidates, foundation find, reference resolve
-- **Pages**: create/update, asset ref collect/check
+- **Orders**: CRUD-ish ops, status machine, results, candidates, foundation find, reference resolve (role-sorted), file-reference materialization
 - **Reviews**: order review, persona review
 - Approval gate: `ensureOrderApprovedForExecution`
 

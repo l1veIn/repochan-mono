@@ -24,8 +24,8 @@ packages/
 ├── cli          repochan               唯一 bin — 子命令、setup、无 runtime
 ├── image-gen    @repochan/image-gen    prompt → PNG（OpenAI-compatible endpoint）
 ├── image-edit   @repochan/image-edit   切图 / 抠图 / GIF（本地、零凭证）
-└── templates    @repochan/templates    内置资产 YAML 模板
-repochan-page/                          狗粮 Astro + Tailwind 站点
+├── templates    @repochan/templates    内置资产 YAML 模板
+└── starters     @repochan/starters     落地页 starter（完整 Astro/Tailwind 脚手架）
 ```
 
 ### 依赖方向
@@ -64,7 +64,6 @@ cli ──┬──> core
   persona/current.json           # 创意团队
   orders/<id>/order.json         # 美术总监简报
   orders/<id>/versions/<vid>/    # 画师结果（meta + 图）
-  pages/current.json             # 页面设计
 ```
 
 ### 默认体验：一句话 → 全套品牌
@@ -164,10 +163,11 @@ repochan interview get|create|append
 repochan persona get|create|update|review|candidate …
 repochan order list|get|create|update|set-status|add-revision|…
 repochan order create-result|list-results|get-result|set-current|…
+repochan order resolve-references <id>
 repochan order candidate create|promote
 repochan order slice|extract-stickers
 repochan foundation find
-repochan page get|create|check-assets|generate-project
+repochan starter list [--tag] | get <id> | pull [--starter <id>]
 repochan review create
 repochan protocol inspect|read|write
 ```

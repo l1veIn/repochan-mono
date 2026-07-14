@@ -4,7 +4,9 @@ import type { AssetOrder, JsonObject, OrderReference, OrderResultVersion, OrderS
 import {
   exists,
   initProtocol,
+  orderDir,
   orderJsonPath,
+  orderReferencesDir,
   orderVersionDir,
   orderVersionsDir,
   protocolRoot,
@@ -42,6 +44,54 @@ import {
 } from "../utils/index.js";
 import { readOrder, ensureOrderApprovedForExecution, IMAGE_EXTENSIONS } from "./shared.js";
 
+/**
+ * For every file-type reference on the order, copy the referenced image into the
+ * order's own `references/` directory and rewrite `ref.path` to be relative to
+ * the order dir (e.g. `"references/hero-composite.webp"`). This makes the order
+ * self-contained — it no longer depends on an external absolute path that may
+ * move or disappear.
+ *
+ * Must run AFTER normalizeOrder (so refs are well-formed) and BEFORE writeJson
+ * (so the relative path is what gets persisted). Idempotent: if a ref path is
+ * already relative to references/, it is left as-is.
+ */
+async function materializeOrderReferences(projectRoot: string, orderId: string, order: AssetOrder): Promise<void> {
+  if (!Array.isArray(order.references) || order.references.length === 0) return;
+  const refsDir = orderReferencesDir(projectRoot, orderId);
+
+  for (const ref of order.references) {
+    if (ref.type !== "file") continue;
+
+    // Skip already-materialized refs (relative to order dir, under references/)
+    if (!path.isAbsolute(ref.path) && ref.path.startsWith("references/")) continue;
+
+    const src = path.isAbsolute(ref.path) ? ref.path : path.resolve(projectRoot, ref.path);
+    if (!(await exists(src))) {
+      throw new Error(`Reference file '${ref.path}' does not exist (resolved: ${src}).`);
+    }
+    const ext = path.extname(src).toLowerCase();
+    if (!IMAGE_EXTENSIONS.includes(ext)) {
+      throw new Error(`Reference file '${ref.path}' is not a recognized image (extension '${ext}').`);
+    }
+
+    await fs.mkdir(refsDir, { recursive: true });
+    const basename = path.basename(src);
+    const dest = path.join(refsDir, basename);
+    if (await exists(dest)) {
+      // Deduplicate by name; if a different file already occupies this name, suffix it.
+      const stem = path.basename(src, ext);
+      let i = 2;
+      let candidate = path.join(refsDir, `${stem}-${i}${ext}`);
+      while (await exists(candidate)) { i++; candidate = path.join(refsDir, `${stem}-${i}${ext}`); }
+      await fs.copyFile(src, candidate);
+      ref.path = `references/${path.basename(candidate)}`;
+    } else {
+      await fs.copyFile(src, dest);
+      ref.path = `references/${basename}`;
+    }
+  }
+}
+
 export async function createOrders(projectRoot: string, params: JsonObject) {
   validateInput("order.create", OrderCreateParamsSchema, params);
   await initProtocol(projectRoot);
@@ -60,6 +110,7 @@ export async function createOrders(projectRoot: string, params: JsonObject) {
   for (const order of orders) {
     const file = orderJsonPath(projectRoot, order.orderId);
     await fs.mkdir(orderVersionsDir(projectRoot, order.orderId), { recursive: true });
+    await materializeOrderReferences(projectRoot, order.orderId, order);
     await writeJson(file, order, overwrite);
     written.push(relativeProtocolPath(projectRoot, file));
   }
@@ -115,7 +166,12 @@ export async function updateOrder(projectRoot: string, params: JsonObject) {
     schemaVersion: "repochan.asset-order.v1",
     createdAt: current.createdAt ?? stamp(),
     updatedAt: stamp(),
-  };
+  } as AssetOrder;
+  // Normalize + materialize any new file references added via update
+  if (Array.isArray(next.references) && next.references.length) {
+    next.references = normalizeReferences(next.references);
+    await materializeOrderReferences(projectRoot, orderId, next);
+  }
   await writeJson(file, next, true);
   return next;
 }
@@ -483,16 +539,40 @@ export async function findFoundationSheet(projectRoot: string): Promise<{
 export async function resolveOrderReferences(
   projectRoot: string,
   references: OrderReference[],
+  /** The owning order's id — needed to resolve materialized references/ paths. */
+  ownerOrderId?: string,
 ): Promise<
   Array<{
     role: string;
-    orderId: string;
-    versionId: string;
+    /** Present for order references; absent for file references. */
+    orderId?: string;
+    /** Present for order references; absent for file references. */
+    versionId?: string;
+    /** Resolved absolute image file path(s). */
     files: string[];
   }>
 > {
-  const resolved: Array<{ role: string; orderId: string; versionId: string; files: string[] }> = [];
+  const resolved: Array<{ role: string; orderId?: string; versionId?: string; files: string[] }> = [];
   for (const ref of normalizeReferences(references)) {
+    // file variant
+    if (ref.type === "file") {
+      // Materialized refs are relative to the owning order's dir (e.g. "references/foo.webp").
+      // Absolute paths or other relative paths resolve against projectRoot.
+      let abs: string;
+      if (!path.isAbsolute(ref.path) && ref.path.startsWith("references/") && ownerOrderId) {
+        abs = path.resolve(orderDir(projectRoot, ownerOrderId), ref.path);
+      } else {
+        abs = path.isAbsolute(ref.path) ? ref.path : path.resolve(projectRoot, ref.path);
+      }
+      if (!(await exists(abs))) throw new Error(`Reference file '${ref.path}' does not exist (resolved: ${abs}).`);
+      if (!IMAGE_EXTENSIONS.includes(path.extname(abs).toLowerCase())) {
+        throw new Error(`Reference file '${ref.path}' is not a recognized image (got extension '${path.extname(abs)}').`);
+      }
+      resolved.push({ role: ref.role, files: [abs] });
+      continue;
+    }
+
+    // order variant
     const order = await readOrder(projectRoot, ref.orderId).catch(() => null);
     if (!order) throw new Error(`Reference orderId '${ref.orderId}' does not exist.`);
     const versionId = ref.versionId ?? order.currentVersion;
@@ -505,5 +585,12 @@ export async function resolveOrderReferences(
     if (files.length === 0) throw new Error(`Reference order '${ref.orderId}' version '${versionId}' has no image files.`);
     resolved.push({ role: ref.role, orderId: ref.orderId, versionId, files });
   }
+  // Sort by role priority: composition first (pose/layout anchor), then
+  // character (identity), then style. This ensures the --reference flag order
+  // passed to `image gen` matches what migration templates expect (FIRST =
+  // composition, SECOND = character), regardless of the order references were
+  // listed in order.json.
+  const ROLE_PRIORITY: Record<string, number> = { composition: 0, character: 1, style: 2 };
+  resolved.sort((a, b) => (ROLE_PRIORITY[a.role] ?? 99) - (ROLE_PRIORITY[b.role] ?? 99));
   return resolved;
 }

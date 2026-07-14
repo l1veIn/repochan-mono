@@ -1,9 +1,21 @@
 import { promises as fs } from "node:fs";
+import { execSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
+
+/** Append `+g<hash>` (or `+g<hash>-dirty`) from git so every build is identifiable. */
+function getGitSuffix(): string {
+  try {
+    const short = execSync("git rev-parse --short HEAD", { encoding: "utf8", timeout: 2000, stdio: ["pipe", "pipe", "pipe"] }).trim();
+    const dirty = execSync("git status --porcelain", { encoding: "utf8", timeout: 2000, stdio: ["pipe", "pipe", "pipe"] }).trim().length > 0;
+    return `+g${short}${dirty ? "-dirty" : ""}`;
+  } catch {
+    return "";
+  }
+}
 
 // ---------------------------------------------------------------------------
 // ~/.repochan/register.json — global registry of installed skills + projects.
@@ -52,13 +64,13 @@ const REGISTER_DIR = path.join(os.homedir(), ".repochan");
 const REGISTER_PATH = path.join(REGISTER_DIR, "register.json");
 const SCHEMA_VERSION = 1;
 
-/** Current CLI version (read from our own package.json). */
+/** Current CLI version (semver from package.json + git hash suffix). */
 export function cliVersion(): string {
   try {
     // resolve from this module's location — works in both src/ and dist/.
     const pkgPath = require.resolve("../../package.json");
     const pkg = JSON.parse(require("fs").readFileSync(pkgPath, "utf8"));
-    return pkg.version ?? "0.0.0";
+    return (pkg.version ?? "0.0.0") + getGitSuffix();
   } catch {
     return "0.0.0";
   }

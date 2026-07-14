@@ -1,0 +1,42 @@
+id: "official/hero-pose-lineart-extract"
+asset_type: "pose_lineart"
+label: "Hero 姿态线稿提取"
+description: >
+  从 hero 合成图中提取纯线稿,只保留角色姿态、肢体位置、构图占位和留白布局。
+  删除一切渲染细节(颜色、阴影、衣服褶皱、材质纹理、背景元素、面部特征)。
+  产物作为迁移订单的 composition 参考图——信息量少,不泄露原始角色的衣着/配色,
+  避免干扰新角色的生成。
+tags: ["hero", "lineart", "starter", "prep"]
+size: "2560x1440"
+quality: "high"
+
+prompt_template: |
+  Clean lineart extraction from the reference image for pose and composition
+  reference purposes. The reference image is a hero composite — extract ONLY
+  the structural information:
+
+  KEEP (extract as clean lineart):
+  - Character body pose: limb positions, gesture, weight distribution
+  - Character silhouette and overall body shape
+  - Spatial composition: where the character sits in the frame, the blank-zone
+    layout, the negative-space structure
+  - Major architectural lines of the composition (horizon, diagonal axes)
+
+  REMOVE (do not draw):
+  - All colors, shading, gradients, shadows, highlights
+  - All clothing details: folds, textures, patterns, accessories
+  - All held/carried objects and props — keep only the hand gesture/position
+  - All facial features: eyes, hair, expression details
+  - All background elements: textures, atmosphere, particles, decorations
+  - All material rendering: metal, fabric, skin tones
+
+  The result should look like a rough anatomical gesture sketch — pure black
+  lines on pure white background. Think mannequin + pose arrows, not a finished
+  drawing. The character's position in the frame MUST be identical to the
+  reference (same side, same proportion of frame occupied, same blank zones).
+
+constraints:
+  - "Pure black lines on pure white background — no grays, no fills"
+  - "Character position and pose must be identical to the reference"
+  - "No colors, no shading, no clothing details, no facial features"
+  - "Preserve the exact blank-zone layout of the original composition"

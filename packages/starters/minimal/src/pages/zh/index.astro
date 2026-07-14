@@ -1,0 +1,12 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import HeroSection from "../../components/HeroSection.astro";
+import locale from "../../../repochan/i18n/zh.json";
+import { assets } from "../../lib/site";
+---
+
+<SiteLayout title={locale.meta.title} description={locale.meta.description} lang="zh">
+  <main>
+    <HeroSection content={locale.content.hero} heroSrc={assets["hero-composite"].src} />
+  </main>
+</SiteLayout>

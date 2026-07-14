@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "RepoChan — A creative identity for every repository",
+    "description": "RepoChan turns a git repository into a mascot, tracked visual assets, and an editable project homepage."
+  },
+  "content": {
+    "hero": {
+      "ariaLabel": "RepoChan project introduction",
+      "headline": "Turn a repository into a living identity.",
+      "body": "Create a mascot, traceable visual assets, and an editable homepage without hiding the work in a black box.",
+      "primaryCta": {
+        "label": "View repository",
+        "href": "https://github.com/l1veIn/repochan-mono"
+      },
+      "repositoryLabel": "GitHub repository",
+      "brandName": "RepoChan",
+      "tags": ["mascot", "local-first", "traceable"],
+      "aside": "Give this repo a soul.",
+      "posterTypography": {
+        "row1Word": "give",
+        "row1Sentence": "this",
+        "row2Word": "repo",
+        "row2Sentence": "a",
+        "row3": "soul"
+      }
+    }
+  }
+}

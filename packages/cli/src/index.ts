@@ -2,6 +2,7 @@
 import { createRequire } from "node:module";
 import { cac } from "cac";
 import { printError } from "./lib/output.js";
+import { cliVersion } from "./lib/register.js";
 import * as top from "./commands/toplevel.js";
 import * as analysis from "./commands/analysis.js";
 import * as interview from "./commands/interview.js";
@@ -10,12 +11,12 @@ import * as order from "./commands/order.js";
 import * as ent from "./commands/entities.js";
 import * as setup from "./commands/setup.js";
 import * as template from "./commands/template.js";
+import * as starter from "./commands/starter.js";
 import * as image from "./commands/image.js";
 
-// Read version from package.json at runtime so there's a single source of
-// truth — bumping package.json version is enough, no hardcoded constant to sync.
-const require = createRequire(import.meta.url);
-const { version: VERSION } = require("../package.json") as { version: string };
+// Version: semver from package.json + git hash suffix (shared with register.ts
+// so .repochan-version and --version always agree).
+const VERSION = cliVersion();
 const cli = cac("repochan");
 
 // cac passes positional args unreliably to actions (variadic args collapse),
@@ -127,21 +128,32 @@ cli.command("foundation <sub>", "Foundation sheet (visual anchor)")
     throw new Error(`Unknown foundation subcommand: ${sub}. Use: find`);
   });
 
-// ---- page ----
-cli.command("page <sub>", "Manage the landing page spec")
+// ---- starter ----
+cli.command("starter <sub>", "Landing-page starters")
   .option("--json", "Machine-readable JSON output")
-  .option("--data-file <path>", "JSON payload from file, - for stdin, or omit when piping")
-  .option("--output-dir <dir>", "Output directory (generate-project)")
-  .option("--template-dir <dir>", "Template directory (generate-project)")
-  .option("--overwrite", "Overwrite existing")
+  .option("--tag <tag>", "Filter starter list by tag")
+  .option("--output-dir <dir>", "Starter instance directory (default: .repochan/web-starter)")
+  .option("--starter <id>", "Starter id (pull; otherwise uses the sole default)")
+  .option("--overwrite", "Allow replacing an existing output or generated config")
+  .option("--content-file <path>", "Locale content JSON for configure")
+  .option("--all", "Validate every built-in starter")
+  .option("--foundation <order-id>", "Foundation order reference (create-order)")
+  .option("--intent <text>", "Creative intent (create-order)")
+  .option("--status <status>", "Initial order status (create-order, default: draft)")
+  .option("--order <order-id>", "Delivered order to apply (asset-apply)")
+  .option("--version <version-id>", "Specific delivered result version (asset-apply)")
   .action(async (_p: any, opts: any) => {
-    const [sub] = cli.args;
+    const args = cli.args;
+    const sub = args[0];
     switch (sub) {
-      case "get": return await ent.runPageGet(process.cwd(), opts);
-      case "create": return await ent.runPageCreate(process.cwd(), opts.dataFile, opts);
-      case "check-assets": return await ent.runPageCheckAssets(process.cwd(), opts);
-      case "generate-project": return await ent.runPageGenerateProject(process.cwd(), opts);
-      default: throw new Error(`Unknown page subcommand: ${sub}. Use: get | create | check-assets | generate-project`);
+      case "list": return await starter.runStarterList(process.cwd(), opts);
+      case "get": return await starter.runStarterGet(process.cwd(), args[1], opts);
+      case "pull": return await starter.runStarterPull(process.cwd(), opts);
+      case "configure": return await starter.runStarterConfigure(process.cwd(), opts);
+      case "create-order": return await starter.runStarterCreateOrder(process.cwd(), args[1], opts);
+      case "asset-apply": return await starter.runStarterAssetApply(process.cwd(), args[1], opts);
+      case "validate": return await starter.runStarterValidate(process.cwd(), args[1], opts);
+      default: throw new Error(`Unknown starter subcommand: ${sub}. Use: list | get | pull | configure | create-order | asset-apply | validate`);
     }
   });
 
@@ -197,9 +209,20 @@ cli.command("image <sub>", "Image generation, configure, status, probe, and edit
   .option("--endpoint-id <id>", "Name for new endpoint (image configure)")
   .option("--mode <mode>", "auto | openai | openai-async (advanced; default auto)")
   .option("--aspect <ratio>", "landscape | square | portrait (image gen)")
-  .option("--size <size>", "1024x1024 | 1536x1024 | 1024x1536 (image gen)")
+  .option("--size <size>", "Output dimensions: 1024x1024 | 1536x1024 | 1024x1536 | 2K | 4K | WxH (image gen)")
+  .option("--quality <q>", "Rendering quality: low | medium | high | auto (image gen)")
   .option("--rows <n>", "Grid rows (image edit slice)", { default: undefined })
   .option("--cols <n>", "Grid cols (image edit slice)", { default: undefined })
+  .option("--padding <n>", "Pixels to inset each tile before cropping, to dodge gutters/borders (image edit slice)", { default: undefined })
+  .option("--name-template <tpl>", 'Output filename template; {i} = 0-based index, e.g. "tile-{i}.png" (image edit slice)')
+  .option("--sizes <list>", "Comma-separated pixel sizes for resize/favicon, e.g. 16,32,48,180,512 (image edit resize/favicon)")
+  .option("--fit <mode>", "Resize fit mode: inside | cover | contain | fill (image edit resize)", { default: undefined })
+  .option("--matte <color>", "Matte color for chroma keying: auto | #ff00ff | magenta | green | cyan | white | black (image edit chroma-key)")
+  .option("--threshold <n>", "Chroma key distance threshold in RGB units, default 28 (image edit chroma-key)")
+  .option("--softness <n>", "Chroma key soft transition band, default 34 (image edit chroma-key)")
+  .option("--spill <n>", "Chroma key edge spill suppression 0-1, default 0.85 (image edit chroma-key)")
+  .option("--format <fmt>", "Output format: webp | jpeg | avif | png (image edit compress)")
+  .option("--max-width <n>", "Max output width in pixels, downscales if larger (image edit compress)")
   .option("--provider <p>", "openai | custom | skip (image configure)")
   .option("--api-key <key>", "API key (image configure)")
   .option("--base-url <url>", "Custom OpenAI-compatible base URL (image configure)")
@@ -214,7 +237,20 @@ cli.command("image <sub>", "Image generation, configure, status, probe, and edit
     const args = cli.args; // [sub, imagePath?]
     const sub = args[0];
     switch (sub) {
-      case "gen": return await image.runImageGen(process.cwd(), opts);
+      case "gen": {
+        // Backstop: if the user passed multiple paths after a single --reference
+        // (e.g. --reference A B), cac swallows B into cli.args as a stray positional.
+        // This silently drops the second reference image. Detect and error clearly.
+        const stray = args.slice(1); // anything after "gen"
+        if (stray.length > 0) {
+          throw new Error(
+            `Unexpected positional argument(s) after "image gen": ${stray.map(s => `"${s}"`).join(", ")}.\n` +
+            `Did you pass multiple reference paths to a single --reference? ` +
+            `Use separate flags: --reference <path1> --reference <path2>`,
+          );
+        }
+        return await image.runImageGen(process.cwd(), opts);
+      }
       case "status": return await image.runImageStatus(process.cwd(), opts);
       case "probe": return await image.runImageProbe(process.cwd(), opts);
       case "configure":
@@ -233,8 +269,13 @@ cli.command("image <sub>", "Image generation, configure, status, probe, and edit
         const editSub = args[1];
         if (editSub === "slice") return await image.runImageEditSlice(process.cwd(), args[2], opts);
         if (editSub === "bg-remove") return await image.runImageEditBgRemove(process.cwd(), args[2], opts);
+        if (editSub === "chroma-key") return await image.runImageEditChromaKey(process.cwd(), args[2], opts);
+        if (editSub === "extract-stickers") return await image.runImageEditExtractStickers(process.cwd(), args[2], opts);
+        if (editSub === "resize") return await image.runImageEditResize(process.cwd(), args[2], opts);
+        if (editSub === "favicon") return await image.runImageEditFavicon(process.cwd(), args[2], opts);
+        if (editSub === "compress") return await image.runImageEditCompress(process.cwd(), args[2], opts);
         if (editSub === "gif-from-frames") return await image.runImageEditGifFromFrames(process.cwd(), args.slice(2), opts);
-        throw new Error(`Unknown image edit subcommand: ${editSub}. Use: slice | bg-remove | gif-from-frames`);
+        throw new Error(`Unknown image edit subcommand: ${editSub}. Use: slice | bg-remove | chroma-key | extract-stickers | resize | favicon | compress | gif-from-frames`);
       }
       default: throw new Error(`Unknown image subcommand: ${sub}. Use: gen | configure | status | probe | edit`);
     }

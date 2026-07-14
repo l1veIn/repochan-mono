@@ -1,0 +1,26 @@
+id: "official/hero-character-migrate-localize"
+asset_type: "hero_composite"
+label: "Hero 角色本地化"
+description: >
+  借鉴 starter hero 的设计语言(风格、氛围、构图思路),但不锁定姿态。
+  用 foundation 角色 + 配色本地化重绘。留白位置由 order 的 mustInclude 指定,
+  不写死在模板里——同一个模板能服务于不同留白位置的 starter。
+tags: ["hero", "migrate", "web", "landing"]
+size: "2560x1440"
+quality: "high"
+
+prompt_template: |
+  Hero composite background image for a landing page, 16:9 widescreen.
+  Two reference images are provided. The FIRST is a design-language reference —
+  draw inspiration from its visual style, atmosphere, and composition approach,
+  but you are NOT required to copy the exact pose or layout. The SECOND is the
+  character identity reference — localize the character from it into the scene.
+  Redesign freely using the foundation character's identity, palette, and
+  personality, while keeping the design language of the first reference.
+  Seamless composite, no cutout edges. No text, no UI elements.
+
+constraints:
+  - "Design language must echo the composition reference (style/atmosphere)"
+  - "Character identity must match the foundation reference"
+  - "No text or UI elements"
+  - "Blank zones (specified in the order) must stay empty for HTML overlay"

@@ -1,6 +1,6 @@
 {
   "name": "repochan",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "RepoChan CLI — a deterministic, agent-driven creative pipeline. Manages .repochan/ protocol entities; no embedded runtime.",
   "type": "module",
   "license": "MIT",
@@ -34,6 +34,7 @@
     "@repochan/image-edit": "workspace:*",
     "@repochan/image-gen": "workspace:*",
     "@repochan/skill": "workspace:*",
+    "@repochan/starters": "workspace:*",
     "@repochan/templates": "workspace:*",
     "cac": "^6.7.14",
     "chalk": "^5.6.2",

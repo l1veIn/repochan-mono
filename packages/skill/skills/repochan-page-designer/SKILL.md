@@ -1,93 +1,98 @@
 ---
 name: repochan-page-designer
 description: >
-  项目落地页设计师。为用户的 git 仓库设计可二次开发的 Astro/Tailwind 项目主页，
-  优先展示项目本身（README、技术栈、核心特性），角色素材作为 UI 视觉增强而非页面主角。
-  Use when designing landing pages, running repochan page generate-project,
+  项目落地页设计师。为 git 仓库组装可二次开发的 Astro/Tailwind 项目主页，
+  从 analysis/README 提炼项目内容，用 persona 与已交付角色资产增强视觉，
+  并通过 repochan starter 原子命令完成 scaffold、配置投影、迁移订单、图像后处理和验证。
+  Use when designing landing pages, running repochan starter commands,
   or when the user asks 落地页/主页/官网/page design.
 ---
 
 # RepoChan 页面设计师
 
-你是**项目落地页设计师**。核心任务：为用户的 **git 仓库**设计项目主页——展示项目是什么、做什么、为什么值得关注。
+为项目本身设计主页。以 analysis、README 和实际功能为内容主线；persona 和角色资产负责品牌一致性，不喧宾夺主。
 
-首要内容来源是 **analysis**、**README**、persona 的视觉品牌字段，以及页面模板。角色素材是**视觉增强（调味料）**，不是主菜。
+只通过 `repochan` CLI 写 RepoChan 协议和 starter 数据。不要手工拼装 order，不要手工迁移 persona 字段，不要直接执行 manifest 中的 image-edit pipeline，也不要修改 starter 源目录。
 
-> **Progressive disclosure**：主流程在本文件；数据表、Phase 细节与陷阱在 `references/`，按需读取。
+## 工作流
 
-## 当前默认产物：Astro/Tailwind 页面工程
+### 1. 选择并拉取 starter
 
+```bash
+repochan analysis get --json
+repochan persona get --json
+repochan starter list
+repochan starter get <id> --json
+repochan starter pull --starter <id>
 ```
-repochan page generate-project --output-dir repochan-page
+
+- 用户在场时，让用户基于 starter 的结构和资产需求选择。
+- yolo 模式使用标记为 `(default)` 的 starter。
+- 默认实例目录是 `.repochan/web-starter/`。已存在时先检查，除非用户明确同意，否则不要传 `--overwrite`。
+- 实例自己的 `repochan/starter.json` 是后续命令的唯一 manifest；不要回读或编辑 source starter。
+
+### 2. 投影确定性配置
+
+```bash
+repochan starter configure
 ```
 
-默认维护 `repochan-page/` Web 项目，你负责填充：
+该命令把 analysis/persona 中已有的项目名、仓库地址、配色和品牌字段写入实例的 `repochan/site.json`。不要再手改 `src/lib/site.ts`；它只是稳定读取器。
 
-- `src/i18n/zh.json` / `en.json`
-- `src/config/theme.ts` / `assets.ts`
-- `public/repochan-assets/<orderId>/<versionId>/<file>`
+### 3. 创作 locale 内容
 
-旧的 `page.create` / `page.render` 仅用于 demo/协议验证，不是生产官网路线。
+读取实例的 `repochan/starter.json`，按 `content.requiredPaths` 为所有 supported locale 创作文案。Hero headline 必须表达项目价值，不能退化成角色口号。
 
-你在为**用户的仓库**设计页面（hero / features / stats / CTA），角色可出现在 hero 点缀或 footer，但页面**不是**角色展示页。
+把一个或多个 locale envelope 写入临时 JSON，然后交给 CLI 校验并落盘：
 
-## 内容优先级（严格顺序）
+```bash
+repochan starter configure --content-file /tmp/repochan-content.json --overwrite
+```
 
-1. **项目信息**（必须）— analysis + README
-2. **项目素材**（优先）— 截图、架构图、演示 GIF
-3. **角色衍生 UI 素材**（增强）— chibi、配色、装饰
-4. **角色设定图**（展示）— 仅 gallery 且素材充分时
+字段来源和文案规则见 [data-mapping.md](references/data-mapping.md) 与 [copy-and-structure.md](references/copy-and-structure.md)。
 
-### 绝对不要
+### 4. 补齐视觉资产
 
-- ❌ foundation sheet 当 hero 主视觉
-- ❌ 页面做成角色介绍页
-- ❌ features/stats 写角色人设故事
+检查 `repochan/assets.json` 和 manifest 的 asset slots。默认资产可作为可运行 fallback；只有项目需要定制且没有可复用 delivered order 时才创建订单。
 
-## 关键硬规则 checklist
+```bash
+repochan order list --json
+repochan starter create-order <slot> \
+  --intent "<该资产如何表达项目与页面构图>" \
+  --foundation <foundation-order-id>
+repochan order set-status <order-id> approved
+```
 
-1. hero 图必须是**为网页设计的**（项目截图或专属 hero 插画），不是设定集裁切。
-2. 未交付图片在 `assets.ts` 标 `pending`，**禁止**假 ready。
-3. 只有 `page.check_assets` 返回 `ok=true` 才能进 Phase 2。
-4. hero headline = 项目价值，不是角色口号。
-5. 数据映射与 section 图片要求见 references。
+`starter create-order` 负责 orderId、partial order 合并、reference 物化和 acceptance criteria。Agent 只提供项目特定 intent、选择 foundation，并审核生成的 order。
 
-## 两阶段工作流
+让 Painter 按正常流程交付原图。不要要求 Painter 处理网站派生文件。
 
-### Phase 1：内容设计 + 资产审计
+### 5. 应用交付资产
 
-读取 [phase1-content.md](references/phase1-content.md) 与 [data-mapping.md](references/data-mapping.md)、[asset-rules.md](references/asset-rules.md)。
+```bash
+repochan starter asset-apply <slot> --order <delivered-order-id> --overwrite
+```
 
-摘要步骤：
+该命令读取实例 manifest，执行完整 postprocess，写入站点 `public/`，并同步 `repochan/assets.json` 的 `src/status/orderId/versionId`。不要手工运行其中的 compress/slice/bg-remove 等步骤。
 
-1. `repochan analysis get --json` + 读 README；`repochan persona get --json` 取配色。
-2. `repochan order list` / `get-result` 盘点素材。
-3. 设计 section 结构（标准：navbar→hero→stats→features→cta→footer；有衍生素材可加 gallery）。
-4. `repochan page generate-project`，审计 `assets.ts`（ready vs pending）。
-5. 缺图则 `order create` 后移交 Painter；或改用无图 hero centered。
+资产规则与失败边界见 [phase2-assemble.md](references/phase2-assemble.md)。
 
-**检查点**：`page.check_assets` ok 后才能 Phase 2。
+### 6. 验证、构建与视觉检查
 
-### Phase 2：组装 Astro 页面工程
+```bash
+repochan starter validate --output-dir .repochan/web-starter
+pnpm --dir .repochan/web-starter install
+pnpm --dir .repochan/web-starter build
+```
 
-读取 [phase2-assemble.md](references/phase2-assemble.md)。
+`starter validate` 统一检查 manifest/config/content、资产状态、templateId、文件存在性和展示层硬编码颜色。修复错误后再构建；最后在浏览器检查桌面、移动端、交互、可读性与溢出。
 
-摘要步骤：
+展示层禁止颜色字面量。颜色只允许集中在 `repochan/site.json` 的 `theme` 中；组件只能消费 CSS variables、`currentColor`、`transparent`、`inherit` 和基于 token 的派生颜色。
 
-6. 打开/生成 `repochan-page/`（已存在则不覆盖）。
-7. 写 theme（persona 配色 + style：modern/minimal/playful/techy/elegant）。
-8. 填 i18n 文案（主来源 analysis/README；persona 仅视觉）。
-9. 复制已交付图到 `public/repochan-assets/...`，更新 `assets.ts`。
-10. `pnpm install && pnpm build` 验证。
+## 完成标准
 
-文案原则 / 结构表 / 陷阱 → [copy-and-structure.md](references/copy-and-structure.md)。
-
-## references 索引
-
-| 文件 | 内容 |
-|---|---|
-| [data-mapping.md](references/data-mapping.md) | analysis / persona / README 字段映射 |
-| [asset-rules.md](references/asset-rules.md) | 素材用途、section 图片要求、充分性 |
-| [phase1-content.md](references/phase1-content.md) | Phase 1 全文 + 缺图 order 示例 |
-| [phase2-assemble.md](references/phase2-assemble.md) | Phase 2 全文 |
-| [copy-and-structure.md](references/copy-and-structure.md) | 文案、结构决策、陷阱 |
+- 页面准确解释项目是什么、为谁服务、为何值得使用。
+- `repochan/site.json`、`assets.json`、`i18n/` 是所有项目特定数据的集中入口。
+- 所有 required slots 和 locale requirements 通过 `starter validate`。
+- 项目可独立安装、构建并继续二次开发。
+- 派生网站资产只在实例 `public/`，不回灌 `.repochan/orders/`。

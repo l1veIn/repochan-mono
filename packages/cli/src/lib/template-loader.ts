@@ -34,6 +34,8 @@ export type TemplateData = {
   width: number;
   height: number;
   aspectRatio: string;
+  /** Provider-side rendering quality (low | medium | high | auto). Passed to `image gen --quality`. */
+  quality?: string;
   grid?: TemplateGrid;
   promptTemplate?: string;
   constraints: string[];
@@ -237,6 +239,7 @@ function toTemplateData(raw: RawYaml, idFallback: string): TemplateData | null {
       : (raw.aspect_ratio ?? raw.aspectRatio ?? derivedAspectRatio),
     grid,
     promptTemplate: typeof raw.prompt_template === "string" ? raw.prompt_template : undefined,
+    quality: typeof raw.quality === "string" ? raw.quality : undefined,
     constraints,
   };
 }

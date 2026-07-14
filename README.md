@@ -24,8 +24,8 @@ packages/
 ├── cli          repochan               Sole bin — subcommands, setup, no runtime
 ├── image-gen    @repochan/image-gen    prompt → PNG (OpenAI-compatible endpoints)
 ├── image-edit   @repochan/image-edit   Slice / bg-remove / GIF (local, zero credentials)
-└── templates    @repochan/templates    Built-in asset YAML templates
-repochan-page/                          Dogfooded Astro + Tailwind site
+├── templates    @repochan/templates    Built-in asset YAML templates
+└── starters     @repochan/starters     Landing-page starters (full Astro/Tailwind scaffolds)
 ```
 
 ### Dependency direction
@@ -64,7 +64,6 @@ Every role produces a **schema-validated, versioned artifact** under `.repochan/
   persona/current.json           # Creative team
   orders/<id>/order.json         # Art director briefs
   orders/<id>/versions/<vid>/    # Painter results (meta + images)
-  pages/current.json             # Page designer
 ```
 
 ### Default experience: one sentence → full brand
@@ -164,10 +163,15 @@ repochan interview get|create|append
 repochan persona get|create|update|review|candidate …
 repochan order list|get|create|update|set-status|add-revision|…
 repochan order create-result|list-results|get-result|set-current|…
+repochan order resolve-references <id>
 repochan order candidate create|promote
 repochan order slice|extract-stickers
 repochan foundation find
-repochan page get|create|check-assets|generate-project
+repochan starter list [--tag] | get <id> | pull [--starter <id>]
+repochan starter configure [--content-file <path>]
+repochan starter create-order <slot> --intent <text> [--foundation <order-id>]
+repochan starter asset-apply <slot> --order <order-id> [--version <id>]
+repochan starter validate <id> | --all | --output-dir <dir>
 repochan review create
 repochan protocol inspect|read|write
 ```

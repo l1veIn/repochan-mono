@@ -34,7 +34,7 @@ description: >
 2. 下游任务 **必须** `references: [{ orderId: foundation, role: "character" }]`。
 3. AD **只选 templateId**，不填 prompt 插槽、不拼完整 prompt（那是 Painter 的活）。
 4. `mustInclude` 正向描述为主，`avoid` 轻量护栏（见 order-craft）。
-5. 海报多模板时按项目气质策展，写一句话理由（见 poster-and-brand）。
+5. **海报选型强制序**（见 [poster-and-brand.md](references/poster-and-brand.md)）：① 先按 `persona.artStyle` 关键词映射；② 映射不上才看项目气质（**禁止**「工具=构成主义」默认）；③ 仍无方向则用 orderId+项目名 hash 在四个专用海报模板间分散选择。brief 写一句 `templateReason`。
 6. **yolo / 无人值守**：创建订单时在 JSON 里直接写 `"status": "approved"`（不要先 draft 再 set-status——多一步易被忘掉或当成检查点）。**非 yolo**：默认 `draft`（或省略 status，core 默认为 draft），等用户确认后再 approve。
 
 ## 工作流
@@ -74,8 +74,8 @@ repochan foundation find
 **下游订单要点：**
 - 每个下游订单 `references`: `[{"orderId": "<foundation-order-id>", "role": "character"}]`
 - 定 assetType 后 `repochan template list --tag <asset_type>` 选模板；空结果则不带 filter list，不臆造 templateId。
-- **模板策展**：单模板直接选；多模板时读 `persona.artStyle` + 项目气质 + interview，选最贴合的，写入 `templateId`。
-- 海报多模板时写一句话理由。
+- **模板策展**：单模板直接选；多模板时读 `persona.artStyle`（主）+ 项目气质（辅）+ interview，选最贴合的，写入 `templateId`。
+- **海报**：必须走 [poster-and-brand.md](references/poster-and-brand.md) 三步算法；不要总选 `poster-constructivist`。
 
 **管道创建：**
 

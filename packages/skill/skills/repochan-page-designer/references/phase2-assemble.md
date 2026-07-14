@@ -1,72 +1,29 @@
-# Phase 2：组装 Astro 页面工程
+# 资产应用与站点验收
 
-#### 步骤 6：生成或打开页面工程
+## 资产状态
 
-```
-repochan page generate-project --output-dir repochan-page
-```
+- `repochan/starter.json`: 声明 slot、fallback output、partial order 和 postprocess。
+- `repochan/assets.json`: 记录页面实际消费的 `src/status/orderId/versionId`。
+- `.repochan/orders/`: 保存 Painter 原始交付和版本历史。
+- `.repochan/web-starter/public/`: 保存页面设计阶段的派生文件。
 
-如果 `repochan-page/` 已存在，不要覆盖；直接读取它的 README、`src/i18n/*.json`、`src/config/*.ts` 和组件结构。
+默认资产让 scaffold 始终可构建，但它不代表已经完成项目定制。判断能否复用订单时，同时检查 asset type、templateId、项目身份、构图和 foundation 引用；不要只因文件存在就跳过视觉判断。
 
-#### 步骤 7：确定 theme
+## CLI 边界
 
-从 persona 提取配色，结合项目类型选 style：
-
-```json
-{
-  "theme": {
-    "primary": "<persona.mainColor>",
-    "secondary": "<persona.secondaryColor>",
-    "accent": "<persona.accentColors[0]>",
-    "background": "#FFFFFF",
-    "style": "<根据项目类型选择>",
-    "darkMode": false
-  }
-}
+```bash
+repochan starter create-order <slot> --intent "..." --foundation <order-id>
+repochan starter asset-apply <slot> --order <order-id> [--version <version-id>] --overwrite
 ```
 
-style 选择：
-- `modern` — 技术项目默认
-- `minimal` — 工具类、CLI 项目
-- `playful` — 创意类、社区项目
-- `techy` — 硬核技术项目
-- `elegant` — 品牌展示
+`asset-apply` 必须整体成功后才更新 `assets.json`。发生后处理错误时，保留现有站点输出和状态，不要手工拼出半完成状态。只有调试 image-edit 本身时才直接调用 `repochan image edit`。
 
-将这些信息写入模板的 theme/config 文件，而不是只写 Page JSON。
+## 验收顺序
 
-#### 步骤 8：填充文案
+1. `repochan starter validate --output-dir .repochan/web-starter`
+2. `pnpm --dir .repochan/web-starter build`
+3. 浏览器检查默认 locale 与其他 locale。
+4. 检查窄屏、宽屏、键盘焦点、外链和 reduced-motion。
+5. 核对角色身份、文字留白、CTA 可读性以及图片裁切。
 
-**从 analysis 填充（主要来源）：**
-- `title`：`context.basic.project_name` + 简短定位
-- `description`：`preAnalysis.summary`
-- `hero headline`：项目名 + 核心价值
-- `hero subheadline`：`preAnalysis.summary` 或 `abstract.overall_impression`
-- `features items`：从 README `##` 标题 + `tech_stack.frameworks` 提炼
-- `stats items`：`total_files`、`total_lines`、测试数量、技术栈统计
-
-**从 persona 填充（仅限视觉）：**
-- theme 配色
-- `footer brand`：persona.name（navbar brand 用项目名）
-
-把文案写入 `src/i18n/zh.json` 和 `src/i18n/en.json`。跟随 README 主语言时，仍保留另一个 locale 的可编辑初稿。
-
-#### 步骤 9：填充资产 manifest
-
-把已交付图片复制到：
-
-```
-repochan-page/public/repochan-assets/<orderId>/<versionId>/<file>
-```
-
-然后更新 `src/config/assets.ts`。未交付的视觉原型保留为 `status: "pending"`，不要伪造图片结果。
-
-#### 步骤 10：验证
-
-在 `repochan-page/` 内运行：
-
-```
-pnpm install
-pnpm build
-```
-
-检查中英页面、移动端布局、图片 fallback、以及真实图片路径。
+不要通过降低 required slot、伪造 `ready` 或删除 locale 来绕过 validator。

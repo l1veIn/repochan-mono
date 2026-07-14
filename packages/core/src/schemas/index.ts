@@ -193,11 +193,21 @@ const DeliverableSchema = Type.Object({
   transparentBackground: Type.Optional(Type.Boolean()),
 });
 
-const OrderReferenceSchema = Type.Object({
-  orderId: OrderIdSchema,
-  role: Type.Union([Type.Literal("character"), Type.Literal("style"), Type.Literal("composition")]),
-  versionId: Type.Optional(VersionIdSchema),
-});
+const OrderReferenceSchema = Type.Union([
+  // order variant — `type` optional (omitted ⇒ order, for backward compat)
+  Type.Object({
+    type: Type.Optional(Type.Literal("order")),
+    orderId: OrderIdSchema,
+    role: Type.Union([Type.Literal("character"), Type.Literal("style"), Type.Literal("composition")]),
+    versionId: Type.Optional(VersionIdSchema),
+  }),
+  // file variant — references an arbitrary image file by path
+  Type.Object({
+    type: Type.Literal("file"),
+    path: Type.String({ description: "File path relative to projectRoot, or absolute." }),
+    role: Type.Union([Type.Literal("character"), Type.Literal("style"), Type.Literal("composition")]),
+  }),
+]);
 
 const SingleOrderSchema = Type.Object({
   orderId: OrderIdSchema,
@@ -420,147 +430,6 @@ export const InterviewAppendParamsSchema = Type.Object({
   provenance: Type.Optional(ProvenanceSchema),
 });
 
-// ── Page ──
-
-export const AssetRefSchema = Type.Object({
-  orderId: OrderIdSchema,
-  file: Type.String({ description: "Filename within the version directory." }),
-  versionId: Type.Optional(VersionIdSchema),
-  alt: Type.Optional(Type.String()),
-});
-
-export const PageLinkSchema = Type.Object({
-  label: Type.String(),
-  href: Type.String(),
-});
-
-export const PageThemeSchema = Type.Object({
-  primary: Type.String({ description: "Hex color, e.g. #3B82F6." }),
-  secondary: Type.String(),
-  accent: Type.String(),
-  background: Type.String(),
-  style: Type.Union([
-    Type.Literal("modern"),
-    Type.Literal("playful"),
-    Type.Literal("minimal"),
-    Type.Literal("techy"),
-    Type.Literal("elegant"),
-  ]),
-  darkMode: Type.Optional(Type.Boolean()),
-  fontFamily: Type.Optional(Type.String()),
-});
-
-export const NavbarContentSchema = Type.Object({
-  brand: Type.String(),
-  links: Type.Optional(Type.Array(PageLinkSchema)),
-  cta: Type.Optional(PageLinkSchema),
-});
-
-export const HeroContentSchema = Type.Object({
-  headline: Type.String(),
-  subheadline: Type.String(),
-  primaryCta: PageLinkSchema,
-  secondaryCta: Type.Optional(PageLinkSchema),
-  image: Type.Optional(AssetRefSchema),
-});
-
-export const FeaturesContentSchema = Type.Object({
-  heading: Type.Optional(Type.String()),
-  subheading: Type.Optional(Type.String()),
-  items: Type.Array(Type.Object({
-    icon: Type.Optional(Type.String()),
-    title: Type.String(),
-    description: Type.String(),
-    image: Type.Optional(AssetRefSchema),
-  })),
-});
-
-export const StatsContentSchema = Type.Object({
-  items: Type.Array(Type.Object({
-    value: Type.String(),
-    label: Type.String(),
-  })),
-});
-
-export const GalleryContentSchema = Type.Object({
-  heading: Type.Optional(Type.String()),
-  images: Type.Array(AssetRefSchema),
-});
-
-export const CtaContentSchema = Type.Object({
-  heading: Type.String(),
-  subheading: Type.Optional(Type.String()),
-  buttonText: Type.String(),
-  buttonHref: Type.String(),
-});
-
-export const FooterContentSchema = Type.Object({
-  brand: Type.String(),
-  copyright: Type.Optional(Type.String()),
-  links: Type.Optional(Type.Array(PageLinkSchema)),
-  socials: Type.Optional(Type.Array(Type.Object({
-    platform: Type.String(),
-    href: Type.String(),
-  }))),
-  logo: Type.Optional(AssetRefSchema),
-});
-
-export const PageSectionSchema = Type.Union([
-  Type.Object({
-    type: Type.Literal("navbar"),
-    variant: Type.Union([Type.Literal("simple"), Type.Literal("with-cta")]),
-    content: NavbarContentSchema,
-  }),
-  Type.Object({
-    type: Type.Literal("hero"),
-    variant: Type.Union([Type.Literal("centered"), Type.Literal("split-right"), Type.Literal("split-left"), Type.Literal("full-bg")]),
-    content: HeroContentSchema,
-  }),
-  Type.Object({
-    type: Type.Literal("features"),
-    variant: Type.Union([Type.Literal("grid-2"), Type.Literal("grid-3"), Type.Literal("grid-4")]),
-    content: FeaturesContentSchema,
-  }),
-  Type.Object({
-    type: Type.Literal("stats"),
-    variant: Type.Union([Type.Literal("row"), Type.Literal("grid")]),
-    content: StatsContentSchema,
-  }),
-  Type.Object({
-    type: Type.Literal("gallery"),
-    variant: Type.Union([Type.Literal("grid"), Type.Literal("masonry")]),
-    content: GalleryContentSchema,
-  }),
-  Type.Object({
-    type: Type.Literal("cta"),
-    variant: Type.Union([Type.Literal("centered"), Type.Literal("banner")]),
-    content: CtaContentSchema,
-  }),
-  Type.Object({
-    type: Type.Literal("footer"),
-    variant: Type.Union([Type.Literal("standard"), Type.Literal("minimal")]),
-    content: FooterContentSchema,
-  }),
-]);
-
-export const PageArtifactSchema = Type.Object({
-  title: Type.String(),
-  description: Type.String(),
-  theme: PageThemeSchema,
-  sections: Type.Array(PageSectionSchema),
-  schemaVersion: Type.Optional(Type.String()),
-  generatedAt: Type.Optional(Type.String()),
-  provenance: Type.Optional(ProvenanceSchema),
-}, { description: "RepoChan static page artifact." });
-
-export const PageCreateParamsSchema = Type.Object({
-  page: PageArtifactSchema,
-  overwrite: Type.Optional(Type.Boolean()),
-  versionPrevious: Type.Optional(Type.Boolean()),
-  slug: Type.Optional(Type.String({ pattern: "^[a-z0-9-]+$" })),
-  provenance: Type.Optional(ProvenanceSchema),
-});
-
 // ── Review ──
 
 export const ReviewVerdictSchema = Type.Union([
@@ -665,7 +534,6 @@ export const WriteOpSchemas = {
   "order.extract_stickers": OrderExtractStickersParamsSchema,
   "analysis.run": AnalysisRunParamsSchema,
   "analysis.update": AnalysisUpdateParamsSchema,
-  "page.create": PageCreateParamsSchema,
   "review.create": ReviewCreateParamsSchema,
   "persona.review": PersonaReviewCreateParamsSchema,
   "persona.create_candidate": PersonaCandidateCreateParamsSchema,

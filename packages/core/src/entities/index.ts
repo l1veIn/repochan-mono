@@ -25,14 +25,6 @@ export {
   resolveOrderReferences,
 } from "./orders.js";
 
-export {
-  createOrUpdatePage,
-  collectAssetRefs,
-  checkPageAssets,
-  readPage,
-} from "./pages.js";
-export type { AssetResolution, AssetCheckResult } from "./pages.js";
-
 export { createReview } from "./review.js";
 
 export { createPersonaReview } from "./persona-review.js";

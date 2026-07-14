@@ -1,0 +1,31 @@
+{
+  "name": "@repochan/starters",
+  "version": "0.1.0",
+  "description": "Built-in landing-page starters (full Astro/Tailwind project scaffolds) for RepoChan.",
+  "type": "module",
+  "license": "MIT",
+  "author": "l1veIn",
+  "homepage": "https://github.com/l1veIn/repochan-mono/tree/main/packages/starters",
+  "bugs": {
+    "url": "https://github.com/l1veIn/repochan-mono/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/l1veIn/repochan-mono.git",
+    "directory": "packages/starters"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "files": [
+    "*/",
+    "README.md",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "echo 'starters package: no build step (scaffold directories)'",
+    "test": "echo 'starters package: no unit tests (loaded by CLI)'",
+    "lint": "echo 'starters package: no lint step'"
+  }
+}

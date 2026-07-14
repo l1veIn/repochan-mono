@@ -1,0 +1,26 @@
+id: "official/hero-character-migrate"
+asset_type: "hero_composite"
+label: "Hero 角色迁移"
+description: >
+  把 starter hero 合成图里的角色替换成项目的 foundation 角色。构图、人物姿态、
+  留白位置完全参考第一张参考图(starter hero);背景、色彩、人物身份完全参考
+  第二张参考图(foundation)。提示词只需带过意图,细节交给参考图。
+tags: ["hero", "migrate", "web", "landing"]
+size: "2560x1440"
+quality: "high"
+
+prompt_template: |
+  Hero composite background image for a landing page, 16:9 widescreen.
+  Two reference images are provided. The FIRST is the layout/composition reference —
+  match its character pose, body language, and blank-zone layout exactly.
+  The SECOND is the character identity reference — take the character from it.
+  Replace the character in the first image with the character from the second,
+  keeping the pose and composition identical. Redesign the background and colors
+  to match the second reference's palette and atmosphere. Seamless composite,
+  no cutout edges. No text, no UI elements.
+
+constraints:
+  - "Character pose must match the layout reference exactly"
+  - "Left blank zone must stay empty for HTML overlay"
+  - "No text or UI elements"
+  - "Character identity must match the foundation reference"

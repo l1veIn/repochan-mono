@@ -37,6 +37,7 @@ export async function runImageGen(
     mode?: string;
     aspect?: string;
     size?: string;
+    quality?: string;
   },
 ) {
   const prompt = options.prompt;
@@ -55,7 +56,8 @@ export async function runImageGen(
   }
 
   const aspect = options.aspect as "landscape" | "square" | "portrait" | undefined;
-  const size = options.size as "1024x1024" | "1536x1024" | "1024x1536" | undefined;
+  const size = options.size as string | undefined;
+  const quality = options.quality as "low" | "medium" | "high" | "auto" | undefined;
   const modeOverride: ImageRequestMode | undefined = options.mode
     ? normalizeImageRequestMode(options.mode)
     : undefined;
@@ -106,7 +108,7 @@ export async function runImageGen(
 
   try {
     const result = await generate(
-      { prompt, aspectRatio: aspect, size, referenceImages },
+      { prompt, aspectRatio: aspect, size, quality, referenceImages },
       config,
       { endpoint: options.endpoint, mode: modeOverride },
     );
@@ -152,18 +154,51 @@ export async function runImageGen(
   }
 }
 
-/** repochan image edit slice <img> --rows --cols [--out <dir>] */
+/** repochan image edit slice <img> --rows --cols [--out <dir>] [--padding <n>] [--name-template <tpl>] */
 export async function runImageEditSlice(
   cwd: string,
   imagePath: string | undefined,
-  options: OutputOptions & { rows?: number; cols?: number; out?: string },
+  options: OutputOptions & { rows?: number; cols?: number; out?: string; padding?: string; nameTemplate?: string; overwrite?: boolean },
 ) {
-  if (!imagePath) throw new UsageError("Usage: repochan image edit slice <png-path> --rows <n> --cols <n>");
-  const { sliceImage } = await import("@repochan/image-edit");
-  const { tiles, sourceFile } = await sliceImage(path.resolve(cwd, imagePath), options.rows!, options.cols!);
-  emitResult(options, `Sliced ${sourceFile} into ${tiles.rows}×${tiles.cols} (${tiles.cells.length} tiles).`, {
-    tiles,
-  });
+  if (!imagePath) throw new UsageError("Usage: repochan image edit slice <png-path> --rows <n> --cols <n> [--out <dir>] [--padding <n>]");
+  const absIn = path.resolve(cwd, imagePath);
+  const { sliceImage, sliceGridToFiles } = await import("@repochan/image-edit");
+
+  // No --out: metadata-only mode (backward-compatible). Returns tile coordinates as JSON.
+  if (!options.out) {
+    const { tiles, sourceFile } = await sliceImage(absIn, options.rows!, options.cols!);
+    emitResult(options, `Sliced ${sourceFile} into ${tiles.rows}×${tiles.cols} (${tiles.cells.length} tiles).`, {
+      tiles,
+    });
+    return;
+  }
+
+  // --out <dir>: crop the grid into individual tile PNGs on disk.
+  const absOut = path.resolve(cwd, options.out);
+  const padding = options.padding ? parseInt(options.padding, 10) : 0;
+  if (Number.isNaN(padding) || padding < 0) {
+    throw new UsageError(`--padding must be a non-negative integer (got "${options.padding}")`);
+  }
+  const spinner = ora("Cropping tiles…").start();
+  try {
+    const { sourceFile, tiles } = await sliceGridToFiles(absIn, absOut, {
+      rows: options.rows!,
+      cols: options.cols!,
+      padding,
+      nameTemplate: options.nameTemplate,
+      overwrite: options.overwrite,
+    });
+    const list = tiles.map((t) => `${t.file} (${t.width}×${t.height})`).join(", ");
+    spinner.succeed(`Wrote ${tiles.length} tiles → ${path.relative(cwd, absOut) || absOut}`);
+    emitResult(
+      options,
+      `Sliced ${sourceFile} into ${tiles.length} tiles → ${absOut}: ${list}`,
+      { sourceFile, outDir: absOut, tiles, padding },
+    );
+  } catch (err) {
+    spinner.fail();
+    throw err;
+  }
 }
 
 export async function runImageEditBgRemove(
@@ -201,6 +236,203 @@ export async function runImageEditBgRemove(
         width: result.width,
         height: result.height,
       },
+    );
+  } catch (err) {
+    spinner.fail();
+    throw err;
+  }
+}
+
+/** repochan image edit compress <img> [--out out.webp] [--format webp|jpeg|avif|png] [--quality 80] [--max-width 2560] [--overwrite] */
+export async function runImageEditCompress(
+  cwd: string,
+  imagePath: string | undefined,
+  options: OutputOptions & { out?: string; format?: string; quality?: string; maxWidth?: string; overwrite?: boolean },
+) {
+  if (!imagePath) throw new UsageError("Usage: repochan image edit compress <img> [--out out.webp] [--format webp] [--quality 80] [--max-width 2560]");
+  const absIn = path.resolve(cwd, imagePath);
+  const format = (options.format as "webp" | "jpeg" | "avif" | "png" | undefined) ?? "webp";
+  const quality = options.quality ? parseInt(options.quality, 10) : undefined;
+  const maxWidth = options.maxWidth ? parseInt(options.maxWidth, 10) : undefined;
+  const ext = format === "jpeg" ? ".jpg" : `.${format}`;
+  const absOut = options.out
+    ? path.resolve(cwd, options.out)
+    : absIn.replace(/\.[^.]+$/, ext);
+
+  const { compressImage } = await import("@repochan/image-edit");
+  const spinner = ora(`Compressing to ${format}…`).start();
+  try {
+    const result = await compressImage(absIn, absOut, { format, quality, maxWidth, overwrite: options.overwrite });
+    const origMB = (result.originalBytes / 1024 / 1024).toFixed(2);
+    const compMB = (result.compressedBytes / 1024 / 1024).toFixed(2);
+    spinner.succeed(
+      `Compressed → ${path.relative(cwd, absOut) || absOut} (${result.width}×${result.height}, ${origMB}MB → ${compMB}MB, ${result.ratio.toFixed(1)}× smaller)`,
+    );
+    emitResult(
+      options,
+      `Compressed ${result.sourceFile} → ${result.outFile} (${result.format} q${result.quality}, ${result.width}×${result.height}, ${origMB}MB → ${compMB}MB, ${result.ratio.toFixed(1)}×)`,
+      { ...result, originalMB: parseFloat(origMB), compressedMB: parseFloat(compMB) },
+    );
+  } catch (err) {
+    spinner.fail();
+    throw err;
+  }
+}
+
+/** repochan image edit chroma-key <img> [--out out.png] [--matte auto|#ff00ff] [--threshold N] [--softness N] [--spill 0.85] */
+export async function runImageEditChromaKey(
+  cwd: string,
+  imagePath: string | undefined,
+  options: OutputOptions & { out?: string; matte?: string; threshold?: string; softness?: string; spill?: string },
+) {
+  if (!imagePath) {
+    throw new UsageError(
+      "Usage: repochan image edit chroma-key <img> [--out out.png] [--matte auto|#ff00ff|magenta|green|cyan] [--threshold 28] [--softness 34] [--spill 0.85]",
+    );
+  }
+  const absIn = path.resolve(cwd, imagePath);
+  const absOut = options.out
+    ? path.resolve(cwd, options.out)
+    : absIn.replace(/(\.[^.]+)?$/, "-chroma.png");
+
+  const { chromaKeyImage, parseMatteColor, matteColorToHex } = await import("@repochan/image-edit");
+  const matteRaw = options.matte ? parseMatteColor(options.matte) : "auto";
+  const matteColor = matteRaw === "auto" ? undefined : matteRaw;
+
+  const threshold = options.threshold ? parseFloat(options.threshold) : undefined;
+  const softness = options.softness ? parseFloat(options.softness) : undefined;
+  const spill = options.spill ? parseFloat(options.spill) : undefined;
+
+  if (threshold !== undefined && (isNaN(threshold) || threshold < 0)) {
+    throw new UsageError(`--threshold must be a non-negative number (got "${options.threshold}")`);
+  }
+
+  const spinner = ora("Chroma keying…").start();
+  try {
+    const result = await chromaKeyImage(absIn, absOut, {
+      matteColor: matteColor as any,
+      threshold,
+      softness,
+      spillSuppression: spill,
+    });
+    spinner.succeed(
+      `Chroma keyed → ${path.relative(cwd, absOut) || absOut} (matte: ${matteColorToHex(result.matteColor)} ${result.matteColorSource}, quality score: ${result.threshold}/${result.softness})`,
+    );
+    emitResult(
+      options,
+      `Chroma keyed ${result.sourceFile} → ${result.outFile} (matte ${matteColorToHex(result.matteColor)} ${result.matteColorSource}, threshold=${result.threshold}, softness=${result.softness}, spill=${result.spillSuppression})`,
+      {
+        sourceFile: result.sourceFile,
+        outFile: absOut,
+        matteColor: matteColorToHex(result.matteColor),
+        matteColorSource: result.matteColorSource,
+        threshold: result.threshold,
+        softness: result.softness,
+        spillSuppression: result.spillSuppression,
+      },
+    );
+  } catch (err) {
+    spinner.fail();
+    throw err;
+  }
+}
+
+/** repochan image edit extract-stickers <img> --rows --cols --out <dir> [--model small|medium|large] [--overwrite] */
+export async function runImageEditExtractStickers(
+  cwd: string,
+  imagePath: string | undefined,
+  options: OutputOptions & { rows?: number; cols?: number; out?: string; model?: string; overwrite?: boolean },
+) {
+  if (!imagePath) throw new UsageError("Usage: repochan image edit extract-stickers <img> --rows <n> --cols <n> --out <dir>");
+  if (!options.out) throw new UsageError("--out <dir> is required for extract-stickers");
+  if (!options.rows || !options.cols) throw new UsageError("--rows and --cols are required");
+
+  const absIn = path.resolve(cwd, imagePath);
+  const absOut = path.resolve(cwd, options.out);
+  const model = (options.model as "small" | "medium" | "large" | undefined) ?? "small";
+  const { extractStickersFromImage } = await import("@repochan/image-edit");
+
+  if (!options.json) {
+    console.log("Extracting stickers via ISNet… (first run downloads the model, ~40MB)");
+  }
+  const spinner = ora("Matting + detecting stickers…").start();
+  try {
+    const result = await extractStickersFromImage(absIn, {
+      rows: options.rows, cols: options.cols, model, overwrite: options.overwrite,
+    }, absOut);
+    const list = result.stickers.map((s) => `${s.file} (${s.width}×${s.height})`).join(", ");
+    spinner.succeed(`Extracted ${result.stickers.length} stickers → ${path.relative(cwd, absOut) || absOut}`);
+    emitResult(
+      options,
+      `Extracted ${result.stickers.length} transparent stickers from ${result.sourceFile}: ${list}`,
+      { sourceFile: result.sourceFile, outDir: absOut, stickers: result.stickers, config: result.config },
+    );
+  } catch (err) {
+    spinner.fail();
+    throw err;
+  }
+}
+
+/** repochan image edit resize <img> --sizes <list> --out <dir> [--fit <mode>] [--overwrite] */
+export async function runImageEditResize(
+  cwd: string,
+  imagePath: string | undefined,
+  options: OutputOptions & { sizes?: string; out?: string; fit?: string; overwrite?: boolean },
+) {
+  if (!imagePath) throw new UsageError("Usage: repochan image edit resize <img> --sizes 16,32,48,180,512 --out <dir>");
+  if (!options.sizes) throw new UsageError("--sizes is required (comma-separated pixel sizes, e.g. 16,32,48,180,512)");
+  if (!options.out) throw new UsageError("--out <dir> is required for resize");
+
+  const absIn = path.resolve(cwd, imagePath);
+  const absOut = path.resolve(cwd, options.out);
+  const sizes = options.sizes.split(",").map((s) => parseInt(s.trim(), 10)).filter((n) => !isNaN(n) && n > 0);
+  if (sizes.length === 0) throw new UsageError(`--sizes must contain at least one valid number (got "${options.sizes}")`);
+
+  const fit = (options.fit as "cover" | "contain" | "inside" | "fill" | undefined) ?? "inside";
+  const { resizeImage } = await import("@repochan/image-edit");
+
+  const targets = sizes.map((width) => ({ width }));
+  const spinner = ora(`Resizing to ${sizes.length} size(s)…`).start();
+  try {
+    const result = await resizeImage(absIn, absOut, { targets, overwrite: options.overwrite, fit });
+    const list = result.outputs.map((o) => `${o.file} (${o.width}×${o.height})`).join(", ");
+    spinner.succeed(`Resized ${result.sourceFile} → ${list}`);
+    emitResult(
+      options,
+      `Resized ${result.sourceFile} (${result.sourceWidth}×${result.sourceHeight}) into ${result.outputs.length} files → ${absOut}`,
+      { sourceFile: result.sourceFile, outDir: absOut, outputs: result.outputs },
+    );
+  } catch (err) {
+    spinner.fail();
+    throw err;
+  }
+}
+
+/** repochan image edit favicon <img> [--out out.ico] [--sizes 16,32,48,180,256] [--overwrite] */
+export async function runImageEditFavicon(
+  cwd: string,
+  imagePath: string | undefined,
+  options: OutputOptions & { out?: string; sizes?: string; overwrite?: boolean },
+) {
+  if (!imagePath) throw new UsageError("Usage: repochan image edit favicon <img> [--out out.ico] [--sizes 16,32,48,256]");
+  const absIn = path.resolve(cwd, imagePath);
+  const absOut = options.out
+    ? path.resolve(cwd, options.out)
+    : absIn.replace(/\.[^.]+$/, ".ico");
+
+  const sizes = options.sizes
+    ? options.sizes.split(",").map((s) => parseInt(s.trim(), 10)).filter((n) => !isNaN(n) && n > 0)
+    : [16, 32, 48, 180, 256];
+
+  const { generateIco } = await import("@repochan/image-edit");
+  const spinner = ora(`Generating .ico (${sizes.join(", ")}px)…`).start();
+  try {
+    const result = await generateIco(absIn, absOut, { sizes, overwrite: options.overwrite });
+    spinner.succeed(`Favicon → ${path.relative(cwd, absOut) || absOut} (${result.sizes.length} sizes)`);
+    emitResult(
+      options,
+      `Generated ${result.outFile} from ${result.sourceFile} with sizes ${sizes.join(", ")}`,
+      { sourceFile: result.sourceFile, outFile: absOut, sizes: result.sizes },
     );
   } catch (err) {
     spinner.fail();

@@ -29,7 +29,7 @@ export type ModeContext = {
   /** Runtime mode only (never auto). */
   mode: RuntimeImageMode;
   params: GenerateParams;
-  size: `${number}x${number}`;
+  size: string;
   fetchFn: typeof fetch;
   signal?: AbortSignal;
   asyncMaxWaitMs?: number;
@@ -79,7 +79,7 @@ export function asyncPollUrl(endpoint: EndpointConfig, jobId: string, mode: Runt
 export function generationsBody(
   endpoint: EndpointConfig,
   params: GenerateParams,
-  size: `${number}x${number}`,
+  size: string,
   opts?: { includeResponseFormat?: boolean },
 ): Record<string, unknown> {
   const body: Record<string, unknown> = {
@@ -88,6 +88,9 @@ export function generationsBody(
     n: 1,
     size,
   };
+  if (params.quality) {
+    body.quality = params.quality;
+  }
   const includeRf = opts?.includeResponseFormat ?? !isGptImage2Model(endpoint.model);
   if (includeRf) {
     body.response_format = "url";
@@ -305,10 +308,16 @@ export async function postEdits(ctx: ModeContext): Promise<SubmitOutcome> {
     form.set("response_format", "url");
   }
 
+  // Always use `image[]` as the field name — this is the array-field convention
+  // that gpt-image-2 relays (65535.space, codex-pool, localhost worker) all
+  // accept for multi-image conditioning. Using plain `image` (without []) causes
+  // most multipart parsers to resolve duplicate field names to the FIRST part
+  // and silently discard the rest. Node FormData correctly sets per-part MIME
+  // from the Blob type, so image/png and image/webp parts are preserved.
   for (let i = 0; i < refs.length; i++) {
     const ref = refs[i];
     const blob = new Blob([Buffer.from(ref.data)], { type: ref.mimeType || "image/png" });
-    form.append("image", blob, `reference-${i}.png`);
+    form.append("image[]", blob, `reference-${i}.png`);
   }
 
   const url = endpointUrl(ctx.endpoint, editPath(ctx.endpoint));
