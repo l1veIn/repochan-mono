@@ -9,8 +9,8 @@ const require = createRequire(import.meta.url);
 /** Append `+g<hash>` (or `+g<hash>-dirty`) from git so every build is identifiable. */
 function getGitSuffix(): string {
   try {
-    const short = execSync("git rev-parse --short HEAD", { encoding: "utf8", timeout: 2000 }).trim();
-    const dirty = execSync("git status --porcelain", { encoding: "utf8", timeout: 2000 }).trim().length > 0;
+    const short = execSync("git rev-parse --short HEAD", { encoding: "utf8", timeout: 2000, stdio: ["pipe", "pipe", "pipe"] }).trim();
+    const dirty = execSync("git status --porcelain", { encoding: "utf8", timeout: 2000, stdio: ["pipe", "pipe", "pipe"] }).trim().length > 0;
     return `+g${short}${dirty ? "-dirty" : ""}`;
   } catch {
     return "";
