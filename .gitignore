@@ -16,6 +16,8 @@ output/
 test-repos/
 test-results/
 test/
+!packages/image-gen/test/
+!packages/image-gen/test/**
 test-repos-archive-*/
 chibi-review/
 .spike/

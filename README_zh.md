@@ -189,10 +189,13 @@ repochan template get official/foundation-sheet
 Setup：
 
 ```bash
-repochan setup [--agent claude|codex|pi|cursor|hermes|auto|all]
+repochan setup [--agent claude|codex|cursor|pi|hermes|opencode|gemini|kiro|antigravity|auto|all] [--global|--project] [--overwrite]
 repochan setup --list
 repochan setup --remove --agent claude
 ```
+
+项目级 setup 默认绝不会覆盖已有的非 RepoChan Cursor/Kiro 指令文件。请先移动或
+手动合并该文件；只有明确希望替换这个专用路径时才传入 `--overwrite`。
 
 多数命令支持 `--json`。写操作 payload：`--data-file path`、`--data-file -`（stdin），或在非 TTY 下直接 pipe JSON。
 

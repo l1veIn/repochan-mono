@@ -224,10 +224,14 @@ repochan template get official/foundation-sheet
 Setup:
 
 ```bash
-repochan setup [--agent claude|codex|pi|cursor|hermes|auto|all]
+repochan setup [--agent claude|codex|cursor|pi|hermes|opencode|gemini|kiro|antigravity|auto|all] [--global|--project] [--overwrite]
 repochan setup --list
 repochan setup --remove --agent claude
 ```
+
+Project setup never replaces an existing non-RepoChan Cursor/Kiro instruction
+file by default. Move or merge that file, or pass `--overwrite` explicitly if
+replacing that exact owned path is intentional.
 
 Most commands accept `--json` for machine-readable output. Write payloads: `--data-file path`, `--data-file -` for stdin, or pipe JSON when the option is omitted and stdin is not a TTY.
 

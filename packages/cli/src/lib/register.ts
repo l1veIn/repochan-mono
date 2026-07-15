@@ -1,16 +1,46 @@
 import { promises as fs } from "node:fs";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 
-/** Append `+g<hash>` (or `+g<hash>-dirty`) from git so every build is identifiable. */
-function getGitSuffix(): string {
+const CLI_PACKAGE_DIR = path.dirname(require.resolve("../../package.json"));
+
+/**
+ * Append source-checkout identity while developing RepoChan itself.
+ *
+ * A published CLI normally lives under a user's git repository at
+ * `node_modules/repochan`. Running git against process.cwd() (or blindly
+ * walking up from the package) would therefore mistake the user's project
+ * commit and dirty state for the CLI version. Only the canonical monorepo
+ * layout is allowed to contribute a git suffix.
+ */
+export function gitSuffixForPackageDir(packageDir: string): string {
   try {
-    const short = execSync("git rev-parse --short HEAD", { encoding: "utf8", timeout: 2000, stdio: ["pipe", "pipe", "pipe"] }).trim();
-    const dirty = execSync("git status --porcelain", { encoding: "utf8", timeout: 2000, stdio: ["pipe", "pipe", "pipe"] }).trim().length > 0;
+    const repoRoot = execFileSync("git", ["-C", packageDir, "rev-parse", "--show-toplevel"], {
+      encoding: "utf8",
+      timeout: 2000,
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+    const packagePrefix = execFileSync("git", ["-C", packageDir, "rev-parse", "--show-prefix"], {
+      encoding: "utf8",
+      timeout: 2000,
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim().replace(/\\/g, "/").replace(/\/$/, "");
+    if (packagePrefix !== "packages/cli") return "";
+
+    const short = execFileSync("git", ["-C", repoRoot, "rev-parse", "--short", "HEAD"], {
+      encoding: "utf8",
+      timeout: 2000,
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+    const dirty = execFileSync("git", ["-C", repoRoot, "status", "--porcelain"], {
+      encoding: "utf8",
+      timeout: 2000,
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim().length > 0;
     return `+g${short}${dirty ? "-dirty" : ""}`;
   } catch {
     return "";
@@ -68,9 +98,9 @@ const SCHEMA_VERSION = 1;
 export function cliVersion(): string {
   try {
     // resolve from this module's location — works in both src/ and dist/.
-    const pkgPath = require.resolve("../../package.json");
+    const pkgPath = path.join(CLI_PACKAGE_DIR, "package.json");
     const pkg = JSON.parse(require("fs").readFileSync(pkgPath, "utf8"));
-    return (pkg.version ?? "0.0.0") + getGitSuffix();
+    return (pkg.version ?? "0.0.0") + gitSuffixForPackageDir(CLI_PACKAGE_DIR);
   } catch {
     return "0.0.0";
   }
@@ -134,8 +164,9 @@ export async function recordSkillInstall(
   await saveRegister(reg);
 }
 
-export async function recordSkillRemove(agentId: string): Promise<void> {
+export async function recordSkillRemove(agentId: string, scope?: SkillScope): Promise<void> {
   const reg = await loadRegister();
+  if (scope && reg.skills[agentId]?.scope !== scope) return;
   delete reg.skills[agentId];
   await saveRegister(reg);
 }

@@ -12,6 +12,7 @@ import {
 } from "./agents/registry.js";
 import {
   installTarget,
+  preflightTargetInstall,
   resolveSkillSourceDir,
   uninstallTarget,
   fileExists,
@@ -24,6 +25,7 @@ import { maybeConfigureImageDuringSetup } from "../image-configure.js";
 import {
   recordSkillInstall,
   recordSkillRemove,
+  loadRegister,
   type SkillScope,
 } from "../../lib/register.js";
 
@@ -32,6 +34,8 @@ export type SetupOptions = OutputOptions & {
   agent?: string;
   list?: boolean;
   remove?: boolean;
+  /** Replace an existing non-RepoChan file at an owned instruction path. */
+  overwrite?: boolean;
   /**
    * Non-interactive defaults:
    *   install → one primary detected agent
@@ -51,7 +55,7 @@ export type SetupOptions = OutputOptions & {
  * If image generation is not configured, offers OpenAI / custom / skip.
  *
  * Does **not** run `repochan init` — protocol init is left to the agent (or an
- * explicit `repochan init`). Flags: --agent / --yes / --list / --remove
+ * explicit `repochan init`). Flags: --agent / --yes / --list / --remove / --overwrite
  */
 export async function runSetup(cwd: string, options: SetupOptions = {}) {
   if (options.list) return runList(cwd, options);
@@ -110,10 +114,18 @@ async function runProject(cwd: string, options: SetupOptions, skillSrc: string) 
     if (targets.length === 0) {
       return void emitResult(options, "No agents selected to remove.", { removed: [] });
     }
+    const removingIds = new Set(targets.map((target) => target.id));
+    const remainingTargets = ALL_TARGETS.filter(
+      (target) => configuredIds.includes(target.id) && !removingIds.has(target.id),
+    );
     const results: InstallResult[] = [];
     for (const t of targets) {
-      results.push(await uninstallTarget(cwd, t));
-      await recordSkillRemove(t.id);
+      const skillRel = skillDestFor(t, "project");
+      const preserveSkills = remainingTargets.some(
+        (other) => skillDestFor(other, "project") === skillRel,
+      );
+      results.push(await uninstallTarget(cwd, t, "project", skillSrc, preserveSkills));
+      await recordSkillRemove(t.id, "project");
     }
     return reportResults(options, "remove", results);
   }
@@ -124,9 +136,16 @@ async function runProject(cwd: string, options: SetupOptions, skillSrc: string) 
     return void emitResult(options, "No agents selected — nothing to do.", { installed: [] });
   }
 
+  // Validate every owned instruction path before the first target mutates the
+  // project or register. This keeps multi-agent setup all-or-nothing when a
+  // later Cursor/Kiro target collides with user-owned content.
+  for (const t of targets) {
+    await preflightTargetInstall(cwd, t, "project", options.overwrite ?? false, skillSrc);
+  }
+
   const results: InstallResult[] = [];
   for (const t of targets) {
-    const res = await installTarget(cwd, t, skillSrc, "project");
+    const res = await installTarget(cwd, t, skillSrc, "project", options.overwrite ?? false);
     results.push(res);
     await recordSkillInstall(t.id, "project", res.skillDir ?? ".repochan/skills", res.skillFiles);
   }
@@ -364,15 +383,43 @@ async function runGlobal(options: SetupOptions, skillSrc: string) {
   const home = os.homedir();
 
   if (options.remove) {
-    // Detect globally-installed agents by checking for our wizard skill.
-    const detected = await detectAll(home);
-    const configuredIds = detected
-      .filter((d) => {
-        const skillRel = skillDestFor(d.target, "global");
-        const wizardPath = path.join(home, skillRel, "repochan", "SKILL.md");
-        return fileExists(wizardPath);
-      })
-      .map((d) => d.target.id) as AgentId[];
+    // Global skill directories do not carry per-agent markers. Use explicit
+    // global register records; when ownership is ambiguous we preserve files.
+    const register = await loadRegister();
+    const registeredGlobalIds = Object.entries(register.skills)
+      .filter(([, record]) => record.scope === "global")
+      .map(([id]) => id)
+      .filter((id): id is AgentId => getTarget(id) !== undefined);
+    const physicalGlobalIds = (await Promise.all(ALL_TARGETS.map(async (target) => {
+      const skillAbs = path.join(home, skillDestFor(target, "global"));
+      const hasProvenance = await fileExists(path.join(skillAbs, ".repochan-version"));
+      const hasWizard = await fileExists(path.join(skillAbs, "repochan", "SKILL.md"));
+      return hasProvenance && hasWizard ? target.id : undefined;
+    }))).filter((id): id is AgentId => id !== undefined);
+    const registeredNonGlobalIds = Object.entries(register.skills)
+      .filter(([, record]) => record.scope !== "global")
+      .map(([id]) => id);
+    const physicallyDiscoveredIds = new Set<AgentId>();
+    const ambiguousSharedSkillRels = new Set<string>();
+    for (const target of ALL_TARGETS) {
+      const skillRel = skillDestFor(target, "global");
+      const group = ALL_TARGETS.filter((other) => skillDestFor(other, "global") === skillRel);
+      if (!physicalGlobalIds.includes(target.id)) continue;
+      if (group.length === 1) {
+        physicallyDiscoveredIds.add(target.id);
+        continue;
+      }
+      const registeredOwners = group.filter((other) => registeredGlobalIds.includes(other.id));
+      if (registeredOwners.length > 0) {
+        for (const owner of registeredOwners) physicallyDiscoveredIds.add(owner.id);
+      } else {
+        for (const possibleOwner of group) physicallyDiscoveredIds.add(possibleOwner.id);
+      }
+      if (registeredOwners.length === 0 || group.some((other) => registeredNonGlobalIds.includes(other.id))) {
+        ambiguousSharedSkillRels.add(skillRel);
+      }
+    }
+    const configuredIds = [...new Set([...registeredGlobalIds, ...physicallyDiscoveredIds])];
 
     const targets = options.agent
       ? resolveAgentFlag(options.agent, configuredIds)
@@ -384,20 +431,34 @@ async function runGlobal(options: SetupOptions, skillSrc: string) {
       return void emitResult(options, "No global skills to remove.", { removed: [] });
     }
 
+    const removingIds = new Set(targets.map((target) => target.id));
     const results: InstallResult[] = [];
     for (const t of targets) {
       const skillRel = skillDestFor(t, "global");
       const skillAbs = path.join(home, skillRel);
-      const removed = await removeGlobalRepochanSkills(skillSrc, skillAbs);
+      const unremovedSharedTargets = ALL_TARGETS.filter(
+        (other) => other.id !== t.id &&
+          !removingIds.has(other.id) &&
+          skillDestFor(other, "global") === skillRel,
+      );
+      const currentOwnershipKnown = registeredGlobalIds.includes(t.id);
+      const sharedGroup = ALL_TARGETS.filter((other) => skillDestFor(other, "global") === skillRel);
+      const allPossibleOwnersSelected = sharedGroup.every((owner) => removingIds.has(owner.id));
+      const preserveShared = (ambiguousSharedSkillRels.has(skillRel) && !allPossibleOwnersSelected) ||
+        unremovedSharedTargets.some((other) => registeredGlobalIds.includes(other.id)) ||
+        (!currentOwnershipKnown && unremovedSharedTargets.length > 0);
+      const removed = preserveShared ? false : await removeGlobalRepochanSkills(skillSrc, skillAbs);
+      const removedScopedRecord = currentOwnershipKnown;
       results.push({
         agent: t.id,
         displayName: t.displayName,
         skillDir: `~/${skillRel}`,
         skillFiles: 0,
         instructionFile: "(global — none)",
-        instructionAction: removed ? "removed" : "not-found",
+        instructionAction: removedScopedRecord || removed ? "removed" : "not-found",
+        notes: preserveShared ? ["kept shared skills used by another agent target"] : undefined,
       });
-      if (removed) await recordSkillRemove(t.id);
+      await recordSkillRemove(t.id, "global");
     }
     return reportGlobalResults(options, "remove", results);
   }
@@ -406,6 +467,12 @@ async function runGlobal(options: SetupOptions, skillSrc: string) {
   const targets = await resolveGlobalTargets(options);
   if (targets.length === 0) {
     return void emitResult(options, "No agents selected — nothing to do.", { installed: [] });
+  }
+
+  // As with project setup, check every global destination before the first
+  // copy or register write so a later target collision cannot partially install.
+  for (const t of targets) {
+    await preflightTargetInstall(home, t, "global", options.overwrite ?? false, skillSrc);
   }
 
   const results: InstallResult[] = [];
@@ -453,7 +520,9 @@ async function copyDirViaShared(src: string, dest: string): Promise<number> {
  * skills — that would clobber the user's other tools.
  */
 async function removeGlobalRepochanSkills(skillSrc: string, skillDirAbs: string): Promise<boolean> {
-  const { readdir, rm } = await import("node:fs/promises");
+  const { readdir, rm, unlink, rmdir } = await import("node:fs/promises");
+  const versionStamp = path.join(skillDirAbs, ".repochan-version");
+  if (!(await fileExists(versionStamp))) return false;
   let ourSkills: string[];
   try {
     ourSkills = (await readdir(skillSrc, { withFileTypes: true }))
@@ -472,6 +541,8 @@ async function removeGlobalRepochanSkills(skillSrc: string, skillDirAbs: string)
       removedAny = true;
     }
   }
+  await unlink(versionStamp).catch(() => {});
+  await rmdir(skillDirAbs).catch(() => {});
   return removedAny;
 }
 
@@ -497,4 +568,3 @@ function reportGlobalResults(
     console.log(dim("Most agents auto-discover global skills; no CLAUDE.md / AGENTS.md needed."));
   }
 }
-

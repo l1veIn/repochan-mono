@@ -211,14 +211,75 @@ function stripLegacyMarkers(content: string): string {
   return content.replace(legacy, "");
 }
 
-/** Write an owned file (Cursor rules / Kiro steering); byte-equal → unchanged. */
+async function assertOwnedFileWritable(
+  filePath: string,
+  body: string,
+  overwrite: boolean,
+): Promise<void> {
+  if (!(await fileExists(filePath))) return;
+  const existing = await fs.readFile(filePath, "utf8");
+  if (existing === body || existing === body + "\n") return;
+  const ownerMarker = body.match(/<!-- repochan:setup:[a-z]+ begin -->/)?.[0];
+  if (ownerMarker && existing.includes(ownerMarker)) return;
+  if (overwrite) return;
+  throw new Error(
+    `Refusing to overwrite existing non-RepoChan instruction file: ${filePath}. ` +
+    "Move it, merge it manually, or re-run setup with --overwrite.",
+  );
+}
+
+function ownedInstructionBody(target: AgentTarget, skillRel: string): string | undefined {
+  if (target.instructionMode !== "owned-file") return undefined;
+  return target.id === "cursor"
+    ? cursorRulesFile(target.id, skillRel)
+    : target.id === "kiro"
+      ? kiroSteeringFile(target.id, skillRel)
+      : referenceBlock(target.id, skillRel) + "\n";
+}
+
+/** Read-only collision check used to make a multi-target setup fail before any target writes. */
+export async function preflightTargetInstall(
+  cwd: string,
+  target: AgentTarget,
+  scope: "global" | "project" = "project",
+  overwrite = false,
+  skillSrc?: string,
+): Promise<void> {
+  const skillRel = skillDestFor(target, scope);
+  const body = ownedInstructionBody(target, skillRel);
+  if (body !== undefined) {
+    await assertOwnedFileWritable(path.join(cwd, target.instructionFile), body, overwrite);
+  }
+
+  const skillAbs = path.join(cwd, skillRel);
+  if (await fileExists(path.join(skillAbs, ".repochan-version"))) return;
+  const source = skillSrc ?? await resolveSkillSourceDir();
+  const entries = await fs.readdir(source, { withFileTypes: true }).catch(() => []);
+  for (const entry of entries) {
+    const destination = path.join(skillAbs, entry.name);
+    if (await fileExists(destination)) {
+      if (overwrite) continue;
+      throw new Error(
+        `Refusing to overwrite existing non-RepoChan skill path: ${destination}. ` +
+        "Move it, merge it manually, or re-run setup with --overwrite.",
+      );
+    }
+  }
+}
+
+/**
+ * Write an owned file (Cursor rules / Kiro steering); byte-equal → unchanged.
+ * Existing non-RepoChan content is preserved unless overwrite is explicit.
+ */
 export async function writeOwnedFile(
   filePath: string,
   body: string,
+  overwrite = false,
 ): Promise<"created" | "updated" | "unchanged"> {
   if (await fileExists(filePath)) {
     const existing = await fs.readFile(filePath, "utf8");
     if (existing === body || existing === body + "\n") return "unchanged";
+    await assertOwnedFileWritable(filePath, body, overwrite);
     await atomicWrite(filePath, body.endsWith("\n") ? body : body + "\n");
     return "updated";
   }
@@ -226,11 +287,27 @@ export async function writeOwnedFile(
   return "created";
 }
 
-export async function removeOwnedFile(filePath: string): Promise<boolean> {
+function hasExactOwnedFileEnvelope(content: string, expectedBody: string): boolean {
+  const begin = expectedBody.match(/<!-- repochan:setup:[a-z]+ begin -->/)?.[0];
+  if (!begin) return false;
+  const end = begin.replace(" begin -->", " end -->");
+  const expectedPrefix = expectedBody.slice(0, expectedBody.indexOf(begin)).replace(/\r\n/g, "\n");
+  const normalized = content.replace(/\r\n/g, "\n");
+  const beginAt = normalized.indexOf(begin);
+  const endAt = normalized.indexOf(end, beginAt + begin.length);
+  if (beginAt < 0 || endAt < 0) return false;
+  if (normalized.indexOf(begin, beginAt + begin.length) >= 0) return false;
+  if (normalized.indexOf(end, endAt + end.length) >= 0) return false;
+  if (normalized.slice(0, beginAt) !== expectedPrefix) return false;
+  return normalized.slice(endAt + end.length).trim() === "";
+}
+
+export async function removeOwnedFile(filePath: string, expectedBody: string): Promise<boolean> {
   if (!(await fileExists(filePath))) return false;
-  // Only delete if it looks like ours (contains marker) — don't clobber user files.
+  // Delete only the exact target-owned envelope. A user file merely mentioning
+  // `repochan:setup` (or containing a partial marker) is not ours.
   const content = await fs.readFile(filePath, "utf8");
-  if (!content.includes("repochan:setup")) return false;
+  if (!hasExactOwnedFileEnvelope(content, expectedBody)) return false;
   await fs.unlink(filePath);
   return true;
 }
@@ -246,11 +323,12 @@ export async function isConfigured(cwd: string, target: AgentTarget): Promise<bo
   const instr = path.join(cwd, target.instructionFile);
   if (!(await fileExists(instr))) return false;
   const content = await fs.readFile(instr, "utf8");
+  if (target.instructionMode === "owned-file") {
+    const expectedBody = ownedInstructionBody(target, skillDestFor(target, "project"));
+    return expectedBody ? hasExactOwnedFileEnvelope(content, expectedBody) : false;
+  }
   const { begin } = markers(target.id);
-  if (content.includes(begin)) return true;
-  // Owned files may only contain our content under the scoped marker.
-  if (target.instructionMode === "owned-file" && content.includes("repochan:setup")) return true;
-  return false;
+  return content.includes(begin);
 }
 
 export async function installTarget(
@@ -258,23 +336,23 @@ export async function installTarget(
   target: AgentTarget,
   skillSrc: string,
   scope: "global" | "project" = "project",
+  overwrite = false,
 ): Promise<InstallResult> {
   const skillRel = skillDestFor(target, scope);
   const skillAbs = path.join(cwd, skillRel);
+  const instrAbs = path.join(cwd, target.instructionFile);
+  let instructionAction: InstallResult["instructionAction"];
+  const ownedBody = ownedInstructionBody(target, skillRel);
+
+  // Retain the local guard for direct installTarget callers. runProject also
+  // preflights the complete target set before its first mutation.
+  await preflightTargetInstall(cwd, target, scope, overwrite, skillSrc);
+
   const skillFiles = await copyDir(skillSrc, skillAbs);
   await stampSkillVersion(skillAbs);
 
-  const instrAbs = path.join(cwd, target.instructionFile);
-  let instructionAction: InstallResult["instructionAction"];
-
-  if (target.instructionMode === "owned-file") {
-    const body =
-      target.id === "cursor"
-        ? cursorRulesFile(target.id, skillRel)
-        : target.id === "kiro"
-          ? kiroSteeringFile(target.id, skillRel)
-          : referenceBlock(target.id, skillRel) + "\n";
-    instructionAction = await writeOwnedFile(instrAbs, body);
+  if (ownedBody !== undefined) {
+    instructionAction = await writeOwnedFile(instrAbs, ownedBody, overwrite);
   } else {
     instructionAction = await injectMarkerSection(
       instrAbs,
@@ -306,25 +384,41 @@ export async function uninstallTarget(
   cwd: string,
   target: AgentTarget,
   scope: "global" | "project" = "project",
+  skillSrc?: string,
+  preserveSkills = false,
 ): Promise<InstallResult> {
   const instrAbs = path.join(cwd, target.instructionFile);
   let instructionAction: InstallResult["instructionAction"] = "not-found";
+  const skillRel = skillDestFor(target, scope);
 
   if (target.instructionMode === "owned-file") {
-    instructionAction = (await removeOwnedFile(instrAbs)) ? "removed" : "not-found";
+    const expectedBody = ownedInstructionBody(target, skillRel);
+    instructionAction = expectedBody && await removeOwnedFile(instrAbs, expectedBody)
+      ? "removed"
+      : "not-found";
   } else {
     instructionAction = (await removeMarkerSection(instrAbs, target.id)) ? "removed" : "not-found";
   }
 
-  // Remove skill tree only if it looks like ours (contains repochan wizard skill).
-  // Don't delete shared fallback if other agents still use it — only remove
-  // agent-specific skill dirs, or fallback when no other configured agent uses it.
-  const skillRel = skillDestFor(target, scope);
-  if (target.skillDir !== null) {
+  // Remove only skill subdirectories shipped by @repochan/skill. Native skill
+  // containers are shared with the user and must never be deleted recursively.
+  if (target.skillDir !== null && !preserveSkills) {
     const skillAbs = path.join(cwd, skillRel);
-    const wizard = path.join(skillAbs, "repochan", "SKILL.md");
-    if (await fileExists(wizard)) {
-      await fs.rm(skillAbs, { recursive: true, force: true }).catch(() => {});
+    const versionStamp = path.join(skillAbs, ".repochan-version");
+    // A matching directory name is not ownership. Without the setup-created
+    // provenance stamp, preserve every skill even if it is named `repochan`.
+    if (await fileExists(versionStamp)) {
+      const source = skillSrc ?? await resolveSkillSourceDir();
+      const entries = await fs.readdir(source, { withFileTypes: true }).catch(() => []);
+      for (const entry of entries) {
+        if (!entry.isDirectory()) continue;
+        const installed = path.join(skillAbs, entry.name);
+        if (await fileExists(path.join(installed, "SKILL.md"))) {
+          await fs.rm(installed, { recursive: true, force: true });
+        }
+      }
+      await fs.unlink(versionStamp).catch(() => {});
+      await fs.rmdir(skillAbs).catch(() => {}); // only succeeds when the shared container is empty
     }
   }
 

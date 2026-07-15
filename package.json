@@ -15,7 +15,7 @@
   },
   "scripts": {
     "build": "pnpm -r build",
-    "test": "pnpm --filter @repochan/core build && pnpm -r test",
+    "test": "pnpm --filter repochan... build && pnpm -r test",
     "dev": "pnpm --filter repochan exec tsx src/index.ts",
     "lint": "pnpm -r lint",
     "cli": "pnpm --filter repochan run cli",

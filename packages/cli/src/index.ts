@@ -298,6 +298,7 @@ cli.command("setup", "Install skills for your agent(s) + inject a reference")
   .option("--yes", "Non-interactive: one primary detected agent (install) or all configured (remove)")
   .option("--list", "Show detected / configured agents")
   .option("--remove", "Remove RepoChan setup (use with --agent or --yes)")
+  .option("--overwrite", "Replace a conflicting RepoChan-owned instruction path")
   .option("--global", "Install skills to ~/<agent>/skills (all projects)")
   .option("--project", "Install skills to <project>/<agent>/skills only")
   .action(async (opts: any) => { await setup.runSetup(process.cwd(), opts); });
