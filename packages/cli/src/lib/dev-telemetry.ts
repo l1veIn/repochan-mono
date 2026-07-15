@@ -1,4 +1,4 @@
-import { appendFileSync, mkdirSync, readFileSync, existsSync, truncateSync } from "node:fs";
+import { appendFileSync, mkdirSync, readFileSync, existsSync, truncateSync, writeFileSync, renameSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { cliVersion } from "./register.js";
@@ -14,15 +14,25 @@ import { UsageError } from "./output.js";
 // record argv (command structure + flags) and the error message only — no
 // stdin, no prompt content, no credentials.
 //
-// Gate: entirely inert unless REPOCHAN_DEV_TELEMETRY is set to a truthy value.
-// The code ships in every build but does nothing in production unless opted in.
-// All filesystem writes are wrapped so telemetry can never break a CLI run.
+// Gate: inert unless enabled. Two ways to enable:
+//   1. `repochan dev errors --on` / `--off`  → writes ~/.repochan/dev/config.json
+//      (the primary, persistent, per-machine switch)
+//   2. REPOCHAN_DEV_TELEMETRY=1 env var      → override (tests, ad-hoc toggle)
+// Env always wins over the config file when set. The code ships in every build
+// but does nothing in production unless opted in. All filesystem writes are
+// wrapped so telemetry can never break a CLI run.
 // ---------------------------------------------------------------------------
 
 const DEV_DIR = path.join(os.homedir(), ".repochan", "dev");
 export const ERRORS_PATH = path.join(DEV_DIR, "errors.jsonl");
+export const CONFIG_PATH = path.join(DEV_DIR, "config.json");
 
 const ENV_VAR = "REPOCHAN_DEV_TELEMETRY";
+
+interface DevConfig {
+  /** Master switch written by `repochan dev errors --on / --off`. */
+  telemetry: boolean;
+}
 
 /** Has at least one error already been recorded for this process? */
 let recorded = false;
@@ -49,14 +59,49 @@ export interface ErrorRecord {
 }
 
 /**
- * Telemetry is on only when REPOCHAN_DEV_TELEMETRY is a truthy value
- * ("1", "true", "yes"). Read live so tests can toggle without re-import.
+ * Read the config file. Returns undefined when missing/invalid (the caller
+ * treats that as "off" by default). Never throws.
  */
-export function isEnabled(): boolean {
-  const v = process.env[ENV_VAR];
-  if (!v) return false;
-  const low = v.toLowerCase();
-  return low === "1" || low === "true" || low === "yes";
+function readConfig(configPath: string = CONFIG_PATH): DevConfig | undefined {
+  try {
+    if (!existsSync(configPath)) return undefined;
+    const parsed = JSON.parse(readFileSync(configPath, "utf8"));
+    if (parsed && typeof parsed.telemetry === "boolean") return { telemetry: parsed.telemetry };
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Is the env var explicitly set for this process (overrides the config)? */
+export function isEnvOverridden(): boolean {
+  return process.env[ENV_VAR] !== undefined;
+}
+
+/**
+ * Telemetry is on when enabled by EITHER source. Env always wins: if set to a
+ * truthy value it forces on regardless of the config; if set to a falsy value
+ * it forces off even if the config says on. Read live so changes take effect
+ * without a re-import (tests, `--on`/`--off` then re-checking).
+ */
+export function isEnabled(configPath?: string): boolean {
+  const envVal = process.env[ENV_VAR];
+  if (envVal !== undefined) {
+    const low = envVal.toLowerCase();
+    return low === "1" || low === "true" || low === "yes";
+  }
+  return readConfig(configPath)?.telemetry === true;
+}
+
+/**
+ * Persist the master switch. Used by `repochan dev errors --on / --off`.
+ * Writes atomically (tmp + rename) so a crash mid-write can't corrupt the file.
+ */
+export function setEnabled(enabled: boolean, configPath: string = CONFIG_PATH): void {
+  mkdirSync(path.dirname(configPath), { recursive: true });
+  const tmp = `${configPath}.tmp.${process.pid}`;
+  writeFileSync(tmp, JSON.stringify({ telemetry: enabled } satisfies DevConfig, null, 2) + "\n", "utf8");
+  renameSync(tmp, configPath);
 }
 
 /** First non-flag token in argv, or null (the likely command group). */

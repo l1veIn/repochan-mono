@@ -295,6 +295,8 @@ cli.command("dev <sub>", "Local dev tooling (telemetry / diagnostics)")
   .option("--json", "Machine-readable JSON output")
   .option("--limit <n>", "Number of recent entries to show")
   .option("--clear", "Clear the dev telemetry log")
+  .option("--on", "Enable telemetry (writes ~/.repochan/dev/config.json)")
+  .option("--off", "Disable telemetry")
   .action(async (_p: any, opts: any) => {
     const args = cli.args; // [sub]
     const sub = args[0];
@@ -303,6 +305,8 @@ cli.command("dev <sub>", "Local dev tooling (telemetry / diagnostics)")
         json: opts.json,
         limit: opts.limit ? Number(opts.limit) : undefined,
         clear: opts.clear,
+        on: opts.on,
+        off: opts.off,
       });
       default: throw new Error(`Unknown dev subcommand: ${sub}. Use: errors`);
     }

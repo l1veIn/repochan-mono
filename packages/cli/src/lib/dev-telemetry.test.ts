@@ -1,14 +1,18 @@
-import { mkdtemp, writeFile, readFile } from "node:fs/promises";
+import { mkdir, mkdtemp, writeFile, readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
+  CONFIG_PATH,
   ERRORS_PATH,
   classifyError,
   clearErrors,
+  isEnvOverridden,
   isEnabled,
   recordError,
   readErrors,
+  setEnabled,
   summarizeErrors,
   _resetRecordedForTest,
   type ErrorCategory,
@@ -18,6 +22,7 @@ import { UsageError } from "./output.js";
 const ENV_VAR = "REPOCHAN_DEV_TELEMETRY";
 
 let tmpFile: string;
+let tmpConfig: string;
 let savedEnv: string | undefined;
 
 beforeEach(async () => {
@@ -26,6 +31,7 @@ beforeEach(async () => {
   _resetRecordedForTest();
   const dir = await mkdtemp(path.join(os.tmpdir(), "repochan-telemetry-"));
   tmpFile = path.join(dir, "dev", "errors.jsonl");
+  tmpConfig = path.join(dir, "dev", "config.json");
 });
 
 afterEach(() => {
@@ -219,5 +225,77 @@ describe("clearErrors", () => {
 describe("ERRORS_PATH default location", () => {
   it("points at ~/.repochan/dev/errors.jsonl", () => {
     expect(ERRORS_PATH).toBe(path.join(os.homedir(), ".repochan", "dev", "errors.jsonl"));
+  });
+
+  it("config lives at ~/.repochan/dev/config.json", () => {
+    expect(CONFIG_PATH).toBe(path.join(os.homedir(), ".repochan", "dev", "config.json"));
+  });
+});
+
+describe("config file enable/disable (--on / --off)", () => {
+  it("isEnabled returns false when no config exists and no env var", () => {
+    delete process.env[ENV_VAR];
+    expect(isEnabled(tmpConfig)).toBe(false);
+  });
+
+  it("setEnabled(true) writes a config that isEnabled then reads as on", () => {
+    delete process.env[ENV_VAR];
+    setEnabled(true, tmpConfig);
+    expect(isEnabled(tmpConfig)).toBe(true);
+    // The file content is valid JSON with the expected shape.
+    const written = JSON.parse(readFileSync(tmpConfig, "utf8"));
+    expect(written).toEqual({ telemetry: true });
+  });
+
+  it("setEnabled(false) flips it back to off", () => {
+    delete process.env[ENV_VAR];
+    setEnabled(true, tmpConfig);
+    expect(isEnabled(tmpConfig)).toBe(true);
+    setEnabled(false, tmpConfig);
+    expect(isEnabled(tmpConfig)).toBe(false);
+  });
+
+  it("setEnabled creates the parent directory when missing", () => {
+    delete process.env[ENV_VAR];
+    // tmpConfig is under <tmpdir>/dev/config.json; dev/ does not exist yet.
+    setEnabled(true, tmpConfig);
+    expect(isEnabled(tmpConfig)).toBe(true);
+  });
+
+  it("isEnabled returns false when config file is malformed", async () => {
+    delete process.env[ENV_VAR];
+    await mkdir(path.dirname(tmpConfig), { recursive: true });
+    await writeFile(tmpConfig, "{ not valid json");
+    expect(isEnabled(tmpConfig)).toBe(false);
+  });
+
+  it("isEnabled returns false when telemetry field is missing", async () => {
+    delete process.env[ENV_VAR];
+    await mkdir(path.dirname(tmpConfig), { recursive: true });
+    await writeFile(tmpConfig, JSON.stringify({ other: true }));
+    expect(isEnabled(tmpConfig)).toBe(false);
+  });
+});
+
+describe("env var overrides config file", () => {
+  it("env=1 forces ON even when config says off", () => {
+    setEnabled(false, tmpConfig);
+    process.env[ENV_VAR] = "1";
+    expect(isEnabled(tmpConfig)).toBe(true);
+  });
+
+  it("env=0 forces OFF even when config says on", () => {
+    setEnabled(true, tmpConfig);
+    process.env[ENV_VAR] = "0";
+    expect(isEnabled(tmpConfig)).toBe(false);
+  });
+
+  it("isEnvOverridden reflects whether the env var is set", () => {
+    delete process.env[ENV_VAR];
+    expect(isEnvOverridden()).toBe(false);
+    process.env[ENV_VAR] = "1";
+    expect(isEnvOverridden()).toBe(true);
+    process.env[ENV_VAR] = "0";
+    expect(isEnvOverridden()).toBe(true);
   });
 });

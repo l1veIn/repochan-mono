@@ -1,24 +1,33 @@
 import { heading, bullet, dim, printJson, type OutputOptions } from "../lib/output.js";
 import {
+  CONFIG_PATH,
   ERRORS_PATH,
   summarizeErrors,
   clearErrors,
   isEnabled,
+  isEnvOverridden,
+  setEnabled,
 } from "../lib/dev-telemetry.js";
 
 export interface DevErrorsOptions extends OutputOptions {
   limit?: number;
   clear?: boolean;
+  on?: boolean;
+  off?: boolean;
 }
 
 /**
- * repochan dev errors [--json] [--limit N] [--clear]
+ * repochan dev errors [--on | --off | --clear] [--json] [--limit N]
  *
- * Summarises the local dev telemetry log of failed CLI invocations. The log is
- * only populated while REPOCHAN_DEV_TELEMETRY is enabled; this command reads
- * regardless of the flag so the data can be reviewed after the fact.
+ * With no toggle flag: summarises the local dev telemetry log of failed CLI
+ * invocations. `--on` / `--off` flip the persistent master switch
+ * (~/.repochan/dev/config.json); `--clear` empties the log.
  */
 export async function runDevErrors(_cwd: string, options: DevErrorsOptions = {}) {
+  // ---- toggle operations (mutually exclusive in practice) ----
+  if (options.on) return setEnabledAndReport(true, options.json);
+  if (options.off) return setEnabledAndReport(false, options.json);
+
   if (options.clear) {
     clearErrors();
     if (options.json) return void printJson({ cleared: true, path: ERRORS_PATH });
@@ -30,15 +39,13 @@ export async function runDevErrors(_cwd: string, options: DevErrorsOptions = {})
   const summary = summarizeErrors({ limit: options.limit });
 
   if (options.json) {
-    printJson({ path: ERRORS_PATH, enabled: isEnabled(), ...summary });
+    printJson({ path: ERRORS_PATH, enabled: isEnabled(), envOverridden: isEnvOverridden(), ...summary });
     return;
   }
 
   heading("RepoChan dev telemetry");
   console.log(dim(ERRORS_PATH));
-  if (!isEnabled()) {
-    console.log(dim("(telemetry is currently OFF — set REPOCHAN_DEV_TELEMETRY=1 to record)"));
-  }
+  printStatusLine();
   console.log();
 
   if (summary.total === 0) {
@@ -73,6 +80,32 @@ export async function runDevErrors(_cwd: string, options: DevErrorsOptions = {})
       const argv = r.argv.join(" ");
       console.log(`  [${ts}] ${dim(r.category.padEnd(18))} ${argv}`);
     }
+  }
+}
+
+/** Apply --on/--off and print a short confirmation. */
+function setEnabledAndReport(enabled: boolean, json?: boolean): void {
+  setEnabled(enabled);
+  const effective = isEnabled();
+  if (json) {
+    printJson({ config: CONFIG_PATH, telemetry: enabled, effective, envOverridden: isEnvOverridden() });
+    return;
+  }
+  heading(`RepoChan dev telemetry ${enabled ? "ON" : "OFF"}`);
+  bullet("config", dim(CONFIG_PATH));
+  if (isEnvOverridden() && effective !== enabled) {
+    console.log(dim(`  (note: REPOCHAN_DEV_TELEMETRY is set, so effective state is ${effective ? "ON" : "OFF"})`));
+  }
+  console.log(dim(enabled ? "  Failed CLI calls will now be recorded." : "  Recording stopped; existing log is kept."));
+}
+
+/** One-line status indicator with override hint when the env var is shadowing. */
+function printStatusLine(): void {
+  const on = isEnabled();
+  if (isEnvOverridden()) {
+    console.log(dim(`(status: ${on ? "ON" : "OFF"} — forced by REPOCHAN_DEV_TELEMETRY; use \`repochan dev errors --on\` for a persistent switch)`));
+  } else {
+    console.log(dim(`(status: ${on ? "ON" : "OFF"} — turn on with \`repochan dev errors --on\`)`));
   }
 }
 
