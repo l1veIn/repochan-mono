@@ -23,6 +23,10 @@ minimal/
 
 `repochan/starter.json` is the sole manifest in both the source and pulled instance. Core owns its schema and deterministic rules; the CLI owns discovery, projection, order materialization, post-processing, and validation.
 
+New source starters declare `capabilities.sections[]` and adjacent `capabilities.transitions[]`. The section contract records recipe, design provenance or an explicit HTML-first decision, baked/live layers, canonical viewport, normalized safe zones, responsive behavior, asset slots, and motion. Existing pulled instances without `capabilities` remain readable, but `starter list|get` reports their section coverage as undeclared.
+
+`section.required` is compatibility metadata for selection in Round 1; it does not authorize the Localizer to remove a section. Until instance-level section mutation exists, declared order and every adjacent transition remain authoritative.
+
 Project-specific text, palette, links, brand data, and asset state stay concentrated under root-level `repochan/`. `src/lib/site.ts` is a stable reader and token derivation layer, not an agent editing target.
 
 ## Commands
@@ -47,4 +51,4 @@ Color literals are allowed only in `repochan/site.json` theme data. Presentation
 
 | ID | Scope | Default |
 |---|---|---|
-| `minimal` | One project-focused hero | yes |
+| `minimal` | One project-focused Hero (`capabilities.sections=[hero]`) | yes |

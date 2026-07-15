@@ -125,8 +125,9 @@ RepoChan 给 agent 提供一套**交付拓扑**：每个角色的工作目标不
 
 - 入口：`packages/skill/skills/*/SKILL.md`（纯 markdown，无构建步骤）。
 - **C 位是向导 skill `repochan`**：默认一句话调度全流程；yolo 跳过检查点；逐团队是高级模式。
-- 团队 skill：`repochan-analysis` / `repochan-interviewer` / `repochan-persona` / `repochan-art-director` / `repochan-painter` / `repochan-page-designer`。
-- 维护者 skill：`repochan-starter-designer`。它设计 `packages/starters/<id>/` source starter，不属于普通项目生成流水线，也不改变 Page Designer 只能编辑 pull 后实例的边界。
+- 默认团队 skill：`repochan-analysis` / `repochan-interviewer` / `repochan-persona` / `repochan-art-director` / `repochan-painter` / `repochan-page-designer`。其中 Page Designer 的稳定机器 id 保留，但职责是既有 starter 的本地化与装配，只编辑 pull 后实例。
+- 原创分支 skill：`repochan-web-designer`。它为具体项目负责信息架构、艺术方向、整页/section 母稿、bake mask、生产资产策略、实现与 Gate 1/2；不写 source starter。
+- 维护者 skill：`repochan-starter-designer`。它只把 Gate-2-approved implemented page 产品化为 `packages/starters/<id>/` source starter，是唯一可写该目录的 skill，不属于普通项目生成流水线。
 - 采用 progressive disclosure：精炼 `SKILL.md` + 按需 `references/`。
 - skill **不亲自执行代码**——它告诉 agent 该想什么、该跑哪条 `repochan` 子命令、该读哪个上游产物。
 
@@ -292,9 +293,11 @@ repochan setup                   # 检测 agent、安装 skill、可选配置 im
 ④ 美术总监   repochan-art-director  → 全部订单（foundation + 下游）
 ⑤ 画师       repochan-painter       → 先 foundation，再下游（引用 foundation）
    ⏸ 检查点 2：foundation 出图
-⑥ 页面设计   repochan-page-designer → 落地页 / 站点
+⑥ 模板本地化 repochan-page-designer → 既有 starter 的项目实例
    ⏸ 检查点 3：部署前
 ```
+
+默认链不做原创网页设计。需要全新信息架构、section 或艺术方向，或没有 starter 适配时，显式进入 `repochan-web-designer`，产出经 Gate 1/2 批准的具体项目网站。只有用户/维护者进一步要求沉淀模板时，才由 `repochan-starter-designer` 执行 approved page → source starter 产品化；该步骤不在默认链中。
 
 | 模式 | 触发 | 行为 |
 |---|---|---|

@@ -10,7 +10,7 @@
 
 ## 页面结构决策
 
-Starter 的结构是已选定的设计约束。填充时做内容适配和必要的响应式修正，不擅自添加未声明 sections。若用户需要不同信息架构，应改选 starter 或明确进入二次开发，而不是把 minimal 膨胀成综合模板。
+Starter 的结构是已选定的设计约束。填充时只做内容适配和 starter 明确暴露的响应式参数调整，不擅自添加未声明 sections。若用户需要不同信息架构，应改选 starter 或转交 `repochan-web-designer`，而不是把 minimal 膨胀成综合模板。
 
 
 ## 常见陷阱

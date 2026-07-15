@@ -3,6 +3,7 @@ import { createRequire } from "node:module";
 import { cac } from "cac";
 import { printError } from "./lib/output.js";
 import { cliVersion } from "./lib/register.js";
+import { normalizeCliArgv } from "./lib/argv.js";
 import * as top from "./commands/toplevel.js";
 import * as analysis from "./commands/analysis.js";
 import * as interview from "./commands/interview.js";
@@ -136,12 +137,14 @@ cli.command("starter <sub>", "Landing-page starters")
   .option("--starter <id>", "Starter id (pull; otherwise uses the sole default)")
   .option("--overwrite", "Allow replacing an existing output or generated config")
   .option("--content-file <path>", "Locale content JSON for configure")
+  .option("--repository-url <url>", "Repository URL override (configure)")
   .option("--all", "Validate every built-in starter")
   .option("--foundation <order-id>", "Foundation order reference (create-order)")
   .option("--intent <text>", "Creative intent (create-order)")
   .option("--status <status>", "Initial order status (create-order, default: draft)")
   .option("--order <order-id>", "Delivered order to apply (asset-apply)")
-  .option("--version <version-id>", "Specific delivered result version (asset-apply)")
+  .option("--result-version <version-id>", "Specific delivered result version (asset-apply)")
+  .option("--file <path>", "Local source file to import (asset-import)")
   .action(async (_p: any, opts: any) => {
     const args = cli.args;
     const sub = args[0];
@@ -152,8 +155,9 @@ cli.command("starter <sub>", "Landing-page starters")
       case "configure": return await starter.runStarterConfigure(process.cwd(), opts);
       case "create-order": return await starter.runStarterCreateOrder(process.cwd(), args[1], opts);
       case "asset-apply": return await starter.runStarterAssetApply(process.cwd(), args[1], opts);
+      case "asset-import": return await starter.runStarterAssetImport(process.cwd(), args[1], opts);
       case "validate": return await starter.runStarterValidate(process.cwd(), args[1], opts);
-      default: throw new Error(`Unknown starter subcommand: ${sub}. Use: list | get | pull | configure | create-order | asset-apply | validate`);
+      default: throw new Error(`Unknown starter subcommand: ${sub}. Use: list | get | pull | configure | create-order | asset-apply | asset-import | validate`);
     }
   });
 
@@ -218,7 +222,7 @@ cli.command("image <sub>", "Image generation, configure, status, probe, and edit
   .option("--sizes <list>", "Comma-separated pixel sizes for resize/favicon, e.g. 16,32,48,180,512 (image edit resize/favicon)")
   .option("--fit <mode>", "Resize fit mode: inside | cover | contain | fill (image edit resize)", { default: undefined })
   .option("--matte <color>", "Matte color for chroma keying: auto | #ff00ff | magenta | green | cyan | white | black (image edit chroma-key)")
-  .option("--threshold <n>", "Chroma key distance threshold in RGB units, default 28 (image edit chroma-key)")
+  .option("--threshold <n>", "Threshold: RGB distance for chroma-key; normalized 0..1 for validate-seams")
   .option("--softness <n>", "Chroma key soft transition band, default 34 (image edit chroma-key)")
   .option("--spill <n>", "Chroma key edge spill suppression 0-1, default 0.85 (image edit chroma-key)")
   .option("--format <fmt>", "Output format: webp | jpeg | avif | png (image edit compress)")
@@ -268,6 +272,7 @@ cli.command("image <sub>", "Image generation, configure, status, probe, and edit
       case "edit": {
         const editSub = args[1];
         if (editSub === "slice") return await image.runImageEditSlice(process.cwd(), args[2], opts);
+        if (editSub === "validate-seams") return await image.runImageEditValidateSeams(process.cwd(), args[2], opts);
         if (editSub === "bg-remove") return await image.runImageEditBgRemove(process.cwd(), args[2], opts);
         if (editSub === "chroma-key") return await image.runImageEditChromaKey(process.cwd(), args[2], opts);
         if (editSub === "extract-stickers") return await image.runImageEditExtractStickers(process.cwd(), args[2], opts);
@@ -275,7 +280,7 @@ cli.command("image <sub>", "Image generation, configure, status, probe, and edit
         if (editSub === "favicon") return await image.runImageEditFavicon(process.cwd(), args[2], opts);
         if (editSub === "compress") return await image.runImageEditCompress(process.cwd(), args[2], opts);
         if (editSub === "gif-from-frames") return await image.runImageEditGifFromFrames(process.cwd(), args.slice(2), opts);
-        throw new Error(`Unknown image edit subcommand: ${editSub}. Use: slice | bg-remove | chroma-key | extract-stickers | resize | favicon | compress | gif-from-frames`);
+        throw new Error(`Unknown image edit subcommand: ${editSub}. Use: slice | validate-seams | bg-remove | chroma-key | extract-stickers | resize | favicon | compress | gif-from-frames`);
       }
       default: throw new Error(`Unknown image subcommand: ${sub}. Use: gen | configure | status | probe | edit`);
     }
@@ -304,24 +309,10 @@ function isHelpOrVersionFlag(arg: string): boolean {
  * cac treats a bare `-` after `--option` as "value missing" (looks like a flag).
  * Rewrite `--data-file -` → `--data-file=-` so stdin shorthand works.
  */
-function normalizeArgv(argv: string[]): string[] {
-  const out: string[] = [];
-  for (let i = 0; i < argv.length; i++) {
-    const a = argv[i];
-    if (a === "--data-file" && argv[i + 1] === "-") {
-      out.push("--data-file=-");
-      i++;
-      continue;
-    }
-    out.push(a);
-  }
-  return out;
-}
-
 async function main() {
   try {
     const rawArgs = process.argv.slice(2);
-    const args = normalizeArgv(rawArgs);
+    const args = normalizeCliArgv(rawArgs);
     const argv = [process.argv[0], process.argv[1], ...args];
 
     // Always let cac handle --help / --version (and their short forms).

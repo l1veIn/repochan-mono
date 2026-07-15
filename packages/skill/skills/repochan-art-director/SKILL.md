@@ -60,7 +60,7 @@ repochan foundation find
 | sticker | `sticker_sheet` | `official/chibi-grid-3x3` | foundation | 3×3 chibi 表情包 |
 | poster | `poster` | 按 artStyle 策展 | foundation | 角色主视觉海报 |
 | readme_banner | `readme_banner` | `official/readme-banner-21x9` | foundation | README 横幅 |
-| pattern | `visual_pattern` | `official/pattern-2x2` | foundation | 品牌纹理 |
+| pattern | `visual_pattern` | `official/pattern-tile` | foundation | 单张 1×1 四方连续品牌纹理 |
 
 用户可以增减订单类型（icon、three_view 等），但 foundation 是必选项。
 

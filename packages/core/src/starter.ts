@@ -17,7 +17,14 @@ export const StarterPostprocessOpSchema = Type.Union([
   Type.Literal("resize"),
   Type.Literal("favicon"),
   Type.Literal("gif-from-frames"),
+  Type.Literal("extract-grid"),
 ]);
+
+const StarterAssetPublicationSchema = Type.Object({
+  key: Type.String({ pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$" }),
+  cell: Type.Integer({ minimum: 0 }),
+  output: RelativePathSchema,
+});
 
 const StarterReferenceSchema = Type.Union([
   Type.Object({
@@ -57,6 +64,7 @@ export const StarterAssetSlotSchema = Type.Object({
   required: Type.Boolean(),
   reference: Type.Optional(RelativePathSchema),
   output: RelativePathSchema,
+  publications: Type.Optional(Type.Array(StarterAssetPublicationSchema, { minItems: 1 })),
   description: Type.Optional(Type.String()),
   order: Type.Optional(StarterAssetOrderSchema),
   postprocess: Type.Optional(Type.Array(Type.Object({
@@ -65,6 +73,89 @@ export const StarterAssetSlotSchema = Type.Object({
     out: RelativePathSchema,
   }))),
 });
+
+const StarterLayerSchema = Type.Union([
+  Type.Literal("L1"),
+  Type.Literal("L1a"),
+  Type.Literal("L1b"),
+  Type.Literal("L1c"),
+  Type.Literal("L2"),
+  Type.Literal("L3"),
+  Type.Literal("L4"),
+]);
+
+const NormalizedPointSchema = Type.Object({
+  x: Type.Number({ minimum: 0, maximum: 1 }),
+  y: Type.Number({ minimum: 0, maximum: 1 }),
+}, { additionalProperties: false });
+
+const StarterSafeZoneSchema = Type.Object({
+  id: Type.String({ pattern: "^[a-z0-9][a-z0-9-]*$" }),
+  x: Type.Number({ minimum: 0, maximum: 1 }),
+  y: Type.Number({ minimum: 0, maximum: 1 }),
+  width: Type.Number({ exclusiveMinimum: 0, maximum: 1 }),
+  height: Type.Number({ exclusiveMinimum: 0, maximum: 1 }),
+}, { additionalProperties: false });
+
+const StarterSectionProvenanceSchema = Type.Union([
+  Type.Object({ type: Type.Literal("html-first") }, { additionalProperties: false }),
+  Type.Object({
+    type: Type.Literal("design-reference"),
+    reference: RelativePathSchema,
+  }, { additionalProperties: false }),
+]);
+
+export const StarterSectionCapabilitySchema = Type.Object({
+  id: Type.String({ pattern: "^[a-z0-9][a-z0-9-]*$" }),
+  required: Type.Boolean(),
+  recipe: Type.String({ minLength: 1 }),
+  provenance: StarterSectionProvenanceSchema,
+  bakedLayers: Type.Array(StarterLayerSchema),
+  liveLayers: Type.Array(StarterLayerSchema),
+  canonicalViewport: Type.Object({
+    width: Type.Integer({ minimum: 1 }),
+    height: Type.Integer({ minimum: 1 }),
+  }, { additionalProperties: false }),
+  safeZones: Type.Optional(Type.Array(StarterSafeZoneSchema, { minItems: 1 })),
+  responsive: Type.Object({
+    mode: Type.Union([
+      Type.Literal("reflow"),
+      Type.Literal("recompose"),
+      Type.Literal("alternate-asset"),
+      Type.Literal("hide-decoration"),
+    ]),
+    notes: Type.String({ minLength: 1 }),
+  }, { additionalProperties: false }),
+  assetSlots: Type.Optional(Type.Array(Type.String({ pattern: "^[a-z0-9][a-z0-9-]*$" }))),
+  motion: Type.Array(Type.Union([
+    Type.Literal("ambient"),
+    Type.Literal("scroll-linked"),
+    Type.Literal("interactive"),
+  ])),
+}, { additionalProperties: false });
+
+export const StarterTransitionCapabilitySchema = Type.Object({
+  from: Type.String({ pattern: "^[a-z0-9][a-z0-9-]*$" }),
+  to: Type.String({ pattern: "^[a-z0-9][a-z0-9-]*$" }),
+  kind: Type.Union([
+    Type.Literal("hard-cut"),
+    Type.Literal("continuous"),
+    Type.Literal("motif-handoff"),
+  ]),
+  motif: Type.Optional(Type.String({ minLength: 1 })),
+  direction: Type.Optional(Type.String({ minLength: 1 })),
+  anchors: Type.Optional(Type.Object({
+    from: NormalizedPointSchema,
+    to: NormalizedPointSchema,
+  }, { additionalProperties: false })),
+  patternPhase: Type.Optional(Type.String({ minLength: 1 })),
+  mobile: Type.String({ minLength: 1 }),
+}, { additionalProperties: false });
+
+export const StarterCapabilitiesSchema = Type.Object({
+  sections: Type.Array(StarterSectionCapabilitySchema, { minItems: 1 }),
+  transitions: Type.Array(StarterTransitionCapabilitySchema),
+}, { additionalProperties: false });
 
 export const StarterManifestSchema = Type.Object({
   schemaVersion: Type.Literal("repochan.starter.v1"),
@@ -84,6 +175,7 @@ export const StarterManifestSchema = Type.Object({
     supportedLocales: Type.Array(LocaleSchema, { minItems: 1 }),
     requiredPaths: Type.Array(Type.String({ minLength: 1 })),
   }),
+  capabilities: Type.Optional(StarterCapabilitiesSchema),
   assets: Type.Array(StarterAssetSlotSchema),
 });
 
@@ -110,11 +202,26 @@ export const StarterSiteConfigSchema = Type.Object({
   }),
 });
 
+export const StarterAssetProvenanceSchema = Type.Object({
+  kind: Type.Literal("local-file"),
+  sourcePath: Type.String({ minLength: 1 }),
+  sha256: Type.String({ pattern: "^[0-9a-f]{64}$" }),
+});
+
 export const StarterAssetStateSchema = Type.Object({
   src: Type.String({ minLength: 1 }),
   status: Type.Union([Type.Literal("pending"), Type.Literal("ready")]),
   orderId: Type.Optional(OrderIdSchema),
   versionId: Type.Optional(VersionIdSchema),
+  provenance: Type.Optional(StarterAssetProvenanceSchema),
+  qa: Type.Optional(Type.Record(Type.String(), Type.Any())),
+  items: Type.Optional(Type.Record(Type.String(), Type.Object({
+    src: Type.String({ minLength: 1 }),
+    status: Type.Union([Type.Literal("pending"), Type.Literal("ready")]),
+    orderId: Type.Optional(OrderIdSchema),
+    versionId: Type.Optional(VersionIdSchema),
+    qa: Type.Optional(Type.Record(Type.String(), Type.Any())),
+  }))),
 });
 
 export const StarterAssetsConfigSchema = Type.Object({
@@ -132,7 +239,7 @@ export const StarterLocaleContentSchema = Type.Object({
   content: Type.Record(Type.String(), Type.Any()),
 });
 
-export type StarterPostprocessOp = "compress" | "slice" | "extract-stickers" | "chroma-key" | "bg-remove" | "resize" | "favicon" | "gif-from-frames";
+export type StarterPostprocessOp = "compress" | "slice" | "extract-stickers" | "chroma-key" | "bg-remove" | "resize" | "favicon" | "gif-from-frames" | "extract-grid";
 
 export type StarterPostprocessStep = {
   op: StarterPostprocessOp;
@@ -153,9 +260,42 @@ export type StarterAssetSlot = {
   required: boolean;
   reference?: string;
   output: string;
+  publications?: Array<{ key: string; cell: number; output: string }>;
   description?: string;
   order?: StarterAssetOrder;
   postprocess?: StarterPostprocessStep[];
+};
+
+export type StarterLayer = "L1" | "L1a" | "L1b" | "L1c" | "L2" | "L3" | "L4";
+
+export type StarterSectionCapability = {
+  id: string;
+  required: boolean;
+  recipe: string;
+  provenance: { type: "html-first" } | { type: "design-reference"; reference: string };
+  bakedLayers: StarterLayer[];
+  liveLayers: StarterLayer[];
+  canonicalViewport: { width: number; height: number };
+  safeZones?: Array<{ id: string; x: number; y: number; width: number; height: number }>;
+  responsive: { mode: "reflow" | "recompose" | "alternate-asset" | "hide-decoration"; notes: string };
+  assetSlots?: string[];
+  motion: Array<"ambient" | "scroll-linked" | "interactive">;
+};
+
+export type StarterTransitionCapability = {
+  from: string;
+  to: string;
+  kind: "hard-cut" | "continuous" | "motif-handoff";
+  motif?: string;
+  direction?: string;
+  anchors?: { from: { x: number; y: number }; to: { x: number; y: number } };
+  patternPhase?: string;
+  mobile: string;
+};
+
+export type StarterCapabilities = {
+  sections: StarterSectionCapability[];
+  transitions: StarterTransitionCapability[];
 };
 
 export type StarterManifest = {
@@ -168,6 +308,7 @@ export type StarterManifest = {
   default?: boolean;
   config: { site: string; assets: string; i18nDir: string };
   content: { defaultLocale: string; supportedLocales: string[]; requiredPaths: string[] };
+  capabilities?: StarterCapabilities;
   assets: StarterAssetSlot[];
 };
 
@@ -181,7 +322,27 @@ export type StarterSiteConfig = {
 
 export type StarterAssetsConfig = {
   schemaVersion: "repochan.starter-assets.v1";
-  assets: Record<string, { src: string; status: "pending" | "ready"; orderId?: string; versionId?: string }>;
+  assets: Record<string, {
+    src: string;
+    status: "pending" | "ready";
+    orderId?: string;
+    versionId?: string;
+    provenance?: StarterAssetProvenance;
+    qa?: Record<string, unknown>;
+    items?: Record<string, {
+      src: string;
+      status: "pending" | "ready";
+      orderId?: string;
+      versionId?: string;
+      qa?: Record<string, unknown>;
+    }>;
+  }>;
+};
+
+export type StarterAssetProvenance = {
+  kind: "local-file";
+  sourcePath: string;
+  sha256: string;
 };
 
 export type StarterLocaleContent = {
@@ -214,16 +375,170 @@ export function validateStarterManifest(value: unknown): StarterManifest {
   if (!manifest.content.supportedLocales.includes(manifest.content.defaultLocale)) {
     throw new Error("content.defaultLocale must be included in content.supportedLocales.");
   }
+  validateStarterCapabilities(manifest);
   for (const asset of manifest.assets) {
     if (asset.reference) assertSafeRelativePath(asset.reference, `assets.${asset.slot}.reference`);
     assertSafeRelativePath(asset.output, `assets.${asset.slot}.output`);
-    for (const step of asset.postprocess ?? []) assertSafeRelativePath(step.out, `assets.${asset.slot}.postprocess.out`);
+    const publications = asset.publications ?? [];
+    assertUnique(publications.map((item) => item.key), `assets.${asset.slot}.publications.key`);
+    assertUnique(publications.map((item) => String(item.cell)), `assets.${asset.slot}.publications.cell`);
+    assertUnique(publications.map((item) => item.output), `assets.${asset.slot}.publications.output`);
+    for (const publication of publications) {
+      assertSafeRelativePath(publication.output, `assets.${asset.slot}.publications.${publication.key}.output`);
+      if (path.extname(publication.output).toLowerCase() !== ".png") {
+        throw new Error(`assets.${asset.slot}.publications.${publication.key}.output must be a .png path.`);
+      }
+    }
+    for (const [index, step] of (asset.postprocess ?? []).entries()) {
+      assertSafeRelativePath(step.out, `assets.${asset.slot}.postprocess.out`);
+      if (index < (asset.postprocess?.length ?? 0) - 1 && ["slice", "extract-stickers", "resize"].includes(step.op)) {
+        throw new Error(`assets.${asset.slot}: multi-output postprocess '${step.op}' must be the final step.`);
+      }
+    }
     const finalOut = asset.postprocess?.at(-1)?.out;
-    if (finalOut && finalOut !== asset.output) {
+    const extractGridSteps = (asset.postprocess ?? []).filter((step) => step.op === "extract-grid");
+    if (extractGridSteps.length > 1 || (extractGridSteps.length === 1 && asset.postprocess?.length !== 1)) {
+      throw new Error(`assets.${asset.slot}: extract-grid must be the only postprocess step.`);
+    }
+    if (extractGridSteps.length === 1) {
+      if (!publications.length) throw new Error(`assets.${asset.slot}: extract-grid requires publications.`);
+      validateExtractGridArgs(asset.slot, extractGridSteps[0].args, publications);
+      if (!publications.some((item) => item.output === asset.output)) {
+        throw new Error(`assets.${asset.slot}.output must identify one publication output for backwards compatibility.`);
+      }
+    } else if (publications.length) {
+      throw new Error(`assets.${asset.slot}: publications require an extract-grid postprocess step.`);
+    } else if (finalOut && finalOut !== asset.output) {
       throw new Error(`assets.${asset.slot}.output must match the final postprocess out (${finalOut}).`);
     }
   }
   return manifest;
+}
+
+function validateStarterCapabilities(manifest: StarterManifest): void {
+  const capabilities = manifest.capabilities;
+  if (!capabilities) return;
+  const sectionIds = capabilities.sections.map((section) => section.id);
+  const assetSlots = new Set(manifest.assets.map((asset) => asset.slot));
+  assertUnique(sectionIds, "capabilities.sections.id");
+  for (const section of capabilities.sections) {
+    assertUnique(section.bakedLayers, `capabilities.sections.${section.id}.bakedLayers`);
+    assertUnique(section.liveLayers, `capabilities.sections.${section.id}.liveLayers`);
+    if (section.bakedLayers.includes("L1") && section.bakedLayers.some((layer) => /^L1[a-c]$/.test(layer))) {
+      throw new Error(`capabilities.sections.${section.id}.bakedLayers cannot combine L1 with an L1 sublayer.`);
+    }
+    if (section.liveLayers.includes("L1") && section.liveLayers.some((layer) => /^L1[a-c]$/.test(layer))) {
+      throw new Error(`capabilities.sections.${section.id}.liveLayers cannot combine L1 with an L1 sublayer.`);
+    }
+    const overlap = section.bakedLayers.find((baked) => section.liveLayers.some((current) => (
+      baked === current
+      || baked === "L1" && /^L1[a-c]$/.test(current)
+      || current === "L1" && /^L1[a-c]$/.test(baked)
+    )));
+    if (overlap) throw new Error(`capabilities.sections.${section.id}: layer '${overlap}' cannot be both baked and live.`);
+    if (section.bakedLayers.includes("L4")) {
+      throw new Error(`capabilities.sections.${section.id}: L4 interaction must remain live.`);
+    }
+    if (section.bakedLayers.length + section.liveLayers.length === 0) {
+      throw new Error(`capabilities.sections.${section.id}: at least one baked or live layer is required.`);
+    }
+    if (section.provenance.type === "design-reference") {
+      assertSafeRelativePath(section.provenance.reference, `capabilities.sections.${section.id}.provenance.reference`);
+    }
+    assertUnique(section.assetSlots ?? [], `capabilities.sections.${section.id}.assetSlots`);
+    for (const slot of section.assetSlots ?? []) {
+      if (!assetSlots.has(slot)) throw new Error(`capabilities.sections.${section.id}: unknown asset slot '${slot}'.`);
+    }
+    assertUnique(section.motion, `capabilities.sections.${section.id}.motion`);
+    assertUnique((section.safeZones ?? []).map((zone) => zone.id), `capabilities.sections.${section.id}.safeZones.id`);
+    for (const zone of section.safeZones ?? []) {
+      if (zone.x + zone.width > 1 || zone.y + zone.height > 1) {
+        throw new Error(`capabilities.sections.${section.id}.safeZones.${zone.id} must fit inside normalized bounds.`);
+      }
+    }
+  }
+
+  const expectedTransitions = sectionIds.slice(0, -1).map((from, index) => `${from}->${sectionIds[index + 1]}`);
+  const actualTransitions = capabilities.transitions.map((transition) => `${transition.from}->${transition.to}`);
+  assertUnique(actualTransitions, "capabilities.transitions");
+  const missing = expectedTransitions.find((pair) => !actualTransitions.includes(pair));
+  const unexpected = actualTransitions.find((pair) => !expectedTransitions.includes(pair));
+  if (missing || unexpected || actualTransitions.length !== expectedTransitions.length) {
+    throw new Error(
+      `capabilities.transitions must cover each adjacent section exactly once; expected ${expectedTransitions.join(", ") || "none"}.`,
+    );
+  }
+  for (const transition of capabilities.transitions) {
+    const label = `capabilities.transitions.${transition.from}->${transition.to}`;
+    if (transition.kind === "motif-handoff") {
+      if (!transition.motif) throw new Error(`${label}: motif-handoff requires motif.`);
+      if (!transition.direction && !transition.anchors) {
+        throw new Error(`${label}: motif-handoff requires direction or normalized anchors.`);
+      }
+    }
+    if (transition.kind === "continuous" && !transition.anchors) {
+      throw new Error(`${label}: continuous requires normalized anchors.`);
+    }
+    if (transition.kind === "hard-cut" && (
+      transition.motif || transition.direction || transition.anchors || transition.patternPhase
+    )) {
+      throw new Error(`${label}: hard-cut cannot declare motif, direction, anchors, or patternPhase.`);
+    }
+  }
+}
+
+function validateExtractGridArgs(
+  slot: string,
+  args: Record<string, unknown> | undefined,
+  publications: Array<{ key: string; cell: number; output: string }>,
+): void {
+  const label = `assets.${slot}.extract-grid.args`;
+  if (!args || !Number.isInteger(args.rows) || Number(args.rows) < 1 || !Number.isInteger(args.cols) || Number(args.cols) < 1) {
+    throw new Error(`${label}.rows and .cols must be positive integers.`);
+  }
+  const cellCount = Number(args.rows) * Number(args.cols);
+  if (publications.some((item) => item.cell >= cellCount)) throw new Error(`${label}: publication cell is outside the ${args.rows}x${args.cols} grid.`);
+  const normalize = args.normalize;
+  if (!normalize || typeof normalize !== "object") throw new Error(`${label}.normalize is required.`);
+  const canvasSize = (normalize as Record<string, unknown>).canvasSize;
+  const validCanvas = Number.isInteger(canvasSize) && Number(canvasSize) > 0
+    || !!canvasSize && typeof canvasSize === "object"
+      && Number.isInteger((canvasSize as Record<string, unknown>).width) && Number((canvasSize as Record<string, unknown>).width) > 0
+      && Number.isInteger((canvasSize as Record<string, unknown>).height) && Number((canvasSize as Record<string, unknown>).height) > 0;
+  if (!validCanvas) throw new Error(`${label}.normalize.canvasSize must be a positive integer or positive integer width/height.`);
+  const padding = (normalize as Record<string, unknown>).padding;
+  if (padding !== undefined && (!Number.isInteger(padding) || Number(padding) < 0)) {
+    throw new Error(`${label}.normalize.padding must be a non-negative integer.`);
+  }
+  if (args.mapping !== undefined) {
+    const mapping = args.mapping;
+    const expected = new Map(publications.map((item) => [item.key, item.cell]));
+    const actual = Array.isArray(mapping)
+      ? new Map(mapping.map((key, index) => [key, index]))
+      : mapping && typeof mapping === "object" ? new Map(Object.entries(mapping)) : undefined;
+    if (!actual || actual.size !== expected.size || [...expected].some(([key, cell]) => Number(actual.get(key)) !== cell)) {
+      throw new Error(`${label}.mapping must exactly match publications key/cell assignments.`);
+    }
+  }
+  if (args.qa !== undefined && (!args.qa || typeof args.qa !== "object" || Array.isArray(args.qa))) {
+    throw new Error(`${label}.qa must be an object.`);
+  }
+  if (args.qa && typeof args.qa === "object") {
+    const qa = args.qa as Record<string, unknown>;
+    if (qa.alphaThreshold !== undefined && (!Number.isInteger(qa.alphaThreshold) || Number(qa.alphaThreshold) < 1 || Number(qa.alphaThreshold) > 255)) {
+      throw new Error(`${label}.qa.alphaThreshold must be an integer from 1 to 255.`);
+    }
+    for (const key of ["minForegroundRatio", "maxForegroundRatio", "maxEdgeTouchRatio"] as const) {
+      const ratio = qa[key];
+      if (ratio !== undefined && (typeof ratio !== "number" || ratio < 0 || ratio > 1)) throw new Error(`${label}.qa.${key} must be between 0 and 1.`);
+    }
+    if (typeof qa.minForegroundRatio === "number" && typeof qa.maxForegroundRatio === "number" && qa.minForegroundRatio > qa.maxForegroundRatio) {
+      throw new Error(`${label}.qa.minForegroundRatio cannot exceed maxForegroundRatio.`);
+    }
+  }
+  if (args.chroma !== undefined && (!args.chroma || typeof args.chroma !== "object" || Array.isArray(args.chroma))) {
+    throw new Error(`${label}.chroma must be an object.`);
+  }
 }
 
 export function validateStarterSiteConfig(value: unknown): StarterSiteConfig {
@@ -286,7 +601,23 @@ export function validateStarterAssetState(
       continue;
     }
     if (slot.required && state.status !== "ready") issues.push(`${slot.slot}: required asset is not ready`);
-    if (state.status === "ready" && !existing.has(slot.output)) issues.push(`${slot.slot}: ready output does not exist: ${slot.output}`);
+    if (slot.publications?.length) {
+      const publicationKeys = new Set(slot.publications.map((item) => item.key));
+      for (const key of Object.keys(state.items ?? {})) if (!publicationKeys.has(key)) issues.push(`${slot.slot}: unknown publication item: ${key}`);
+      for (const publication of slot.publications) {
+        const item = state.items?.[publication.key];
+        if (!item) {
+          if (slot.required || state.status === "ready") issues.push(`${slot.slot}.${publication.key}: missing publication state`);
+          continue;
+        }
+        if ((slot.required || state.status === "ready") && item.status !== "ready") issues.push(`${slot.slot}.${publication.key}: publication is not ready`);
+        if (item.status === "ready" && !existing.has(publication.output)) issues.push(`${slot.slot}.${publication.key}: ready output does not exist: ${publication.output}`);
+        const expectedSrc = `/${publication.output.replace(/^public\//, "")}`;
+        if (item.src !== expectedSrc) issues.push(`${slot.slot}.${publication.key}: src does not match output: ${item.src}`);
+      }
+    } else {
+      if (state.status === "ready" && !existing.has(slot.output)) issues.push(`${slot.slot}: ready output does not exist: ${slot.output}`);
+    }
     if (state.src !== `/${slot.output.replace(/^public\//, "")}`) issues.push(`${slot.slot}: src does not match output: ${state.src}`);
   }
   return issues;
@@ -343,17 +674,22 @@ export function projectStarterSiteConfig(input: {
   analysis?: unknown;
   persona?: unknown;
   defaults: StarterSiteConfig;
+  repositoryUrl?: string;
 }): StarterSiteConfig {
   const { analysis, persona, defaults } = input;
   const primary = getNestedString(persona, ["mainColor"]) ?? defaults.theme.primary;
   const base = getNestedString(persona, ["secondaryColor"]) ?? defaults.theme.base;
   const accents = getStringArray(persona, "accentColors") ?? defaults.theme.accents;
+  const repositoryUrl = getNestedString(input, ["repositoryUrl"])
+    ?? getNestedString(analysis, ["context.basic.repository_url", "context.basic.repositoryUrl", "repositoryUrl"])
+    ?? repositoryUrlFromGitProfile(analysis)
+    ?? defaults.project.repositoryUrl;
   return {
     schemaVersion: "repochan.starter-site.v1",
     project: {
       name: getNestedString(analysis, ["context.basic.project_name", "context.basic.projectName", "projectName"]) ?? defaults.project.name,
       description: getNestedString(analysis, ["preAnalysis.summary", "abstract.overall_impression"]) ?? defaults.project.description,
-      repositoryUrl: getNestedString(analysis, ["context.basic.repository_url", "context.basic.repositoryUrl", "repositoryUrl"]) ?? defaults.project.repositoryUrl,
+      repositoryUrl,
     },
     theme: { primary, base, accents: [...accents] },
     brand: {
@@ -363,4 +699,29 @@ export function projectStarterSiteConfig(input: {
     },
     locales: { default: defaults.locales.default, supported: [...defaults.locales.supported] },
   };
+}
+
+function githubHttpsUrl(value: string): string | undefined {
+  const trimmed = value.trim();
+  const scpMatch = /^git@github\.com:([^/\s]+)\/([^\s]+)$/i.exec(trimmed);
+  const httpsMatch = /^https:\/\/github\.com\/([^/\s]+)\/([^\s]+)$/i.exec(trimmed);
+  const match = scpMatch ?? httpsMatch;
+  if (!match) return undefined;
+  const owner = match[1];
+  const repo = match[2].replace(/\.git$/i, "").replace(/\/$/, "");
+  if (!owner || !repo) return undefined;
+  return `https://github.com/${owner}/${repo}`;
+}
+
+function repositoryUrlFromGitProfile(analysis: unknown): string | undefined {
+  const remotes = valueAtPath(analysis, "context.git_profile.remotes");
+  if (!Array.isArray(remotes)) return undefined;
+  for (const entry of remotes) {
+    if (typeof entry !== "string") continue;
+    const match = /^origin\s+(\S+)\s+\(fetch\)\s*$/i.exec(entry);
+    if (!match) continue;
+    const normalized = githubHttpsUrl(match[1]);
+    if (normalized) return normalized;
+  }
+  return undefined;
 }

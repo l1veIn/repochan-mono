@@ -18,6 +18,8 @@ export type TemplateGrid = {
   cols: number;
   /** If true, the output can be auto-sliced into rows×cols individual tiles. */
   sliceable: boolean;
+  /** Optional row-major semantic names for deterministic named extraction. */
+  cellKeys?: string[];
 };
 
 /**
@@ -216,6 +218,9 @@ function toTemplateData(raw: RawYaml, idFallback: string): TemplateData | null {
           rows: Number(raw.grid.rows ?? 0),
           cols: Number(raw.grid.cols ?? 0),
           sliceable: raw.grid.sliceable === true || raw.grid.sliceable === "true",
+          cellKeys: Array.isArray(raw.grid.cell_keys)
+            ? raw.grid.cell_keys.filter((key: unknown): key is string => typeof key === "string")
+            : undefined,
         }
       : undefined;
 

@@ -1,4 +1,4 @@
 interface:
-  display_name: "RepoChan Starter Designer"
-  short_description: "Design reusable image-driven RepoChan starters"
-  default_prompt: "Use $repochan-starter-designer to design a reusable multi-section RepoChan starter."
+  display_name: "RepoChan Starter Productizer"
+  short_description: "Turn an approved website into a reusable source starter"
+  default_prompt: "Use $repochan-starter-designer to productize this Gate-2-approved website into a reusable RepoChan source starter."

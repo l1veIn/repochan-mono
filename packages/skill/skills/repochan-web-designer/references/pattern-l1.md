@@ -57,4 +57,4 @@
 
 ## 验证
 
-生成结果必须实际做 3×3 或更大平铺检查，观察四边接缝、中心重复热点、文字可读性和动效循环。模板声称 seamless 不是验证证据。当前没有专用 seam validator 时，用 image-edit/browser 生成检查板并人工 QA；不要把检查板作为生产资产。
+生成结果必须运行 `repochan image edit validate-seams <tile> --out <qa-board.png>`，记录 edge metric 与 threshold，并检查 3×3 board 的中心重复热点、文字可读性和动效循环。数值通过不能替代人眼 hotspot/readability QA；模板声称 seamless 也不是验证证据。检查板只属于 QA evidence，不是生产资产。

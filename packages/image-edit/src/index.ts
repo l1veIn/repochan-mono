@@ -5,4 +5,7 @@ export * from "./gif-frames.js";
 export * from "./resize.js";
 export * from "./chroma-key.js";
 export * from "./compress.js";
+export * from "./matte-grid.js";
+export * from "./seam-validation.js";
+export * from "./image-inspect.js";
 export type { MatteModel } from "./imgly.js";

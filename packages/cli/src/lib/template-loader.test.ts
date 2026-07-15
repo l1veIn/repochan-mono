@@ -30,6 +30,9 @@ grid:
   rows: 2
   cols: 3
   sliceable: false
+  cell_keys:
+    - "welcome"
+    - "empty"
 prompt_template: |
   first line, {{character_visual}},
   second line
@@ -44,7 +47,7 @@ constraints:
       width: 1536,
       height: 1024,
       aspectRatio: "3:2",
-      grid: { rows: 2, cols: 3, sliceable: false },
+      grid: { rows: 2, cols: 3, sliceable: false, cellKeys: ["welcome", "empty"] },
       promptTemplate: "first line, {{character_visual}},\nsecond line\n",
       constraints: ["solid background"],
     });

@@ -1,0 +1,50 @@
+id: "official/web-state-grid-3x3"
+asset_type: "web_state_stickers"
+label: "3×3 Web 状态角色贴纸"
+description: "固定语义的 3×3 Q 版角色状态表，用于网页状态、空态、错误页与 CTA；可按 cell_keys 自动提取为具名透明资产。"
+tags: ["web", "state", "sticker", "chibi", "grid", "fixed-semantic"]
+size: "1024x1024"
+
+grid:
+  rows: 3
+  cols: 3
+  sliceable: true
+  cell_keys:
+    - "welcome"
+    - "searching"
+    - "loading"
+    - "empty"
+    - "error"
+    - "success"
+    - "not-found"
+    - "cta"
+    - "cozy"
+
+prompt_template: |
+  strict 3x3 chibi web-state sticker sheet with exactly nine isolated stickers of the same {{character_visual}},
+  simplified cute proportions, large head, bold readable silhouette, use {{color_palette}} and {{key_motifs}},
+  consistent identity, outfit, line weight, camera angle, scale, and lighting in every cell,
+  perfectly flat uniform non-character matte background of pure {{matte_color}}, no gradient, texture, shadow, or off-color,
+  generous empty margin on all four sides of every cell, no sticker may touch a cell edge or enter another cell,
+  no words, letters, numbers, punctuation, labels, captions, speech bubbles, interface text, watermarks, borders, frames, or grid lines,
+  no element crosses a cell boundary, square 1:1 canvas, evenly aligned rows and columns, production-ready chroma-key sheet
+
+  Fixed cell semantics, left-to-right and top-to-bottom:
+  CELL 0: welcome — friendly wave and inviting open posture
+  CELL 1: searching — attentively inspecting with a simple non-text magnifying-glass prop
+  CELL 2: loading — patient active waiting pose with abstract non-text motion marks
+  CELL 3: empty — gently presenting clearly empty hands or an empty neutral container, no symbols or text
+  CELL 4: error — apologetic concerned pose with a simple non-text warning gesture
+  CELL 5: success — joyful celebration with small abstract sparkles
+  CELL 6: not-found — puzzled searching pose with a simple folded map shape, no question mark or text
+  CELL 7: cta — energetic presenting or pointing gesture toward adjacent page content
+  CELL 8: cozy — calm content pose holding a warm mug, no lettering
+
+constraints:
+  - "strict 3-row × 3-column grid with exactly 9 stickers in the declared fixed semantic order"
+  - "perfectly flat uniform matte background using a color absent from the character, costume, props, outlines, and effects"
+  - "the matte is not a character color and must remain identical in every pixel outside the stickers"
+  - "every sticker has generous clear matte margin and must not touch or cross any cell edge"
+  - "no sticker, prop, effect, shadow, or decoration spans multiple cells"
+  - "no text, letters, numbers, punctuation, labels, captions, speech bubbles, logos, signatures, or watermarks"
+  - "no borders, frames, dividers, grid lines, cell boxes, scenery, or textured backgrounds"

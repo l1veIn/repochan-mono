@@ -1,5 +1,7 @@
 # 人类视觉门禁
 
+以下 Gate 在普通交互流程中由人类决定。只有上层向导已明确进入 yolo 或非交互 CI 时，agent 才可自动选择推荐候选并记录 `auto-approved`；记录必须包含候选、选择理由、自动 QA 和“无人类审美批准”标记，不能伪称 human-approved。
+
 ## Gate 1：视觉母版选择（必选）
 
 时机：完整设计稿候选完成、尚未开始大规模拆层和迁移。
@@ -11,7 +13,7 @@
 - 每个方向的一句话设计意图和主要工程风险。
 - 研究模式下可附加一个针对明确假设的改进候选，但必须说明它验证了什么，不能把微调数量当成探索质量。
 
-只询问：哪个方向值得成为 starter、哪些关系必须保留、哪些内容不符合项目气质。
+只询问：哪个方向值得实现、哪些关系必须保留、哪些内容不符合项目气质。
 
 不要让人类检查：schema、路径、硬编码颜色、构建结果或字段完整性。
 
@@ -47,8 +49,10 @@ Gate 1B 之前仍不得开始大规模生产资产；Nav/Footer 等明确 HTML-f
 - 其他 locale 中最长文案的代表页面。
 - 与 Gate 1 母版的主要差异说明。
 
-让人类判断：视觉节奏、角色出现频率、统一性、内容主次、移动端是否仍像设计，以及是否值得作为可复用 starter。
+让人类判断：视觉节奏、角色出现频率、统一性、内容主次、移动端是否仍像设计，以及具体项目网站是否可以批准交付。
 
 ## 自动化先行
 
 进入 Gate 2 前必须自动完成：manifest/config/content/assets validation、硬编码颜色检查、Astro build、链接与键盘基础检查、viewport 溢出检查。自动问题未清零时不消耗人类视觉时间。
+
+Gate 2 截图必须来自 production build/preview，记录 source/build hash、browser/version、viewport、route、locale、motion setting 与截图路径；先排除 dev toolbar、扩展浮层等环境 UI。L4 不能只“看起来像控件”：检查语义、键盘行为、状态变化与 reduced-motion-aware JS。移动端除 overflow 外，还要检查角色脸部/主体、主 CTA、live copy 顺序与碰撞。

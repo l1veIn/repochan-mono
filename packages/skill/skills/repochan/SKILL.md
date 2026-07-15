@@ -30,12 +30,16 @@ description: >
 ④ 美术总监  → repochan-art-director → 一次性创建全部订单（yolo 时 status=approved；非 yolo 为 draft）
 ⑤ 画师      → repochan-painter     → 先执行 foundation，再执行下游（引用 foundation 参考图）
    ⏸ 检查点 2：foundation 出图后停下（非 yolo 才停；yolo 直接继续下游）
-⑥ 模板部署  → repochan-page-designer → 拉取/填充 Astro 模板
+⑥ 模板本地化 → repochan-page-designer → 拉取、配置并装配既有 Astro starter
    ⏸ 检查点 3：部署前停下，给用户最后确认（外向不可逆操作）
 ⑦ 部署上线  → 构建 + 部署到 GitHub Pages
 ```
 
 每一步你要：读对应团队 skill 的指引 → 按它的指导跑（调 cli 子命令、用 `repochan <entity> get` 读上游产物）→ 完成后进入下一阶段。
+
+默认链只做既有 starter 的本地化与装配。若用户明确要求原创网站、全新信息架构/section/艺术方向，或 Page Designer 判断没有合适 starter，显式进入 `repochan-web-designer` 分支，完成 Gate 1/2 后交付具体项目网站。把获批网站转成 `packages/starters/` source starter 是维护者任务，只有用户明确要求产品化时才调用 `repochan-starter-designer`，不属于默认项目流水线。
+
+若在 yolo/CI 中进入 Web Designer 分支，Gate 1/2 不阻塞询问：由执行 agent 记录候选、自动选择推荐方向，并在自动 QA 全绿后记录 auto-approved 决策；这不等同于有人类审美批准，交付报告必须明确标注。非 yolo 仍必须等待人类 Gate 1/2。
 
 ## 三档体验
 
@@ -112,7 +116,14 @@ description: >
 | ③ 人设 | `repochan-persona` | 创意团队造人格 |
 | ④ 美术指导 | `repochan-art-director` | 一次性创建全部订单（foundation + 下游） |
 | ⑤ 绘制 | `repochan-painter` | 先执行 foundation，再执行下游 |
-| ⑥ 页面 | `repochan-page-designer` | 落地页 |
+| ⑥ 模板本地化 | `repochan-page-designer` | 选择、配置并装配既有 starter；不重做设计 |
+
+显式扩展角色：
+
+| 场景 | skill | 职责 |
+|---|---|---|
+| 原创网站 / 无 starter 适配 | `repochan-web-designer` | 艺术方向、section 母稿、资产策略、实现与 Gate 1/2 |
+| 获批网站产品化 | `repochan-starter-designer` | Gate-2 page → reusable source starter；非默认维护流程 |
 
 需要某一步的细节时，加载对应团队 skill 的完整指引。
 
@@ -130,7 +141,7 @@ description: >
 7. 加载 `repochan-painter`，先执行 foundation 出图。
 8. **检查点 2**：展示 foundation 图，问"视觉风格满意吗？"
 9. 确认后，画师继续执行下游订单（引用 foundation 参考图）。
-10. 加载 `repochan-page-designer`，拉模板填充。
+10. 加载 `repochan-page-designer`，选择、配置并装配既有 starter；若不适配则报告并进入显式 Web Designer 分支，不要临场重做设计。
 11. **检查点 3**："即将部署到 GitHub Pages，确认上线？"
 12. 用户确认 → 构建 + 部署。
 

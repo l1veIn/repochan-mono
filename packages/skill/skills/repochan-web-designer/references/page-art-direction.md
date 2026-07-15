@@ -4,7 +4,7 @@
 
 ### HTML-first
 
-适合结构简单、section 刻意硬切、角色与图像很少的 starter。整页方向稿可以覆盖 Nav/Footer 和低复杂度 sections，但每个未生成 section 母稿的区域必须记录 HTML-first 理由与视觉依据。
+适合结构简单、section 刻意硬切、角色与图像很少的网站。整页方向稿可以覆盖 Nav/Footer 和低复杂度 sections，但每个未生成 section 母稿的区域必须记录 HTML-first 理由与视觉依据。
 
 ### Section-driven
 
@@ -47,7 +47,7 @@ Hero 与其他 sections 同级。Hero 可以最先完成，但不能成为其他
 - desktop 与 mobile 的简化、隐藏或替代策略。
 - 实现方式：hard cut、gradient/mask、composite+SVG、独立 transition asset 等。
 
-Transition contract 描述关系，不要求所有 starter 使用连续转场。硬切色面也是有效设计选择，但必须是有意选择。
+Transition contract 描述关系，不要求所有网站使用连续转场。硬切色面也是有效设计选择，但必须是有意选择。
 
 ## 覆盖检查
 

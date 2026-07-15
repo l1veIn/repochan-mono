@@ -201,6 +201,33 @@ export async function runImageEditSlice(
   }
 }
 
+/** repochan image edit validate-seams <img> [--threshold 0.02] [--out board.png] [--overwrite] */
+export async function runImageEditValidateSeams(
+  cwd: string,
+  imagePath: string | undefined,
+  options: OutputOptions & { threshold?: string; out?: string; overwrite?: boolean },
+) {
+  if (!imagePath) {
+    throw new UsageError("Usage: repochan image edit validate-seams <img> [--threshold 0.02] [--out board.png] [--overwrite]");
+  }
+  const threshold = options.threshold === undefined ? undefined : Number(options.threshold);
+  if (threshold !== undefined && (!Number.isFinite(threshold) || threshold < 0 || threshold > 1)) {
+    throw new UsageError(`--threshold must be a number from 0 to 1 (got "${options.threshold}")`);
+  }
+  const absIn = path.resolve(cwd, imagePath);
+  const boardOutFile = options.out ? path.resolve(cwd, options.out) : undefined;
+  const { validateSeamlessTile } = await import("@repochan/image-edit");
+  const result = await validateSeamlessTile(absIn, { threshold, boardOutFile, overwrite: options.overwrite });
+  if (!result.pass) {
+    const message = `Seam validation failed: score ${result.metrics.score.toFixed(6)} exceeds threshold ${result.threshold.toFixed(6)} `
+      + `(left/right mean ${result.metrics.leftRight.meanDelta.toFixed(6)}, top/bottom mean ${result.metrics.topBottom.meanDelta.toFixed(6)}).`;
+    emitResult(options, message, result);
+    process.exitCode = 1;
+    return result;
+  }
+  return emitResult(options, `Seam validation passed (${result.metrics.score.toFixed(6)} <= ${result.threshold.toFixed(6)}).`, result);
+}
+
 export async function runImageEditBgRemove(
   cwd: string,
   imagePath: string | undefined,

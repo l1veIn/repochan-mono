@@ -14,24 +14,27 @@
 
 ### 品牌纹理 / pattern 特殊引导（assetType=visual_pattern）
 
-Pattern 是**可切分消费型资产**——下游 page-designer 用 `repochan image edit slice` / `bg-remove` 抠出 4 块矩形纹理给落地页/CSS。你（Painter）只负责画得可被切片，**不要**自己跑 image-edit（后处理是 page-designer 的职责）。
+Pattern 是**直接消费型资产**。每个 `official/pattern-tile` order 只交付一张 full-bleed 的 1×1 canonical tile；不得生成四格合集、标题板、样张边框或 gutter。你（Painter）负责候选图符合模板，页面侧负责复用与确定性 QA；不要自己跑 image-edit。
 
 **必须**：
-- **纯白底板 + 白 gutter**：四格之间用厚纯白分隔，方便抠图。
-- **每格四方连续**：seamless tileable，无透视、无场景插画。
+- **单张出血到边界**：整幅就是 tile，没有画框、留白或分区。
+- **四方连续**：左右与上下均 seamless tileable，无透视、无场景插画。
 - **无角色主视觉**：抽象 motif / 几何 / 品牌符号为主。
+- **无文字与数字**：语义文本只能抽象为非语义几何节奏。
 - 模板 constraints 不削弱。
 
-### 贴纸表特殊引导（assetType=chibi_emojis / sticker_sheet）
+### 贴纸表特殊引导（assetType=chibi_emojis / sticker_sheet / web_state_stickers）
 
-贴纸表是**可切片资产**——下游 page-designer 生成后会用 `repochan image edit extract-stickers`（或 `slice`）按网格切成独立表情贴纸。切分质量直接取决于图像的间距、背景和简洁度。你（Painter）只负责画得可被切片，**不要**自己跑 image-edit。
+贴纸表是**网格生产资产**。它既可承载表情，也可为网页批量生产 404、empty、loading、success、CTA cameo 等语义状态。切分质量取决于严格网格、uniform matte、间距和轮廓；你（Painter）只负责原图，不自己切格，也不承诺当前 CLI 已能自动投影多 slot。
 
 **贴纸表必须**：
 - **精简每个 cell 的内容**：每个表情 cell 只保留角色头像/半身 + 表情 + 简单配色。**不要**在 cell 内注入背景配饰、文字标签、复杂场景、额外道具。`{{key_motifs}}` 和 `{{color_palette}}` 只用于角色本身的配色呼应，不要变成 cell 内的装饰物。
-- **保证纯白背景**：背景必须是 `#FFFFFF` 纯白、平面、均匀。任何非纯白背景（米色、灰、渐变、纹理）都会导致切分后贴纸带脏边。
-- **保证充足间距**：贴纸之间必须有大量白色留白，贴纸不得触碰 cell 边缘或彼此。间距太小会导致切分时贴纸被截断或粘连。
+- **保证 uniform matte**：严格使用模板/订单指定的单一抠图底色，整张一致、平面、无渐变、纹理、投影或环境光污染；未指定时遵守模板默认，不擅自换色。
+- **保证充足间距**：贴纸之间必须有大量 matte 留白，贴纸不得触碰 cell 边缘或彼此。间距太小会导致切分时贴纸被截断或粘连。
 - **保持正方形比例**：整体图像必须是 1:1 正方形，否则切分后 cell 比例变形。
-- **constraints 是硬约束**：模板的 constraints（间距、纯白背景、无边框等）不可削弱或省略。
+- **保持 cell 一致**：3×3/4×4 网格的行列、镜头、角色尺度与安全边距严格一致；每格只表达订单约定的一种状态。
+- **控制 alpha 风险**：避免与 matte 接近的角色颜色、大面积半透明、辉光、毛发溢色和跨 cell 元素；高风险状态改用独立 production order。
+- **constraints 是硬约束**：模板的 constraints（间距、uniform matte、无边框等）不可削弱或省略。
 
 ### 图标矩阵特殊引导（assetType=icon）
 

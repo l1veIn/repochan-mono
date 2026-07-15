@@ -66,7 +66,7 @@ Safe zone 不是“空白矩形”，而是 image layer 与 live layer 的接口
 
 - 不把可点击 UI 烘焙进图片。
 - 不因视觉稿存在文字就默认烘焙 L3。
-- 不用原角色成图直接作为可迁移 starter 的 identity reference。
+- 不用其他项目的角色成图直接作为当前项目的 identity reference。
 - 不把视觉母版中的角色直接抠出并宣称为生产级透明 L2。
 - 不把一张桌面设计稿等比缩放成移动端。
 - 不以“像素一致”为理由牺牲语义、键盘、i18n 或可读性。

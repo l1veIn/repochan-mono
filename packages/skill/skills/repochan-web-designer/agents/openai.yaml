@@ -1,0 +1,4 @@
+interface:
+  display_name: "RepoChan Web Designer"
+  short_description: "Design original project websites from art direction to Gate 2"
+  default_prompt: "Use $repochan-web-designer to design an original multi-section website for this repository."
