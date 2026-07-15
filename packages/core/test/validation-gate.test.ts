@@ -8,18 +8,29 @@ import {
   setOrderStatus,
   addOrderRevision,
   createOrderResult,
-  setCurrentOrderResult,
+  readOrder,
+  readOrderResult,
 } from "../src/entities/index.js";
 import { initProtocol } from "../src/protocol/index.js";
+import { validateProtocol } from "../src/validation.js";
 import { validateInput, ValidationError } from "../src/validate.js";
 import {
+  AnalysisEnrichParamsSchema,
+  InterviewCreateParamsSchema,
   OrderCreateCandidateParamsSchema,
   OrderCreateParamsSchema,
   OrderCreateResultParamsSchema,
+  OrderResultVersionSchema,
   OrderSetStatusParamsSchema,
+  OrderUpdateParamsSchema,
   PersonaCreateParamsSchema,
+  PersonaArtifactSchema,
+  PersonaReviewCreateParamsSchema,
+  ReviewCreateParamsSchema,
 } from "../src/schemas/index.js";
 import { Type } from "typebox";
+import { canonicalAnalysis, seedUpstream } from "../test-support/fixtures.js";
+import * as publicProtocol from "../src/protocol/public.js";
 
 describe("unified validation layer", () => {
   let tmpRoot: string;
@@ -29,10 +40,7 @@ describe("unified validation layer", () => {
     tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), "repochan-core-validate-"));
     projectRoot = tmpRoot;
     await initProtocol(projectRoot);
-    // seed upstream artifacts
-    const r = path.join(projectRoot, ".repochan");
-    await fs.writeFile(path.join(r, "analysis", "current.json"), JSON.stringify({ summary: "test" }));
-    await fs.writeFile(path.join(r, "persona", "current.json"), JSON.stringify({ name: "test", rolePrompt: "test", artStyle: "cel-shaded" }));
+    await seedUpstream(projectRoot);
   });
 
   afterEach(async () => {
@@ -80,6 +88,28 @@ describe("unified validation layer", () => {
         .toThrow(/required properties files/);
     });
 
+    it("rejects unknown fields in fixed Persona narrative objects", () => {
+      const persona = {
+        name: "Strict",
+        rolePrompt: "strict mascot",
+        artStyle: "flat anime",
+        world: {
+          name: "World",
+          coreRule: "Rules are explicit.",
+          atmosphere: "Clear",
+          relationshipToCharacter: "Home",
+          removedField: true,
+        },
+      };
+      expect(() => validateInput("persona.create", PersonaCreateParamsSchema, { persona })).toThrow(/additional properties/);
+      expect(() => validateInput("persona.artifact", PersonaArtifactSchema, {
+        ...persona,
+        schemaVersion: "repochan.persona.v2",
+        generatedAt: "2026-07-15T00:00:00.000Z",
+        provenance: { tool: "test" },
+      })).toThrow(/additional properties/);
+    });
+
     it("forbids delivered/current result state in order.create payloads", () => {
       const base = {
         orderId: "ord-born-delivered",
@@ -92,10 +122,96 @@ describe("unified validation layer", () => {
       expect(() => validateInput("order.create", OrderCreateParamsSchema, { order: { ...base, status: "delivered" } }))
         .toThrow(/order\.create/);
       expect(() => validateInput("order.create", OrderCreateParamsSchema, { order: { ...base, currentVersion: "ghost" } }))
-        .toThrow(/currentVersion/);
-      expect(() => validateInput("order.create", OrderCreateParamsSchema, { order: { ...base, orderAsset: { currentVersion: "ghost" } } }))
-        .toThrow(/orderAsset/);
+        .toThrow(/additional properties/);
+      expect(() => validateInput("order.create", OrderCreateParamsSchema, { order: { ...base, candidateVersions: ["c1"] } }))
+        .toThrow(/additional properties/);
+      expect(() => validateInput("order.create_result", OrderCreateResultParamsSchema, { orderId: "ord-flags", files: ["x.png"], unexpectedControl: true }))
+        .toThrow(/additional properties/);
     });
+
+    it("keeps published result metadata creation-only", () => {
+      const result = {
+        versionId: "v1",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        files: ["asset.png"],
+      };
+      for (const derived of [
+        { updatedAt: "2026-01-02T00:00:00.000Z" },
+        { tiles: [{ file: "tile.png", row: 0, col: 0 }] },
+        { stickers: ["sticker.png"] },
+        { stickersConfig: { rows: 1, cols: 1 } },
+      ]) {
+        expect(() => validateInput("order.result_version", OrderResultVersionSchema, { ...result, ...derived }))
+          .toThrow(/additional properties/);
+      }
+    });
+
+    it("rejects unknown fields on every representative public write contract", () => {
+      const cases: Array<{ action: string; schema: any; value: Record<string, unknown> }> = [
+        {
+          action: "persona.create",
+          schema: PersonaCreateParamsSchema,
+          value: { persona: { name: "X", rolePrompt: "visual tags", artStyle: "cel" }, removedFlag: true },
+        },
+        {
+          action: "interview.create",
+          schema: InterviewCreateParamsSchema,
+          value: { interview: { summary: "summary", keyConstraints: [] }, removedFlag: true },
+        },
+        {
+          action: "analysis.enrich",
+          schema: AnalysisEnrichParamsSchema,
+          value: { abstract: { summary: "summary" }, removedFlag: true },
+        },
+        {
+          action: "order.update",
+          schema: OrderUpdateParamsSchema,
+          value: { orderId: "ord-unknown-field", overwrite: true, patch: {}, removedFlag: true },
+        },
+        {
+          action: "review.create",
+          schema: ReviewCreateParamsSchema,
+          value: { orderId: "ord-unknown-field", versionId: "v1", verdict: "pass", removedFlag: true },
+        },
+        {
+          action: "persona.review",
+          schema: PersonaReviewCreateParamsSchema,
+          value: { verdict: "pass", notes: "ok", removedFlag: true },
+        },
+      ];
+      for (const entry of cases) {
+        expect(() => validateInput(entry.action, entry.schema, entry.value), entry.action)
+          .toThrow(/additional properties/);
+      }
+    });
+
+    it("keeps the public protocol module on its explicit safe allowlist", () => {
+      expect(Object.keys(publicProtocol).sort()).toEqual([
+        "PROTOCOL_DIR", "exists", "hasInterview", "initProtocol", "inspectProtocol", "listJsonFiles",
+        "orderDir", "orderJsonPath", "orderReferencesDir", "orderVersionDir", "orderVersionsDir",
+        "personaCandidatePath", "personaCandidatesDir", "personaReviewPath", "personaReviewVersionsDir",
+        "protocolRoot", "protocolVersionPath", "readAnalysisArtifact", "readInterviewArtifact", "readJson",
+        "readJsonIfExists", "readPersonaArtifact", "readPersonaReviewArtifact", "readReviewArtifact",
+        "relativeProtocolPath", "requireAnalysis", "requireInterview", "requirePersona", "reviewJsonPath",
+        "reviewVersionsDir", "root", "safeProtocolPath", "stamp", "stampForPath", "stripProtocolPrefix",
+      ].sort());
+    });
+  });
+
+  it("reports malformed stored analysis and persona artifacts", async () => {
+    await fs.writeFile(path.join(projectRoot, ".repochan/analysis/current.json"), "{}\n");
+    const invalidAnalysis = await validateProtocol(projectRoot);
+    expect(invalidAnalysis.ok).toBe(false);
+    expect(invalidAnalysis.problems.some((entry) => entry.code === "invalid_analysis_artifact")).toBe(true);
+
+    await fs.writeFile(
+      path.join(projectRoot, ".repochan/analysis/current.json"),
+      `${JSON.stringify(canonicalAnalysis(), null, 2)}\n`,
+    );
+    await fs.writeFile(path.join(projectRoot, ".repochan/persona/current.json"), "{}\n");
+    const invalidPersona = await validateProtocol(projectRoot);
+    expect(invalidPersona.ok).toBe(false);
+    expect(invalidPersona.problems.some((entry) => entry.code === "invalid_persona_artifact")).toBe(true);
   });
 
   it("order.create rejects a delivered birth state before writing an order directory", async () => {
@@ -109,6 +225,202 @@ describe("unified validation layer", () => {
       },
     })).rejects.toThrow(/order\.create/);
     await expect(fs.stat(path.join(projectRoot, ".repochan/orders/ord-born-runtime"))).rejects.toThrow();
+  });
+
+  it("reports incomplete result metadata and materialization", async () => {
+    const orderId = "ord-incomplete-metadata";
+    const versionDir = path.join(projectRoot, ".repochan", "orders", orderId, "versions", "v1");
+    await fs.mkdir(versionDir, { recursive: true });
+    const version = {
+      versionId: "v1",
+      createdAt: "2026-01-01T00:00:00.000Z",
+      tool: "manual-upload",
+      files: ["missing.png", "nested\\escape.png", "Hero.png", "hero.png"],
+    };
+    await fs.writeFile(path.join(versionDir, "Hero.png"), "artifact bytes");
+    await fs.writeFile(path.join(versionDir, "meta.json"), JSON.stringify(version));
+    await fs.writeFile(path.join(projectRoot, ".repochan", "orders", orderId, "order.json"), JSON.stringify({
+      schemaVersion: "repochan.asset-order.v1",
+      orderId,
+      status: "delivered",
+      currentVersion: "v1",
+      requestType: "new_asset", assetType: "icon",
+      brief: { intent: "icon", mustInclude: [], avoid: [], creativeFreedom: [] }, deliverables: [], acceptanceCriteria: [],
+      candidateVersions: [], priority: "normal", references: [], createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z",
+    }));
+
+    const result = await validateProtocol(projectRoot);
+    expect(result.ok).toBe(false);
+    expect(result.problems.map(({ code }) => code)).toEqual(expect.arrayContaining([
+      "missing_result_file",
+      "invalid_result_file_record",
+      "duplicate_result_file_record",
+    ]));
+    expect(result.problems.find(({ code }) => code === "missing_result_file")?.suggestion)
+      .toMatch(/publish a new evidence-bearing result version/);
+    await expect(readOrderResult(projectRoot, orderId, "v1"))
+      .rejects.toThrow(/missing or is not a non-empty regular file/);
+  });
+
+  it("rejects a file-backed result without required metadata", async () => {
+    const orderId = "ord-file-without-meta";
+    const versionDir = path.join(projectRoot, ".repochan", "orders", orderId, "versions", "v1");
+    await fs.mkdir(versionDir, { recursive: true });
+    await fs.writeFile(path.join(versionDir, "artifact.png"), "artifact bytes");
+    await fs.writeFile(path.join(projectRoot, ".repochan", "orders", orderId, "order.json"), JSON.stringify({
+      schemaVersion: "repochan.asset-order.v1",
+      orderId,
+      status: "approved",
+      requestType: "new_asset", assetType: "icon",
+      brief: { intent: "icon", mustInclude: [], avoid: [], creativeFreedom: [] }, deliverables: [], acceptanceCriteria: [],
+      candidateVersions: [], priority: "normal", references: [], createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z",
+    }));
+
+    const result = await validateProtocol(projectRoot);
+    expect(result.ok).toBe(false);
+    expect(result.problems).toContainEqual(expect.objectContaining({ code: "missing_result_meta" }));
+    await expect(readOrderResult(projectRoot, orderId, "v1")).rejects.toThrow(/missing meta\.json/);
+  });
+
+  it("uses one strict stored-order schema for reads and validation", async () => {
+    await createOrders(projectRoot, { order: {
+      orderId: "ord-strict-reader", requestType: "new_asset", assetType: "icon",
+      brief: { intent: "icon", mustInclude: [], avoid: [], creativeFreedom: [] }, deliverables: [], acceptanceCriteria: [],
+    } });
+    const file = path.join(projectRoot, ".repochan/orders/ord-strict-reader/order.json");
+    const raw = JSON.parse(await fs.readFile(file, "utf8"));
+    raw.unknownLifecycleIndex = [];
+    await fs.writeFile(file, JSON.stringify(raw));
+    await expect(readOrder(projectRoot, "ord-strict-reader")).rejects.toThrow(/additional properties/);
+    expect((await validateProtocol(projectRoot)).problems).toContainEqual(expect.objectContaining({ code: "invalid_order_artifact" }));
+  });
+
+  it("rejects unknown result metadata fields through the strict result schema", async () => {
+    await createOrders(projectRoot, { order: {
+      orderId: "ord-strict-result", requestType: "new_asset", assetType: "icon",
+      brief: { intent: "icon", mustInclude: [], avoid: [], creativeFreedom: [] }, deliverables: [], acceptanceCriteria: [],
+    } });
+    await setOrderStatus(projectRoot, "ord-strict-result", "approved");
+    const source = path.join(projectRoot, "strict-result.png");
+    await fs.writeFile(source, "bytes");
+    await createOrderResult(projectRoot, { orderId: "ord-strict-result", versionId: "v1", files: [source], tool: "manual" });
+    const meta = path.join(projectRoot, ".repochan/orders/ord-strict-result/versions/v1/meta.json");
+    const raw = JSON.parse(await fs.readFile(meta, "utf8"));
+    raw.lifecycleRole = "current";
+    await fs.writeFile(meta, JSON.stringify(raw));
+    await expect(readOrderResult(projectRoot, "ord-strict-result", "v1")).rejects.toThrow(/additional properties/);
+    expect((await validateProtocol(projectRoot)).problems).toContainEqual(expect.objectContaining({ code: "invalid_result_meta" }));
+  });
+
+  it("rejects a symlinked protocol root", async () => {
+    const protocol = path.join(projectRoot, ".repochan");
+    const real = path.join(projectRoot, "protocol-real");
+    await fs.rename(protocol, real);
+    await fs.symlink(real, protocol);
+    const report = await validateProtocol(projectRoot);
+    expect(report.ok).toBe(false);
+    expect(report.problems).toContainEqual(expect.objectContaining({ code: "unsafe_protocol_root" }));
+  });
+
+  it("rejects a result version reached through a symlink like the business read path does", async () => {
+    const orderId = "ord-symlink-result";
+    const outsideVersion = path.join(tmpRoot, "outside-version");
+    await fs.mkdir(outsideVersion, { recursive: true });
+    await fs.writeFile(path.join(outsideVersion, "result.png"), "outside bytes");
+    const version = {
+      versionId: "v1",
+      createdAt: "2026-01-01T00:00:00.000Z",
+      files: ["result.png"],
+    };
+    await fs.writeFile(path.join(outsideVersion, "meta.json"), JSON.stringify(version));
+    const versionsDir = path.join(projectRoot, ".repochan", "orders", orderId, "versions");
+    await fs.mkdir(versionsDir, { recursive: true });
+    await fs.symlink(outsideVersion, path.join(versionsDir, "v1"));
+    await fs.writeFile(path.join(projectRoot, ".repochan", "orders", orderId, "order.json"), JSON.stringify({
+      schemaVersion: "repochan.asset-order.v1",
+      orderId,
+      status: "delivered",
+      currentVersion: "v1",
+      requestType: "new_asset", assetType: "icon",
+      brief: { intent: "icon", mustInclude: [], avoid: [], creativeFreedom: [] }, deliverables: [], acceptanceCriteria: [],
+      candidateVersions: [], priority: "normal", references: [], createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z",
+    }));
+
+    const result = await validateProtocol(projectRoot);
+    expect(result.ok).toBe(false);
+    expect(result.problems).toContainEqual(expect.objectContaining({ code: "unsafe_result_path" }));
+    await expect(readOrderResult(projectRoot, orderId, "v1")).rejects.toThrow(/refuses symlink path/);
+  });
+
+  it("audits raw order/version topology and lifecycle pointers", async () => {
+    const orderId = "ord-topology-audit";
+    const orderDir = path.join(projectRoot, ".repochan", "orders", orderId);
+    const versionsDir = path.join(orderDir, "versions");
+    const diskV1 = { versionId: "v1", createdAt: "2026-01-01T00:00:00.000Z", files: ["v1.png"] };
+    const diskExtra = { versionId: "v-extra", createdAt: "2026-01-02T00:00:00.000Z", files: ["extra.png"] };
+    for (const version of [diskV1, diskExtra]) {
+      const versionDir = path.join(versionsDir, version.versionId);
+      await fs.mkdir(versionDir, { recursive: true });
+      await fs.writeFile(path.join(versionDir, version.files[0]), "bytes");
+      await fs.writeFile(path.join(versionDir, "meta.json"), JSON.stringify(version));
+    }
+    await fs.mkdir(path.join(versionsDir, "bad version"), { recursive: true });
+    await fs.writeFile(path.join(versionsDir, "loose.txt"), "not a version");
+    const outsideVersion = path.join(tmpRoot, "outside-topology-version");
+    await fs.mkdir(outsideVersion, { recursive: true });
+    await fs.symlink(outsideVersion, path.join(versionsDir, "v-link"));
+
+    await fs.writeFile(path.join(orderDir, "order.json"), JSON.stringify({
+      schemaVersion: "repochan.asset-order.v1",
+      orderId,
+      status: "delivered",
+      currentVersion: "v1",
+      candidateVersions: ["v-extra", "v-missing", "v-extra"],
+      requestType: "new_asset", assetType: "icon",
+      brief: { intent: "icon", mustInclude: [], avoid: [], creativeFreedom: [] }, deliverables: [], acceptanceCriteria: [],
+      createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z",
+    }));
+
+    await fs.mkdir(path.join(projectRoot, ".repochan", "orders", "BAD ORDER"));
+    await fs.writeFile(path.join(projectRoot, ".repochan", "orders", "stray.txt"), "not an order");
+    const outsideOrder = path.join(tmpRoot, "outside-order");
+    await fs.mkdir(outsideOrder, { recursive: true });
+    await fs.symlink(outsideOrder, path.join(projectRoot, ".repochan", "orders", "ord-symlink-topology"));
+
+    const result = await validateProtocol(projectRoot);
+    expect(result.ok).toBe(false);
+    expect(result.checked).toEqual({ orders: 1, results: 2 });
+    expect(result.problems.map(({ code }) => code)).toEqual(expect.arrayContaining([
+      "invalid_order_directory",
+      "invalid_order_entry",
+      "unsafe_order_path",
+      "invalid_result_version_directory",
+      "invalid_result_entry",
+      "unsafe_result_path",
+      "duplicate_candidate_version",
+      "missing_lifecycle_result",
+    ]));
+  });
+
+  it("is total and rejects unknown order fields", async () => {
+    const orderId = "ord-unknown-field";
+    const orderDir = path.join(projectRoot, ".repochan", "orders", orderId);
+    await fs.mkdir(orderDir, { recursive: true });
+    await fs.writeFile(path.join(orderDir, "order.json"), JSON.stringify({
+      schemaVersion: "repochan.asset-order.v1",
+      orderId,
+      status: "approved",
+      candidateVersions: [],
+      requestType: "new_asset", assetType: "icon",
+      brief: { intent: "icon", mustInclude: [], avoid: [], creativeFreedom: [] }, deliverables: [], acceptanceCriteria: [],
+      createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z",
+      unknownIndex: [{ versionId: "../../escape" }],
+    }));
+
+    await expect(validateProtocol(projectRoot)).resolves.toEqual(expect.objectContaining({
+      ok: false,
+      problems: expect.arrayContaining([expect.objectContaining({ code: "invalid_order_artifact" })]),
+    }));
   });
 
   // ── Persona schema gate ──────────────────────────────────────
@@ -178,9 +490,7 @@ describe("unified validation layer", () => {
         versionId: "v1",
         files: [sourceFile],
         tool: "manual-upload",
-        markDelivered: false,
       });
-      await setOrderStatus(projectRoot, "ord-machine-001", "delivered");
 
       // Now try to go back to draft — should be rejected
       await expect(
@@ -212,13 +522,17 @@ describe("unified validation layer", () => {
       await fs.writeFile(sourceFile, "result bytes");
       await createOrderResult(projectRoot, {
         orderId: "ord-machine-001", versionId: "v1", files: [sourceFile],
-        tool: "manual-upload", markDelivered: false,
+        tool: "manual-upload",
       });
       await fs.rm(path.join(projectRoot, ".repochan/orders/ord-machine-001/versions/v1/missing-after-create.png"));
+      const orderPath = path.join(projectRoot, ".repochan/orders/ord-machine-001/order.json");
+      const before = JSON.parse(await fs.readFile(orderPath, "utf8"));
+      before.status = "in_progress";
+      await fs.writeFile(orderPath, JSON.stringify(before));
 
       await expect(setOrderStatus(projectRoot, "ord-machine-001", "delivered"))
         .rejects.toThrow(/missing or is not a non-empty regular file/);
-      const order = JSON.parse(await fs.readFile(path.join(projectRoot, ".repochan/orders/ord-machine-001/order.json"), "utf8"));
+      const order = JSON.parse(await fs.readFile(orderPath, "utf8"));
       expect(order.status).toBe("in_progress");
     });
   });

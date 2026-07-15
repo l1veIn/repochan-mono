@@ -1,7 +1,6 @@
 import { Type, type Static } from "typebox";
 
 export const AnalyzeSchema = Type.Object({
-  analysis: Type.Optional(Type.Any({ description: "Optional Analyst-authored additions/overrides to merge into generated analysis." })),
   overwrite: Type.Optional(Type.Boolean({ default: false })),
   versionPrevious: Type.Optional(Type.Boolean({ default: true })),
   corePaths: Type.Optional(Type.Array(Type.String(), { description: "Optional Analyst-selected core files to sample." })),
@@ -22,6 +21,6 @@ export const AnalyzeSchema = Type.Object({
   perFileSampleChars: Type.Optional(Type.Number({ description: "Maximum characters per sampled file (default 3000)." })),
   colorScanLimit: Type.Optional(Type.Number({ description: "Maximum visual/theme files to scan for colors (default 120)." })),
   includeFileLists: Type.Optional(Type.Boolean({ default: true, description: "Include full relative file and directory lists in analysis.json." })),
-});
+}, { additionalProperties: false });
 
 export type AnalyzeInput = Static<typeof AnalyzeSchema>;

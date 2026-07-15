@@ -23,29 +23,7 @@ Before finalizing the prompt, scan persona/order terms for language-to-aesthetic
 
 For foundation sheets with no reference image, be stricter: if a culture-coded prop only traces to document language, remove it or replace it with a repo-derived metaphor from `analysis.context.identity`, `preAnalysis`, `abstract`, color palette, product domain, or user request.
 
-旧模板 fallback 的 prompt structure（有 `prompt_template` 时不要套用整段固定结构，而是把需要的信息填入 slot）：
-
-**Asset-type conditional injection note**: `signaturePatterns` / `signatureScenes` are not fixed lines in every prompt. Inject them only when the asset type/template calls for them: texture/pattern assets inject `signature pattern concepts: {signaturePatterns}`; background/poster assets inject `signature scene: {signatureScenes}`. Do not inject either line for `foundation_sheet`.
-
-```
-{template layout and technical constraints},
-Name: {persona.name} ({persona.nameJa} if anime/manga),
-{rolePrompt},
-main illustration must use signature pose: {signaturePose — action verb + body part + prop interaction + emotion, e.g. "right foot raised on toes, body leaning forward, left fist clenched at chest, right hand extended palm-up supporting a swirling golden data stream, confident slight smile, sharp gaze"},
-show signature action as a small visual cue: {signatureAction — a separate narrative mini-scene depicting the character's signature ability/behavior},
-hair color: {hairColor with hex},
-eye color: {eyeColor with hex},
-outfit: {outfit — layered garment description, each layer with material + color + structural detail},
-accessories: {accessories — each named prop with its function/material},
-key motif callouts: {keyMotifs — named symbols with parenthetical gloss, e.g. "caduceus (simplified), terminal cursor (▌), memory crystal (hexahedron)"},
-expression direction: {personality mapped to expression — how the character's inner state reads on their face},
-color palette: {main, secondary, accents with hex},
-design notes: {stylistic fusion guidance, e.g. "classical heraldry elements fused with modern flat/tech aesthetic; keep clean lines, avoid excess ornament"},
-avoid: {explicit negative list — over-youngified (<16), overly revealing clothing, cluttered background, dark/horror tone, realistic oil-painting style},
-{order-specific mustInclude}, {positive-transformed brief elements}
-```
-
-**Structured blocks rationale**: Labeled blocks (`outfit:`, `accessories:`, `signature pose:`) give the image model anchored semantic context for each component, producing more coherent and specific renders than undifferentiated comma-separated tag lists. Each block should be a complete, descriptive phrase — do not abbreviate.
+Template `prompt_template` 是唯一 prompt 结构。将 `signaturePatterns` / `signatureScenes` 仅填入模板实际声明的相应 slot；foundation sheet 模板没有这些 slot 时不得额外注入。填充后的结构化标签必须是完整、可读的描述，不要缩写成含混 tag。
 
 
 ## 中英文混排策略（English skeleton + Chinese flesh）

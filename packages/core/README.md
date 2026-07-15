@@ -31,7 +31,7 @@ Write-operation params gates and the `WriteOpSchemas` registry. `validate.ts` ex
 
 ### Protocol — `src/protocol/index.ts`
 
-- `PROTOCOL_DIR` (`.repochan`), `protocolRoot`, `safeProtocolPath`, `writeJson` / `readJson`
+- `PROTOCOL_DIR` (`.repochan`), `protocolRoot`, `safeProtocolPath`, and safe read/inspect APIs
 - `initProtocol` / `inspectProtocol`
 - Versioning helpers and order/review/persona-candidate path helpers
 - Dependency gates: `requireAnalysis`, `requirePersona`, `requireInterview`
@@ -55,17 +55,19 @@ Write-operation params gates and the `WriteOpSchemas` registry. `validate.ts` ex
 
 ## Public API
 
-Everything is re-exported from the package root:
+The package root exposes the supported library surface. Protocol mutation
+primitives stay internal; public writes use schema-validated entity actions:
 
 ```ts
 export * from "./types.js";
-export * from "./protocol/index.js";
+export * from "./protocol/public.js";
 export * from "./schemas/index.js";
 export * from "./utils/index.js";
 export * from "./validate.js";
 export * from "./entities/index.js";
 export * from "./analysis.js";
 export * from "./validation.js";
+export * from "./starter.js";
 ```
 
 Consumers import solely from `@repochan/core`.

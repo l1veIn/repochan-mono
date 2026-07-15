@@ -8,8 +8,10 @@ import {
   orderVersionDir,
   projectStarterSiteConfig,
   readJson,
+  readAnalysisArtifact,
   readOrder,
   readOrderResult,
+  readPersonaArtifact,
   validateStarterAssetState,
   validateStarterAssetsConfig,
   validateStarterContentRequirements,
@@ -117,8 +119,8 @@ export async function runStarterList(_cwd: string, options: StarterOptions) {
   const starters = options.tag ? all.filter((starter) => starter.tags.includes(options.tag!)) : all;
   const lines = starters.map((starter) => {
     const tags = starter.tags.length ? ` [${starter.tags.join(", ")}]` : "";
-    const sections = starter.capabilities?.sections.map((section) => section.id).join(", ");
-    const coverage = sections ? ` ${dim("•")} sections: ${sections}` : ` ${dim("•")} sections: undeclared`;
+    const sections = starter.capabilities.sections.map((section) => section.id).join(", ");
+    const coverage = ` ${dim("•")} sections: ${sections}`;
     return `  ${starter.id}  ${dim("—")} ${starter.name}${starter.default ? " (default)" : ""}${tags}${coverage}`;
   });
   emitResult(options, `Starters${options.tag ? ` tagged '${options.tag}'` : ""} (${starters.length}):${lines.length ? `\n${lines.join("\n")}` : ""}`, { starters });
@@ -127,17 +129,16 @@ export async function runStarterList(_cwd: string, options: StarterOptions) {
 export async function runStarterGet(_cwd: string, id: string | undefined, options: StarterOptions) {
   if (!id) throw new UsageError("starter get requires a starter id.");
   const starter = await getStarter(id);
-  const sections = starter.capabilities?.sections ?? [];
-  const transitions = starter.capabilities?.transitions ?? [];
+  const sections = starter.capabilities.sections;
+  const transitions = starter.capabilities.transitions;
   const lines = [
     `${starter.id} — ${starter.name}${starter.default ? " (default)" : ""}`,
     `  style: ${starter.style ?? "?"}`,
     `  tags: ${starter.tags.join(", ") || "(none)"}`,
-    `  sections (${sections.length}):${sections.length ? "" : " undeclared"}`,
+    `  sections (${sections.length}):`,
     ...sections.map((section) => {
-      const required = section.required ? "required" : "optional";
       const layers = `baked=${section.bakedLayers.join("+") || "none"}, live=${section.liveLayers.join("+") || "none"}`;
-      return `    ${section.id} [${required}] ${dim("—")} ${section.recipe}; ${layers}; responsive=${section.responsive.mode}`;
+      return `    ${section.id} ${dim("—")} ${section.recipe}; ${layers}; responsive=${section.responsive.mode}`;
     }),
     `  transitions (${transitions.length}):${transitions.length ? "" : " none"}`,
     ...transitions.map((transition) => `    ${transition.from} → ${transition.to} [${transition.kind}]`),
@@ -175,11 +176,13 @@ export async function runStarterConfigure(cwd: string, options: StarterOptions) 
   const defaults = validateStarterSiteConfig(await readJson(sitePath(target, manifest.config.site)));
   const analysisPath = path.join(cwd, ".repochan", "analysis", "current.json");
   const personaPath = path.join(cwd, ".repochan", "persona", "current.json");
+  if (!(await exists(analysisPath)) || !(await exists(personaPath))) {
+    throw new UsageError("starter configure requires analysis and persona.", "Run `repochan analysis run` and create a persona first.");
+  }
   const [analysis, persona] = await Promise.all([
-    (await exists(analysisPath)) ? readJson(analysisPath) : undefined,
-    (await exists(personaPath)) ? readJson(personaPath) : undefined,
+    readAnalysisArtifact(cwd),
+    readPersonaArtifact(cwd),
   ]);
-  if (!analysis || !persona) throw new UsageError("starter configure requires analysis and persona.", "Run `repochan analysis run` and create a persona first.");
   const configured = validateStarterSiteConfig(projectStarterSiteConfig({
     analysis,
     persona,
@@ -201,7 +204,7 @@ export async function runStarterConfigure(cwd: string, options: StarterOptions) 
     }
   }
   await fs.writeFile(sitePath(target, manifest.config.site), `${JSON.stringify(configured, null, 2)}\n`);
-  const written = [manifest.config.site];
+  const written: string[] = [manifest.config.site];
   for (const { content, file } of pendingContent) {
     await fs.mkdir(path.dirname(file), { recursive: true });
     await fs.writeFile(file, `${JSON.stringify(content, null, 2)}\n`);
@@ -224,6 +227,7 @@ function getSlot(manifest: StarterManifest, slotName: string | undefined): Start
 }
 
 function gridTemplateIssue(slot: StarterAssetSlot, template: TemplateData | undefined): string | undefined {
+  if (slot.kind !== "bundle") return undefined;
   const step = slot.postprocess?.find((item) => item.op === "extract-grid");
   if (!step) return undefined;
   if (!template) return `${slot.slot}: unknown templateId ${slot.order?.templateId ?? "(none)"}`;
@@ -235,7 +239,7 @@ function gridTemplateIssue(slot: StarterAssetSlot, template: TemplateData | unde
   }
   const expected = template.grid.cellKeys;
   if (!expected?.length) return `${slot.slot}: template ${template.id} does not declare grid.cell_keys`;
-  const publications = slot.publications ?? [];
+  const publications = slot.publications;
   if (expected.length !== publications.length || expected.some((key, cell) => publications.find((item) => item.cell === cell)?.key !== key)) {
     return `${slot.slot}: publications do not match template ${template.id} grid.cell_keys`;
   }
@@ -328,13 +332,13 @@ async function applyStep(step: StarterPostprocessStep, sourceFiles: string[], ou
 type GridApplyResult = Awaited<ReturnType<typeof extractMatteGrid>>;
 
 async function stageGridBundle(
-  slot: StarterAssetSlot,
+  slot: StarterAssetSlot & { kind: "bundle" },
   step: StarterPostprocessStep,
   source: string,
   tempRoot: string,
 ): Promise<GridApplyResult> {
   const args = step.args ?? {};
-  const publications = slot.publications ?? [];
+  const publications = slot.publications;
   const mapping = Object.fromEntries(publications.map((item) => [item.key, item.cell]));
   const chroma = args.chroma && typeof args.chroma === "object" ? { ...(args.chroma as Record<string, unknown>) } : {};
   if (typeof chroma.matteColor === "string") chroma.matteColor = parseMatteColor(chroma.matteColor);
@@ -417,7 +421,7 @@ export async function runStarterAssetApply(cwd: string, slotName: string | undef
   const versionDir = orderVersionDir(cwd, options.order, result.version.versionId);
   const sourceFiles = result.version.files.map((file) => path.isAbsolute(file) ? file : path.join(versionDir, file));
   if (!sourceFiles.length || !(await exists(sourceFiles[0]))) throw new UsageError(`Order ${options.order}/${result.version.versionId} has no readable result files.`);
-  const publicationOutputs = slot.publications?.map((item) => item.output) ?? [slot.output];
+  const publicationOutputs = slot.kind === "bundle" ? slot.publications.map((item) => item.output) : [slot.output];
   for (const output of publicationOutputs) {
     await assertNoSymlinkPath(target, output, "Starter asset output");
     const finalPath = sitePath(target, output);
@@ -426,9 +430,10 @@ export async function runStarterAssetApply(cwd: string, slotName: string | undef
 
   const tempRoot = await fs.mkdtemp(path.join(target, ".repochan-starter-"));
   try {
-    const gridStep = slot.postprocess?.find((step) => step.op === "extract-grid");
     let gridResult: GridApplyResult | undefined;
-    if (gridStep) {
+    if (slot.kind === "bundle") {
+      const gridStep = slot.postprocess.find((step) => step.op === "extract-grid");
+      if (!gridStep) throw new Error(`Bundle slot '${slot.slot}' is missing its validated extract-grid step.`);
       gridResult = await stageGridBundle(slot, gridStep, sourceFiles[0], tempRoot);
     } else if (slot.postprocess?.length) {
       let stepSources = sourceFiles;
@@ -438,7 +443,7 @@ export async function runStarterAssetApply(cwd: string, slotName: string | undef
         await applyStep(step, stepSources, stepOut, true);
         stepSources = [stepOut];
       }
-    } else {
+    } else if (slot.kind === "scalar") {
       const tempOut = sitePath(tempRoot, slot.output);
       await fs.mkdir(path.dirname(tempOut), { recursive: true });
       await fs.copyFile(sourceFiles[0], tempOut);
@@ -450,28 +455,36 @@ export async function runStarterAssetApply(cwd: string, slotName: string | undef
     const assetsPath = sitePath(target, manifest.config.assets);
     await assertNoSymlinkPath(target, manifest.config.assets, "Starter assets config");
     const assets = validateStarterAssetsConfig(await readJson(assetsPath));
-    const gridItems = gridResult && slot.publications
-      ? Object.fromEntries(slot.publications.map((publication) => {
-          const item = gridResult!.items.find((candidate) => candidate.key === publication.key)!;
-          return [publication.key, {
-            src: `/${publication.output.replace(/^public\//, "")}`,
-            status: "ready" as const,
-            orderId: options.order,
-            versionId: result.version.versionId,
-            qa: { ...item.qa, geometry: item.geometry },
-          }];
-        }))
-      : undefined;
-    assets.assets[slot.slot] = {
-      src: `/${slot.output.replace(/^public\//, "")}`,
-      status: "ready",
-      orderId: options.order,
-      versionId: result.version.versionId,
-      ...(gridResult ? {
+    if (slot.kind === "bundle") {
+      if (!gridResult) throw new Error(`Bundle slot '${slot.slot}' did not produce an extract-grid result.`);
+      const items = Object.fromEntries(slot.publications.map((publication) => {
+        const item = gridResult.items.find((candidate) => candidate.key === publication.key);
+        if (!item) throw new Error(`extract-grid did not produce publication '${publication.key}'.`);
+        return [publication.key, {
+          src: `/${publication.output.replace(/^public\//, "")}`,
+          status: "ready" as const,
+          orderId: options.order,
+          versionId: result.version.versionId,
+          qa: { ...item.qa, geometry: item.geometry },
+        }];
+      }));
+      assets.assets[slot.slot] = {
+        kind: "bundle",
+        status: "ready",
+        orderId: options.order,
+        versionId: result.version.versionId,
         qa: { rows: gridResult.rows, cols: gridResult.cols, matteColor: gridResult.matteColor, matteColorSource: gridResult.matteColorSource },
-        items: gridItems,
-      } : {}),
-    };
+        items,
+      };
+    } else {
+      assets.assets[slot.slot] = {
+        kind: "scalar",
+        src: `/${slot.output.replace(/^public\//, "")}`,
+        status: "ready",
+        orderId: options.order,
+        versionId: result.version.versionId,
+      };
+    }
     const stagedAssets = sitePath(tempRoot, manifest.config.assets);
     await fs.mkdir(path.dirname(stagedAssets), { recursive: true });
     await fs.writeFile(stagedAssets, `${JSON.stringify(assets, null, 2)}\n`);
@@ -501,7 +514,7 @@ export async function runStarterAssetImport(cwd: string, slotName: string | unde
   await assertNoSymlinkPath(target, "", "Starter target");
   const manifest = await readStarterInstance(target);
   const slot = getSlot(manifest, slotName);
-  if (slot.publications?.length) {
+  if (slot.kind === "bundle") {
     throw new UsageError(`starter asset-import supports scalar slots only; '${slot.slot}' declares bundle publications. Use starter asset-apply with its delivered grid order.`);
   }
   if (!options.file?.trim()) throw new UsageError("starter asset-import requires --file <path>.");
@@ -536,6 +549,7 @@ export async function runStarterAssetImport(cwd: string, slotName: string | unde
   await assertNoSymlinkPath(target, manifest.config.assets, "Starter assets config");
   const assets = validateStarterAssetsConfig(await readJson(assetsPath));
   assets.assets[slot.slot] = {
+    kind: "scalar",
     src: `/${slot.output.replace(/^public\//, "")}`,
     status: "ready",
     provenance,
@@ -563,15 +577,21 @@ export async function runStarterAssetImport(cwd: string, slotName: string | unde
   }
 }
 
-async function validateStarterDir(cwd: string, starter: StarterMeta, requireCapabilities: boolean): Promise<string[]> {
+async function validateStarterDir(cwd: string, starter: StarterMeta): Promise<string[]> {
   const issues: string[] = [];
-  if (requireCapabilities && !starter.capabilities) issues.push("source starter must declare capabilities");
   const files = await walkFiles(starter.dir);
   for (const asset of starter.assets) {
     if (asset.reference && !(await exists(sitePath(starter.dir, asset.reference)))) issues.push(`${asset.slot}: missing reference ${asset.reference}`);
-    if (asset.required && !(await exists(sitePath(starter.dir, asset.output)))) issues.push(`${asset.slot}: missing fallback output ${asset.output}`);
+    if (asset.required && asset.kind === "scalar" && !(await exists(sitePath(starter.dir, asset.output)))) {
+      issues.push(`${asset.slot}: missing fallback output ${asset.output}`);
+    }
+    if (asset.required && asset.kind === "bundle") {
+      for (const publication of asset.publications) {
+        if (!(await exists(sitePath(starter.dir, publication.output)))) issues.push(`${asset.slot}: missing fallback output ${publication.output}`);
+      }
+    }
   }
-  for (const section of starter.capabilities?.sections ?? []) {
+  for (const section of starter.capabilities.sections) {
     if (section.provenance.type === "design-reference") {
       const reference = sitePath(starter.dir, section.provenance.reference);
       const stat = await fs.stat(reference).catch(() => undefined);
@@ -606,13 +626,12 @@ async function validateStarterDir(cwd: string, starter: StarterMeta, requireCapa
 
 export async function runStarterValidate(cwd: string, id: string | undefined, options: StarterOptions) {
   let targets: StarterMeta[];
-  const validatingSource = !options.outputDir;
   if (options.outputDir) targets = [await readStarterInstance(outputDir(cwd, options.outputDir))];
   else if (options.all) targets = await listStarters();
   else if (id) targets = [await getStarter(id)];
   else throw new UsageError("Usage: repochan starter validate <id> | --all | --output-dir <dir>");
   const results = [];
-  for (const target of targets) results.push({ id: target.id, dir: target.dir, issues: await validateStarterDir(cwd, target, validatingSource) });
+  for (const target of targets) results.push({ id: target.id, dir: target.dir, issues: await validateStarterDir(cwd, target) });
   const issueCount = results.reduce((total, result) => total + result.issues.length, 0);
   if (issueCount) throw new UsageError(`Starter validation failed (${issueCount} issue${issueCount === 1 ? "" : "s"}):\n${results.flatMap((result) => result.issues.map((issue) => `- ${result.id}: ${issue}`)).join("\n")}`);
   emitResult(options, `Starter validation passed (${results.length} starter${results.length === 1 ? "" : "s"}).`, { valid: true, starters: results });

@@ -5,6 +5,7 @@ import {
   validateStarterAssetsConfig,
   validateStarterContentRequirements,
   validateStarterManifest,
+  validateStarterLocaleContent,
   validateStarterPresentationColors,
   validateStarterSiteConfig,
   type StarterAssetsConfig,
@@ -20,7 +21,22 @@ const manifest: StarterManifest = {
   tags: ["hero"],
   config: { site: "repochan/site.json", assets: "repochan/assets.json", i18nDir: "repochan/i18n" },
   content: { defaultLocale: "en", supportedLocales: ["en"], requiredPaths: ["content.hero.headline"] },
+  capabilities: {
+    sections: [{
+      id: "hero",
+      recipe: "hero-composite-live-copy",
+      provenance: { type: "design-reference", reference: "public/assets/hero-reference.webp" },
+      bakedLayers: ["L1", "L2"],
+      liveLayers: ["L3", "L4"],
+      canonicalViewport: { width: 1440, height: 900 },
+      responsive: { mode: "recompose", notes: "Move copy above artwork at narrow widths." },
+      assetSlots: ["hero-composite"],
+      motion: [],
+    }],
+    transitions: [],
+  },
   assets: [{
+    kind: "scalar",
     slot: "hero-composite",
     required: true,
     reference: "public/assets/hero-reference.webp",
@@ -35,7 +51,6 @@ const multiSectionManifest: StarterManifest = {
     sections: [
       {
         id: "hero",
-        required: true,
         recipe: "hero-composite-live-copy",
         provenance: { type: "design-reference", reference: "public/assets/hero-reference.webp" },
         bakedLayers: ["L1", "L2"],
@@ -48,7 +63,6 @@ const multiSectionManifest: StarterManifest = {
       },
       {
         id: "capabilities",
-        required: true,
         recipe: "feature-grid",
         provenance: { type: "html-first" },
         bakedLayers: [],
@@ -81,11 +95,44 @@ const site: StarterSiteConfig = {
 describe("starter v1", () => {
   it("validates a manifest and rejects unsafe paths", () => {
     expect(validateStarterManifest(manifest).id).toBe("minimal");
-    expect(() => validateStarterManifest({ ...manifest, config: { ...manifest.config, site: "../site.json" } })).toThrow(/safe site-root-relative/);
+    expect(() => validateStarterManifest({ ...manifest, config: { ...manifest.config, site: "../site.json" } })).toThrow(/starter\.manifest/);
   });
 
-  it("validates a multi-section capability contract while accepting legacy omission", () => {
-    expect(validateStarterManifest(manifest).capabilities).toBeUndefined();
+  it("rejects unknown fields in every fixed Starter config object", () => {
+    expect(() => validateStarterManifest({
+      ...manifest,
+      content: { ...manifest.content, removedField: true },
+    } as unknown)).toThrow(/additional properties/);
+    expect(() => validateStarterManifest({
+      ...manifest,
+      assets: [{
+        ...manifest.assets[0],
+        order: {
+          removedField: true,
+          brief: { removedField: true },
+          deliverables: [{ name: "hero", format: "webp", removedField: true }],
+        },
+      }],
+    } as unknown)).toThrow(/additional properties/);
+    expect(() => validateStarterSiteConfig({ ...site, removedField: true } as unknown)).toThrow(/additional properties/);
+    expect(() => validateStarterSiteConfig({
+      ...site,
+      project: { ...site.project, removedField: true },
+    } as unknown)).toThrow(/additional properties/);
+    const locale = {
+      schemaVersion: "repochan.starter-content.v1",
+      locale: "en",
+      meta: { title: "Demo", description: "Demo", removedField: true },
+      content: {},
+    };
+    expect(() => validateStarterLocaleContent(locale)).toThrow(/additional properties/);
+    expect(() => validateStarterLocaleContent({ ...locale, meta: { title: "Demo", description: "Demo" }, removedField: true })).toThrow(/additional properties/);
+  });
+
+  it("requires and validates a multi-section capability contract", () => {
+    const missingCapabilities = structuredClone(manifest) as unknown as Record<string, unknown>;
+    delete missingCapabilities.capabilities;
+    expect(() => validateStarterManifest(missingCapabilities)).toThrow(/capabilities/);
     const validated = validateStarterManifest(multiSectionManifest);
     expect(validated.capabilities?.sections.map((section) => section.id)).toEqual(["hero", "capabilities"]);
     expect(validated.capabilities?.transitions[0]).toMatchObject({ from: "hero", to: "capabilities" });
@@ -183,13 +230,35 @@ describe("starter v1", () => {
     expect(() => validateStarterManifest(invalid)).toThrow(/must match/);
   });
 
+  it("enforces canonical asset discriminants and config paths", () => {
+    const scalarWithPublications = structuredClone(manifest) as unknown as any;
+    scalarWithPublications.assets[0].publications = [{ key: "hero", cell: 0, output: "public/assets/hero.png" }];
+    expect(() => validateStarterManifest(scalarWithPublications)).toThrow(/starter\.manifest/);
+
+    const bundleWithOutput = structuredClone(manifest) as unknown as any;
+    bundleWithOutput.assets = [{
+      kind: "bundle",
+      slot: "states",
+      required: true,
+      output: "public/assets/state.png",
+      publications: [{ key: "state", cell: 0, output: "public/assets/state.png" }],
+      postprocess: [{ op: "extract-grid", out: ".repochan-grid/states", args: { rows: 1, cols: 1, normalize: { canvasSize: 32 } } }],
+    }];
+    bundleWithOutput.capabilities.sections[0].assetSlots = ["states"];
+    expect(() => validateStarterManifest(bundleWithOutput)).toThrow(/starter\.manifest/);
+
+    const nonCanonicalConfig = structuredClone(manifest) as unknown as any;
+    nonCanonicalConfig.config.site = "config/site.json";
+    expect(() => validateStarterManifest(nonCanonicalConfig)).toThrow(/starter\.manifest/);
+  });
+
   it("requires publication keys to be lowercase hyphen-separated words", () => {
     for (const key of ["foo-", "foo--bar"]) {
       const invalid = structuredClone(manifest);
       invalid.assets = [{
+        kind: "bundle",
         slot: "states",
         required: true,
-        output: "public/foo.png",
         publications: [{ key, cell: 0, output: "public/foo.png" }],
         postprocess: [{ op: "extract-grid", out: "tmp/states", args: { rows: 1, cols: 1, normalize: { canvasSize: 32 } } }],
       }];
@@ -209,10 +278,14 @@ describe("starter v1", () => {
   it("validates named extract-grid publications and their ready state", () => {
     const bundle: StarterManifest = {
       ...manifest,
+      capabilities: {
+        ...manifest.capabilities,
+        sections: manifest.capabilities.sections.map((section) => ({ ...section, assetSlots: ["web-states"] })),
+      },
       assets: [{
+        kind: "bundle",
         slot: "web-states",
         required: true,
-        output: "public/assets/states/welcome.png",
         publications: [
           { key: "welcome", cell: 0, output: "public/assets/states/welcome.png" },
           { key: "not-found", cell: 1, output: "public/assets/states/not-found.png" },
@@ -226,11 +299,12 @@ describe("starter v1", () => {
         } }],
       }],
     };
-    expect(validateStarterManifest(bundle).assets[0].publications).toHaveLength(2);
+    const validatedBundle = validateStarterManifest(bundle).assets[0];
+    expect(validatedBundle.kind === "bundle" ? validatedBundle.publications : []).toHaveLength(2);
     const state: StarterAssetsConfig = {
       schemaVersion: "repochan.starter-assets.v1",
       assets: { "web-states": {
-        src: "/assets/states/welcome.png",
+        kind: "bundle",
         status: "ready",
         items: {
           welcome: { src: "/assets/states/welcome.png", status: "ready" },
@@ -242,12 +316,13 @@ describe("starter v1", () => {
       "public/assets/states/welcome.png",
       "public/assets/states/not-found.png",
     ])).toEqual([]);
-    delete state.assets["web-states"].items!["not-found"];
+    const bundleState = state.assets["web-states"];
+    if (bundleState.kind === "bundle") delete bundleState.items["not-found"];
     expect(validateStarterAssetState(bundle, state, ["public/assets/states/welcome.png"]))
       .toContain("web-states.not-found: missing publication state");
 
     const duplicate = structuredClone(bundle);
-    duplicate.assets[0].publications![1].cell = 0;
+    if (duplicate.assets[0].kind === "bundle") duplicate.assets[0].publications[1].cell = 0;
     expect(() => validateStarterManifest(duplicate)).toThrow(/duplicate '0'/);
     const mismatch = structuredClone(bundle);
     mismatch.assets[0].postprocess![0].args!.mapping = ["not-found", "welcome"];
@@ -296,7 +371,7 @@ describe("starter v1", () => {
     }).project.repositoryUrl).toBe("https://example.test/default");
   });
 
-  it("keeps theme colors compatible with the stable RGB token reader", () => {
+  it("uses the RGB triples required by the stable token reader", () => {
     expect(validateStarterSiteConfig(site).theme.primary).toBe("#111111");
     expect(() => validateStarterSiteConfig({ ...site, theme: { ...site.theme, primary: "red" } })).toThrow();
   });
@@ -311,7 +386,7 @@ describe("starter v1", () => {
     expect(validateStarterContentRequirements(manifest, [locale])).toEqual([]);
     const assets: StarterAssetsConfig = {
       schemaVersion: "repochan.starter-assets.v1",
-      assets: { "hero-composite": { src: "/assets/hero.webp", status: "ready" } },
+      assets: { "hero-composite": { kind: "scalar", src: "/assets/hero.webp", status: "ready" } },
     };
     expect(validateStarterAssetState(manifest, assets, ["public/assets/hero.webp"])).toEqual([]);
     expect(validateStarterAssetState(manifest, assets, [])).toContain("hero-composite: ready output does not exist: public/assets/hero.webp");
@@ -350,6 +425,7 @@ describe("starter v1", () => {
     expect(validateStarterAssetsConfig({
       schemaVersion: "repochan.starter-assets.v1",
       assets: { hero: {
+        kind: "scalar",
         src: "/assets/hero.webp",
         status: "ready",
         provenance: { kind: "local-file", sourcePath: "incoming/hero.webp", sha256: "a".repeat(64) },
@@ -358,6 +434,7 @@ describe("starter v1", () => {
     expect(() => validateStarterAssetsConfig({
       schemaVersion: "repochan.starter-assets.v1",
       assets: { hero: {
+        kind: "scalar",
         src: "/assets/hero.webp",
         status: "ready",
         provenance: { kind: "local-file", sourcePath: "incoming/hero.webp", sha256: "not-a-hash" },

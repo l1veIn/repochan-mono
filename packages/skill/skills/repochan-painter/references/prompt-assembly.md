@@ -1,4 +1,4 @@
-# Prompt 组装：模板插槽与兼容路径
+# Prompt 组装：模板插槽
 
 ## 来源优先级
 
@@ -39,14 +39,3 @@
 | 其他自定义 slot | 根据模板 description、analysis、interview 和 order brief 判断 |
 
 插槽填充不是字符串字段搬运。每个值要在模板句子里语法通顺、视觉上具体，并与相邻内容共同形成完整设计描述。
-
-
-## 无 prompt_template 的兼容路径
-
-旧的项目级模板可能没有 `prompt_template`。此时才从零组装 prompt：
-
-1. 注入模板的技术 constraints 与输出布局。
-2. 明确角色名：`Name: {persona.name}`；anime/manga 可一并写入 `nameJa`。
-3. 以 persona.rolePrompt 为视觉身份核心，并按需要补充 `signaturePose`、`signatureAction`、hairColor、eyeColor、outfit、accessories、keyMotifs、colorPalette 和 designNotes。
-4. 按资产类型条件注入 `signaturePatterns` / `signatureScenes`；foundation_sheet 不注入这两项。
-5. 融合 order brief、参考图信息与 persona.artStyle，并继续遵循下文全部 prompt 规则。

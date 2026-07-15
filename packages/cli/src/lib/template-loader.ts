@@ -37,9 +37,9 @@ export type TemplateData = {
   height: number;
   aspectRatio: string;
   /** Provider-side rendering quality (low | medium | high | auto). Passed to `image gen --quality`. */
-  quality?: string;
+  quality?: "low" | "medium" | "high" | "auto";
   grid?: TemplateGrid;
-  promptTemplate?: string;
+  promptTemplate: string;
   constraints: string[];
 };
 
@@ -193,16 +193,28 @@ function parseSimpleYaml(text: string): RawYaml {
   return parseBlock(0);
 }
 
-function toTemplateData(raw: RawYaml, idFallback: string): TemplateData | null {
-  if (!raw.id && !raw.asset_type) return null;
+function requiredString(raw: RawYaml, key: string): string {
+  const value = raw[key];
+  if (typeof value !== "string" || !value.trim()) throw new Error(`Template field '${key}' must be a non-empty string.`);
+  return value;
+}
 
-  const explicitSize = typeof raw.size === "string" ? raw.size.match(/^(\d+)x(\d+)$/) : null;
-  const parsedLegacyWidth = Number(raw.width ?? raw.default_width?.split("x")[0] ?? 1024);
-  const parsedLegacyHeight = Number(raw.height ?? raw.default_width?.split("x")[1] ?? 1024);
-  const legacyWidth = Number.isFinite(parsedLegacyWidth) && parsedLegacyWidth > 0 ? parsedLegacyWidth : 1024;
-  const legacyHeight = Number.isFinite(parsedLegacyHeight) && parsedLegacyHeight > 0 ? parsedLegacyHeight : 1024;
-  const width = explicitSize ? Number(explicitSize[1]) : legacyWidth;
-  const height = explicitSize ? Number(explicitSize[2]) : legacyHeight;
+function toTemplateData(raw: RawYaml): TemplateData {
+  const allowed = new Set(["id", "asset_type", "label", "description", "tags", "size", "quality", "grid", "prompt_template", "constraints"]);
+  const unknown = Object.keys(raw).find((key) => !allowed.has(key));
+  if (unknown) throw new Error(`Unknown template field '${unknown}'.`);
+
+  const id = requiredString(raw, "id");
+  const assetType = requiredString(raw, "asset_type");
+  const label = requiredString(raw, "label");
+  const promptTemplate = requiredString(raw, "prompt_template");
+  const explicitSize = requiredString(raw, "size").match(/^(\d+)x(\d+)$/);
+  if (!explicitSize) throw new Error("Template field 'size' must use canonical WxH syntax.");
+  const width = Number(explicitSize[1]);
+  const height = Number(explicitSize[2]);
+  if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width < 1 || height < 1) {
+    throw new Error("Template field 'size' must contain positive safe integers.");
+  }
   const size = `${width}x${height}`;
 
   function gcd(a: number, b: number): number {
@@ -212,39 +224,58 @@ function toTemplateData(raw: RawYaml, idFallback: string): TemplateData | null {
   const divisor = gcd(width, height);
   const derivedAspectRatio = `${width / divisor}:${height / divisor}`;
 
-  const grid: TemplateGrid | undefined =
-    raw.grid && typeof raw.grid === "object"
-      ? {
-          rows: Number(raw.grid.rows ?? 0),
-          cols: Number(raw.grid.cols ?? 0),
-          sliceable: raw.grid.sliceable === true || raw.grid.sliceable === "true",
-          cellKeys: Array.isArray(raw.grid.cell_keys)
-            ? raw.grid.cell_keys.filter((key: unknown): key is string => typeof key === "string")
-            : undefined,
-        }
-      : undefined;
+  let grid: TemplateGrid | undefined;
+  if (raw.grid !== undefined) {
+    if (!raw.grid || typeof raw.grid !== "object" || Array.isArray(raw.grid)) throw new Error("Template field 'grid' must be an object.");
+    const gridAllowed = new Set(["rows", "cols", "sliceable", "cell_keys"]);
+    const unknownGrid = Object.keys(raw.grid).find((key) => !gridAllowed.has(key));
+    if (unknownGrid) throw new Error(`Unknown template grid field '${unknownGrid}'.`);
+    const rows = Number(raw.grid.rows);
+    const cols = Number(raw.grid.cols);
+    if (!Number.isInteger(rows) || rows < 1 || !Number.isInteger(cols) || cols < 1) {
+      throw new Error("Template grid rows and cols must be positive integers.");
+    }
+    if (typeof raw.grid.sliceable !== "boolean") throw new Error("Template grid sliceable must be boolean.");
+    let cellKeys: string[] | undefined;
+    if (raw.grid.cell_keys !== undefined) {
+      if (!Array.isArray(raw.grid.cell_keys) || raw.grid.cell_keys.some((key: unknown) => typeof key !== "string" || !key.trim())) {
+        throw new Error("Template grid cell_keys must be non-empty strings.");
+      }
+      cellKeys = raw.grid.cell_keys as string[];
+      if (new Set(cellKeys).size !== cellKeys.length) throw new Error("Template grid cell_keys must be unique.");
+      if (cellKeys.length !== rows * cols) throw new Error("Template grid cell_keys must name every grid cell.");
+    }
+    grid = { rows, cols, sliceable: raw.grid.sliceable, cellKeys };
+  }
 
-  const constraints: string[] = Array.isArray(raw.constraints)
-    ? raw.constraints.filter((c: any) => typeof c === "string")
-    : [];
+  if (!Array.isArray(raw.constraints) || raw.constraints.some((value: unknown) => typeof value !== "string" || !value.trim())) {
+    throw new Error("Template field 'constraints' must be an array of non-empty strings.");
+  }
+  const constraints = raw.constraints as string[];
+  if (raw.description !== undefined && typeof raw.description !== "string") {
+    throw new Error("Template field 'description' must be a string.");
+  }
+  if (raw.tags !== undefined && (!Array.isArray(raw.tags) || raw.tags.some((value: unknown) => typeof value !== "string" || !value.trim()))) {
+    throw new Error("Template field 'tags' must be an array of non-empty strings.");
+  }
+  const quality = raw.quality;
+  if (quality !== undefined && !["low", "medium", "high", "auto"].includes(quality)) {
+    throw new Error("Template field 'quality' must be low, medium, high, or auto.");
+  }
 
   return {
-    id: raw.id ?? idFallback,
-    assetType: raw.asset_type ?? raw.assetType ?? "",
-    label: raw.label ?? raw.id ?? idFallback,
+    id,
+    assetType,
+    label,
     description: raw.description,
-    tags: Array.isArray(raw.tags)
-      ? raw.tags.filter((tag: unknown): tag is string => typeof tag === "string")
-      : undefined,
+    tags: raw.tags as string[] | undefined,
     size,
     width,
     height,
-    aspectRatio: explicitSize
-      ? derivedAspectRatio
-      : (raw.aspect_ratio ?? raw.aspectRatio ?? derivedAspectRatio),
+    aspectRatio: derivedAspectRatio,
     grid,
-    promptTemplate: typeof raw.prompt_template === "string" ? raw.prompt_template : undefined,
-    quality: typeof raw.quality === "string" ? raw.quality : undefined,
+    promptTemplate,
+    quality,
     constraints,
   };
 }
@@ -252,13 +283,12 @@ function toTemplateData(raw: RawYaml, idFallback: string): TemplateData | null {
 /**
  * Load a single template from a YAML file.
  */
-export async function loadTemplate(filePath: string): Promise<TemplateData | null> {
+export async function loadTemplate(filePath: string): Promise<TemplateData> {
   try {
     const raw = await loadYaml(filePath);
-    const fallback = path.basename(filePath, ".yaml").replace(/_/g, "-");
-    return toTemplateData(raw, `official/${fallback}`);
-  } catch {
-    return null;
+    return toTemplateData(raw);
+  } catch (error) {
+    throw new Error(`Invalid template ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -274,8 +304,7 @@ export async function loadTemplatesFromDir(dir: string): Promise<TemplateData[]>
     return [];
   }
   const yamlFiles = entries.filter((f) => f.endsWith(".yaml") || f.endsWith(".yml"));
-  const results = await Promise.all(yamlFiles.map((f) => loadTemplate(path.join(dir, f))));
-  return results.filter((t): t is TemplateData => t !== null);
+  return Promise.all(yamlFiles.map((f) => loadTemplate(path.join(dir, f))));
 }
 
 /**

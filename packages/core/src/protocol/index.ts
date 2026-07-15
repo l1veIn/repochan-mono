@@ -1,5 +1,24 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { randomUUID } from "node:crypto";
+import type { TSchema } from "typebox";
+import {
+  AnalysisArtifactSchema,
+  InterviewArtifactSchema,
+  PersonaArtifactSchema,
+  PersonaReviewArtifactSchema,
+  ReviewArtifactSchema,
+  type StoredAnalysisArtifact,
+  type StoredInterviewArtifact,
+  type StoredPersonaArtifact,
+  type StoredPersonaReviewArtifact,
+  type StoredReviewArtifact,
+} from "../schemas/index.js";
+import { validateInput } from "../validate.js";
+export { withProtocolRollback, recoverProtocolTransactions } from "./transaction.js";
+import { recoverProtocolTransactions } from "./transaction.js";
+export { assertNoProtocolSymlinkPath } from "./path-safety.js";
+import { assertNoProtocolSymlinkPath } from "./path-safety.js";
 
 export const PROTOCOL_DIR = ".repochan";
 
@@ -43,35 +62,108 @@ export async function exists(file: string) {
 }
 
 export async function readJson(file: string) {
+  if (path.resolve(file).split(path.sep).includes(PROTOCOL_DIR)) await assertNoProtocolSymlinkPath(file);
   return JSON.parse(await fs.readFile(file, "utf8"));
 }
 
 export async function readJsonIfExists(file: string) {
+  if (path.resolve(file).split(path.sep).includes(PROTOCOL_DIR)) await assertNoProtocolSymlinkPath(file);
   return (await exists(file)) ? readJson(file) : undefined;
 }
 
 export async function writeJson(file: string, data: unknown, overwrite = false) {
-  if (!overwrite && (await exists(file))) {
-    throw new Error(`Refusing to overwrite existing artifact without overwrite=true: ${file}`);
+  const isProtocolFile = path.resolve(file).split(path.sep).includes(PROTOCOL_DIR);
+  if (isProtocolFile) await assertNoProtocolSymlinkPath(file);
+  const serialized = JSON.stringify(data, null, 2);
+  if (serialized === undefined) throw new Error(`Cannot serialize JSON artifact: ${file}`);
+  const directory = path.dirname(file);
+  await fs.mkdir(directory, { recursive: true });
+  if (isProtocolFile) await assertNoProtocolSymlinkPath(directory);
+  const temp = path.join(directory, `.${path.basename(file)}.${process.pid}.${randomUUID()}.tmp`);
+  let handle: Awaited<ReturnType<typeof fs.open>> | undefined;
+  try {
+    handle = await fs.open(temp, "wx", 0o666);
+    await handle.writeFile(`${serialized}\n`, "utf8");
+    await handle.sync();
+    await handle.close();
+    handle = undefined;
+
+    if (overwrite) {
+      await fs.rename(temp, file);
+    } else {
+      try {
+        await fs.link(temp, file);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === "EEXIST") {
+          throw new Error(`Refusing to overwrite existing artifact without overwrite=true: ${file}`);
+        }
+        throw error;
+      }
+      await fs.unlink(temp);
+    }
+
+    // Persist the directory entry where the platform supports directory fsync.
+    try {
+      const dirHandle = await fs.open(directory, "r");
+      try { await dirHandle.sync(); } finally { await dirHandle.close(); }
+    } catch {
+      // Some platforms do not permit opening directories. The file itself was
+      // still fsynced and atomically published above.
+    }
+  } finally {
+    if (handle) await handle.close().catch(() => undefined);
+    await fs.unlink(temp).catch(() => undefined);
   }
-  await fs.mkdir(path.dirname(file), { recursive: true });
-  await fs.writeFile(file, `${JSON.stringify(data, null, 2)}\n`, "utf8");
+}
+
+async function readStoredJson<T>(file: string, schemaName: string, schema: TSchema): Promise<T> {
+  const data = await readJson(file);
+  validateInput(schemaName, schema, data);
+  return data as T;
+}
+
+export function readAnalysisArtifact(projectRoot: string): Promise<StoredAnalysisArtifact> {
+  return readStoredJson(path.join(protocolRoot(projectRoot), "analysis", "current.json"), "analysis.artifact", AnalysisArtifactSchema);
+}
+
+export function readPersonaArtifact(projectRoot: string): Promise<StoredPersonaArtifact> {
+  return readStoredJson(path.join(protocolRoot(projectRoot), "persona", "current.json"), "persona.artifact", PersonaArtifactSchema);
+}
+
+export function readInterviewArtifact(projectRoot: string): Promise<StoredInterviewArtifact> {
+  return readStoredJson(path.join(protocolRoot(projectRoot), "interview", "current.json"), "interview.artifact", InterviewArtifactSchema);
+}
+
+export function readReviewArtifact(file: string): Promise<StoredReviewArtifact> {
+  return readStoredJson(file, "review.artifact", ReviewArtifactSchema);
+}
+
+export function readPersonaReviewArtifact(projectRoot: string): Promise<StoredPersonaReviewArtifact> {
+  return readStoredJson(personaReviewPath(projectRoot), "persona_review.artifact", PersonaReviewArtifactSchema);
 }
 
 export async function initProtocol(projectRoot: string) {
   const r = protocolRoot(projectRoot);
+  await assertNoProtocolSymlinkPath(r);
+  await fs.mkdir(r, { recursive: true });
+  await assertNoProtocolSymlinkPath(r);
+  await recoverProtocolTransactions(r);
   const dirs = [
-    r,
     path.join(r, "analysis", "versions"),
     path.join(r, "interview", "versions"),
     path.join(r, "persona", "versions"),
     path.join(r, "orders"),
   ];
-  await Promise.all(dirs.map((dir) => fs.mkdir(dir, { recursive: true })));
+  for (const dir of dirs) {
+    await assertNoProtocolSymlinkPath(dir);
+    await fs.mkdir(dir, { recursive: true });
+    await assertNoProtocolSymlinkPath(dir);
+  }
 }
 
 export async function inspectProtocol(projectRoot: string) {
   const r = protocolRoot(projectRoot);
+  await assertNoProtocolSymlinkPath(r);
   const summary: Record<string, unknown> = { exists: await exists(r), root: PROTOCOL_DIR };
   summary.analysis = await exists(path.join(r, "analysis", "current.json"));
   summary.interview = await exists(path.join(r, "interview", "current.json"));
@@ -204,20 +296,25 @@ export async function listJsonFiles(dir: string) {
 export async function requireAnalysis(projectRoot: string) {
   const file = path.join(protocolRoot(projectRoot), "analysis", "current.json");
   if (!(await exists(file))) throw new Error("Missing .repochan/analysis/current.json. Run repochan action='analysis.run' first.");
+  return readAnalysisArtifact(projectRoot);
 }
 
 export async function requirePersona(projectRoot: string) {
   const file = path.join(protocolRoot(projectRoot), "persona", "current.json");
   if (!(await exists(file))) throw new Error("Missing .repochan/persona/current.json. Run repochan action='persona.create' first.");
+  return readPersonaArtifact(projectRoot);
 }
 
 export async function requireInterview(projectRoot: string) {
   const file = path.join(protocolRoot(projectRoot), "interview", "current.json");
   if (!(await exists(file))) throw new Error("Missing .repochan/interview/current.json. Run repochan action='interview.create' first.");
+  return readInterviewArtifact(projectRoot);
 }
 
 /** Check whether an interview report exists, without throwing. */
 export async function hasInterview(projectRoot: string) {
   const file = path.join(protocolRoot(projectRoot), "interview", "current.json");
-  return exists(file);
+  if (!(await exists(file))) return false;
+  await readInterviewArtifact(projectRoot);
+  return true;
 }

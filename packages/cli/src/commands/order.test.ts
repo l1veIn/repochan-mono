@@ -1,20 +1,43 @@
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createOrderResult, createOrders, initProtocol, readOrder, setOrderStatus } from "@repochan/core";
+import { createOrders, initProtocol } from "@repochan/core";
 import {
   runOrderCreate,
+  runOrderAddRevision,
   runOrderRecoveryAbort,
   runOrderRecoveryList,
   runOrderRecoveryRecover,
   runOrderResolveReferences,
-  runOrderSlice,
 } from "./order.js";
-import { runProtocolWrite } from "./entities.js";
+import { PROTOCOL_SUBCOMMANDS } from "./entities.js";
 
 const tempDirs: string[] = [];
+
+function canonicalAnalysis() {
+  return {
+    schemaVersion: "repochan.analysis.v1",
+    generatedAt: "2026-01-01T00:00:00.000Z",
+    context: {
+      basic: {},
+      identity: { namingSeeds: { primary: ["fixture"], secondary: [], rationale: ["fixture"] } },
+      file_structure: {}, inventory: {}, tech_stack: {}, pre_analysis: {}, git_profile: {},
+      docs_narrative: {}, github_meta: {}, color_palette: {}, core_samples: {}, deterministic_tooling: {},
+    },
+    persona: null,
+    error: null,
+  };
+}
+
+function canonicalPersona() {
+  return {
+    name: "Fixture", rolePrompt: "fixture visual tags", artStyle: "cel-shaded anime",
+    schemaVersion: "repochan.persona.v2", generatedAt: "2026-01-01T00:00:00.000Z",
+    provenance: { tool: "test" },
+  };
+}
 
 afterEach(async () => {
   vi.restoreAllMocks();
@@ -33,15 +56,24 @@ describe("order resolve-references", () => {
     await mkdir(targetDir, { recursive: true });
     await writeFile(
       path.join(sourceDir, "order.json"),
-      JSON.stringify({ orderId: "ord-source", currentVersion: "v1" }),
+      JSON.stringify({
+        schemaVersion: "repochan.asset-order.v1", orderId: "ord-source", requestType: "new_asset", status: "delivered",
+        currentVersion: "v1", candidateVersions: [], assetType: "foundation_sheet", priority: "normal", references: [],
+        brief: { intent: "source", mustInclude: [], avoid: [], creativeFreedom: [] }, deliverables: [], acceptanceCriteria: [],
+        createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z",
+      }),
       "utf8",
     );
     await writeFile(path.join(versionDir, "reference.png"), "fake png", "utf8");
+    await writeFile(path.join(versionDir, "meta.json"), JSON.stringify({ versionId: "v1", createdAt: "2026-01-01T00:00:00.000Z", files: ["reference.png"] }));
     await writeFile(
       path.join(targetDir, "order.json"),
       JSON.stringify({
-        orderId: "ord-target",
-        references: [{ orderId: "ord-source", role: "character" }],
+        schemaVersion: "repochan.asset-order.v1", orderId: "ord-target", requestType: "new_asset", status: "approved",
+        candidateVersions: [], assetType: "poster", priority: "normal",
+        references: [{ type: "order", orderId: "ord-source", role: "character" }],
+        brief: { intent: "target", mustInclude: [], avoid: [], creativeFreedom: [] }, deliverables: [], acceptanceCriteria: [],
+        createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z",
       }),
       "utf8",
     );
@@ -63,44 +95,17 @@ describe("order resolve-references", () => {
 });
 
 describe("order creation and recovery CLI", () => {
-  it("blocks protocol write from bypassing Core-managed order state", async () => {
-    const projectRoot = await mkdtemp(path.join(os.tmpdir(), "repochan-protocol-order-write-"));
-    tempDirs.push(projectRoot);
-    await initProtocol(projectRoot);
-    const payload = path.join(projectRoot, "payload.json");
-    await writeFile(payload, JSON.stringify({ forged: true }));
-
-    await expect(runProtocolWrite(projectRoot, "orders/ord-managed/order.json", payload, { overwrite: true }))
-      .rejects.toThrow(/cannot modify Core-managed order state/);
-    await expect(runProtocolWrite(projectRoot, "orders/ord-managed/versions/v1/meta.json", payload, { overwrite: true }))
-      .rejects.toThrow(/cannot modify Core-managed order state/);
+  it("exposes only read-only protocol subcommands", async () => {
+    expect(PROTOCOL_SUBCOMMANDS).toEqual(["inspect", "read"]);
   });
 
-  it("routes slice metadata through Core and keeps stored and embedded mirrors identical", async () => {
-    const projectRoot = await mkdtemp(path.join(os.tmpdir(), "repochan-order-slice-core-"));
+  it("rejects unknown fields in write payloads instead of silently dropping them", async () => {
+    const projectRoot = await mkdtemp(path.join(os.tmpdir(), "repochan-order-unknown-"));
     tempDirs.push(projectRoot);
-    await initProtocol(projectRoot);
-    const protocolRoot = path.join(projectRoot, ".repochan");
-    await writeFile(path.join(protocolRoot, "analysis", "current.json"), JSON.stringify({ summary: "test" }));
-    await writeFile(path.join(protocolRoot, "persona", "current.json"), JSON.stringify({ name: "test" }));
-    await createOrders(projectRoot, { order: {
-      orderId: "ord-cli-slice", requestType: "new_asset", assetType: "sticker_grid",
-      brief: { intent: "slice", mustInclude: [], avoid: [], creativeFreedom: [] },
-      deliverables: [], acceptanceCriteria: [],
-    } });
-    await setOrderStatus(projectRoot, "ord-cli-slice", "approved");
-    const source = path.join(projectRoot, "grid.png");
-    await writeFile(source, Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAF/gL+X1pNAAAAAElFTkSuQmCC", "base64"));
-    await createOrderResult(projectRoot, {
-      orderId: "ord-cli-slice", versionId: "v1", files: [source], tool: "manual-upload",
-    });
-    vi.spyOn(console, "log").mockImplementation(() => undefined);
-
-    await runOrderSlice(projectRoot, "ord-cli-slice", { rows: 1, cols: 1, version: "v1", json: true });
-    const stored = JSON.parse(await readFile(path.join(protocolRoot, "orders/ord-cli-slice/versions/v1/meta.json"), "utf8"));
-    const embedded = (await readOrder(projectRoot, "ord-cli-slice")).orderAsset.versions[0];
-    expect(stored.tiles).toMatchObject({ rows: 1, cols: 1 });
-    expect(embedded).toEqual(stored);
+    const payload = path.join(projectRoot, "revision.json");
+    await writeFile(payload, JSON.stringify({ revisionRequest: "redo", removedFlag: true }));
+    await expect(runOrderAddRevision(projectRoot, "ord-unknown-field", payload, undefined, {}))
+      .rejects.toThrow(/additional properties/);
   });
 
   it("rejects a delivered birth state without writing an order", async () => {
@@ -108,8 +113,8 @@ describe("order creation and recovery CLI", () => {
     tempDirs.push(projectRoot);
     await initProtocol(projectRoot);
     const protocolRoot = path.join(projectRoot, ".repochan");
-    await writeFile(path.join(protocolRoot, "analysis", "current.json"), JSON.stringify({ summary: "test" }));
-    await writeFile(path.join(protocolRoot, "persona", "current.json"), JSON.stringify({ name: "test" }));
+    await writeFile(path.join(protocolRoot, "analysis", "current.json"), JSON.stringify(canonicalAnalysis()));
+    await writeFile(path.join(protocolRoot, "persona", "current.json"), JSON.stringify(canonicalPersona()));
     const payload = path.join(projectRoot, "order.json");
     await writeFile(payload, JSON.stringify({
       order: {
@@ -145,7 +150,12 @@ describe("order creation and recovery CLI", () => {
     const orderDir = path.join(projectRoot, ".repochan", "orders", orderId);
     const transactionRoot = path.join(orderDir, transactionId);
     await mkdir(transactionRoot, { recursive: true });
-    const orderBytes = Buffer.from(JSON.stringify({ orderId, status: "draft" }));
+    const orderBytes = Buffer.from(JSON.stringify({
+      schemaVersion: "repochan.asset-order.v1", orderId, requestType: "new_asset", status: "draft",
+      candidateVersions: [], assetType: "icon", priority: "normal", references: [],
+      brief: { intent: "recover", mustInclude: [], avoid: [], creativeFreedom: [] }, deliverables: [], acceptanceCriteria: [],
+      createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z",
+    }));
     await writeFile(path.join(orderDir, "order.json"), orderBytes);
     const nonce = "cli-prepared-nonce";
     const identities = path.join(orderDir, ".transactions");
@@ -164,8 +174,8 @@ describe("order creation and recovery CLI", () => {
         { destination: "versions/v1", backup: "previous-version", kind: "directory", existedBefore: false },
       ],
     }));
-    const lockDir = path.join(orderDir, ".order-mutation.lock");
-    await mkdir(lockDir);
+    const lockDir = path.join(projectRoot, ".repochan", ".locks", "orders", orderId, "mutation.lock");
+    await mkdir(lockDir, { recursive: true });
     await writeFile(path.join(lockDir, "owner.json"), JSON.stringify({
       schemaVersion: "repochan.order-mutation-lock.v1", pid: process.pid,
       hostname: os.hostname(), operation: "active publish", startedAt: new Date().toISOString(),

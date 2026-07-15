@@ -35,7 +35,7 @@ export interface DetectionResult {
 export interface InstallResult {
   agent: AgentId;
   displayName: string;
-  skillDir: string | null;
+  skillDir: string;
   skillFiles: number;
   instructionFile: string;
   instructionAction: "created" | "updated" | "unchanged" | "removed" | "not-found";
@@ -45,11 +45,8 @@ export interface InstallResult {
 export interface AgentTarget {
   readonly id: AgentId;
   readonly displayName: string;
-  /**
-   * Project-relative skill destination. `null` → skills land in the
-   * shared fallback (`.repochan/skills`) so instructions can still link.
-   */
-  readonly skillDir: string | null;
+  /** Project-relative skill destination. */
+  readonly skillDir: string;
   /**
    * Home-relative skill destination for global install. Defaults to `skillDir`
    * when omitted. Only set when the global path differs from the project path
@@ -61,6 +58,4 @@ export interface AgentTarget {
   readonly instructionMode: InstructionMode;
   /** Absolute paths that signal "this agent is installed" when any exist. */
   detectInstalled(): boolean;
-  /** Optional: absolute paths to strip legacy install artefacts. */
-  legacyCleanupPaths?(cwd: string): string[];
 }

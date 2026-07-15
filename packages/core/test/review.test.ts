@@ -1,13 +1,14 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 
 import { createReview } from '../src/entities/index.js';
-import { createOrders, setOrderStatus, createOrderResult } from '../src/entities/index.js';
+import { createOrders, setOrderStatus, createOrderResult, createOrderCandidate } from '../src/entities/index.js';
 import { initProtocol } from '../src/protocol/index.js';
 import { reviewJsonPath } from '../src/protocol/index.js';
 import { readOrder } from '../src/entities/index.js';
+import { seedUpstream } from '../test-support/fixtures.js';
 
 describe('review entity', () => {
   let tmpRoot: string;
@@ -18,21 +19,29 @@ describe('review entity', () => {
     projectRoot = tmpRoot;
     await initProtocol(projectRoot);
 
-    // seed analysis + persona (required upstream artifacts)
-    const r = path.join(projectRoot, '.repochan');
-    await fs.writeFile(
-      path.join(r, 'analysis', 'current.json'),
-      JSON.stringify({ summary: 'test analysis' }),
-    );
-    await fs.writeFile(
-      path.join(r, 'persona', 'current.json'),
-      JSON.stringify({ name: 'Test', rolePrompt: 'test' }),
-    );
+    await seedUpstream(projectRoot);
   });
 
   afterEach(async () => {
+    vi.restoreAllMocks();
     await fs.rm(tmpRoot, { recursive: true, force: true });
   });
+
+  async function snapshotTree(root: string): Promise<Record<string, string>> {
+    const snapshot: Record<string, string> = {};
+    async function walk(current: string) {
+      for (const entry of await fs.readdir(current, { withFileTypes: true }).catch(() => [])) {
+        const absolute = path.join(current, entry.name);
+        const relative = path.relative(root, absolute).split(path.sep).join('/');
+        if (entry.isDirectory()) {
+          snapshot[`${relative}/`] = 'directory';
+          await walk(absolute);
+        } else snapshot[relative] = (await fs.readFile(absolute)).toString('base64');
+      }
+    }
+    await walk(root);
+    return snapshot;
+  }
 
   // ── Helper: seed an order with a delivered result version ──
   // After this completes, the order is in 'delivered' status with the given
@@ -62,7 +71,7 @@ describe('review entity', () => {
       files: [sourceFile],
       tool: 'manual',
     });
-    // createOrderResult with markDelivered default sets status -> delivered
+    // createOrderResult publishes the current result and sets delivered.
   }
 
   // ── createReview: happy paths ─────────────────────────────
@@ -128,16 +137,15 @@ describe('review entity', () => {
     await setOrderStatus(projectRoot, 'ord-test-003', 'approved');
     await setOrderStatus(projectRoot, 'ord-test-003', 'in_progress');
 
-    // create a result version without markDelivered
+    // create a candidate result; candidate creation does not deliver the order
     const sourceDir = path.join(projectRoot, 'source-assets', 'ord-test-003', 'v1');
     await fs.mkdir(sourceDir, { recursive: true });
     await fs.writeFile(path.join(sourceDir, 'hero.png'), 'fake');
-    await createOrderResult(projectRoot, {
+    await createOrderCandidate(projectRoot, {
       orderId: 'ord-test-003',
       versionId: 'v1',
       files: [path.join(sourceDir, 'hero.png')],
       tool: 'manual',
-      markDelivered: false, // keep it in_progress
     });
 
     const result = await createReview(projectRoot, {
@@ -233,5 +241,45 @@ describe('review entity', () => {
         verdict: 'revise',
       }),
     ).rejects.toThrow(/already exists/);
+  });
+
+  it('rolls back a newly published review when its order side effect cannot commit', async () => {
+    await seedDeliveredOrder('ord-test-review-rollback', 'v1');
+    const orderFile = path.join(projectRoot, '.repochan', 'orders', 'ord-test-review-rollback', 'order.json');
+    const reviewFile = reviewJsonPath(projectRoot, 'ord-test-review-rollback', 'v1');
+    const originalRename = fs.rename.bind(fs);
+    vi.spyOn(fs, 'rename').mockImplementation(async (source, destination) => {
+      if (path.resolve(String(destination)) === path.resolve(orderFile)) {
+        throw new Error('simulated review order publication failure');
+      }
+      return originalRename(source, destination);
+    });
+
+    await expect(createReview(projectRoot, {
+      orderId: 'ord-test-review-rollback', versionId: 'v1', verdict: 'revise', notes: 'redo',
+    })).rejects.toThrow(/simulated review order publication failure/);
+    await expect(fs.stat(reviewFile)).rejects.toThrow();
+    expect(await readOrder(projectRoot, 'ord-test-review-rollback')).toMatchObject({ status: 'delivered', currentVersion: 'v1' });
+  });
+
+  it('restores an overwritten review, its archive set, and order bytes when publication fails', async () => {
+    const orderId = 'ord-test-review-overwrite-rollback';
+    await seedDeliveredOrder(orderId, 'v1');
+    await createReview(projectRoot, { orderId, versionId: 'v1', verdict: 'pass', notes: 'accepted' });
+    const orderRoot = path.join(projectRoot, '.repochan', 'orders', orderId);
+    const orderFile = path.join(orderRoot, 'order.json');
+    const before = await snapshotTree(orderRoot);
+    const originalRename = fs.rename.bind(fs);
+    vi.spyOn(fs, 'rename').mockImplementation(async (source, destination) => {
+      if (path.resolve(String(destination)) === path.resolve(orderFile)) {
+        throw new Error('simulated overwritten review order publication failure');
+      }
+      return originalRename(source, destination);
+    });
+
+    await expect(createReview(projectRoot, {
+      orderId, versionId: 'v1', verdict: 'revise', notes: 'redo', overwrite: true,
+    })).rejects.toThrow(/simulated overwritten review order publication failure/);
+    expect(await snapshotTree(orderRoot)).toEqual(before);
   });
 });

@@ -25,7 +25,7 @@ repochan starter get <id> --json
 repochan starter pull --starter <id>
 ```
 
-先从 `starter get` 返回的 `capabilities.sections[]` / `transitions[]` 确认 section、内容容量、composition、响应式与动效是否匹配。若显示 `sections: undeclared`，把它视为旧合同并检查 manifest；不得猜测其能力。当前实例没有 section mutation：不得删除任何已声明 section，`required` 只用于匹配提示，不是删除授权。若必须新增/删除 section、改变主要视觉关系或动效叙事才能适配，停止本地化并转 `repochan-web-designer`。
+先从 `starter get` 返回的 `capabilities.sections[]` / `transitions[]` 确认 section、内容容量、composition、响应式与动效是否匹配。当前实例没有 section mutation：不得删除任何已声明 section。若必须新增/删除 section、改变主要视觉关系或动效叙事才能适配，停止本地化并转 `repochan-web-designer`。
 
 默认实例目录是 `.repochan/web-starter/`。已存在时先检查；未获明确授权不要 `--overwrite`。实例 `repochan/starter.json` 是后续命令的唯一 manifest。
 
@@ -62,7 +62,7 @@ repochan starter asset-apply <slot> --order <delivered-order-id> --overwrite
 
 对于仓库截图、真实产品证明等已经是最终格式的本地文件，使用 `repochan starter asset-import <slot> --file <path> --overwrite`；它只接受普通单输出 slot、要求扩展名与 `output` 一致，并记录 SHA-256 来源。不要把真实 proof 伪造成生成订单。
 
-若 starter 声明 3×3/4×4 uniform-matte 角色网格，cell 语义、`publications[]` 与 fallback 必须来自 manifest，并由 `asset-apply` 的 `extract-grid` 完成确定性切分、chroma、alpha QA、normalize 与原子投影。不得手工切格、逐项改 `assets.json` 或伪造 ready；若旧实例没有该合同，使用其 fallback 或报告 source starter 缺陷。
+若 starter 声明 `kind: "bundle"` 的 3×3/4×4 uniform-matte 角色网格，cell 语义、`publications[]` 与 fallback 必须来自 manifest，并由 `asset-apply` 的 `extract-grid` 完成确定性切分、chroma、alpha QA、normalize 与原子投影。不得手工切格、逐项改 `assets.json` 或伪造 ready；合同缺失或不完整就是 source starter 缺陷。
 
 完整边界见 [phase2-assemble.md](references/phase2-assemble.md)。
 

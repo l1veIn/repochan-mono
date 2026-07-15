@@ -1,6 +1,5 @@
-/** Normalize scoped CLI compatibility shorthands before cac parses argv. */
+/** Bind stdin sentinels to their owning options before cac parses argv. */
 export function normalizeCliArgv(argv: string[]): string[] {
-  const starterAssetApply = argv[0] === "starter" && argv[1] === "asset-apply";
   const out: string[] = [];
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -9,17 +8,12 @@ export function normalizeCliArgv(argv: string[]): string[] {
       i += 1;
       continue;
     }
-    // Before --result-version existed, asset-apply used --version. Keep that
-    // command-scoped spelling compatible without stealing the global flag.
-    if (starterAssetApply && arg === "--version") {
-      out.push("--result-version");
-      continue;
-    }
-    if (starterAssetApply && arg.startsWith("--version=")) {
-      out.push(`--result-version=${arg.slice("--version=".length)}`);
-      continue;
-    }
     out.push(arg);
   }
   return out;
+}
+
+/** Only a leading help/version flag is global; subcommands may own the same spelling. */
+export function isTopLevelHelpOrVersionRequest(argv: string[]): boolean {
+  return argv[0] === "-h" || argv[0] === "--help" || argv[0] === "-v" || argv[0] === "--version";
 }

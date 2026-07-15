@@ -2,7 +2,7 @@ import path from "node:path";
 import {
   root,
   exists,
-  readJson,
+  readPersonaArtifact,
   createOrUpdatePersona,
   createPersonaCandidate,
   promotePersonaCandidate,
@@ -15,7 +15,7 @@ import { readDataFile } from "../lib/data-file.js";
 export async function runPersonaGet(cwd: string, options: OutputOptions) {
   const file = path.join(root(cwd), "persona", "current.json");
   if (!(await exists(file))) throw new UsageError("No persona found. Ask your agent to generate one, then pipe JSON into `repochan persona create`.");
-  const data = await readJson(file);
+  const data = await readPersonaArtifact(cwd);
   emitResult(options, JSON.stringify(data, null, 2), data);
 }
 

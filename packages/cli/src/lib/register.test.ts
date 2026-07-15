@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
-import { gitSuffixForPackageDir } from "./register.js";
+import { gitSuffixForPackageDir, parseRegister } from "./register.js";
 
 function git(cwd: string, ...args: string[]): string {
   return execFileSync("git", ["-C", cwd, ...args], { encoding: "utf8" }).trim();
@@ -45,5 +45,37 @@ describe("CLI version identity", () => {
 
     await writeFile(path.join(root, "README.md"), "host project changed\n");
     expect(gitSuffixForPackageDir(packageDir)).toBe("");
+  });
+});
+
+describe("register contract", () => {
+  const timestamp = "2026-01-01T00:00:00.000Z";
+  const valid = {
+    version: 1,
+    cliVersion: "0.3.0",
+    updatedAt: timestamp,
+    skills: {
+      codex: { scope: "project", installedAt: timestamp, cliVersion: "0.3.0", skillCount: 9, path: ".codex/skills" },
+    },
+    projects: [{ path: path.resolve("/tmp/repochan-register-project"), initializedAt: timestamp, lastSeenAt: timestamp, cliVersion: "0.3.0" }],
+  };
+
+  it("accepts only the complete current register schema", () => {
+    expect(parseRegister(JSON.stringify(valid))).toEqual(valid);
+    expect(() => parseRegister("{bad-json")).toThrow(/Invalid register JSON/);
+    expect(() => parseRegister(JSON.stringify({ ...valid, version: 2 }))).toThrow(/must declare "version": 1/);
+    expect(() => parseRegister(JSON.stringify({ ...valid, skills: undefined }))).toThrow(/Missing: skills/);
+    expect(() => parseRegister(JSON.stringify({ ...valid, removedField: true }))).toThrow(/unknown: removedField/);
+    expect(() => parseRegister(JSON.stringify({ ...valid, updatedAt: "July 15, 2026" }))).toThrow(/canonical UTC ISO/);
+    expect(() => parseRegister(JSON.stringify({ ...valid, updatedAt: "2026-07-15T00:00:00Z" }))).toThrow(/canonical UTC ISO/);
+    expect(() => parseRegister(JSON.stringify({
+      ...valid,
+      skills: { codex: { ...valid.skills.codex, skillCount: "9" } },
+    }))).toThrow(/skillCount must be a non-negative integer/);
+  });
+
+  it("rejects duplicate project identities", () => {
+    expect(() => parseRegister(JSON.stringify({ ...valid, projects: [valid.projects[0], valid.projects[0]] })))
+      .toThrow(/must not contain duplicate paths/);
   });
 });

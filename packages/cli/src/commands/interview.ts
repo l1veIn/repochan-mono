@@ -1,5 +1,5 @@
 import path from "node:path";
-import { root, exists, readJson, createOrUpdateInterview, appendToInterview } from "@repochan/core";
+import { root, exists, readInterviewArtifact, createOrUpdateInterview, appendToInterview } from "@repochan/core";
 import { emitResult, type OutputOptions, UsageError } from "../lib/output.js";
 import { readDataFile } from "../lib/data-file.js";
 
@@ -7,7 +7,7 @@ import { readDataFile } from "../lib/data-file.js";
 export async function runInterviewGet(cwd: string, options: OutputOptions) {
   const file = path.join(root(cwd), "interview", "current.json");
   if (!(await exists(file))) throw new UsageError("No interview found.");
-  const data = await readJson(file);
+  const data = await readInterviewArtifact(cwd);
   emitResult(options, JSON.stringify(data, null, 2), data);
 }
 

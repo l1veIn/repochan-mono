@@ -32,8 +32,8 @@ export type FramesToGifResult = {
  *
  * Reads each frame file, normalizes it to raw RGBA at a uniform size (first
  * frame's dimensions; later frames are resized to match via imgly's vendored
- * sharp), and encodes with gifenc (pure JS — sharp 0.32 cannot reliably write
- * multi-frame GIFs, see ADR §8.6).
+ * sharp), and encodes with gifenc because the bundled sharp version does not
+ * reliably write multi-frame GIFs.
  *
  * Pure pixel operation: writes one GIF to `outPath`. Does NOT touch any
  * `.repochan/` protocol directory.

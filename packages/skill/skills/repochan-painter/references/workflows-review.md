@@ -72,7 +72,7 @@ review 回流订单**必须用图生图（image-to-image）**，而非从零开�
 
 2. **读取上一版产物作为底图**——被 review 的版本目录下有交付的图像文件：
    ```
-   repochan order get-result <orderId> <versionId> --json
+   repochan order get-result <orderId> --result-version <versionId> --json
    ```
    （`<versionId>` 是被打回的版本。）返回的 `files` 就是图生图的底图路径。
 
@@ -95,9 +95,8 @@ review 回流订单**必须用图生图（image-to-image）**，而非从零开�
      "versionId": "v2",
      "files": ["<生成图像路径>"],
      "generationPrompt": "<完整 prompt>",
-     "notes": "Review revision of v1. Review notes: <摘要>.",
-     "setCurrent": true
+     "notes": "Review revision of v1. Review notes: <摘要>."
    }
    EOF
    ```
-   保存后 order 会回到 `delivered` 状态（`markDelivered` 默认行为），用户可以再次 review v2。
+   创建结果后 order 会进入 `delivered`，用户可以再次 review v2。

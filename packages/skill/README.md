@@ -6,7 +6,7 @@ This is a pure-markdown package (no build step, no code). It is the C-position o
 
 ## Skills
 
-- **`repochan`** — the **wizard** (orchestrator). Default experience: one sentence from the user → the wizard schedules all teams through the full pipeline with checkpoints. Also covers yolo (skip checkpoints) and per-team (advanced) modes.
+- **`repochan`** — the **wizard** (orchestrator). Default experience: one sentence from the user → the wizard schedules all teams through the full pipeline with checkpoints. Explicit yolo selects default creative decisions inside the authorized scope; CI does not grant external write permission. Per-team access is the advanced mode.
 - `repochan-analysis` — Analyst: scan the repo, write the analysis report.
 - `repochan-interviewer` — Interviewer (optional): structured interview for user preferences.
 - `repochan-persona` — Creative Team: build the mascot persona.
@@ -22,8 +22,8 @@ Built-in image asset templates live in **`@repochan/templates`** (YAML data pack
 
 ## Distribution
 
-Per the ADR, skills ship bundled with the `repochan` CLI (`npm install -g repochan`). `repochan setup --agent <codex|claude|pi>` copies the relevant skills to each agent's convention location and injects a reference into the top-level instruction file (`AGENTS.md` / `CLAUDE.md`). See ADR §15.
+Skills ship bundled with the `repochan` CLI (`npm install -g repochan`). `repochan setup --agent <codex|claude|pi>` copies the relevant skills to each agent's convention location and injects a reference into the top-level instruction file (`AGENTS.md` / `CLAUDE.md`).
 
 ## Status
 
-All skills are migrated to the new `repochan` CLI subcommand syntax (`repochan foundation find`, `repochan order create --data-file`, etc.). The wizard skill is written to the orchestrator model (ADR §17).
+All shipped skills use the current `repochan` CLI subcommand contract (`repochan foundation find`, `repochan order create --data-file`, etc.). The wizard skill addresses the external orchestrator model.

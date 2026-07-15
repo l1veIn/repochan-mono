@@ -33,6 +33,10 @@ grid:
   cell_keys:
     - "welcome"
     - "empty"
+    - "loading"
+    - "error"
+    - "success"
+    - "cozy"
 prompt_template: |
   first line, {{character_visual}},
   second line
@@ -47,7 +51,7 @@ constraints:
       width: 1536,
       height: 1024,
       aspectRatio: "3:2",
-      grid: { rows: 2, cols: 3, sliceable: false, cellKeys: ["welcome", "empty"] },
+      grid: { rows: 2, cols: 3, sliceable: false, cellKeys: ["welcome", "empty", "loading", "error", "success", "cozy"] },
       promptTemplate: "first line, {{character_visual}},\nsecond line\n",
       constraints: ["solid background"],
     });
@@ -58,34 +62,48 @@ constraints:
 id: official/stripped
 asset_type: icon
 label: Stripped
+size: "1024x1024"
 prompt_template: |-
   one line
   two lines
+constraints: []
 `);
 
-    expect(template?.promptTemplate).toBe("one line\ntwo lines");
+    expect(template.promptTemplate).toBe("one line\ntwo lines");
   });
 
-  it("keeps legacy width, height, and aspect ratio templates readable", async () => {
-    const template = await loadFixture(`
-id: official/legacy
+  it("rejects non-canonical size aliases and missing prompt templates", async () => {
+    await expect(loadFixture(`
+id: official/noncanonical
 asset_type: banner
-label: Legacy
+label: Noncanonical
 width: 1536
 height: 864
 aspect_ratio: "21:9"
-constraints:
-  # Legacy templates may document their physical constraints inline.
-  - "legacy constraint"
-`);
+constraints: []
+`)).rejects.toThrow(/Unknown template field 'width'/);
+  });
 
-    expect(template).toMatchObject({
-      size: "1536x864",
-      width: 1536,
-      height: 864,
-      aspectRatio: "21:9",
-      constraints: ["legacy constraint"],
-    });
-    expect(template?.promptTemplate).toBeUndefined();
+  it("rejects missing ids and invalid grid cardinality", async () => {
+    await expect(loadFixture(`
+asset_type: icon
+label: Missing id
+size: "1024x1024"
+prompt_template: "draw"
+constraints: []
+`)).rejects.toThrow(/field 'id'/);
+    await expect(loadFixture(`
+id: official/grid
+asset_type: icon
+label: Grid
+size: "1024x1024"
+grid:
+  rows: 2
+  cols: 2
+  sliceable: true
+  cell_keys: ["one"]
+prompt_template: "draw"
+constraints: []
+`)).rejects.toThrow(/name every grid cell/);
   });
 });

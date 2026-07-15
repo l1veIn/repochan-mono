@@ -6,6 +6,7 @@ import os from 'node:os';
 import { createPersonaReview } from '../src/entities/index.js';
 import { initProtocol } from '../src/protocol/index.js';
 import { personaReviewPath, personaReviewVersionsDir } from '../src/protocol/index.js';
+import { seedUpstream } from '../test-support/fixtures.js';
 
 describe('persona review', () => {
   let tmpRoot: string;
@@ -16,9 +17,7 @@ describe('persona review', () => {
     projectRoot = tmpRoot;
     await initProtocol(projectRoot);
 
-    const r = path.join(projectRoot, '.repochan');
-    await fs.writeFile(path.join(r, 'analysis', 'current.json'), JSON.stringify({ summary: 'test' }));
-    await fs.writeFile(path.join(r, 'persona', 'current.json'), JSON.stringify({ name: 'Test', rolePrompt: 'test' }));
+    await seedUpstream(projectRoot);
   });
 
   afterEach(async () => {

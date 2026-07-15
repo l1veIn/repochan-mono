@@ -1,10 +1,7 @@
 # RepoChan 架构说明
 
-> 本文档定义 RepoChan 的架构本质、分层结构、包边界、绑定面，以及已知的架构缺口。
-> 它是后续所有功能决策的共同前提。
->
-> **权威决策基准**：[`.plans/2026-07-09-repositioning.md`](./.plans/2026-07-09-repositioning.md)（2026-07-09 ACCEPTED）。
-> 本文描述的是该 ADR **落地后**的代码现实，不是迁移前的 Pi 中心架构。
+> 本文档定义 RepoChan 0.3 的当前架构、包边界、绑定面与产品约束。
+> 它是功能决策和发布验收的共同前提。
 
 ---
 
@@ -26,7 +23,7 @@ LLM 自由对话模式做不了「可追踪、可审计、可重入的批量创�
 
 RepoChan 给 agent 提供一套**交付拓扑**：每个角色的工作目标不是「说一段话」，而是「按 schema 产出一个落盘的、被校验过的、可被下游引用的 artifact」。LLM 的自由度被限制在「从一个合法节点走向下一个合法节点」，而不是「自由发挥」。
 
-### 一句话定位（ADR TL;DR）
+### 一句话定位
 
 > **core 守约束，skill 出思路，cli（唯一 bin）把 core 操作暴露成子命令；image-gen / image-edit / templates 是 cli 调用的库包；agent 由用户自带。无内嵌运行时，每个包一眼能懂。**
 
@@ -113,7 +110,7 @@ RepoChan 给 agent 提供一套**交付拓扑**：每个角色的工作目标不
 - 入口：`packages/core/src/entities/`（按实体拆分：`persona.ts`、`orders.ts`、`interview.ts`、`review.ts`、`persona-review.ts`）。
 - **状态机**：`OrderStatus` 六态（`draft` / `approved` / `in_progress` / `delivered` / `needs_revision` / `cancelled`），非法跳变被拒绝。
 - **依赖门**：例如 `createOrders` 要求 analysis + persona；`createOrderResult` 还要求订单已审批。
-- **审批门**：`ensureOrderApprovedForExecution` — 默认只有 `approved` / `in_progress` 才能交付结果（`allowUnapprovedOrder` 是显式 escape hatch）。
+- **审批门**：`ensureOrderApprovedForExecution` — 只有 `approved` / `in_progress` 才能交付结果。
 - **破坏性操作显式确认**：覆盖类写操作硬性要求 `overwrite=true`。
 - **可复现性**：`createOrderResult` 强制保存 `generationPrompt` / `revisedPrompt`。
 - **候选态**：order 与 persona 均支持 candidate → promote 路径。
@@ -124,7 +121,7 @@ RepoChan 给 agent 提供一套**交付拓扑**：每个角色的工作目标不
 **职责**：处理无法被形式化的判断——构图审美、提问策略、好坏评判、全流程编排。
 
 - 入口：`packages/skill/skills/*/SKILL.md`（纯 markdown，无构建步骤）。
-- **C 位是向导 skill `repochan`**：默认一句话调度全流程；yolo 跳过检查点；逐团队是高级模式。
+- **C 位是向导 skill `repochan`**：默认一句话调度全流程；显式 yolo 在已授权范围采用默认创意决策；非交互环境不扩大外部写权限；逐团队是高级模式。
 - 默认团队 skill：`repochan-analysis` / `repochan-interviewer` / `repochan-persona` / `repochan-art-director` / `repochan-painter` / `repochan-page-designer`。其中 Page Designer 的稳定机器 id 保留，但职责是既有 starter 的本地化与装配，只编辑 pull 后实例。
 - 原创分支 skill：`repochan-web-designer`。它为具体项目负责信息架构、艺术方向、整页/section 母稿、bake mask、生产资产策略、实现与 Gate 1/2；不写 source starter。
 - 维护者 skill：`repochan-starter-designer`。它只把 Gate-2-approved implemented page 产品化为 `packages/starters/<id>/` source starter，是唯一可写该目录的 skill，不属于普通项目生成流水线。
@@ -229,16 +226,6 @@ skill         叶子：纯 markdown
 | `image-edit` | 切图 / 抠图 / 组 GIF | 联网、持凭证、写协议目录 |
 | `templates` | 提供官方 YAML 模板文件 | 含代码或 agent 指令 |
 
-### 已移除 / 降格
-
-| 旧包 | 处置 |
-|---|---|
-| `packages/pi` | 移除。skill 提为顶层；Pi 仅作为 `repochan setup --agent pi` 的可选宿主之一 |
-| `packages/image-gen-pi` | 重构为库 `packages/image-gen`，去 Pi 耦合 |
-| `packages/page-renderer` | 删除。落地页改由 agent + Astro 模板二开，不再 JSON→HTML 渲染器 |
-
----
-
 ## 五、绑定模型：agent × skill × CLI
 
 ```text
@@ -302,7 +289,8 @@ repochan setup                   # 检测 agent、安装 skill、可选配置 im
 | 模式 | 触发 | 行为 |
 |---|---|---|
 | **向导（默认）** | 「生成全套 / 做个看板娘」 | 串全流程，3 个检查点停下 |
-| **yolo** | 用户明说 yolo / 非交互 CI | 跳过检查点；订单直接 `approved` |
+| **yolo** | 用户明确说 yolo | 在已授权范围采用默认创意决策；外部写仍需明确授权 |
+| **非交互执行** | CI / 无 TTY | 自动选择本地可逆决策；在未授权的外部写之前停止 |
 | **逐团队（高级）** | 「只做 analysis / 微调某张图」 | 只加载对应团队 skill |
 
 ### 设定集优先（视觉一致性）
@@ -323,7 +311,6 @@ repochan setup                   # 检测 agent、安装 skill、可选配置 im
 | `repochan image edit slice` | 网格切图 | 否 | 否 |
 | `repochan image edit bg-remove` | ML 抠图 | 否 | 否 |
 | `repochan image edit gif-from-frames` | 帧组 GIF | 否 | 否 |
-| `repochan order slice` / `extract-stickers` | 订单上下文下的切图/贴纸 | 否（像素） | 是（经 core 落盘） |
 
 image-gen 把所有后端视为 **OpenAI-compatible** endpoint（`baseURL` + `apiKey` + `model` + `mode`）：
 
@@ -339,21 +326,25 @@ image-gen 把所有后端视为 **OpenAI-compatible** endpoint（`baseURL` + `ap
 
 ---
 
-## 八、架构演进：已落地与剩余缺口
+## 八、当前能力与边界
 
-### 已落地
+### 当前发布约束
 
-| 能力 | 状态 |
+公共包作为依赖闭合的一组发布：六个叶子包先于 CLI，并由 CLI 精确锁定版本。
+发布前置从空项目安装候选 tarball，验证 setup、协议、analysis、Starter 与
+构建主链，并检查 runtime 与 Skill 只暴露当前合同。
+
+### 当前能力
+
+| 能力 | 当前合同 |
 |---|---|
-| 四层约束（schema / protocol / rules / skill） | 稳定 |
-| 薄 CLI 唯一绑定面、无内嵌 runtime | 已落地（本分支） |
-| skill 顶层包 + 向导默认形态 | 已落地 |
-| image-gen / image-edit 拆包 | 已落地 |
-| page-renderer 删除 | 已落地 |
-| Order review + Persona review | 已落地 |
-| Order candidate + Persona candidate | 已落地 |
-| multi-agent setup + skill version drift 检测 | 已落地 |
-| 确定性 analysis 引擎 + LLM enrich 路径 | 已落地 |
+| 四层约束 | schema / protocol / rules / skill 分层 |
+| 绑定面 | 薄 CLI、无内嵌 runtime |
+| Skill 分发 | 向导与角色 skills 由 `repochan setup` 安装 |
+| 图像能力 | image-gen 联网出图；image-edit 本地像素处理 |
+| 审阅与候选 | Order 与 Persona 都有 review / candidate 合同 |
+| 多 agent setup | 支持目标探测、安装与版本漂移提示 |
+| Analysis | 确定性扫描与 agent enrich 路径 |
 
 ### 刻意不解决 / 已知边界
 
@@ -369,13 +360,12 @@ Schema 保证「合法」，不保证「好看」或命中 `emotionalGoal`。质
 
 #### 状态机的刚性
 
-强状态机能拦非法跳变，也会挡住「我想跳过 analysis 直接试画」。通过显式 escape hatch（如 `allowUnapprovedOrder`）缓解，不拆除状态机。
+强状态机拦截非法跳变；需要执行的订单必须先经过明确审批。
 
-#### 待演进
+#### 当前未提供
 
-- ~~`repochan-page/` 迁出为独立在线模板仓库（ADR §九）。~~ ✅ 已迁入 `packages/starters/`（2026-07-13）。
-- 可选 MCP-over-CLI 薄壳（仅在 CLI 体验证伪时）。
-- 远程模板 registry（当前 ~12 个官方 YAML 随包发布足够）。
+- MCP 绑定面；CLI 是唯一产品入口。
+- 远程模板 registry；官方 YAML 模板随包分发。
 
 ---
 
@@ -413,7 +403,6 @@ Schema 保证「合法」，不保证「好看」或命中 `emotionalGoal`。质
 | 图像生成 | `packages/image-gen/` |
 | 像素处理 | `packages/image-edit/` |
 | 资产模板 | `packages/templates/*.yaml` |
-| 重定位 ADR | `.plans/2026-07-09-repositioning.md` |
 | 最小协议夹具 | `examples/minimal/` |
 
 ---

@@ -12,7 +12,6 @@ import {
   runStarterValidate,
 } from "./starter.js";
 import { getDefaultStarterId, getStarter, readStarterInstance } from "../lib/starter-loader.js";
-import * as starterLoader from "../lib/starter-loader.js";
 import { chromaKeyImage, compressImage, extractMatteGrid } from "@repochan/image-edit";
 
 vi.mock("@repochan/image-edit", async (importOriginal) => ({
@@ -23,6 +22,27 @@ vi.mock("@repochan/image-edit", async (importOriginal) => ({
 }));
 
 const tempDirs: string[] = [];
+
+function canonicalOrder(orderId: string, overrides: Record<string, unknown> = {}) {
+  const timestamp = "2026-01-01T00:00:00.000Z";
+  return {
+    schemaVersion: "repochan.asset-order.v1",
+    orderId,
+    requestType: "new_asset",
+    status: "delivered",
+    currentVersion: "v1",
+    candidateVersions: [],
+    assetType: "test_asset",
+    priority: "normal",
+    references: [],
+    brief: { intent: "test", mustInclude: [], avoid: [], creativeFreedom: [] },
+    deliverables: [],
+    acceptanceCriteria: [],
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    ...overrides,
+  };
+}
 
 afterEach(async () => {
   vi.restoreAllMocks();
@@ -35,17 +55,30 @@ async function projectFixture() {
   await mkdir(path.join(root, ".repochan", "analysis"), { recursive: true });
   await mkdir(path.join(root, ".repochan", "persona"), { recursive: true });
   await writeFile(path.join(root, ".repochan", "analysis", "current.json"), JSON.stringify({
-    projectName: "Fixture Project",
-    repositoryUrl: "https://example.test/fixture",
+    schemaVersion: "repochan.analysis.v1",
+    generatedAt: "2026-01-01T00:00:00.000Z",
+    context: {
+      basic: { project_name: "Fixture Project", repository_url: "https://example.test/fixture" },
+      identity: { namingSeeds: { primary: ["fixture"], secondary: [], rationale: ["fixture"] } },
+      file_structure: {}, inventory: {}, tech_stack: {}, pre_analysis: {}, git_profile: {},
+      docs_narrative: {}, github_meta: {}, color_palette: {}, core_samples: {}, deterministic_tooling: {},
+    },
+    persona: null,
+    error: null,
     preAnalysis: { summary: "Fixture summary" },
   }));
   await writeFile(path.join(root, ".repochan", "persona", "current.json"), JSON.stringify({
+    name: "Fixture",
+    rolePrompt: "fixture visual tags",
     mainColor: "#123456",
     secondaryColor: "#234567",
     accentColors: ["#345678", "#456789"],
     artStyle: "Precise",
     keyMotifs: ["node"],
     signaturePatterns: ["grid"],
+    schemaVersion: "repochan.persona.v2",
+    generatedAt: "2026-01-01T00:00:00.000Z",
+    provenance: { tool: "test" },
   }));
   return root;
 }
@@ -57,9 +90,9 @@ async function gridBundleFixture() {
   const manifestPath = path.join(siteDir, "repochan", "starter.json");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   manifest.assets = [{
+    kind: "bundle",
     slot: "web-states",
     required: true,
-    output: "public/assets/states/welcome.png",
     publications: [
       { key: "welcome", cell: 0, output: "public/assets/states/welcome.png" },
       { key: "empty", cell: 1, output: "public/assets/states/empty.png" },
@@ -71,7 +104,6 @@ async function gridBundleFixture() {
   manifest.capabilities = {
     sections: [{
       id: "states",
-      required: true,
       recipe: "web-state-grid",
       provenance: { type: "html-first" },
       bakedLayers: [],
@@ -86,15 +118,17 @@ async function gridBundleFixture() {
   await writeFile(manifestPath, JSON.stringify(manifest));
   const assetsPath = path.join(siteDir, "repochan", "assets.json");
   await writeFile(assetsPath, JSON.stringify({ schemaVersion: "repochan.starter-assets.v1", assets: {
-    "web-states": { src: "/assets/states/welcome.png", status: "pending" },
+    "web-states": { kind: "bundle", status: "pending", items: {} },
   } }));
   const versionDir = path.join(root, ".repochan", "orders", "ord-grid-001", "versions", "v1");
   await mkdir(versionDir, { recursive: true });
-  await writeFile(path.join(root, ".repochan", "orders", "ord-grid-001", "order.json"), JSON.stringify({
-    orderId: "ord-grid-001", status: "delivered", currentVersion: "v1",
-  }));
+  await writeFile(path.join(root, ".repochan", "orders", "ord-grid-001", "order.json"), JSON.stringify(
+    canonicalOrder("ord-grid-001"),
+  ));
   await writeFile(path.join(versionDir, "source.png"), "source");
-  await writeFile(path.join(versionDir, "meta.json"), JSON.stringify({ versionId: "v1", files: ["source.png"] }));
+  await writeFile(path.join(versionDir, "meta.json"), JSON.stringify({
+    versionId: "v1", createdAt: "2026-01-01T00:00:00.000Z", files: ["source.png"],
+  }));
   return { root, siteDir, assetsPath };
 }
 
@@ -104,7 +138,7 @@ describe("starter v1 commands", () => {
     const starter = await getStarter("minimal");
     expect(starter.schemaVersion).toBe("repochan.starter.v1");
     expect(starter.config.site).toBe("repochan/site.json");
-    expect(starter.capabilities?.sections.map((section) => section.id)).toEqual(["hero"]);
+    expect(starter.capabilities.sections.map((section) => section.id)).toEqual(["hero"]);
   });
 
   it("surfaces section capabilities in starter list/get human and JSON output", async () => {
@@ -117,7 +151,7 @@ describe("starter v1 commands", () => {
     await runStarterGet("", "minimal", {});
     const human = String(log.mock.calls.at(-1)?.[0]);
     expect(human).toMatch(/sections \(1\)/);
-    expect(human).toMatch(/hero \[required\]/);
+    expect(human).toMatch(/hero — hero-composite-live-copy/);
     expect(human).toMatch(/baked=L1\+L2, live=L3\+L4/);
     expect(human).toMatch(/transitions \(0\): none/);
 
@@ -131,24 +165,17 @@ describe("starter v1 commands", () => {
     });
   });
 
-  it("requires capabilities for source validation but accepts legacy pulled instances", async () => {
+  it("rejects any starter instance without the canonical capabilities contract", async () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const root = await projectFixture();
-    const siteDir = path.join(root, "legacy-site");
+    const siteDir = path.join(root, "invalid-site");
     await runStarterPull(root, { outputDir: siteDir, json: true });
     const manifestPath = path.join(siteDir, "repochan/starter.json");
     const pulled = JSON.parse(await readFile(manifestPath, "utf8"));
     delete pulled.capabilities;
     await writeFile(manifestPath, JSON.stringify(pulled));
-    const legacy = await readStarterInstance(siteDir);
-    vi.spyOn(starterLoader, "getStarter").mockResolvedValue(legacy);
-    vi.spyOn(starterLoader, "listStarters").mockResolvedValue([legacy]);
-
-    await expect(runStarterValidate(root, "legacy", { json: true }))
-      .rejects.toThrow(/source starter must declare capabilities/);
-    await expect(runStarterValidate(root, undefined, { all: true, json: true }))
-      .rejects.toThrow(/source starter must declare capabilities/);
-    await expect(runStarterValidate(root, undefined, { outputDir: siteDir, json: true })).resolves.toBeUndefined();
+    await expect(readStarterInstance(siteDir)).rejects.toThrow(/capabilities/);
+    await expect(runStarterValidate(root, undefined, { outputDir: siteDir, json: true })).rejects.toThrow(/capabilities/);
   });
 
   it("rejects missing or non-file section design references during starter validation", async () => {
@@ -247,6 +274,7 @@ describe("starter v1 commands", () => {
     expect(await readFile(output)).toEqual(await readFile(source));
     const assets = JSON.parse(await readFile(assetsPath, "utf8"));
     expect(assets.assets["hero-composite"]).toMatchObject({
+      kind: "scalar",
       src: "/assets/hero-composite.webp",
       status: "ready",
       provenance: {
@@ -373,13 +401,14 @@ describe("starter v1 commands", () => {
     await writeFile(manifestPath, JSON.stringify(manifest));
     const versionDir = path.join(root, ".repochan/orders/ord-hero-001/versions/v1");
     await mkdir(versionDir, { recursive: true });
-    await writeFile(path.join(root, ".repochan/orders/ord-hero-001/order.json"), JSON.stringify({
-      orderId: "ord-hero-001", status: "delivered", currentVersion: "v1",
+    await writeFile(path.join(root, ".repochan/orders/ord-hero-001/order.json"), JSON.stringify(canonicalOrder("ord-hero-001", {
       assetType: manifest.assets[0].order.assetType,
       templateId: manifest.assets[0].order.templateId,
-    }));
+    })));
     await writeFile(path.join(versionDir, "source.webp"), "source");
-    await writeFile(path.join(versionDir, "meta.json"), JSON.stringify({ versionId: "v1", files: ["source.webp"] }));
+    await writeFile(path.join(versionDir, "meta.json"), JSON.stringify({
+      versionId: "v1", createdAt: "2026-01-01T00:00:00.000Z", files: ["source.webp"],
+    }));
     vi.mocked(compressImage).mockImplementation(async (_source, out) => {
       await mkdir(path.dirname(out), { recursive: true });
       await writeFile(out, "intermediate");
@@ -422,14 +451,13 @@ describe("starter v1 commands", () => {
     const keys = ["welcome", "searching", "loading", "empty", "error", "success", "not-found", "cta", "cozy"];
     const manifestPath = path.join(siteDir, "repochan", "starter.json");
     const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
-    manifest.assets[0].output = "public/assets/states/welcome.png";
     manifest.assets[0].order = { assetType: "web_state_stickers", templateId: "official/web-state-grid-3x3" };
     manifest.assets[0].publications = keys.map((key, cell) => ({ key, cell, output: `public/assets/states/${key}.png` }));
     manifest.assets[0].postprocess[0].args = { rows: 3, cols: 3, normalize: { canvasSize: 64 } };
     await writeFile(manifestPath, JSON.stringify(manifest));
     const items = Object.fromEntries(keys.map((key) => [key, { src: `/assets/states/${key}.png`, status: "ready" }]));
     await writeFile(assetsPath, JSON.stringify({ schemaVersion: "repochan.starter-assets.v1", assets: {
-      "web-states": { src: "/assets/states/welcome.png", status: "ready", items },
+      "web-states": { kind: "bundle", status: "ready", items },
     } }));
     for (const key of keys) {
       const output = path.join(siteDir, `public/assets/states/${key}.png`);

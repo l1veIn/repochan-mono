@@ -30,7 +30,7 @@ import {
 } from "../../lib/register.js";
 
 export type SetupOptions = OutputOptions & {
-  /** Comma-separated agent ids, or `auto` / `all`. Alias of historical --agent. */
+  /** Comma-separated agent ids, or `auto` / `all`. */
   agent?: string;
   list?: boolean;
   remove?: boolean;
@@ -147,7 +147,7 @@ async function runProject(cwd: string, options: SetupOptions, skillSrc: string) 
   for (const t of targets) {
     const res = await installTarget(cwd, t, skillSrc, "project", options.overwrite ?? false);
     results.push(res);
-    await recordSkillInstall(t.id, "project", res.skillDir ?? ".repochan/skills", res.skillFiles);
+    await recordSkillInstall(t.id, "project", res.skillDir, res.skillFiles);
   }
   reportResults(options, "install", results);
 
@@ -180,7 +180,7 @@ async function runList(cwd: string, options: OutputOptions) {
     const conf = row.configured ? chalk.cyan("configured") : dim("—");
     console.log(`  ${chalk.bold(row.id.padEnd(12))} ${row.name}`);
     console.log(`    ${inst}  ${conf}`);
-    console.log(dim(`    skills → ${row.skillDir ?? ".repochan/skills (fallback)"}`));
+    console.log(dim(`    skills → ${row.skillDir}`));
     console.log(dim(`    instr  → ${row.instructionFile}`));
   }
   console.log();
@@ -327,9 +327,8 @@ function reportResults(
 // ---------------------------------------------------------------------------
 
 /**
- * Resolve which agents to install globally. All agents now have a skillDir
- * (globalSkillDir fallback to skillDir), so no filtering needed — but we still
- * skip any with no resolvable path.
+ * Resolve which agents to install globally. Every target has a canonical skill
+ * directory; globalSkillDir overrides it only when the host convention differs.
  */
 async function resolveGlobalTargets(
   options: SetupOptions,
@@ -338,18 +337,15 @@ async function resolveGlobalTargets(
   const detected = await detectAll(home);
   const detectedIds = detected.filter((d) => d.detection.installed).map((d) => d.target.id);
 
-  const resolve = (targets: AgentTarget[]) =>
-    targets.filter((t) => skillDestFor(t, "global") !== ".repochan/skills" || t.skillDir !== null);
-
   if (options.agent) {
     try {
-      return resolve(resolveAgentFlag(options.agent, detectedIds));
+      return resolveAgentFlag(options.agent, detectedIds);
     } catch (e) {
       throw new UsageError(e instanceof Error ? e.message : String(e));
     }
   }
   if (options.yes) {
-    return resolve(resolveAgentFlag("auto", detectedIds));
+    return resolveAgentFlag("auto", detectedIds);
   }
 
   if (!process.stdin.isTTY) {

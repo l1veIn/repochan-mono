@@ -1,5 +1,5 @@
 export * from "./types.js";
-export * from "./protocol/index.js";
+export * from "./protocol/public.js";
 export * from "./schemas/index.js";
 export * from "./utils/index.js";
 export * from "./validate.js";

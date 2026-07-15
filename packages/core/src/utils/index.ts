@@ -35,11 +35,12 @@ export function deepMerge(base: any, patch: any): any {
 
 export function normalizeOrder(order: AssetOrder, now = stamp()): AssetOrder {
   return {
-    status: "draft",
-    priority: "normal",
-    createdAt: now,
-    updatedAt: now,
     ...order,
+    status: order.status ?? "draft",
+    priority: order.priority ?? "normal",
+    createdAt: order.createdAt ?? now,
+    updatedAt: order.updatedAt ?? now,
+    candidateVersions: [],
     references: normalizeReferences(order.references),
     schemaVersion: "repochan.asset-order.v1",
   };
@@ -93,13 +94,16 @@ function normalizeReference(ref: unknown): OrderReference {
     return { type: "file", path: filePath, role: typedRole };
   }
 
-  // order variant (default when type omitted, or type === "order")
+  if (ref.type !== "order") {
+    throw new Error("reference.type must be explicitly set to either 'order' or 'file'.");
+  }
+  // order variant
   const orderId = ref.orderId;
   if (typeof orderId !== "string" || !orderId.trim()) {
     throw new Error("order reference requires a non-empty `orderId` (or use type:\"file\" with a `path`).");
   }
   validateOrderId(orderId);
-  const result: OrderReference = { orderId, role: typedRole };
+  const result: OrderReference = { type: "order", orderId, role: typedRole };
   if (typeof ref.versionId === "string" && ref.versionId.trim()) {
     result.versionId = ref.versionId;
   }

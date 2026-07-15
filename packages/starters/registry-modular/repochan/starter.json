@@ -109,7 +109,6 @@
     "sections": [
       {
         "id": "nav",
-        "required": true,
         "recipe": "html-first-utility-nav",
         "provenance": { "type": "html-first" },
         "bakedLayers": [],
@@ -123,7 +122,6 @@
       },
       {
         "id": "hero",
-        "required": true,
         "recipe": "registry-hero-composite-live-copy",
         "provenance": {
           "type": "design-reference",
@@ -145,7 +143,6 @@
       },
       {
         "id": "capabilities",
-        "required": true,
         "recipe": "live-registry-card-grid",
         "provenance": {
           "type": "design-reference",
@@ -162,7 +159,6 @@
       },
       {
         "id": "workflow",
-        "required": true,
         "recipe": "live-arched-process-rail",
         "provenance": {
           "type": "design-reference",
@@ -179,7 +175,6 @@
       },
       {
         "id": "proof",
-        "required": true,
         "recipe": "live-proof-register",
         "provenance": {
           "type": "design-reference",
@@ -196,7 +191,6 @@
       },
       {
         "id": "cta",
-        "required": true,
         "recipe": "live-arch-cta",
         "provenance": {
           "type": "design-reference",
@@ -216,7 +210,6 @@
       },
       {
         "id": "footer",
-        "required": true,
         "recipe": "html-first-link-register",
         "provenance": { "type": "html-first" },
         "bakedLayers": [],
@@ -278,6 +271,7 @@
   },
   "assets": [
     {
+      "kind": "scalar",
       "slot": "hero-composite",
       "required": true,
       "reference": "public/references/hero.svg",

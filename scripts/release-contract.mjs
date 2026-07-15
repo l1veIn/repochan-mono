@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import * as tar from "tar";
 
 export const releasePackages = Object.freeze([
   { name: "@repochan/core", dir: "packages/core" },
@@ -13,6 +14,113 @@ export const releasePackages = Object.freeze([
   { name: "repochan", dir: "packages/cli" },
 ]);
 
+export const compatibilityDebtRoots = Object.freeze([
+  "packages/core/src",
+  "packages/cli/src",
+  "packages/image-gen/src",
+  "packages/image-edit/src",
+  "packages/skill/skills",
+]);
+
+const compatibilityDebtPatterns = Object.freeze([
+  { rule: "legacy-contract", pattern: /\blegacy\b/i },
+  { rule: "backward-compatibility", pattern: /\b(?:back-?compat|backwards?[- ]compat(?:ibility|ible)?)\b/i },
+  { rule: "deprecated-contract", pattern: /\bdeprecated\b/i },
+  { rule: "chinese-compatibility-contract", pattern: /(?:向后兼容|兼容旧|旧版|旧实例|旧格式|旧协议|旧模板|遗留|弃用|已废弃)/ },
+]);
+
+const releaseSurfaceDebtPatterns = Object.freeze([
+  { rule: "adr-reference", pattern: /\bADR\b/ },
+  { rule: "repositioning-story", pattern: /\breposition(?:ing|ed)?\b|重定位/i },
+  { rule: "architecture-history", pattern: /legacy architecture|previous architecture|removed package|downgraded package|旧架构|旧包|已移除|降格|迁移前|迁移后/i },
+  { rule: "protocol-history", pattern: /predates (?:the )?(?:current )?protocol|historical (?:--|option|flag|alias)/i },
+  { rule: "yolo-ci-conflation", pattern: /yolo\s*[/／]\s*(?:non-interactive|非交互)/i },
+  { rule: "completion-story", pattern: /development preview|开发预览|已落地(?:（本分支）)?|完成态 checklist/i },
+  { rule: "past-implementation-story", pattern: /\bpreviously\b/i },
+]);
+
+/**
+ * Find compatibility branches in current runtime/skill contracts.
+ *
+ * This intentionally does not flag OpenAI-compatible endpoints, Starter
+ * runnable fallbacks, or business asset names containing `migrate`. Internal
+ * planning artifacts and CHANGELOG are outside these compatibility scan roots.
+ */
+export function detectCompatibilityDebt(relativePath, source) {
+  const findings = [];
+  for (const [index, line] of source.split(/\r?\n/).entries()) {
+    for (const { rule, pattern } of compatibilityDebtPatterns) {
+      const match = line.match(pattern);
+      if (match) findings.push({ path: relativePath, line: index + 1, rule, match: match[0], text: line.trim() });
+    }
+  }
+  return findings;
+}
+
+export async function scanCompatibilityDebt(repositoryRoot) {
+  const findings = [];
+  async function walk(relativeDir) {
+    const absoluteDir = path.join(repositoryRoot, relativeDir);
+    for (const entry of await fs.readdir(absoluteDir, { withFileTypes: true })) {
+      const relative = path.join(relativeDir, entry.name).split(path.sep).join("/");
+      if (entry.isDirectory()) {
+        if (entry.name !== "dist" && entry.name !== "node_modules") await walk(relative);
+      } else if (/\.(?:ts|md|ya?ml)$/i.test(entry.name)) {
+        findings.push(...detectCompatibilityDebt(relative, await fs.readFile(path.join(repositoryRoot, relative), "utf8")));
+      }
+    }
+  }
+  for (const relativeRoot of compatibilityDebtRoots) await walk(relativeRoot);
+  return findings;
+}
+
+export function detectReleaseSurfaceDebt(relativePath, source) {
+  const findings = [];
+  for (const [index, line] of source.split(/\r?\n/).entries()) {
+    for (const { rule, pattern } of releaseSurfaceDebtPatterns) {
+      const match = line.match(pattern);
+      if (match) findings.push({ path: relativePath, line: index + 1, rule, match: match[0], text: line.trim() });
+    }
+  }
+  return findings;
+}
+
+export async function scanReleaseSurfaceDebt(repositoryRoot) {
+  const findings = [];
+  const topLevel = new Set(["AGENTS.md", "README.md", "README_zh.md", "ARCHITECTURE.md", "CHANGELOG.md"]);
+  async function walk(relativeDir = "") {
+    const absoluteDir = path.join(repositoryRoot, relativeDir);
+    for (const entry of await fs.readdir(absoluteDir, { withFileTypes: true })) {
+      const relative = path.join(relativeDir, entry.name).split(path.sep).join("/");
+      if (entry.isDirectory()) {
+        const isInsideHiddenTree = relative.split("/").some((segment) => segment.startsWith("."));
+        const directoryRole = entry.name.replace(/^\.+/, "");
+        const isHiddenPlanningDirectory = isInsideHiddenTree && /^(?:plans?|planning)$/i.test(directoryRole);
+        if (isHiddenPlanningDirectory) {
+          findings.push({
+            path: `${relative}/`,
+            line: 0,
+            rule: "internal-planning-directory",
+            match: entry.name,
+            text: "Repository contains an internal planning directory.",
+          });
+          continue;
+        }
+        if (![".git", "node_modules", "dist", "test-repos", "test-results", "score-review"].includes(entry.name)) await walk(relative);
+        continue;
+      }
+      const isPublicDocument = topLevel.has(relative) || relative.startsWith("docs/") || (relative.startsWith("packages/") && relative.endsWith("/README.md"));
+      const isRuntimeCommentSurface = /packages\/[^/]+\/src\/.*\.ts$/.test(relative) && !/\.(?:test|spec)\.ts$/.test(relative);
+      const isSkillContract = relative.startsWith("packages/skill/skills/") && /\.md$/.test(relative);
+      if (isPublicDocument || isRuntimeCommentSurface || isSkillContract) {
+        findings.push(...detectReleaseSurfaceDebt(relative, await fs.readFile(path.join(repositoryRoot, relative), "utf8")));
+      }
+    }
+  }
+  await walk();
+  return findings;
+}
+
 const dependencyFields = ["dependencies", "optionalDependencies", "peerDependencies"];
 export const defaultNpmRegistry = "https://registry.npmjs.org/";
 
@@ -22,6 +130,22 @@ export function releaseCommandTimeout(value = process.env.REPOCHAN_RELEASE_COMMA
     throw new Error("REPOCHAN_RELEASE_COMMAND_TIMEOUT_MS must be an integer of at least 1000 milliseconds.");
   }
   return timeout;
+}
+
+/** Resolve a release source ref only when the repository has no tracked or untracked drift. */
+export function resolveCleanGitSourceRef(repositoryRoot, sourceRef) {
+  if (typeof sourceRef !== "string" || sourceRef.trim().length === 0) {
+    throw new Error("Release source ref must be a non-empty git ref.");
+  }
+  const status = execFileSync("git", ["-C", repositoryRoot, "status", "--porcelain=v1", "--untracked-files=all"], {
+    encoding: "utf8",
+  });
+  if (status.trim()) {
+    throw new Error(`Release source ref ${sourceRef} requires a clean worktree; commit or remove every tracked and untracked change first.`);
+  }
+  return execFileSync("git", ["-C", repositoryRoot, "rev-parse", "--verify", `${sourceRef}^{commit}`], {
+    encoding: "utf8",
+  }).trim();
 }
 
 /** Parse a release manifest while rejecting duplicate top-level JSON keys. */
@@ -216,18 +340,57 @@ export async function sha256File(file) {
   return createHash("sha256").update(await fs.readFile(file)).digest("hex");
 }
 
+async function listArchiveEntries(root, relative = "package") {
+  const entries = [relative];
+  const stat = await fs.lstat(path.join(root, relative));
+  if (!stat.isDirectory()) return entries;
+  for (const name of (await fs.readdir(path.join(root, relative))).sort()) {
+    entries.push(...await listArchiveEntries(root, path.join(relative, name).split(path.sep).join("/")));
+  }
+  return entries;
+}
+
+/** Normalize pnpm's raw pack output into a byte-reproducible npm tarball. */
+export async function normalizePackedArchive(rawArchive, destinationArchive, workingDirectory) {
+  await fs.rm(workingDirectory, { recursive: true, force: true });
+  await fs.mkdir(workingDirectory, { recursive: true });
+  await tar.extract({ file: rawArchive, cwd: workingDirectory });
+  const manifestPath = path.join(workingDirectory, "package", "package.json");
+  const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+  await fs.writeFile(manifestPath, `${JSON.stringify(stableJson(manifest), null, 2)}\n`, "utf8");
+  await fs.mkdir(path.dirname(destinationArchive), { recursive: true });
+  const entries = await listArchiveEntries(workingDirectory);
+  await tar.create({
+    cwd: workingDirectory,
+    file: destinationArchive,
+    gzip: { level: 9 },
+    portable: true,
+    mtime: new Date(0),
+    noDirRecurse: true,
+  }, entries);
+  return destinationArchive;
+}
+
 export async function createGitWorktreeSnapshot(sourceRoot, destinationRoot) {
   const output = execFileSync("git", ["-C", sourceRoot, "ls-files", "--cached", "--others", "--exclude-standard", "-z"]);
   const relativePaths = output.toString("utf8").split("\0").filter(Boolean);
+  const copiedPaths = [];
   for (const relativePath of relativePaths) {
     const source = path.join(sourceRoot, relativePath);
     const destination = path.join(destinationRoot, relativePath);
-    const stat = await fs.lstat(source);
+    let stat;
+    try {
+      stat = await fs.lstat(source);
+    } catch (error) {
+      if (error?.code === "ENOENT") continue;
+      throw error;
+    }
     await fs.mkdir(path.dirname(destination), { recursive: true });
     if (stat.isSymbolicLink()) await fs.symlink(await fs.readlink(source), destination);
     else if (stat.isFile()) await fs.copyFile(source, destination);
+    copiedPaths.push(relativePath);
   }
-  return relativePaths;
+  return copiedPaths;
 }
 
 function stableJson(value) {

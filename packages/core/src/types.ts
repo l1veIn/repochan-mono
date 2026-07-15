@@ -10,18 +10,17 @@ export type ReferenceRole = "character" | "style" | "composition";
 /**
  * A reference to a visual anchor for generation.
  *
- * Two variants:
- * - **order** (default when `type` is omitted): references another order's
- *   currentVersion (or explicit `versionId`) result. The historical
- *   `{orderId, role}` shape stays valid — `type` is optional for it.
+ * Two explicitly discriminated variants:
+ * - **order**: references another order's currentVersion (or explicit
+ *   `versionId`) result.
  * - **file**: references an arbitrary image file by path (relative to
  *   `projectRoot`, or absolute). Used for starter reference images and other
  *   out-of-protocol anchors.
  */
 export type OrderReference =
   | {
-      /** Discriminator. Omitted or `"order"` → reference an order's result. */
-      type?: "order";
+      /** Discriminator. */
+      type: "order";
       /** The orderId to reference (e.g. "ord-foundation-001"). */
       orderId: string;
       /** Specific version to use. If omitted, uses the order's currentVersion. */
@@ -178,10 +177,7 @@ export type PersonaData = {
   provenance?: JsonObject;
 };
 
-/** Role of a result version within its order. `current` = the active/promoted version; `candidate` = a parallel draft awaiting selection; `snapshot` = a retired former current. */
-export type VersionRole = "current" | "candidate" | "snapshot";
-
-export type OrderResultVersion = JsonObject & {
+export type OrderResultVersion = {
   versionId: string;
   createdAt: string;
   tool?: string;
@@ -190,25 +186,25 @@ export type OrderResultVersion = JsonObject & {
   generationPrompt?: string;
   revisedPrompt?: string;
   notes?: string;
-  /** Distinguishes parallel candidates from the promoted current and retired snapshots. Omitted on legacy data is treated as "current". */
-  role?: VersionRole;
   provenance?: JsonObject;
   meta?: JsonObject;
 };
 
-export type AssetOrder = JsonObject & {
-  schemaVersion?: "repochan.asset-order.v1";
+export type AssetOrder = {
+  schemaVersion: "repochan.asset-order.v1";
   orderId: string;
   batchId?: string;
   requestType: "new_asset" | "revision" | "variant" | "batch_item";
-  status?: OrderStatus;
+  status: OrderStatus;
   currentVersion?: string;
+  /** Result versions awaiting explicit promotion. Result metadata lives only in versions/<id>/meta.json. */
+  candidateVersions: string[];
   assetType: string;
-  priority?: OrderPriority;
+  priority: OrderPriority;
   /** Template ID (e.g. "official/foundation-sheet") defining output structure. */
   templateId?: string;
   /** References to other orders' results, used as visual anchors for generation. */
-  references?: OrderReference[];
+  references: OrderReference[];
   brief: {
     intent: string;
     audience?: string;
@@ -218,7 +214,6 @@ export type AssetOrder = JsonObject & {
     avoid: string[];
     creativeFreedom: string[];
     revisionRequest?: string;
-    [key: string]: any;
   };
   deliverables: Array<{
     name: string;
@@ -227,19 +222,12 @@ export type AssetOrder = JsonObject & {
     height?: number;
     aspectRatio?: string;
     transparentBackground?: boolean;
-    [key: string]: any;
   }>;
   acceptanceCriteria: string[];
-  createdAt?: string;
-  updatedAt?: string;
-  // orderAsset: the OrderAsset (pictures/products of this order).
-  // Previous separate Asset's information (currentVersion, versions list, meta) is now directly here.
-  // Pictures (OrderAsset versions) live under orders/<orderId>/versions/<versionId>/
-  orderAsset?: {
-    currentVersion?: string;
-    versions?: OrderResultVersion[];
-    meta?: JsonObject;
-  };
+  createdAt: string;
+  updatedAt: string;
+  notes?: string;
+  revisions?: Array<{ requestedAt: string; request: string; status: string }>;
 };
 
 // ---------------------------------------------------------------------------
@@ -302,22 +290,22 @@ export type InterviewResponse = {
  * On-disk protocol path: `.repochan/interview/current.json`
  *                        `.repochan/interview/versions/<slug>.json`
  */
-export type InterviewReport = JsonObject & {
-  schemaVersion?: "repochan.interview.v1";
-  generatedAt?: string;
-  provenance?: JsonObject;
+export type InterviewReport = {
+  schemaVersion: "repochan.interview.v1";
+  generatedAt: string;
+  provenance: JsonObject;
 
-  questions: InterviewQuestion[];
-  responses: InterviewResponse[];
+  questions?: InterviewQuestion[];
+  responses?: InterviewResponse[];
 
   /** One-paragraph summary of user intent, synthesized by the Interviewer LLM. */
   summary: string;
   /** Hard constraints extracted from the interview — must be respected. */
   keyConstraints: string[];
   /** Soft preferences — honor when possible. */
-  preferences: string[];
+  preferences?: string[];
   /** Things the user explicitly does not want. */
-  avoidList: string[];
+  avoidList?: string[];
 };
 
 // ── Review ──
@@ -342,7 +330,7 @@ export type CriterionResult = {
  * non-blocking: they are created AFTER delivery, never before. A `revise` or
  * `reject` verdict pushes a `delivered` order back to `needs_revision`.
  */
-export type ReviewArtifact = JsonObject & {
+export type ReviewArtifact = {
   /** The order being reviewed. */
   orderId: string;
   /** The specific result version being reviewed. */
@@ -355,9 +343,9 @@ export type ReviewArtifact = JsonObject & {
   notes?: string;
   /** Who/what produced this review, e.g. "art-director", "user". */
   reviewerRole?: string;
-  schemaVersion?: "repochan.review.v1";
-  generatedAt?: string;
-  provenance?: JsonObject;
+  schemaVersion: "repochan.review.v1";
+  generatedAt: string;
+  provenance: JsonObject;
 };
 
 // ── Persona review ──
@@ -375,14 +363,14 @@ export type PersonaReviewVerdict = "pass" | "revise";
  * creative team reads `notes` as re-generation guidance and produces a new
  * persona via persona.create (overwrite=true) or persona.update.
  */
-export type PersonaReviewArtifact = JsonObject & {
+export type PersonaReviewArtifact = {
   /** The review outcome. `pass` = satisfied; `revise` = redo with adjustments. */
   verdict: PersonaReviewVerdict;
   /** Re-generation guidance for the creative team (e.g. "make the character feel more mature"). */
   notes: string;
   /** Who/what produced this review, e.g. "user", "art-director". */
   reviewerRole?: string;
-  schemaVersion?: "repochan.persona-review.v1";
-  generatedAt?: string;
-  provenance?: JsonObject;
+  schemaVersion: "repochan.persona-review.v1";
+  generatedAt: string;
+  provenance: JsonObject;
 };

@@ -69,8 +69,6 @@ export const ALL_TARGETS: readonly AgentTarget[] = Object.freeze([
     instructionFile: ".cursor/rules/repochan.mdc",
     instructionMode: "owned-file",
     detectInstalled: () => exists(home(".cursor")),
-    // Pre-rewrite installs put a marker in .cursorrules
-    legacyCleanupPaths: (cwd) => [path.join(cwd, ".cursorrules")],
   },
   {
     id: "pi",

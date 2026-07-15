@@ -20,6 +20,8 @@ import {
   type HostRule,
 } from "../src/index.js";
 import { matchHostRule as matchHostRuleDirect } from "../src/hostRules.js";
+import { mergeConfigLayers } from "../src/config-merge.js";
+import { writeConfigFileAtomic } from "../src/config-file.js";
 
 const itE2E = process.env.IMAGE_GEN_E2E === "1" ? it : it.skip;
 
@@ -34,6 +36,14 @@ FAKE_PNG.set(TINY_PNG, 0);
 const FAKE_B64 = Buffer.from(FAKE_PNG).toString("base64");
 
 describe("config (pure)", () => {
+  const endpoint = (id: string) => ({
+    id,
+    baseURL: `https://${id}.example/v1`,
+    apiKey: "key",
+    model: "gpt-image-2",
+    mode: "auto" as const,
+  });
+
   it("expands ${ENV} and defaults mode to auto", async () => {
     process.env.RC_TEST_KEY = "secret-123";
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "rc-img-"));
@@ -41,7 +51,8 @@ describe("config (pure)", () => {
     await fs.writeFile(
       path.join(dir, ".repochan", "image.json"),
       JSON.stringify({
-        endpoints: { test: { baseURL: "https://x/v1", apiKey: "${RC_TEST_KEY}", model: "gpt-image-2" } },
+        version: 2,
+        endpoints: { test: { id: "test", baseURL: "https://x/v1", apiKey: "${RC_TEST_KEY}", model: "gpt-image-2" } },
       }),
     );
     const cfg = loadConfig(dir);
@@ -49,6 +60,112 @@ describe("config (pure)", () => {
     expect(cfg.endpoints?.test.mode).toBe("auto");
     await fs.rm(dir, { recursive: true, force: true });
     delete process.env.RC_TEST_KEY;
+  });
+
+  it("rejects config files outside the sole current schema", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "rc-img-contract-"));
+    await fs.mkdir(path.join(dir, ".repochan"), { recursive: true });
+    const configPath = path.join(dir, ".repochan", "image.json");
+    await fs.writeFile(configPath, JSON.stringify({ endpoints: {} }));
+    expect(() => loadConfig(dir)).toThrow(/must declare "version": 2/);
+    await fs.writeFile(configPath, "{not-json");
+    expect(() => loadConfig(dir)).toThrow(/Invalid image config JSON/);
+    await fs.writeFile(configPath, JSON.stringify({ version: 2, endpoints: [] }));
+    expect(() => loadConfig(dir)).toThrow(/endpoints must be a JSON object/);
+    await fs.writeFile(configPath, JSON.stringify({
+      version: 2,
+      removedField: true,
+      endpoints: {
+        broken: { id: "broken", baseURL: 42, apiKey: 9, model: false, removedField: true },
+      },
+    }));
+    expect(() => loadConfig(dir)).toThrow(/unknown field\(s\): removedField/);
+    await fs.writeFile(configPath, JSON.stringify({
+      version: 2,
+      endpoints: {
+        broken: { id: "broken", baseURL: 42, apiKey: 9, model: false },
+      },
+    }));
+    expect(() => loadConfig(dir)).toThrow(/baseURL must be a string/);
+    await fs.rm(dir, { recursive: true, force: true });
+  });
+
+  it("treats project endpoints and their default as one replacement layer", () => {
+    const globalConfig = {
+      version: 2 as const,
+      defaultEndpoint: "global",
+      endpoints: { global: endpoint("global") },
+      aspectRatio: "landscape" as const,
+    };
+
+    const withoutProjectDefault = mergeConfigLayers(globalConfig, {
+      version: 2,
+      endpoints: { project: endpoint("project") },
+    });
+    expect(Object.keys(withoutProjectDefault.endpoints ?? {})).toEqual(["project"]);
+    expect(withoutProjectDefault.defaultEndpoint).toBeUndefined();
+    expect(listEndpointStatuses(withoutProjectDefault)).toEqual([
+      expect.objectContaining({ id: "project", isDefault: true }),
+    ]);
+
+    const withProjectDefault = mergeConfigLayers(globalConfig, {
+      version: 2,
+      defaultEndpoint: "project",
+      endpoints: { project: endpoint("project") },
+    });
+    expect(withProjectDefault.defaultEndpoint).toBe("project");
+
+    const withoutProjectFile = mergeConfigLayers(globalConfig, {});
+    expect(withoutProjectFile.defaultEndpoint).toBe("global");
+    expect(Object.keys(withoutProjectFile.endpoints ?? {})).toEqual(["global"]);
+  });
+
+  it("atomically publishes config with mode 0600 and removes failed temporaries", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "rc-img-atomic-"));
+    const configPath = path.join(dir, "image.json");
+    writeConfigFileAtomic(configPath, "{\"version\":2}\n");
+
+    expect(await fs.readFile(configPath, "utf8")).toBe("{\"version\":2}\n");
+    expect((await fs.stat(configPath)).mode & 0o777).toBe(0o600);
+    expect(await fs.readdir(dir)).toEqual(["image.json"]);
+
+    const blockedPath = path.join(dir, "blocked.json");
+    await fs.mkdir(blockedPath);
+    await fs.writeFile(path.join(blockedPath, "keep"), "x");
+    expect(() => writeConfigFileAtomic(blockedPath, "{}\n")).toThrow();
+    expect((await fs.readdir(dir)).filter((name) => name.includes(".tmp"))).toEqual([]);
+
+    await fs.rm(dir, { recursive: true, force: true });
+  });
+
+  it("validates the final global v2 config before replacing its bytes", async () => {
+    const home = await fs.mkdtemp(path.join(os.tmpdir(), "rc-img-home-"));
+    const originalHome = process.env.HOME;
+    process.env.HOME = home;
+    vi.resetModules();
+
+    try {
+      const isolatedConfig = await import("../src/config.js");
+      isolatedConfig.saveGlobalConfig({
+        version: 2,
+        defaultEndpoint: "primary",
+        endpoints: { primary: endpoint("primary") },
+      });
+      const originalBytes = await fs.readFile(isolatedConfig.GLOBAL_CONFIG_PATH);
+      expect((await fs.stat(isolatedConfig.GLOBAL_CONFIG_PATH)).mode & 0o777).toBe(0o600);
+
+      expect(() => isolatedConfig.saveGlobalConfig({
+        version: 2,
+        defaultEndpoint: "missing",
+        endpoints: {},
+      })).toThrow(/defaultEndpoint must name a configured endpoint/);
+      expect(await fs.readFile(isolatedConfig.GLOBAL_CONFIG_PATH)).toEqual(originalBytes);
+    } finally {
+      if (originalHome === undefined) delete process.env.HOME;
+      else process.env.HOME = originalHome;
+      vi.resetModules();
+      await fs.rm(home, { recursive: true, force: true });
+    }
   });
 
   it("normalizeImageRequestMode defaults to auto", () => {

@@ -23,9 +23,9 @@ Pure scaffold data for RepoChan landing pages. Each child directory is an indepe
 
 `repochan/starter.json` is the sole manifest in both the source and pulled instance. Core owns its schema and deterministic rules; the CLI owns discovery, projection, order materialization, post-processing, and validation.
 
-New source starters declare `capabilities.sections[]` and adjacent `capabilities.transitions[]`. The section contract records recipe, design provenance or an explicit HTML-first decision, baked/live layers, canonical viewport, normalized safe zones, responsive behavior, asset slots, and motion. Existing pulled instances without `capabilities` remain readable, but `starter list|get` reports their section coverage as undeclared.
+Every source starter declares `capabilities.sections[]` and adjacent `capabilities.transitions[]`. The section contract records recipe, design provenance or an explicit HTML-first decision, baked/live layers, canonical viewport, normalized safe zones, responsive behavior, asset slots, and motion. Declared section order and every adjacent transition are authoritative.
 
-`section.required` is compatibility metadata for selection in Round 1; it does not authorize the Localizer to remove a section. Until instance-level section mutation exists, declared order and every adjacent transition remain authoritative.
+Each asset slot declares `kind: "scalar" | "bundle"`. Scalar slots own one `output`; bundle slots own named `publications[]` and an exclusive `extract-grid` postprocess. Asset state mirrors the same discriminant: scalar state owns `src`, while bundle state owns `items` and never fabricates a representative top-level `src`.
 
 Project-specific text, palette, links, brand data, and asset state stay concentrated under root-level `repochan/`. `src/lib/site.ts` is a stable reader and token derivation layer, not an agent editing target.
 

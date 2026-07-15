@@ -24,20 +24,20 @@ const StarterAssetPublicationSchema = Type.Object({
   key: Type.String({ pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$" }),
   cell: Type.Integer({ minimum: 0 }),
   output: RelativePathSchema,
-});
+}, { additionalProperties: false });
 
 const StarterReferenceSchema = Type.Union([
   Type.Object({
     type: Type.Literal("file"),
     path: RelativePathSchema,
     role: Type.Union([Type.Literal("composition"), Type.Literal("character"), Type.Literal("style")]),
-  }),
+  }, { additionalProperties: false }),
   Type.Object({
-    type: Type.Optional(Type.Literal("order")),
+    type: Type.Literal("order"),
     orderId: OrderIdSchema,
     versionId: Type.Optional(VersionIdSchema),
     role: Type.Union([Type.Literal("composition"), Type.Literal("character"), Type.Literal("style")]),
-  }),
+  }, { additionalProperties: false }),
 ]);
 
 export const StarterAssetOrderSchema = Type.Object({
@@ -48,31 +48,49 @@ export const StarterAssetOrderSchema = Type.Object({
     mustInclude: Type.Optional(Type.Array(Type.String())),
     avoid: Type.Optional(Type.Array(Type.String())),
     creativeFreedom: Type.Optional(Type.Array(Type.String())),
-  })),
+  }, { additionalProperties: false })),
   deliverables: Type.Optional(Type.Array(Type.Object({
     name: Type.String(),
     format: Type.String(),
     width: Type.Optional(Type.Number()),
     height: Type.Optional(Type.Number()),
     aspectRatio: Type.Optional(Type.String()),
-  }))),
+  }, { additionalProperties: false }))),
   references: Type.Optional(Type.Array(StarterReferenceSchema)),
-});
+}, { additionalProperties: false });
 
-export const StarterAssetSlotSchema = Type.Object({
+const StarterPostprocessStepSchema = Type.Object({
+  op: StarterPostprocessOpSchema,
+  args: Type.Optional(Type.Record(Type.String(), Type.Any())),
+  out: RelativePathSchema,
+}, { additionalProperties: false });
+
+const StarterScalarAssetSlotSchema = Type.Object({
+  kind: Type.Literal("scalar"),
   slot: Type.String({ pattern: "^[a-z0-9][a-z0-9-]*$" }),
   required: Type.Boolean(),
   reference: Type.Optional(RelativePathSchema),
   output: RelativePathSchema,
-  publications: Type.Optional(Type.Array(StarterAssetPublicationSchema, { minItems: 1 })),
   description: Type.Optional(Type.String()),
   order: Type.Optional(StarterAssetOrderSchema),
-  postprocess: Type.Optional(Type.Array(Type.Object({
-    op: StarterPostprocessOpSchema,
-    args: Type.Optional(Type.Record(Type.String(), Type.Any())),
-    out: RelativePathSchema,
-  }))),
-});
+  postprocess: Type.Optional(Type.Array(StarterPostprocessStepSchema)),
+}, { additionalProperties: false });
+
+const StarterBundleAssetSlotSchema = Type.Object({
+  kind: Type.Literal("bundle"),
+  slot: Type.String({ pattern: "^[a-z0-9][a-z0-9-]*$" }),
+  required: Type.Boolean(),
+  reference: Type.Optional(RelativePathSchema),
+  publications: Type.Array(StarterAssetPublicationSchema, { minItems: 1 }),
+  description: Type.Optional(Type.String()),
+  order: Type.Optional(StarterAssetOrderSchema),
+  postprocess: Type.Array(StarterPostprocessStepSchema, { minItems: 1 }),
+}, { additionalProperties: false });
+
+export const StarterAssetSlotSchema = Type.Union([
+  StarterScalarAssetSlotSchema,
+  StarterBundleAssetSlotSchema,
+]);
 
 const StarterLayerSchema = Type.Union([
   Type.Literal("L1"),
@@ -107,7 +125,6 @@ const StarterSectionProvenanceSchema = Type.Union([
 
 export const StarterSectionCapabilitySchema = Type.Object({
   id: Type.String({ pattern: "^[a-z0-9][a-z0-9-]*$" }),
-  required: Type.Boolean(),
   recipe: Type.String({ minLength: 1 }),
   provenance: StarterSectionProvenanceSchema,
   bakedLayers: Type.Array(StarterLayerSchema),
@@ -166,18 +183,18 @@ export const StarterManifestSchema = Type.Object({
   tags: Type.Array(Type.String()),
   default: Type.Optional(Type.Boolean()),
   config: Type.Object({
-    site: RelativePathSchema,
-    assets: RelativePathSchema,
-    i18nDir: RelativePathSchema,
-  }),
+    site: Type.Literal("repochan/site.json"),
+    assets: Type.Literal("repochan/assets.json"),
+    i18nDir: Type.Literal("repochan/i18n"),
+  }, { additionalProperties: false }),
   content: Type.Object({
     defaultLocale: LocaleSchema,
     supportedLocales: Type.Array(LocaleSchema, { minItems: 1 }),
     requiredPaths: Type.Array(Type.String({ minLength: 1 })),
-  }),
-  capabilities: Type.Optional(StarterCapabilitiesSchema),
+  }, { additionalProperties: false }),
+  capabilities: StarterCapabilitiesSchema,
   assets: Type.Array(StarterAssetSlotSchema),
-});
+}, { additionalProperties: false });
 
 export const StarterSiteConfigSchema = Type.Object({
   schemaVersion: Type.Literal("repochan.starter-site.v1"),
@@ -185,49 +202,63 @@ export const StarterSiteConfigSchema = Type.Object({
     name: Type.String(),
     description: Type.Optional(Type.String()),
     repositoryUrl: Type.Optional(Type.String()),
-  }),
+  }, { additionalProperties: false }),
   theme: Type.Object({
     primary: ThemeColorSchema,
     base: ThemeColorSchema,
     accents: Type.Array(ThemeColorSchema),
-  }),
+  }, { additionalProperties: false }),
   brand: Type.Object({
     artStyle: Type.Optional(Type.String()),
     motifs: Type.Array(Type.String()),
     patterns: Type.Array(Type.String()),
-  }),
+  }, { additionalProperties: false }),
   locales: Type.Object({
     default: LocaleSchema,
     supported: Type.Array(LocaleSchema, { minItems: 1 }),
-  }),
-});
+  }, { additionalProperties: false }),
+}, { additionalProperties: false });
 
 export const StarterAssetProvenanceSchema = Type.Object({
   kind: Type.Literal("local-file"),
   sourcePath: Type.String({ minLength: 1 }),
   sha256: Type.String({ pattern: "^[0-9a-f]{64}$" }),
-});
+}, { additionalProperties: false });
 
-export const StarterAssetStateSchema = Type.Object({
+const StarterScalarAssetStateSchema = Type.Object({
+  kind: Type.Literal("scalar"),
   src: Type.String({ minLength: 1 }),
   status: Type.Union([Type.Literal("pending"), Type.Literal("ready")]),
   orderId: Type.Optional(OrderIdSchema),
   versionId: Type.Optional(VersionIdSchema),
   provenance: Type.Optional(StarterAssetProvenanceSchema),
   qa: Type.Optional(Type.Record(Type.String(), Type.Any())),
-  items: Type.Optional(Type.Record(Type.String(), Type.Object({
+}, { additionalProperties: false });
+
+const StarterBundleAssetStateSchema = Type.Object({
+  kind: Type.Literal("bundle"),
+  status: Type.Union([Type.Literal("pending"), Type.Literal("ready")]),
+  orderId: Type.Optional(OrderIdSchema),
+  versionId: Type.Optional(VersionIdSchema),
+  qa: Type.Optional(Type.Record(Type.String(), Type.Any())),
+  items: Type.Record(Type.String(), Type.Object({
     src: Type.String({ minLength: 1 }),
     status: Type.Union([Type.Literal("pending"), Type.Literal("ready")]),
     orderId: Type.Optional(OrderIdSchema),
     versionId: Type.Optional(VersionIdSchema),
     qa: Type.Optional(Type.Record(Type.String(), Type.Any())),
-  }))),
-});
+  }, { additionalProperties: false })),
+}, { additionalProperties: false });
+
+export const StarterAssetStateSchema = Type.Union([
+  StarterScalarAssetStateSchema,
+  StarterBundleAssetStateSchema,
+]);
 
 export const StarterAssetsConfigSchema = Type.Object({
   schemaVersion: Type.Literal("repochan.starter-assets.v1"),
   assets: Type.Record(Type.String(), StarterAssetStateSchema),
-});
+}, { additionalProperties: false });
 
 export const StarterLocaleContentSchema = Type.Object({
   schemaVersion: Type.Literal("repochan.starter-content.v1"),
@@ -235,9 +266,9 @@ export const StarterLocaleContentSchema = Type.Object({
   meta: Type.Object({
     title: Type.String(),
     description: Type.String(),
-  }),
+  }, { additionalProperties: false }),
   content: Type.Record(Type.String(), Type.Any()),
-});
+}, { additionalProperties: false });
 
 export type StarterPostprocessOp = "compress" | "slice" | "extract-stickers" | "chroma-key" | "bg-remove" | "resize" | "favicon" | "gif-from-frames" | "extract-grid";
 
@@ -255,22 +286,24 @@ export type StarterAssetOrder = {
   references?: Array<Record<string, unknown>>;
 };
 
-export type StarterAssetSlot = {
+type StarterAssetSlotBase = {
   slot: string;
   required: boolean;
   reference?: string;
-  output: string;
-  publications?: Array<{ key: string; cell: number; output: string }>;
   description?: string;
   order?: StarterAssetOrder;
   postprocess?: StarterPostprocessStep[];
 };
 
+export type StarterAssetSlot = StarterAssetSlotBase & (
+  | { kind: "scalar"; output: string }
+  | { kind: "bundle"; publications: Array<{ key: string; cell: number; output: string }>; postprocess: StarterPostprocessStep[] }
+);
+
 export type StarterLayer = "L1" | "L1a" | "L1b" | "L1c" | "L2" | "L3" | "L4";
 
 export type StarterSectionCapability = {
   id: string;
-  required: boolean;
   recipe: string;
   provenance: { type: "html-first" } | { type: "design-reference"; reference: string };
   bakedLayers: StarterLayer[];
@@ -306,9 +339,9 @@ export type StarterManifest = {
   style?: string;
   tags: string[];
   default?: boolean;
-  config: { site: string; assets: string; i18nDir: string };
+  config: { site: "repochan/site.json"; assets: "repochan/assets.json"; i18nDir: "repochan/i18n" };
   content: { defaultLocale: string; supportedLocales: string[]; requiredPaths: string[] };
-  capabilities?: StarterCapabilities;
+  capabilities: StarterCapabilities;
   assets: StarterAssetSlot[];
 };
 
@@ -322,21 +355,31 @@ export type StarterSiteConfig = {
 
 export type StarterAssetsConfig = {
   schemaVersion: "repochan.starter-assets.v1";
-  assets: Record<string, {
-    src: string;
-    status: "pending" | "ready";
-    orderId?: string;
-    versionId?: string;
-    provenance?: StarterAssetProvenance;
-    qa?: Record<string, unknown>;
-    items?: Record<string, {
+  assets: Record<string,
+    | {
+      kind: "scalar";
       src: string;
       status: "pending" | "ready";
       orderId?: string;
       versionId?: string;
+      provenance?: StarterAssetProvenance;
       qa?: Record<string, unknown>;
-    }>;
-  }>;
+    }
+    | {
+      kind: "bundle";
+      status: "pending" | "ready";
+      orderId?: string;
+      versionId?: string;
+      qa?: Record<string, unknown>;
+      items: Record<string, {
+        src: string;
+        status: "pending" | "ready";
+        orderId?: string;
+        versionId?: string;
+        qa?: Record<string, unknown>;
+      }>;
+    }
+  >;
 };
 
 export type StarterAssetProvenance = {
@@ -366,9 +409,6 @@ function assertUnique(values: string[], label: string): void {
 export function validateStarterManifest(value: unknown): StarterManifest {
   validateInput("starter.manifest", StarterManifestSchema, value);
   const manifest = value as StarterManifest;
-  assertSafeRelativePath(manifest.config.site, "config.site");
-  assertSafeRelativePath(manifest.config.assets, "config.assets");
-  assertSafeRelativePath(manifest.config.i18nDir, "config.i18nDir");
   assertUnique(manifest.content.supportedLocales, "content.supportedLocales");
   assertUnique(manifest.content.requiredPaths, "content.requiredPaths");
   assertUnique(manifest.assets.map((asset) => asset.slot), "assets.slot");
@@ -378,8 +418,8 @@ export function validateStarterManifest(value: unknown): StarterManifest {
   validateStarterCapabilities(manifest);
   for (const asset of manifest.assets) {
     if (asset.reference) assertSafeRelativePath(asset.reference, `assets.${asset.slot}.reference`);
-    assertSafeRelativePath(asset.output, `assets.${asset.slot}.output`);
-    const publications = asset.publications ?? [];
+    if (asset.kind === "scalar") assertSafeRelativePath(asset.output, `assets.${asset.slot}.output`);
+    const publications = asset.kind === "bundle" ? asset.publications : [];
     assertUnique(publications.map((item) => item.key), `assets.${asset.slot}.publications.key`);
     assertUnique(publications.map((item) => String(item.cell)), `assets.${asset.slot}.publications.cell`);
     assertUnique(publications.map((item) => item.output), `assets.${asset.slot}.publications.output`);
@@ -400,14 +440,11 @@ export function validateStarterManifest(value: unknown): StarterManifest {
     if (extractGridSteps.length > 1 || (extractGridSteps.length === 1 && asset.postprocess?.length !== 1)) {
       throw new Error(`assets.${asset.slot}: extract-grid must be the only postprocess step.`);
     }
-    if (extractGridSteps.length === 1) {
-      if (!publications.length) throw new Error(`assets.${asset.slot}: extract-grid requires publications.`);
+    if (asset.kind === "bundle") {
+      if (extractGridSteps.length !== 1) throw new Error(`assets.${asset.slot}: bundle assets require an extract-grid postprocess step.`);
       validateExtractGridArgs(asset.slot, extractGridSteps[0].args, publications);
-      if (!publications.some((item) => item.output === asset.output)) {
-        throw new Error(`assets.${asset.slot}.output must identify one publication output for backwards compatibility.`);
-      }
-    } else if (publications.length) {
-      throw new Error(`assets.${asset.slot}: publications require an extract-grid postprocess step.`);
+    } else if (extractGridSteps.length) {
+      throw new Error(`assets.${asset.slot}: extract-grid is only valid for bundle assets.`);
     } else if (finalOut && finalOut !== asset.output) {
       throw new Error(`assets.${asset.slot}.output must match the final postprocess out (${finalOut}).`);
     }
@@ -417,7 +454,6 @@ export function validateStarterManifest(value: unknown): StarterManifest {
 
 function validateStarterCapabilities(manifest: StarterManifest): void {
   const capabilities = manifest.capabilities;
-  if (!capabilities) return;
   const sectionIds = capabilities.sections.map((section) => section.id);
   const assetSlots = new Set(manifest.assets.map((asset) => asset.slot));
   assertUnique(sectionIds, "capabilities.sections.id");
@@ -600,12 +636,16 @@ export function validateStarterAssetState(
       if (slot.required) issues.push(`missing required asset state: ${slot.slot}`);
       continue;
     }
+    if (state.kind !== slot.kind) {
+      issues.push(`${slot.slot}: asset state kind '${state.kind}' does not match slot kind '${slot.kind}'`);
+      continue;
+    }
     if (slot.required && state.status !== "ready") issues.push(`${slot.slot}: required asset is not ready`);
-    if (slot.publications?.length) {
+    if (slot.kind === "bundle" && state.kind === "bundle") {
       const publicationKeys = new Set(slot.publications.map((item) => item.key));
-      for (const key of Object.keys(state.items ?? {})) if (!publicationKeys.has(key)) issues.push(`${slot.slot}: unknown publication item: ${key}`);
+      for (const key of Object.keys(state.items)) if (!publicationKeys.has(key)) issues.push(`${slot.slot}: unknown publication item: ${key}`);
       for (const publication of slot.publications) {
-        const item = state.items?.[publication.key];
+        const item = state.items[publication.key];
         if (!item) {
           if (slot.required || state.status === "ready") issues.push(`${slot.slot}.${publication.key}: missing publication state`);
           continue;
@@ -615,10 +655,10 @@ export function validateStarterAssetState(
         const expectedSrc = `/${publication.output.replace(/^public\//, "")}`;
         if (item.src !== expectedSrc) issues.push(`${slot.slot}.${publication.key}: src does not match output: ${item.src}`);
       }
-    } else {
+    } else if (slot.kind === "scalar" && state.kind === "scalar") {
       if (state.status === "ready" && !existing.has(slot.output)) issues.push(`${slot.slot}: ready output does not exist: ${slot.output}`);
+      if (state.src !== `/${slot.output.replace(/^public\//, "")}`) issues.push(`${slot.slot}: src does not match output: ${state.src}`);
     }
-    if (state.src !== `/${slot.output.replace(/^public\//, "")}`) issues.push(`${slot.slot}: src does not match output: ${state.src}`);
   }
   return issues;
 }

@@ -1,5 +1,5 @@
 import { Type } from "typebox";
-import type { TSchema } from "typebox";
+import type { Static, TSchema } from "typebox";
 
 // ---------------------------------------------------------------------------
 // Shared primitives
@@ -18,31 +18,25 @@ export const OrderStatusSchema = Type.Union([
 
 const OrderIdSchema = Type.String({ pattern: "^ord-[a-z0-9][a-z0-9-]*$", description: "Order ID, e.g. 'ord-foundation-001'." });
 const VersionIdSchema = Type.String({ pattern: "^[A-Za-z0-9][A-Za-z0-9_.-]*$", description: "Version ID." });
+const TimestampSchema = Type.String({ format: "date-time" });
 const ProvenanceSchema = Type.Record(Type.String(), JsonValueSchema, { description: "Provenance metadata: who/what produced this artifact." });
 
 // ---------------------------------------------------------------------------
 // Entity schemas (on-disk artifact shapes)
 // ---------------------------------------------------------------------------
 
-export const VersionRoleSchema = Type.Union([
-  Type.Literal("current"),
-  Type.Literal("candidate"),
-  Type.Literal("snapshot"),
-]);
-
 export const OrderResultVersionSchema = Type.Object({
   versionId: VersionIdSchema,
-  createdAt: Type.String(),
+  createdAt: TimestampSchema,
   tool: Type.Optional(Type.String()),
-  files: Type.Array(Type.String()),
+  files: Type.Array(Type.String(), { minItems: 1 }),
   promptBrief: Type.Optional(Type.String()),
   generationPrompt: Type.Optional(Type.String()),
   revisedPrompt: Type.Optional(Type.String()),
   notes: Type.Optional(Type.String()),
-  role: Type.Optional(VersionRoleSchema),
   provenance: Type.Optional(ProvenanceSchema),
   meta: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
-});
+}, { additionalProperties: false });
 
 /**
  * Persona artifact — the repository's living mascot.
@@ -54,7 +48,7 @@ export const OrderResultVersionSchema = Type.Object({
  * but downstream consumers (Painter, Art Director) should check for the
  * fields they need.
  */
-export const PersonaArtifactSchema = Type.Object({
+export const PersonaDataSchema = Type.Object({
   name: Type.String({ description: "Primary name." }),
   rolePrompt: Type.String({ description: "ALWAYS English. Comma-separated tag phrases for image generation." }),
   artStyle: Type.String({ description: "Selected art style (e.g. 'cyberpunk neon', 'ghibli watercolor', 'thick paint', 'minimalist flat'). Drives poster and other artistic assets. Always within the anime/2D framework — this is a sub-style, not a switch to realistic/oil painting." }),
@@ -105,34 +99,69 @@ export const PersonaArtifactSchema = Type.Object({
     coreRule: Type.String(),
     atmosphere: Type.String(),
     relationshipToCharacter: Type.String(),
-  }, { description: "World setting designed by the World Architect. Drives scene/atmosphere for all downstream visual assets." })),
+  }, { additionalProperties: false, description: "World setting designed by the World Architect. Drives scene/atmosphere for all downstream visual assets." })),
   character_book: Type.Optional(Type.Object({
     name: Type.String(),
     entries: Type.Array(Type.Object({
       keys: Type.Array(Type.String()),
       content: Type.String(),
-    })),
-  }, { description: "Character book entries for RAG-style context injection." })),
+    }, { additionalProperties: false })),
+  }, { additionalProperties: false, description: "Character book entries for RAG-style context injection." })),
   mes_example: Type.Optional(Type.Array(Type.String(), { description: "Example dialogue lines for the character." })),
   sourceSignals: Type.Optional(Type.Object({
     primarySignal: Type.String(),
     supportingSignals: Type.Array(Type.String()),
-  }, { description: "Design provenance: which repo signals drove the character concept." })),
+  }, { additionalProperties: false, description: "Design provenance: which repo signals drove the character concept." })),
   userIntentSummary: Type.Optional(Type.Object({
     source: Type.String(),
     summary: Type.String(),
-  }, { description: "How the creative direction was decided (interview, yolo, etc.)." })),
+  }, { additionalProperties: false, description: "How the creative direction was decided (interview, yolo, etc.)." })),
 
-  // ── Meta ──
-  schemaVersion: Type.Optional(Type.String()),
-  generatedAt: Type.Optional(Type.String()),
+  // ── Agent-supplied provenance ──
   provenance: Type.Optional(ProvenanceSchema),
-});
+}, { additionalProperties: false });
+
+export const PersonaArtifactSchema = Type.Object({
+  ...PersonaDataSchema.properties,
+  schemaVersion: Type.Literal("repochan.persona.v2"),
+    generatedAt: TimestampSchema,
+  provenance: ProvenanceSchema,
+}, { additionalProperties: false });
+
+const AnalysisContextSchema = Type.Object({
+  basic: Type.Record(Type.String(), JsonValueSchema),
+  identity: Type.Object({
+    namingSeeds: Type.Object({
+      primary: Type.Array(Type.String()),
+      secondary: Type.Array(Type.String()),
+      rationale: Type.Array(Type.String()),
+    }, { additionalProperties: false }),
+  }, { additionalProperties: false }),
+  file_structure: Type.Record(Type.String(), JsonValueSchema),
+  inventory: Type.Record(Type.String(), JsonValueSchema),
+  tech_stack: Type.Record(Type.String(), JsonValueSchema),
+  pre_analysis: Type.Record(Type.String(), JsonValueSchema),
+  git_profile: Type.Record(Type.String(), JsonValueSchema),
+  docs_narrative: Type.Record(Type.String(), JsonValueSchema),
+  github_meta: Type.Record(Type.String(), JsonValueSchema),
+  color_palette: Type.Record(Type.String(), JsonValueSchema),
+  core_samples: Type.Record(Type.String(), JsonValueSchema),
+  deterministic_tooling: Type.Record(Type.String(), JsonValueSchema),
+  abstract: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
+}, { additionalProperties: false });
 
 export const AnalysisArtifactSchema = Type.Object({
-  schemaVersion: Type.Optional(Type.Literal("repochan.analysis.v1")),
-  generatedAt: Type.Optional(Type.String()),
-}, { description: "RepoChan deterministic repository analysis artifact. Additional fields are allowed (the analysis engine produces many runtime fields)." });
+  schemaVersion: Type.Literal("repochan.analysis.v1"),
+  generatedAt: TimestampSchema,
+  updatedAt: Type.Optional(TimestampSchema),
+  revisionReason: Type.Optional(Type.String()),
+  context: AnalysisContextSchema,
+  persona: Type.Null(),
+  error: Type.Null(),
+  preAnalysis: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
+  abstract: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
+  enrichedAt: Type.Optional(TimestampSchema),
+}, { additionalProperties: false, description: "RepoChan deterministic repository analysis artifact." });
 
 // ---------------------------------------------------------------------------
 // Write-operation input schemas (params gate)
@@ -148,28 +177,27 @@ export const AnalysisArtifactSchema = Type.Object({
  *   "the agent passed the right shape" — business rules (state machine
  *   transitions, conditional requirements like image-gen prompt) are checked
  *   in the entity function AFTER validateInput passes.
- * - Type.AdditionalProperties is NOT stripped: we allow extra keys because
- *   agents may pass provenance, meta, or future fields. The schema enforces
- *   only what core actively reads.
+ * - Public write params are closed objects. Extensibility is explicit and
+ *   limited to named containers such as provenance, meta, or patch.
  */
 
 // ── Persona ──
 
 export const PersonaCreateParamsSchema = Type.Object({
-  persona: PersonaArtifactSchema,
+  persona: PersonaDataSchema,
   overwrite: Type.Optional(Type.Boolean()),
   versionPrevious: Type.Optional(Type.Boolean()),
   slug: Type.Optional(Type.String({ pattern: "^[a-z0-9-]+$" })),
   provenance: Type.Optional(ProvenanceSchema),
-});
+}, { additionalProperties: false });
 
 export const PersonaUpdateParamsSchema = Type.Object({
-  persona: PersonaArtifactSchema,
+  persona: PersonaDataSchema,
   overwrite: Type.Optional(Type.Boolean()),
   versionPrevious: Type.Optional(Type.Boolean()),
   slug: Type.Optional(Type.String({ pattern: "^[a-z0-9-]+$" })),
   provenance: Type.Optional(ProvenanceSchema),
-});
+}, { additionalProperties: false });
 
 // ── Orders ──
 
@@ -182,7 +210,7 @@ const BriefSchema = Type.Object({
   emotionalGoal: Type.Optional(Type.String()),
   composition: Type.Optional(Type.String()),
   revisionRequest: Type.Optional(Type.String()),
-});
+}, { additionalProperties: false });
 
 const DeliverableSchema = Type.Object({
   name: Type.String(),
@@ -191,23 +219,53 @@ const DeliverableSchema = Type.Object({
   height: Type.Optional(Type.Number()),
   aspectRatio: Type.Optional(Type.String()),
   transparentBackground: Type.Optional(Type.Boolean()),
-});
+}, { additionalProperties: false });
 
 const OrderReferenceSchema = Type.Union([
-  // order variant — `type` optional (omitted ⇒ order, for backward compat)
+  // order variant
   Type.Object({
-    type: Type.Optional(Type.Literal("order")),
+    type: Type.Literal("order"),
     orderId: OrderIdSchema,
     role: Type.Union([Type.Literal("character"), Type.Literal("style"), Type.Literal("composition")]),
     versionId: Type.Optional(VersionIdSchema),
-  }),
+  }, { additionalProperties: false }),
   // file variant — references an arbitrary image file by path
   Type.Object({
     type: Type.Literal("file"),
     path: Type.String({ description: "File path relative to projectRoot, or absolute." }),
     role: Type.Union([Type.Literal("character"), Type.Literal("style"), Type.Literal("composition")]),
-  }),
+  }, { additionalProperties: false }),
 ]);
+
+const OrderRevisionSchema = Type.Object({
+  requestedAt: TimestampSchema,
+  request: Type.String(),
+  status: Type.String(),
+}, { additionalProperties: false });
+
+/** Canonical on-disk order lifecycle artifact. */
+export const AssetOrderArtifactSchema = Type.Object({
+  schemaVersion: Type.Literal("repochan.asset-order.v1"),
+  orderId: OrderIdSchema,
+  batchId: Type.Optional(Type.String()),
+  requestType: Type.Union([
+    Type.Literal("new_asset"), Type.Literal("revision"), Type.Literal("variant"), Type.Literal("batch_item"),
+  ]),
+  status: OrderStatusSchema,
+  currentVersion: Type.Optional(VersionIdSchema),
+  candidateVersions: Type.Array(VersionIdSchema),
+  assetType: Type.String({ minLength: 1 }),
+  priority: Type.Union([Type.Literal("low"), Type.Literal("normal"), Type.Literal("high")]),
+  templateId: Type.Optional(Type.String()),
+  references: Type.Array(OrderReferenceSchema),
+  brief: BriefSchema,
+  deliverables: Type.Array(DeliverableSchema),
+  acceptanceCriteria: Type.Array(Type.String()),
+  createdAt: TimestampSchema,
+  updatedAt: TimestampSchema,
+  notes: Type.Optional(Type.String()),
+  revisions: Type.Optional(Type.Array(OrderRevisionSchema)),
+}, { additionalProperties: false });
 
 const SingleOrderSchema = Type.Object({
   orderId: OrderIdSchema,
@@ -228,36 +286,55 @@ const SingleOrderSchema = Type.Object({
     Type.Literal("needs_revision"),
     Type.Literal("cancelled"),
   ])),
-  currentVersion: Type.Optional(Type.Never()),
-  orderAsset: Type.Optional(Type.Never()),
   priority: Type.Optional(Type.Union([Type.Literal("low"), Type.Literal("normal"), Type.Literal("high")])),
   templateId: Type.Optional(Type.String()),
   references: Type.Optional(Type.Array(OrderReferenceSchema)),
   notes: Type.Optional(Type.String()),
-});
+}, { additionalProperties: false });
 
 export const OrderCreateParamsSchema = Type.Object({
   order: Type.Optional(SingleOrderSchema),
   orders: Type.Optional(Type.Array(SingleOrderSchema)),
   overwrite: Type.Optional(Type.Boolean()),
-});
+}, { additionalProperties: false });
 
 export const OrderUpdateParamsSchema = Type.Object({
   orderId: OrderIdSchema,
   overwrite: Type.Boolean({ description: "Must be true — order.update requires explicit approval." }),
-  patch: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
-  order: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
-});
+  patch: Type.Object({
+    batchId: Type.Optional(Type.String()),
+    requestType: Type.Optional(Type.Union([
+      Type.Literal("new_asset"), Type.Literal("revision"), Type.Literal("variant"), Type.Literal("batch_item"),
+    ])),
+    assetType: Type.Optional(Type.String({ minLength: 1 })),
+    priority: Type.Optional(Type.Union([Type.Literal("low"), Type.Literal("normal"), Type.Literal("high")])),
+    templateId: Type.Optional(Type.String()),
+    references: Type.Optional(Type.Array(OrderReferenceSchema)),
+    brief: Type.Optional(Type.Object({
+      intent: Type.Optional(Type.String()),
+      mustInclude: Type.Optional(Type.Array(Type.String())),
+      avoid: Type.Optional(Type.Array(Type.String())),
+      creativeFreedom: Type.Optional(Type.Array(Type.String())),
+      audience: Type.Optional(Type.String()),
+      emotionalGoal: Type.Optional(Type.String()),
+      composition: Type.Optional(Type.String()),
+      revisionRequest: Type.Optional(Type.String()),
+    }, { additionalProperties: false })),
+    deliverables: Type.Optional(Type.Array(DeliverableSchema)),
+    acceptanceCriteria: Type.Optional(Type.Array(Type.String())),
+    notes: Type.Optional(Type.String()),
+  }, { additionalProperties: false }),
+}, { additionalProperties: false });
 
 export const OrderSetStatusParamsSchema = Type.Object({
   orderId: OrderIdSchema,
   status: OrderStatusSchema,
-});
+}, { additionalProperties: false });
 
 export const OrderAddRevisionParamsSchema = Type.Object({
   orderId: OrderIdSchema,
   revisionRequest: Type.String({ minLength: 1, description: "Non-empty revision request text." }),
-});
+}, { additionalProperties: false });
 
 export const OrderCreateResultParamsSchema = Type.Object({
   orderId: OrderIdSchema,
@@ -270,22 +347,13 @@ export const OrderCreateResultParamsSchema = Type.Object({
   notes: Type.Optional(Type.String()),
   meta: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
   provenance: Type.Optional(ProvenanceSchema),
-  setCurrent: Type.Optional(Type.Boolean()),
-  overwrite: Type.Optional(Type.Boolean()),
-  allowUnapprovedOrder: Type.Optional(Type.Boolean()),
-  markDelivered: Type.Optional(Type.Boolean()),
-});
-
-export const OrderSetCurrentResultParamsSchema = Type.Object({
-  orderId: OrderIdSchema,
-  versionId: VersionIdSchema,
-});
+}, { additionalProperties: false });
 
 // ── Candidate ──
 
 /**
  * Create a candidate draft version. Same payload shape as create_result, but
- * the version is written with role="candidate" — it does NOT become currentVersion
+ * its id is appended to candidateVersions. It does NOT become currentVersion
  * and does NOT mark the order delivered. Used when the user wants multiple
  * parallel drafts to choose from before promoting one.
  */
@@ -300,56 +368,13 @@ export const OrderCreateCandidateParamsSchema = Type.Object({
   notes: Type.Optional(Type.String()),
   meta: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
   provenance: Type.Optional(ProvenanceSchema),
-  overwrite: Type.Optional(Type.Boolean()),
-  allowUnapprovedOrder: Type.Optional(Type.Boolean()),
-});
+}, { additionalProperties: false });
 
-/** Promote a candidate version to current. The previous current (if any) is demoted to snapshot. */
+/** Promote a candidate version to current; previous results remain immutable history. */
 export const OrderPromoteCandidateParamsSchema = Type.Object({
   orderId: OrderIdSchema,
   versionId: VersionIdSchema,
-});
-
-// ── Slicing ──
-
-/**
- * Compute slicing coordinates for a grid image's result version and write them
- * into meta.json.tiles. Does NOT generate per-cell image files — it only
- * records the {rows, cols, cells} geometry so renderers can crop via CSS.
- *
- * rows/cols are required here because core never parses templates; the pi
- * layer resolves templateId → grid.rows/grid.cols before calling this.
- * versionId is optional (defaults to currentVersion, else latest version dir).
- */
-export const OrderSliceParamsSchema = Type.Object({
-  orderId: OrderIdSchema,
-  versionId: Type.Optional(VersionIdSchema),
-  rows: Type.Integer({ minimum: 1, description: "Grid row count (e.g. 4 for a 4×4 sheet)." }),
-  cols: Type.Integer({ minimum: 1, description: "Grid column count (e.g. 4 for a 4×4 sheet)." }),
-});
-
-/**
- * Extract transparent-background sticker PNGs from a grid image via ML
- * matting. Runs ISNet (@imgly/background-removal-node) on the WHOLE grid
- * once, then slices the transparent result into rows×cols cells. Works on
- * any background (not just plain) because ISNet is a general foreground
- * segmenter. Produces <versionDir>/stickers/sNN.png and records meta.stickers.
- */
-export const OrderExtractStickersParamsSchema = Type.Object({
-  orderId: OrderIdSchema,
-  versionId: Type.Optional(VersionIdSchema),
-  rows: Type.Integer({ minimum: 1, description: "Grid row count." }),
-  cols: Type.Integer({ minimum: 1, description: "Grid column count." }),
-  model: Type.Optional(Type.Union([Type.Literal("small"), Type.Literal("medium"), Type.Literal("large")], { description: "ISNet model size. small (~40MB) by default; larger = slower but higher quality." })),
-  overwrite: Type.Optional(Type.Boolean({ description: "Replace existing stickers/ dir if present." })),
-});
-
-export const OrderPersistVersionMetadataParamsSchema = Type.Object({
-  orderId: OrderIdSchema,
-  versionId: VersionIdSchema,
-  metadata: Type.Record(Type.String(), JsonValueSchema),
-  evidenceFiles: Type.Array(Type.String({ minLength: 1 }), { minItems: 1 }),
-});
+}, { additionalProperties: false });
 
 // ── Analysis ──
 
@@ -359,23 +384,34 @@ export const AnalysisRunParamsSchema = Type.Object({
   // AnalyzeInput fields (from schema.ts) — defined loosely since the analysis
   // engine itself does deeper validation. We only gate on the write-relevant
   // params here.
-  language: Type.Optional(Type.String()),
-  analysis: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
-}, { description: "analysis.run params. Most analysis options pass through to the engine; the schema enforces only write-control fields." });
+  corePaths: Type.Optional(Type.Array(Type.String())),
+  focusAreas: Type.Optional(Type.Array(Type.String())),
+  includeSections: Type.Optional(Type.Array(Type.String())),
+  maxSampleFiles: Type.Optional(Type.Number()),
+  maxSampleChars: Type.Optional(Type.Number()),
+  perFileSampleChars: Type.Optional(Type.Number()),
+  colorScanLimit: Type.Optional(Type.Number()),
+  includeFileLists: Type.Optional(Type.Boolean()),
+}, { additionalProperties: false, description: "analysis.run params." });
 
 export const AnalysisUpdateParamsSchema = Type.Object({
   overwrite: Type.Boolean({ description: "Must be true — analysis.update requires explicit approval." }),
   patch: Type.Record(Type.String(), JsonValueSchema, { description: "Patch object to deep-merge into current analysis." }),
   versionPrevious: Type.Optional(Type.Boolean()),
   reason: Type.Optional(Type.String()),
-});
+}, { additionalProperties: false });
+
+export const AnalysisEnrichParamsSchema = Type.Object({
+  preAnalysis: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
+  abstract: Type.Optional(Type.Record(Type.String(), JsonValueSchema)),
+}, { additionalProperties: false, minProperties: 1 });
 
 // ── Interview ──
 
 const InterviewOptionSchema = Type.Object({
   label: Type.String({ description: "1-5 words, ≤60 chars." }),
   description: Type.String({ description: "Explains the choice / its trade-off." }),
-});
+}, { additionalProperties: false });
 
 const InterviewQuestionSchema = Type.Object({
   id: Type.String({ description: "Stable id within this report, e.g. \"q1\"." }),
@@ -396,7 +432,7 @@ const InterviewQuestionSchema = Type.Object({
   header: Type.Optional(Type.String({ description: "Short chip label ≤16 chars." })),
   multiSelect: Type.Optional(Type.Boolean()),
   optional: Type.Boolean(),
-});
+}, { additionalProperties: false });
 
 const InterviewResponseSchema = Type.Object({
   questionId: Type.String(),
@@ -409,30 +445,35 @@ const InterviewResponseSchema = Type.Object({
   answer: Type.Union([Type.String(), Type.Null()]),
   selected: Type.Optional(Type.Array(Type.String())),
   notes: Type.Optional(Type.String()),
-});
+}, { additionalProperties: false });
 
 /**
  * Interview artifact — the output of the Interviewer role.
  */
-export const InterviewArtifactSchema = Type.Object({
+export const InterviewDataSchema = Type.Object({
   summary: Type.String({ description: "One-paragraph summary of user intent." }),
   keyConstraints: Type.Array(Type.String(), { description: "Hard constraints — must be respected by downstream." }),
   preferences: Type.Optional(Type.Array(Type.String(), { description: "Soft preferences — honor when possible." })),
   avoidList: Type.Optional(Type.Array(Type.String(), { description: "Things the user explicitly does not want." })),
   questions: Type.Optional(Type.Array(InterviewQuestionSchema)),
   responses: Type.Optional(Type.Array(InterviewResponseSchema)),
-  schemaVersion: Type.Optional(Type.String()),
-  generatedAt: Type.Optional(Type.String()),
   provenance: Type.Optional(ProvenanceSchema),
-}, { description: "RepoChan interview report artifact." });
+}, { additionalProperties: false, description: "RepoChan interview report content." });
+
+export const InterviewArtifactSchema = Type.Object({
+  ...InterviewDataSchema.properties,
+  schemaVersion: Type.Literal("repochan.interview.v1"),
+    generatedAt: TimestampSchema,
+  provenance: ProvenanceSchema,
+}, { additionalProperties: false });
 
 export const InterviewCreateParamsSchema = Type.Object({
-  interview: InterviewArtifactSchema,
+  interview: InterviewDataSchema,
   overwrite: Type.Optional(Type.Boolean()),
   versionPrevious: Type.Optional(Type.Boolean()),
   slug: Type.Optional(Type.String({ pattern: "^[a-z0-9-]+$" })),
   provenance: Type.Optional(ProvenanceSchema),
-});
+}, { additionalProperties: false });
 
 export const InterviewAppendParamsSchema = Type.Object({
   questions: Type.Optional(Type.Array(InterviewQuestionSchema)),
@@ -443,7 +484,7 @@ export const InterviewAppendParamsSchema = Type.Object({
   avoidList: Type.Optional(Type.Array(Type.String())),
   slug: Type.Optional(Type.String({ pattern: "^[a-z0-9-]+$" })),
   provenance: Type.Optional(ProvenanceSchema),
-});
+}, { additionalProperties: false });
 
 // ── Review ──
 
@@ -457,7 +498,7 @@ const CriterionResultSchema = Type.Object({
   criterion: Type.String({ description: "The criterion text (typically from order.acceptanceCriteria)." }),
   passed: Type.Boolean(),
   note: Type.Optional(Type.String()),
-});
+}, { additionalProperties: false });
 
 /**
  * Review artifact — a post-hoc evaluation of a delivered order result version.
@@ -473,10 +514,10 @@ export const ReviewArtifactSchema = Type.Object({
   criteriaResults: Type.Optional(Type.Array(CriterionResultSchema)),
   notes: Type.Optional(Type.String()),
   reviewerRole: Type.Optional(Type.String({ description: "Who/what produced this review, e.g. 'art-director', 'user'." })),
-  schemaVersion: Type.Optional(Type.String()),
-  generatedAt: Type.Optional(Type.String()),
-  provenance: Type.Optional(ProvenanceSchema),
-}, { description: "RepoChan review artifact — post-hoc evaluation of a delivered order result." });
+  schemaVersion: Type.Literal("repochan.review.v1"),
+  generatedAt: TimestampSchema,
+  provenance: ProvenanceSchema,
+}, { additionalProperties: false, description: "RepoChan review artifact — post-hoc evaluation of a delivered order result." });
 
 export const ReviewCreateParamsSchema = Type.Object({
   orderId: OrderIdSchema,
@@ -487,7 +528,7 @@ export const ReviewCreateParamsSchema = Type.Object({
   reviewerRole: Type.Optional(Type.String()),
   provenance: Type.Optional(ProvenanceSchema),
   overwrite: Type.Optional(Type.Boolean()),
-});
+}, { additionalProperties: false });
 
 // ── Persona review ──
 
@@ -500,10 +541,10 @@ export const PersonaReviewArtifactSchema = Type.Object({
   verdict: PersonaReviewVerdictSchema,
   notes: Type.String({ description: "Re-generation guidance for the creative team." }),
   reviewerRole: Type.Optional(Type.String()),
-  schemaVersion: Type.Optional(Type.String()),
-  generatedAt: Type.Optional(Type.String()),
-  provenance: Type.Optional(ProvenanceSchema),
-}, { description: "RepoChan persona review artifact — feedback on the current persona." });
+  schemaVersion: Type.Literal("repochan.persona-review.v1"),
+  generatedAt: TimestampSchema,
+  provenance: ProvenanceSchema,
+}, { additionalProperties: false, description: "RepoChan persona review artifact — feedback on the current persona." });
 
 export const PersonaReviewCreateParamsSchema = Type.Object({
   verdict: PersonaReviewVerdictSchema,
@@ -511,22 +552,22 @@ export const PersonaReviewCreateParamsSchema = Type.Object({
   reviewerRole: Type.Optional(Type.String()),
   provenance: Type.Optional(ProvenanceSchema),
   overwrite: Type.Optional(Type.Boolean()),
-});
+}, { additionalProperties: false });
 
 // ── Persona candidate ──
 
 /** Create a persona candidate draft — a parallel persona that is NOT promoted to current. */
 export const PersonaCandidateCreateParamsSchema = Type.Object({
-  persona: PersonaArtifactSchema,
+  persona: PersonaDataSchema,
   slug: Type.String({ pattern: "^[a-z0-9-]+$", description: "Candidate slug, e.g. 'mature', 'playful'." }),
   provenance: Type.Optional(ProvenanceSchema),
   overwrite: Type.Optional(Type.Boolean()),
-});
+}, { additionalProperties: false });
 
 /** Promote a persona candidate to current — copies it to persona/current.json, archives the old current, deletes the candidate. */
 export const PersonaCandidatePromoteParamsSchema = Type.Object({
   slug: Type.String({ pattern: "^[a-z0-9-]+$" }),
-});
+}, { additionalProperties: false });
 
 // ---------------------------------------------------------------------------
 // Schema registry (for consumers that need the full list)
@@ -542,16 +583,19 @@ export const WriteOpSchemas = {
   "order.set_status": OrderSetStatusParamsSchema,
   "order.add_revision": OrderAddRevisionParamsSchema,
   "order.create_result": OrderCreateResultParamsSchema,
-  "order.set_current_result": OrderSetCurrentResultParamsSchema,
   "order.create_candidate": OrderCreateCandidateParamsSchema,
   "order.promote_candidate": OrderPromoteCandidateParamsSchema,
-  "order.slice": OrderSliceParamsSchema,
-  "order.extract_stickers": OrderExtractStickersParamsSchema,
-  "order.persist_version_metadata": OrderPersistVersionMetadataParamsSchema,
   "analysis.run": AnalysisRunParamsSchema,
   "analysis.update": AnalysisUpdateParamsSchema,
+  "analysis.enrich": AnalysisEnrichParamsSchema,
   "review.create": ReviewCreateParamsSchema,
   "persona.review": PersonaReviewCreateParamsSchema,
   "persona.create_candidate": PersonaCandidateCreateParamsSchema,
   "persona.promote_candidate": PersonaCandidatePromoteParamsSchema,
 } satisfies Record<string, TSchema>;
+
+export type StoredAnalysisArtifact = Static<typeof AnalysisArtifactSchema>;
+export type StoredPersonaArtifact = Static<typeof PersonaArtifactSchema>;
+export type StoredInterviewArtifact = Static<typeof InterviewArtifactSchema>;
+export type StoredReviewArtifact = Static<typeof ReviewArtifactSchema>;
+export type StoredPersonaReviewArtifact = Static<typeof PersonaReviewArtifactSchema>;

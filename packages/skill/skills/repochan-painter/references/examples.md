@@ -26,8 +26,7 @@
      "promptBrief": "<简报摘要>",
      "generationPrompt": "<传给 repochan image gen --prompt 的精确组装 prompt>",
      "revisedPrompt": "<供应商修订 prompt（如有返回）>",
-     "notes": "基于 persona 生成设定集封面。无引用（首个锚点）。",
-     "setCurrent": true
+     "notes": "基于 persona 生成设定集封面。无引用（首个锚点）。"
    }
    EOF
 ```
@@ -36,10 +35,10 @@
 
 ```
 1. repochan order get ord-readme-hero-001 --json
-   → references: [{ orderId: "ord-foundation-001", role: "character" }]
+   → references: [{ type: "order", orderId: "ord-foundation-001", role: "character" }]
 
 2. repochan order resolve-references ord-readme-hero-001 --json
-       → [{ role: "character", orderId: "ord-foundation-001", versionId: "v1",
+       → [{ type: "order", role: "character", orderId: "ord-foundation-001", versionId: "v1",
         files: ["<resolve-references 返回的绝对路径>"] }]
 
 3. repochan template get <templateId> + 读取 persona current.json → 组装 prompt
@@ -57,8 +56,7 @@
      "promptBrief": "<简报摘要>",
      "generationPrompt": "<传给 repochan image gen --prompt 的精确组装 prompt>",
      "revisedPrompt": "<供应商修订 prompt（如有返回）>",
-     "notes": "已解析设定集封面 ord-foundation-001/v1，并通过 --reference 使用为角色锚点。",
-     "setCurrent": true
+     "notes": "已解析设定集封面 ord-foundation-001/v1，并通过 --reference 使用为角色锚点。"
    }
    EOF
 ```
@@ -74,7 +72,7 @@
    → verdict: "revise", notes: "主色调偏蓝了，persona 要求 #1E3A5F deep navy"
    → criteriaResults: [{ criterion: "配色一致", passed: false, note: "实际偏 #2B4A7B" }]
 
-3. repochan order get-result ord-foundation-001 v1 --json
+3. repochan order get-result ord-foundation-001 --result-version v1 --json
    → files: ["<resolve-references 返回的绝对路径>"]
 
 4. 正常组装 prompt + 叠加 review 修正指令：
@@ -91,8 +89,7 @@
      "versionId": "v2",
      "files": ["<repochan image gen 打印的生成图像路径>"],
      "generationPrompt": "<完整 prompt>",
-     "notes": "Review revision of v1: 主色调修正为 #1E3A5F。已用 v1 产物作为 --reference 底图进行图生图修改。",
-     "setCurrent": true
+     "notes": "Review revision of v1: 主色调修正为 #1E3A5F。已用 v1 产物作为 --reference 底图进行图生图修改。"
    }
    EOF
    → order 回到 delivered，用户可再次 review v2

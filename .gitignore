@@ -15,7 +15,7 @@ output/
 .codegraph/
 test-repos/
 test-results/
-test/
+/test/
 !packages/image-gen/test/
 !packages/image-gen/test/**
 test-repos-archive-*/

@@ -31,11 +31,12 @@ export async function runStatus(cwd: string, options: OutputOptions = {}) {
   if (protocol.exists) await recordProjectSeen(cwd);
   const orders = protocol.exists ? await listOrders(cwd) : { files: [], orders: [] };
   const resultCount = (orders.orders as any[]).reduce((sum, order) => sum + Number(order.resultCount ?? 0), 0);
+  const validation = protocol.exists ? await validateProtocol(cwd) : undefined;
   // Skill/cli version drift — computed before the json early-return so both
   // paths surface it. Empty when skills are in sync (the common case).
   const stale = await getStaleSkillRecords();
   const skills = { current: cliVersion(), stale };
-  const overview = { protocol, orders, results: { count: resultCount }, skills };
+  const overview = { protocol, health: validation ? { ok: validation.ok, problems: validation.problems.length, warnings: validation.warnings.length } : undefined, orders, results: { count: resultCount }, skills };
   if (options.json) return void printJson(overview);
 
   heading("RepoChan status");
@@ -46,6 +47,7 @@ export async function runStatus(cwd: string, options: OutputOptions = {}) {
   bullet("persona versions", asArray(protocol.personaVersions).length);
   bullet("orders", asArray(orders.orders).length);
   bullet("order results", resultCount);
+  if (validation) bullet("protocol health", validation.ok ? "ok" : `${validation.problems.length} problem(s)`);
 
   const active = asArray(orders.orders).filter((o: any) => o.status === "in_progress");
   if (active.length) {
@@ -86,7 +88,11 @@ export async function runInspect(cwd: string, options: OutputOptions = {}) {
 // ---------------------------------------------------------------------------
 export async function runValidate(cwd: string, options: OutputOptions = {}) {
   const result = await validateProtocol(cwd);
-  if (options.json) return void printJson(result);
+  if (options.json) {
+    printJson(result);
+    if (!result.ok) process.exitCode = 1;
+    return;
+  }
   heading("RepoChan protocol validation");
   bullet("status", result.ok ? "ok" : "needs attention");
   bullet("orders checked", result.checked.orders);
@@ -103,6 +109,7 @@ export async function runValidate(cwd: string, options: OutputOptions = {}) {
     console.log("\nWarnings:");
     for (const issue of result.warnings) printIssue("warning:", issue);
   }
+  if (!result.ok) process.exitCode = 1;
 }
 
 function printIssue(prefix: string, issue: ProtocolValidationProblem) {

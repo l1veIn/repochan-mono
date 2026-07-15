@@ -2,7 +2,7 @@
 
 Zero-credential local pixel operations for RepoChan: slicing, matting, compression, resizing, and format conversion.
 
-Pure pixel functions — **no network, no credentials, no `.repochan/` protocol awareness.** Input is an image path (and params); output is derived images or metadata. Persistence into protocol directories is the caller's job (the CLI orchestrates that via `@repochan/core`).
+Pure pixel functions — **no network, no credentials, no `.repochan/` protocol awareness.** Input is an image path (and params); output is derived images or metadata. Page assembly writes derived assets into the pulled Starter's `public/`; order-result versions remain immutable.
 
 > **Page-assembly boundary:** Painter never runs these operations. `repochan-web-designer` may use CLI bindings while implementing an original site; `repochan-page-designer` consumes them through atomic starter commands while localizing a pulled starter. Derived files stay in the assembled site's `public/`, never `.repochan/` or a source starter. See `AGENTS.md` product invariant #5.
 
@@ -11,7 +11,7 @@ Pure pixel functions — **no network, no credentials, no `.repochan/` protocol 
 All ops are exposed via `@repochan/image-edit`; selected operations also have `repochan image edit <op>` CLI bindings.
 
 **Slicing & stickers**
-- `sliceImage(imagePath, rows, cols)` → `{ tiles, sourceFile }` — read an image and compute tile coordinates (metadata-only).
+- `sliceImage(imagePath, rows, cols)` → `{ tiles, sourceFile }` — coordinate preview only; reads the image, computes tile bounds, and writes no files.
 - `sliceGridToFiles(imagePath, outDir, { rows, cols, padding, nameTemplate, overwrite })` → `{ sourceFile, tiles }` — crop a grid into individual tile PNGs on disk.
 - `extractStickersFromImage(imagePath, options, outDir)` → `{ stickers, sourceFile, config }` — ML matting (ISNet via `@imgly`) + blob detection → transparent sticker PNGs written to `outDir`.
 - `findConnectedComponents(alpha, width, height, threshold)` → blobs — locate foreground regions in an alpha mask.

@@ -58,15 +58,16 @@ validates it. Never hand-edit or delete recovery directories.
 An active publisher holds the order lock, so recovery commands fail with a
 retryable conflict. After a crash, Core reclaims a stale same-host lock:
 `prepared` and `recovery_required` transactions can be recovered, while a
-`staging_unprepared` directory is guaranteed to predate protocol renames and is
-therefore abort-only.
+`staging_unprepared` directory has no recoverable manifest and is therefore
+abort-only.
 Core anchors every real transaction outside its staging directory with an identity
 and nonce, then validates fixed backup mappings plus order/version semantics before
 and after recovery. It rejects simple forged transaction directories; it is not a
 security boundary against an actor able to rewrite the whole workspace and its
-anchors. `repochan protocol write` is intentionally blocked for all order-managed
-paths. `order slice` and `order extract-stickers` persist evidence-backed metadata
-through Core's locked, atomic stored/embedded mirror transaction.
+anchors. Protocol state is changed only through schema-validated entity
+commands. Published result directories, including `meta.json`, remain byte-for-byte
+immutable after creation. Local pixel derivations belong in a pulled Starter's
+`public/` through `starter asset-apply`, not in an order result version.
 
 ```bash
 repochan order recovery list <order-id>

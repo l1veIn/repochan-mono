@@ -1,8 +1,8 @@
 # RepoChan Monorepo Guidelines
 
-> **Architecture baseline (2026-07-09+).**  
-> Authoritative decisions: [`.plans/2026-07-09-repositioning.md`](./.plans/2026-07-09-repositioning.md).  
-> Living overview: [`ARCHITECTURE.md`](./ARCHITECTURE.md).  
+> **Architecture contract.**
+>
+> Authoritative overview: [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 >
 > **core + skill at the center · CLI is the sole binding surface · agent is BYO · no embedded runtime.**
 
@@ -37,4 +37,4 @@ Leaves never import `cli` or each other (except that `cli` alone aggregates).
 2. Foundation sheet first for visual consistency; downstream orders reference it.
 3. Destructive overwrites require explicit `overwrite=true` (or equivalent).
 4. Version `current.json` before replace; never silently drop history.
-5. **`image-edit` is a page-assembly dependency, never a Painter dependency.** `repochan-web-designer` may use its CLI bindings while implementing an original project site; `repochan-page-designer` consumes it through atomic `repochan starter asset-apply` while localizing a pulled starter. Derived assets go only into the assembled site's `public/` and never flow back into `.repochan/` or into a source starter. The starter source (`packages/starters/<id>/`) is read-only outside `repochan-starter-designer`; `repochan starter pull` copies it into the output dir (default `.repochan/web-starter/`). `repochan order slice` / `order extract-stickers` remain available for versioning slices as protocol artifacts, but that is an advanced path, not the page-assembly default.
+5. **`image-edit` is a page-assembly dependency, never a Painter dependency.** `repochan-web-designer` may use its CLI bindings while implementing an original project site; `repochan-page-designer` consumes it through atomic `repochan starter asset-apply` while localizing a pulled starter. Derived assets go only into the assembled site's `public/` and never flow back into `.repochan/` or into a source starter. Published order-result directories and their `meta.json` bytes are immutable after creation. The starter source (`packages/starters/<id>/`) is read-only outside `repochan-starter-designer`; `repochan starter pull` copies it into the output dir (default `.repochan/web-starter/`).

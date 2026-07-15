@@ -1,4 +1,4 @@
-import { mkdtemp } from "node:fs/promises";
+import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -10,8 +10,9 @@ import {
   protocolRoot,
   setOrderStatus,
   validateProtocol,
-  writeJson,
 } from "../src/index.js";
+import { writeJson } from "../src/protocol/index.js";
+import { canonicalAnalysis } from "../test-support/fixtures.js";
 
 async function tempProject() {
   return mkdtemp(path.join(tmpdir(), "repochan-core-flow-"));
@@ -21,11 +22,7 @@ describe("RepoChan protocol smoke flow", () => {
   it("supports init -> analysis -> persona -> order -> approval -> order result -> validate", async () => {
     const cwd = await tempProject();
     await initProtocol(cwd);
-    await writeJson(path.join(protocolRoot(cwd), "analysis", "current.json"), {
-      schemaVersion: "repochan.analysis.v1",
-      generatedAt: new Date().toISOString(),
-      project: { name: "minimal" },
-    });
+    await writeJson(path.join(protocolRoot(cwd), "analysis", "current.json"), canonicalAnalysis());
 
     await createOrUpdatePersona(cwd, {
       persona: { name: "RepoChan", rolePrompt: "1girl, blue hair, blue eyes, tech-wear outfit", artStyle: "cel-shaded anime" },
@@ -45,7 +42,7 @@ describe("RepoChan protocol smoke flow", () => {
     expect(orders[0].status).toBe("draft");
 
     await setOrderStatus(cwd, "ord-hero-001", "approved");
-    await writeJson(path.join(cwd, "hero-source.json"), { fake: "image" });
+    await writeFile(path.join(cwd, "hero-source.json"), JSON.stringify({ fake: "image" }));
     const result = await createOrderResult(cwd, {
       orderId: "ord-hero-001",
       versionId: "v1",

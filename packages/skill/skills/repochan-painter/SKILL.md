@@ -171,8 +171,7 @@ repochan order create-result <<'EOF'
   "files": ["<image gen 打印的路径>"],
   "generationPrompt": "<传给 --prompt 的完整原文>",
   "promptBrief": "<可选短摘要>",
-  "notes": "...",
-  "setCurrent": true
+  "notes": "..."
 }
 EOF
 ```

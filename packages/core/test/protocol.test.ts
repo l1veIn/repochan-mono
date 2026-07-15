@@ -55,6 +55,33 @@ describe('protocol primitives', () => {
     expect(await exists(path.join(r, 'config.json'))).toBe(false);
   });
 
+  it('rejects a protocol root symlink without writing to its destination', async () => {
+    const outside = await fs.mkdtemp(path.join(os.tmpdir(), 'repochan-core-outside-'));
+    await fs.symlink(outside, path.join(projectRoot, PROTOCOL_DIR));
+    try {
+      await expect(initProtocol(projectRoot)).rejects.toThrow(/symbolic link/);
+      expect(await fs.readdir(outside)).toEqual([]);
+    } finally {
+      await fs.rm(outside, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects nested protocol symlinks for reads and writes', async () => {
+    await initProtocol(projectRoot);
+    const outside = await fs.mkdtemp(path.join(os.tmpdir(), 'repochan-core-outside-'));
+    const analysis = path.join(projectRoot, PROTOCOL_DIR, 'analysis');
+    await fs.rm(analysis, { recursive: true, force: true });
+    await fs.symlink(outside, analysis);
+    const target = path.join(analysis, 'current.json');
+    try {
+      await expect(writeJson(target, { escaped: true })).rejects.toThrow(/symbolic link/);
+      await expect(readJson(target)).rejects.toThrow(/symbolic link/);
+      expect(await fs.readdir(outside)).toEqual([]);
+    } finally {
+      await fs.rm(outside, { recursive: true, force: true });
+    }
+  });
+
   it('protocolVersionPath produces conventional locations', () => {
     const v1 = protocolVersionPath('analysis/current.json');
     expect(v1).toMatch(/^analysis\/versions\/.*\.json$/);
@@ -78,6 +105,17 @@ describe('protocol primitives', () => {
     await writeJson(target, { hello: 'again' }, true);
     const data = await readJson(target);
     expect(data.hello).toBe('again');
+  });
+
+  it('writeJson preserves the published file and removes staging files when serialization fails', async () => {
+    await initProtocol(projectRoot);
+    const target = path.join(projectRoot, PROTOCOL_DIR, 'analysis', 'current.json');
+    await writeJson(target, { stable: true });
+
+    await expect(writeJson(target, { invalid: 1n }, true)).rejects.toThrow();
+    expect(await readJson(target)).toEqual({ stable: true });
+    const entries = await fs.readdir(path.dirname(target));
+    expect(entries.filter((entry) => entry.endsWith('.tmp'))).toEqual([]);
   });
 
   it('inspectProtocol reports presence of top-level artifacts', async () => {

@@ -27,7 +27,6 @@
     "sections": [
       {
         "id": "hero",
-        "required": true,
         "recipe": "hero-composite-live-copy",
         "provenance": {
           "type": "design-reference",
@@ -51,6 +50,7 @@
   },
   "assets": [
     {
+      "kind": "scalar",
       "slot": "hero-composite",
       "required": true,
       "reference": "public/assets/hero-pose-lineart.webp",

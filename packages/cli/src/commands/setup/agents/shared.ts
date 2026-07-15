@@ -6,12 +6,7 @@ import { cliVersion } from "../../../lib/register.js";
 
 const require = createRequire(import.meta.url);
 
-/**
- * Marker anchors — per-agent so multiple agents can share one instruction
- * file (e.g. AGENTS.md for codex + pi + opencode) without clobbering each
- * other. Legacy unscoped markers (`repochan:setup begin`) are still stripped
- * on cleanup for upgrades from the pre-multi-agent setup.
- */
+/** Marker anchors for multiple agents sharing one instruction file. */
 export function markers(agentId: AgentId): { begin: string; end: string } {
   return {
     begin: `<!-- repochan:setup:${agentId} begin -->`,
@@ -19,18 +14,11 @@ export function markers(agentId: AgentId): { begin: string; end: string } {
   };
 }
 
-/** Pre-rewrite unscoped markers (single-agent setup). */
-export const LEGACY_BEGIN = "<!-- repochan:setup begin -->";
-export const LEGACY_END = "<!-- repochan:setup end -->";
-
-/** Fallback skill dir for agents without a native skills convention. */
-export const FALLBACK_SKILL_DIR = ".repochan/skills";
-
 export function skillDestFor(target: AgentTarget, scope: "global" | "project" = "project"): string {
   if (scope === "global") {
-    return target.globalSkillDir ?? target.skillDir ?? FALLBACK_SKILL_DIR;
+    return target.globalSkillDir ?? target.skillDir;
   }
-  return target.skillDir ?? FALLBACK_SKILL_DIR;
+  return target.skillDir;
 }
 
 /** Markdown body (with per-agent markers) injected into instruction files. */
@@ -121,17 +109,6 @@ function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-export async function hasRepoChanMarker(filePath: string, agentId?: AgentId): Promise<boolean> {
-  if (!(await fileExists(filePath))) return false;
-  const content = await fs.readFile(filePath, "utf8");
-  if (agentId) {
-    const { begin } = markers(agentId);
-    if (content.includes(begin)) return true;
-  }
-  // Any repochan setup marker (scoped or legacy) counts as "something configured".
-  return content.includes("repochan:setup");
-}
-
 /**
  * Upsert a per-agent marker-delimited section.
  */
@@ -153,9 +130,6 @@ export async function injectMarkerSection(
     await atomicWrite(filePath, content.endsWith("\n") ? content : content + "\n");
     return "updated";
   }
-
-  // Upgrade path: drop legacy unscoped block once when writing scoped ones.
-  content = stripLegacyMarkers(content);
 
   if (!existed || content.trim() === "") {
     await atomicWrite(filePath, block + "\n");
@@ -179,20 +153,14 @@ export async function removeMarkerSection(filePath: string, agentId?: AgentId): 
       changed = true;
     }
   } else {
-    // Remove all scoped + legacy blocks.
+    // Remove all scoped RepoChan blocks.
     const before = content;
     content = content.replace(
       /<!-- repochan:setup:[a-z]+ begin -->[\s\S]*?<!-- repochan:setup:[a-z]+ end -->\n?/g,
       "",
     );
-    content = stripLegacyMarkers(content);
     if (content !== before) changed = true;
   }
-
-  // Also strip legacy when removing a specific agent (upgrade hygiene).
-  const beforeLegacy = content;
-  content = stripLegacyMarkers(content);
-  if (content !== beforeLegacy) changed = true;
 
   if (!changed) return false;
   if (content.trim() === "") {
@@ -201,14 +169,6 @@ export async function removeMarkerSection(filePath: string, agentId?: AgentId): 
     await atomicWrite(filePath, content);
   }
   return true;
-}
-
-function stripLegacyMarkers(content: string): string {
-  const legacy = new RegExp(
-    `${escapeRegex(LEGACY_BEGIN)}[\\s\\S]*?${escapeRegex(LEGACY_END)}\\n?`,
-    "g",
-  );
-  return content.replace(legacy, "");
 }
 
 async function assertOwnedFileWritable(
@@ -361,14 +321,6 @@ export async function installTarget(
     );
   }
 
-  // Best-effort: strip legacy marker from old paths (e.g. .cursorrules).
-  const notes: string[] = [];
-  for (const legacy of target.legacyCleanupPaths?.(cwd) ?? []) {
-    if (await removeMarkerSection(legacy)) {
-      notes.push(`cleaned legacy marker in ${path.relative(cwd, legacy) || legacy}`);
-    }
-  }
-
   return {
     agent: target.id,
     displayName: target.displayName,
@@ -376,7 +328,6 @@ export async function installTarget(
     skillFiles,
     instructionFile: target.instructionFile,
     instructionAction,
-    notes: notes.length ? notes : undefined,
   };
 }
 
@@ -402,7 +353,7 @@ export async function uninstallTarget(
 
   // Remove only skill subdirectories shipped by @repochan/skill. Native skill
   // containers are shared with the user and must never be deleted recursively.
-  if (target.skillDir !== null && !preserveSkills) {
+  if (!preserveSkills) {
     const skillAbs = path.join(cwd, skillRel);
     const versionStamp = path.join(skillAbs, ".repochan-version");
     // A matching directory name is not ownership. Without the setup-created
@@ -420,10 +371,6 @@ export async function uninstallTarget(
       await fs.unlink(versionStamp).catch(() => {});
       await fs.rmdir(skillAbs).catch(() => {}); // only succeeds when the shared container is empty
     }
-  }
-
-  for (const legacy of target.legacyCleanupPaths?.(cwd) ?? []) {
-    await removeMarkerSection(legacy);
   }
 
   return {

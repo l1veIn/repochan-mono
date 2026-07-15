@@ -1,9 +1,5 @@
-import path from "node:path";
 import {
-  root,
-  exists,
   readJson,
-  writeJson,
   safeProtocolPath,
   findFoundationSheet,
   createReview,
@@ -30,7 +26,7 @@ export async function runReviewCreate(cwd: string, dataFile: string | undefined,
 }
 
 // ---------------------------------------------------------------------------
-// protocol inspect / read / write
+// protocol inspect / read
 // ---------------------------------------------------------------------------
 export async function runProtocolInspect(cwd: string, options: OutputOptions) {
   const { inspectProtocol } = await import("@repochan/core");
@@ -45,17 +41,15 @@ export async function runProtocolRead(cwd: string, artifactPath: string | undefi
   emitResult(options, JSON.stringify(data, null, 2), data);
 }
 
-export async function runProtocolWrite(cwd: string, artifactPath: string | undefined, dataFile: string | undefined, options: OutputOptions & { overwrite?: boolean }) {
-  if (!artifactPath) throw new UsageError("Usage: repochan protocol write <artifact-path> --data-file -");
-  const file = safeProtocolPath(cwd, artifactPath);
-  const protocolRelative = path.relative(root(cwd), file).split(path.sep).join("/");
-  if (/^orders\/[^/]+\//.test(protocolRelative)) {
-    throw new UsageError(
-      `protocol write cannot modify Core-managed order state: ${protocolRelative}.`,
-      "Use the corresponding `repochan order ...` command so evidence, locking, history, and mirrored metadata stay consistent.",
-    );
-  }
-  const data = readDataFile(dataFile);
-  await writeJson(file, data, options.overwrite === true);
-  emitResult(options, `Wrote ${artifactPath}`, { artifactPath, path: path.relative(cwd, file) });
+export const PROTOCOL_SUBCOMMANDS = ["inspect", "read"] as const;
+
+export async function runProtocolCommand(
+  cwd: string,
+  subcommand: string | undefined,
+  artifactPath: string | undefined,
+  options: OutputOptions,
+) {
+  if (subcommand === "inspect") return runProtocolInspect(cwd, options);
+  if (subcommand === "read") return runProtocolRead(cwd, artifactPath, options);
+  throw new UsageError(`Unknown protocol subcommand: ${String(subcommand)}. Use: ${PROTOCOL_SUBCOMMANDS.join(" | ")}`);
 }

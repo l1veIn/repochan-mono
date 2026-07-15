@@ -35,7 +35,8 @@ app.use(
 
 function isDir(p) {
   try {
-    return fs.statSync(p).isDirectory();
+    const stat = fs.lstatSync(p);
+    return !stat.isSymbolicLink() && stat.isDirectory();
   } catch {
     return false;
   }
@@ -43,7 +44,8 @@ function isDir(p) {
 
 function isFile(p) {
   try {
-    return fs.statSync(p).isFile();
+    const stat = fs.lstatSync(p);
+    return !stat.isSymbolicLink() && stat.isFile() && stat.size > 0;
   } catch {
     return false;
   }
@@ -51,6 +53,7 @@ function isFile(p) {
 
 function safeReadJson(p) {
   try {
+    if (!isFile(p)) return null;
     return JSON.parse(fs.readFileSync(p, "utf8"));
   } catch {
     return null;
@@ -66,15 +69,11 @@ function listDirs(dir) {
     .sort();
 }
 
-/** Resolve repochan root for a project: either project/ or project/.repochan/ */
+/** Resolve the canonical protocol root for a project. */
 function resolveRepochanRoot(projectPath) {
   const nested = path.join(projectPath, ".repochan");
   if (isDir(path.join(nested, "orders")) || isDir(path.join(nested, "persona"))) {
     return nested;
-  }
-  // flat layout (round5+): project itself is the repochan root
-  if (isDir(path.join(projectPath, "orders")) || isDir(path.join(projectPath, "persona"))) {
-    return projectPath;
   }
   return null;
 }
@@ -89,30 +88,16 @@ function findImagesInDir(dir) {
 }
 
 /**
- * Pick the best version folder for an order (prefer currentVersion from order.json,
- * else newest by name).
+ * Resolve the canonical current version folder for an order.
  */
 function pickVersionDir(orderDir, orderJson) {
   const versionsRoot = path.join(orderDir, "versions");
   if (!isDir(versionsRoot)) return null;
 
-  const preferred = orderJson?.currentVersion || orderJson?.orderAsset?.currentVersion;
-  if (preferred) {
-    const p = path.join(versionsRoot, preferred);
-    if (isDir(p)) return p;
-  }
-
-  const dirs = fs
-    .readdirSync(versionsRoot, { withFileTypes: true })
-    .filter((d) => d.isDirectory())
-    .map((d) => d.name)
-    .sort();
-
-  if (dirs.length === 0) {
-    // sometimes images sit directly under versions/
-    return versionsRoot;
-  }
-  return path.join(versionsRoot, dirs[dirs.length - 1]);
+  const preferred = orderJson?.currentVersion;
+  if (typeof preferred !== "string" || !/^[A-Za-z0-9][A-Za-z0-9_.-]*$/.test(preferred)) return null;
+  const resolved = path.join(versionsRoot, preferred);
+  return isDir(resolved) ? resolved : null;
 }
 
 function orderRank(orderId) {
@@ -141,22 +126,15 @@ function loadOrderItem(archiveName, projectName, orderId, orderDir) {
   const metaPath = path.join(versionDir, "meta.json");
   const meta = safeReadJson(metaPath);
 
-  let imageFiles = [];
-  if (meta?.files?.length) {
-    imageFiles = meta.files.map((f) => path.join(versionDir, f)).filter(isFile);
-  }
-  if (imageFiles.length === 0) {
-    imageFiles = findImagesInDir(versionDir);
-  }
-  // also check loose images under versions/ (e.g. foundation_sheet.png)
-  if (imageFiles.length === 0) {
-    imageFiles = findImagesInDir(path.join(orderDir, "versions"));
-  }
+  if (!meta || meta.versionId !== path.basename(versionDir) || !Array.isArray(meta.files) || meta.files.length === 0) return null;
+  const imageFiles = meta.files
+    .filter((file) => typeof file === "string" && file === path.basename(file) && IMAGE_EXTS.has(path.extname(file).toLowerCase()))
+    .map((file) => path.join(versionDir, file))
+    .filter(isFile);
+  if (imageFiles.length !== meta.files.filter((file) => IMAGE_EXTS.has(path.extname(file).toLowerCase())).length) return null;
   if (imageFiles.length === 0) return null;
 
-  const lastVersion = orderJson.orderAsset?.versions?.at(-1);
-  const versionId =
-    meta?.versionId || orderJson.currentVersion || path.basename(versionDir);
+  const versionId = meta.versionId;
 
   const relImages = imageFiles.map((abs) =>
     path.relative(ROOT, abs).split(path.sep).join("/")
@@ -172,8 +150,8 @@ function loadOrderItem(archiveName, projectName, orderId, orderDir) {
     templateId: orderJson.templateId || null,
     status: orderJson.status || null,
     brief: orderJson.brief || null,
-    promptBrief: meta?.promptBrief || lastVersion?.promptBrief || null,
-    generationPrompt: meta?.generationPrompt || lastVersion?.generationPrompt || null,
+    promptBrief: meta.promptBrief || null,
+    generationPrompt: meta.generationPrompt || null,
     tool: meta?.tool || null,
     notes: meta?.notes || null,
     createdAt: meta?.createdAt || orderJson.createdAt || null,

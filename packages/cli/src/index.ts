@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import { createRequire } from "node:module";
 import { cac } from "cac";
-import { printError } from "./lib/output.js";
+import { printError, UsageError } from "./lib/output.js";
 import { cliVersion } from "./lib/register.js";
-import { normalizeCliArgv } from "./lib/argv.js";
+import { isTopLevelHelpOrVersionRequest, normalizeCliArgv } from "./lib/argv.js";
 import * as top from "./commands/toplevel.js";
 import * as analysis from "./commands/analysis.js";
 import * as interview from "./commands/interview.js";
@@ -89,10 +89,7 @@ cli.command("order <sub>", "Manage creation orders")
   .option("--json", "Machine-readable JSON output")
   .option("--data-file <path>", "JSON payload from file, - for stdin, or omit when piping")
   .option("--text <text>", "Inline text (order add-revision)")
-  .option("--rows <n>", "Grid rows", { default: undefined })
-  .option("--cols <n>", "Grid cols", { default: undefined })
-  .option("--model <model>", "ISNet model (extract-stickers)")
-  .option("--version <v>", "Version id")
+  .option("--result-version <v>", "Result version id (get-result)")
   .option("--overwrite", "Overwrite existing")
   .action(async (_p: any, opts: any) => {
     const args = cli.args; // [sub, id?, more?]
@@ -107,9 +104,11 @@ cli.command("order <sub>", "Manage creation orders")
       case "add-revision": return await order.runOrderAddRevision(process.cwd(), id, opts.dataFile, opts.text, opts);
       case "create-result": return await order.runOrderCreateResult(process.cwd(), opts.dataFile, opts);
       case "list-results": return await order.runOrderListResults(process.cwd(), id, opts);
-      case "get-result": return await order.runOrderGetResult(process.cwd(), id, opts.version, opts);
+      case "get-result": {
+        if (args.length > 2) throw new UsageError("Usage: repochan order get-result <id> [--result-version <version-id>]");
+        return await order.runOrderGetResult(process.cwd(), id, opts.resultVersion, opts);
+      }
       case "resolve-references": return await order.runOrderResolveReferences(process.cwd(), id, opts);
-      case "set-current": return await order.runOrderSetCurrent(process.cwd(), id, args[2], opts);
       case "recovery":
         if (id === "list") return await order.runOrderRecoveryList(process.cwd(), args[2], opts);
         if (id === "recover") return await order.runOrderRecoveryRecover(process.cwd(), args[2], args[3], opts);
@@ -119,9 +118,7 @@ cli.command("order <sub>", "Manage creation orders")
         if (id === "create") return await order.runOrderCandidateCreate(process.cwd(), opts.dataFile, opts);
         if (id === "promote") return await order.runOrderCandidatePromote(process.cwd(), args[2], args[3], opts);
         throw new Error(`Unknown order candidate subcommand: ${id}. Use: create | promote <id> <version>`);
-      case "slice": return await order.runOrderSlice(process.cwd(), id, opts);
-      case "extract-stickers": return await order.runOrderExtractStickers(process.cwd(), id, opts);
-      default: throw new Error(`Unknown order subcommand: ${sub}. Use: list | get | create | update | set-status | add-revision | create-result | list-results | get-result | resolve-references | set-current | recovery | candidate | slice | extract-stickers`);
+      default: throw new Error(`Unknown order subcommand: ${sub}. Use: list | get | create | update | set-status | add-revision | create-result | list-results | get-result | resolve-references | recovery | candidate`);
     }
   });
 
@@ -177,20 +174,11 @@ cli.command("review <sub>", "Create a review")
   });
 
 // ---- protocol ----
-cli.command("protocol <sub>", "Protocol-level operations")
+cli.command("protocol <sub>", "Inspect or read protocol state")
   .option("--json", "Machine-readable JSON output")
-  .option("--overwrite", "Overwrite existing")
-  .option("--data-file <path>", "JSON payload from file, - for stdin, or omit when piping")
   .action(async (_p: any, opts: any) => {
     const args = cli.args; // [sub, artifactPath?]
-    const sub = args[0];
-    const artifactPath = args[1];
-    switch (sub) {
-      case "inspect": return await ent.runProtocolInspect(process.cwd(), opts);
-      case "read": return await ent.runProtocolRead(process.cwd(), artifactPath, opts);
-      case "write": return await ent.runProtocolWrite(process.cwd(), artifactPath, opts.dataFile, opts);
-      default: throw new Error(`Unknown protocol subcommand: ${sub}. Use: inspect | read | write`);
-    }
+    return ent.runProtocolCommand(process.cwd(), args[0], args[1], opts);
   });
 
 // ---- template ----
@@ -307,10 +295,6 @@ cli.command("setup", "Install skills for your agent(s) + inject a reference")
 cli.help();
 cli.version(VERSION);
 
-function isHelpOrVersionFlag(arg: string): boolean {
-  return arg === "-h" || arg === "--help" || arg === "-v" || arg === "--version";
-}
-
 /**
  * cac treats a bare `-` after `--option` as "value missing" (looks like a flag).
  * Rewrite `--data-file -` → `--data-file=-` so stdin shorthand works.
@@ -321,10 +305,9 @@ async function main() {
     const args = normalizeCliArgv(rawArgs);
     const argv = [process.argv[0], process.argv[1], ...args];
 
-    // Always let cac handle --help / --version (and their short forms).
-    // Previously these were filtered out as "flags", leaving 0 positionals,
-    // which incorrectly fell through to the default `status` branch.
-    if (args.some(isHelpOrVersionFlag)) {
+    // Always let cac handle --help / --version (and their short forms) before
+    // the bare-command status branch.
+    if (isTopLevelHelpOrVersionRequest(args)) {
       cli.parse(argv);
       return;
     }

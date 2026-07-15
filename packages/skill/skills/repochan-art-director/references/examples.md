@@ -32,7 +32,7 @@
   "requestType": "new_asset",
   "assetType": "readme_banner",
   "templateId": "official/readme-banner-21x9",
-  "references": [{ "orderId": "ord-foundation-001", "role": "character" }],
+  "references": [{ "type": "order", "orderId": "ord-foundation-001", "role": "character" }],
   "brief": {
     "intent": "将项目人设呈现为一位能干的工作室向导，面向开发者。",
     "mustInclude": ["角色核心剪影", "仓库品牌配色"],

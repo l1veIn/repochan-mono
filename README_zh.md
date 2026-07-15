@@ -11,7 +11,7 @@ core 守约束   ·   skill 出思路   ·   cli 是唯一入口
 agent 用户自带 ·   .repochan/ 是磁盘上的真相源
 ```
 
-完整设计见 [`ARCHITECTURE.md`](./ARCHITECTURE.md)。2026-07-09 重定位 ADR：[`.plans/2026-07-09-repositioning.md`](./.plans/2026-07-09-repositioning.md)。
+完整设计见 [`ARCHITECTURE.md`](./ARCHITECTURE.md)。
 
 ---
 
@@ -35,19 +35,21 @@ cli ──┬──> core
       ├──> skill
       ├──> image-gen
       ├──> image-edit
-      └──> templates
+      ├──> templates
+      └──> starters
 ```
 
-`core`、`image-gen`、`image-edit`、`templates`、`skill` 都是叶子。只有 CLI 聚合它们。图像库从不写 `.repochan/`；协议写入永远经 core。
+`core`、`image-gen`、`image-edit`、`templates`、`starters`、`skill` 都是叶子。只有 CLI 聚合它们。图像库从不写 `.repochan/`；协议写入永远经 core。
 
 | 包 | 职责 | 谁加载 |
 |----|------|--------|
 | `core` | `.repochan/` 读写、schema 门、状态机、分析引擎 | CLI（与测试） |
 | `skill` | 管线怎么跑（向导 + 角色） | 你的 agent（经 `repochan setup`） |
 | `cli` | 确定性子命令 + skill 安装 | 用户 / agent / CI |
-| `image-gen` | 图像生成 + `~/.repochan/image.json`（mode: `openai` / `openai-async`） | `repochan image gen\|configure\|status\|probe` |
+| `image-gen` | 图像生成 + `~/.repochan/image.json`（mode: `auto` / `openai` / `openai-async`） | `repochan image gen\|configure\|status\|probe` |
 | `image-edit` | 本地像素操作 | `repochan image edit …` |
 | `templates` | 官方资产模板 | `repochan template list\|get` |
+| `starters` | 完整落地页 starter 脚手架 | `repochan starter list\|get\|pull` |
 
 ---
 
@@ -85,7 +87,8 @@ cli ──┬──> core
 | 模式 | 何时 | 行为 |
 |------|------|------|
 | **向导（默认）** | 「做个看板娘和网站」 | 串全流程，检查点停下 |
-| **yolo** | 你说 `yolo` / 非交互 CI | 跳过检查点；订单直接 `approved` |
+| **yolo** | 你明确说 `yolo` | 在已授权范围采用默认创意决策；外部写仍需明确授权 |
+| **非交互执行** | CI / 无 TTY | 自动选择本地可逆决策；在未授权的外部写之前停止 |
 | **逐团队（高级）** | 「只做 analysis」/「重画这张」 | 只加载对应团队 skill |
 
 **视觉一致性**靠 **foundation sheet（设定集封面）** 锚定。下游资产引用它。core 强制依赖顺序——缺上游 → CLI 失败。
@@ -95,20 +98,35 @@ cli ──┬──> core
 ## 前置条件
 
 - **Node.js** ≥ 20
-- **pnpm** ≥ 9（`corepack enable && corepack prepare pnpm@9 --activate`）
 - 你已经在用的 coding agent（Claude Code、Codex、Pi、Cursor、Hermes …）
 - 出图需要：OpenAI-compatible 的 images endpoint（直连 OpenAI、中转站或本地 reverse-proxy）
 
 ```bash
 node --version   # ≥ 20
-pnpm --version   # ≥ 9
 ```
+
+只有从本 monorepo 构建的贡献者还需要 **pnpm** ≥ 9。
 
 ---
 
 ## 快速上手
 
-### 从本 monorepo
+### 从 npm 安装
+
+```bash
+npm install -g repochan
+repochan --version
+
+cd /path/to/your-project
+repochan setup --agent codex --project   # 换成你实际使用的 agent 与 scope
+repochan init
+```
+
+随后在项目中打开 coding agent，让它执行 RepoChan 流程。升级 CLI 后请再次运行
+`repochan setup` 来刷新随包分发的 skills；若需要刷新，`repochan status` 会报告
+版本漂移。
+
+### 从本 monorepo 构建（贡献者）
 
 ```bash
 cd repochan-mono
@@ -162,21 +180,28 @@ repochan analysis run|get|update|enrich|versions
 repochan interview get|create|append
 repochan persona get|create|update|review|candidate …
 repochan order list|get|create|update|set-status|add-revision|…
-repochan order create-result|list-results|get-result|set-current|…
+repochan order create-result|list-results|get-result
 repochan order resolve-references <id>
 repochan order candidate create|promote
-repochan order slice|extract-stickers
 repochan foundation find
 repochan starter list [--tag] | get <id> | pull [--starter <id>]
+repochan starter configure [--content-file <path>] [--repository-url <url>]
+repochan starter create-order <slot> --intent <text> [--foundation <order-id>]
+repochan starter asset-apply <slot> --order <order-id> [--result-version <id>]
+repochan starter asset-import <slot> --file <path> [--overwrite]
+repochan starter validate <id> | --all | --output-dir <dir>
 repochan review create
-repochan protocol inspect|read|write
+repochan order recovery list <order-id>
+repochan order recovery recover <order-id> <transaction-id>
+repochan order recovery abort <order-id> <transaction-id>
+repochan protocol inspect|read
 ```
 
 图像与模板：
 
 ```bash
-repochan image gen --prompt "…" [--reference path] [--out path] [--endpoint id] [--mode openai|openai-async]
-repochan image configure [--provider openai|custom|async|skip] [--base-url …] [--api-key …] [--endpoint-id …] [--mode …]
+repochan image gen --prompt "…" [--reference path] [--out path] [--endpoint id] [--mode auto|openai|openai-async]
+repochan image configure [--provider openai|custom|skip] [--base-url …] [--api-key …] [--endpoint-id …] [--mode auto|openai|openai-async]
 repochan image status
 repochan image probe [--endpoint id]
 repochan image edit slice <image> --rows N --cols M [--out dir]
@@ -258,6 +283,7 @@ pnpm -r test
 用户路径，再用只读的 `pnpm release:preflight` 对照 npm，检测不可覆盖的
 版本冲突。叶子包优先、CLI 最后的完整合同见
 [`docs/releasing.md`](./docs/releasing.md)。
+两条路径都会执行当前 runtime 与 Skill 合同。
 
 ---
 
@@ -279,7 +305,6 @@ pnpm -r test
 | 文档 | 内容 |
 |------|------|
 | [`ARCHITECTURE.md`](./ARCHITECTURE.md) | 分层、包、绑定模型、缺口、原则 |
-| [`.plans/2026-07-09-repositioning.md`](./.plans/2026-07-09-repositioning.md) | 已采纳 ADR（core+skill 中心、去 Pi） |
 | [`packages/skill/README.md`](./packages/skill/README.md) | skill 清单 |
 | [`packages/core/README.md`](./packages/core/README.md) | core API |
 | [`packages/image-gen/README.md`](./packages/image-gen/README.md) | 出图配置 |

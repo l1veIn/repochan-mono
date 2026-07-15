@@ -58,6 +58,9 @@ export type AnalysisResult = {
   context: AnalysisContext;
   persona: null;
   error: null;
+  preAnalysis?: Record<string, unknown>;
+  abstract?: Record<string, unknown>;
+  enrichedAt?: string;
 };
 
 export type WalkResult = { dirs: string[]; files: string[] };

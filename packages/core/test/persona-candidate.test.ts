@@ -11,6 +11,7 @@ import {
 } from '../src/entities/index.js';
 import { initProtocol } from '../src/protocol/index.js';
 import { personaCandidatePath } from '../src/protocol/index.js';
+import { seedAnalysis } from '../test-support/fixtures.js';
 
 function makePersona(name: string) {
   return { name, rolePrompt: `${name} visual tags`, artStyle: "cel-shaded anime" };
@@ -25,8 +26,7 @@ describe('persona candidate', () => {
     projectRoot = tmpRoot;
     await initProtocol(projectRoot);
 
-    const r = path.join(projectRoot, '.repochan');
-    await fs.writeFile(path.join(r, 'analysis', 'current.json'), JSON.stringify({ summary: 'test' }));
+    await seedAnalysis(projectRoot);
   });
 
   afterEach(async () => {

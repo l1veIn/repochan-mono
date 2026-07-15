@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 import { createRequire } from "node:module";
+import { randomUUID } from "node:crypto";
 
 const require = createRequire(import.meta.url);
 
@@ -81,7 +82,7 @@ export interface ProjectRecord {
 }
 
 export interface Register {
-  /** Schema version of this file, for future migrations. */
+  /** Current schema version of this file. */
   version: number;
   /** CLI version at the last write. */
   cliVersion: string;
@@ -116,31 +117,132 @@ function emptyRegister(): Register {
   };
 }
 
-export async function loadRegister(): Promise<Register> {
-  try {
-    const raw = await fs.readFile(REGISTER_PATH, "utf8");
-    const data = JSON.parse(raw);
-    // Basic shape guard — if the file is malformed, start fresh.
-    if (typeof data !== "object" || data === null) return emptyRegister();
-    return {
-      version: data.version ?? SCHEMA_VERSION,
-      cliVersion: data.cliVersion ?? cliVersion(),
-      updatedAt: data.updatedAt ?? new Date().toISOString(),
-      skills: data.skills ?? {},
-      projects: data.projects ?? [],
-    };
-  } catch {
-    return emptyRegister();
+function asRecord(value: unknown, label: string): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${label} must be a JSON object.`);
   }
+  return value as Record<string, unknown>;
+}
+
+function requireExactKeys(value: Record<string, unknown>, allowed: readonly string[], label: string): void {
+  const unknown = Object.keys(value).filter((key) => !allowed.includes(key));
+  const missing = allowed.filter((key) => !Object.prototype.hasOwnProperty.call(value, key));
+  if (unknown.length || missing.length) {
+    throw new Error(`${label} fields are invalid. Missing: ${missing.join(", ") || "none"}; unknown: ${unknown.join(", ") || "none"}.`);
+  }
+}
+
+function requireString(value: unknown, label: string): string {
+  if (typeof value !== "string" || value.length === 0) throw new Error(`${label} must be a non-empty string.`);
+  return value;
+}
+
+function requireTimestamp(value: unknown, label: string): string {
+  const timestamp = requireString(value, label);
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(timestamp) || new Date(timestamp).toISOString() !== timestamp) {
+    throw new Error(`${label} must be a canonical UTC ISO date-time string.`);
+  }
+  return timestamp;
+}
+
+function validateRegister(value: unknown, label: string): Register {
+  const data = asRecord(value, label);
+  requireExactKeys(data, ["version", "cliVersion", "updatedAt", "skills", "projects"], label);
+  if (data.version !== SCHEMA_VERSION) throw new Error(`${label} must declare "version": ${SCHEMA_VERSION}.`);
+
+  const rawSkills = asRecord(data.skills, `${label}.skills`);
+  const skills: Record<string, SkillRecord> = {};
+  for (const [agentId, rawRecord] of Object.entries(rawSkills)) {
+    requireString(agentId, `${label}.skills agent id`);
+    const record = asRecord(rawRecord, `${label}.skills.${agentId}`);
+    requireExactKeys(record, ["scope", "installedAt", "cliVersion", "skillCount", "path"], `${label}.skills.${agentId}`);
+    if (record.scope !== "global" && record.scope !== "project") {
+      throw new Error(`${label}.skills.${agentId}.scope must be global or project.`);
+    }
+    if (!Number.isSafeInteger(record.skillCount) || Number(record.skillCount) < 0) {
+      throw new Error(`${label}.skills.${agentId}.skillCount must be a non-negative integer.`);
+    }
+    skills[agentId] = {
+      scope: record.scope,
+      installedAt: requireTimestamp(record.installedAt, `${label}.skills.${agentId}.installedAt`),
+      cliVersion: requireString(record.cliVersion, `${label}.skills.${agentId}.cliVersion`),
+      skillCount: Number(record.skillCount),
+      path: requireString(record.path, `${label}.skills.${agentId}.path`),
+    };
+  }
+
+  if (!Array.isArray(data.projects)) throw new Error(`${label}.projects must be an array.`);
+  const projects = data.projects.map((rawProject, index): ProjectRecord => {
+    const project = asRecord(rawProject, `${label}.projects[${index}]`);
+    requireExactKeys(project, ["path", "initializedAt", "lastSeenAt", "cliVersion"], `${label}.projects[${index}]`);
+    const projectPath = requireString(project.path, `${label}.projects[${index}].path`);
+    if (!path.isAbsolute(projectPath)) throw new Error(`${label}.projects[${index}].path must be absolute.`);
+    return {
+      path: projectPath,
+      initializedAt: requireTimestamp(project.initializedAt, `${label}.projects[${index}].initializedAt`),
+      lastSeenAt: requireTimestamp(project.lastSeenAt, `${label}.projects[${index}].lastSeenAt`),
+      cliVersion: requireString(project.cliVersion, `${label}.projects[${index}].cliVersion`),
+    };
+  });
+  if (new Set(projects.map(({ path: projectPath }) => projectPath)).size !== projects.length) {
+    throw new Error(`${label}.projects must not contain duplicate paths.`);
+  }
+
+  return {
+    version: SCHEMA_VERSION,
+    cliVersion: requireString(data.cliVersion, `${label}.cliVersion`),
+    updatedAt: requireTimestamp(data.updatedAt, `${label}.updatedAt`),
+    skills,
+    projects,
+  };
+}
+
+export function parseRegister(source: string, label = "register.json"): Register {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(source);
+  } catch (error) {
+    throw new Error(`Invalid register JSON at ${label}: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  return validateRegister(parsed, label);
+}
+
+export async function loadRegister(): Promise<Register> {
+  let raw: string;
+  try {
+    raw = await fs.readFile(REGISTER_PATH, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return emptyRegister();
+    throw error;
+  }
+  return parseRegister(raw, REGISTER_PATH);
 }
 
 export async function saveRegister(reg: Register): Promise<void> {
   reg.updatedAt = new Date().toISOString();
   reg.cliVersion = cliVersion();
+  validateRegister(reg, REGISTER_PATH);
   await fs.mkdir(REGISTER_DIR, { recursive: true });
-  const tmp = `${REGISTER_PATH}.tmp.${process.pid}`;
-  await fs.writeFile(tmp, JSON.stringify(reg, null, 2) + "\n", "utf8");
-  await fs.rename(tmp, REGISTER_PATH);
+  const tmp = `${REGISTER_PATH}.tmp.${process.pid}.${randomUUID()}`;
+  let handle: Awaited<ReturnType<typeof fs.open>> | undefined;
+  try {
+    handle = await fs.open(tmp, "wx", 0o600);
+    await handle.writeFile(JSON.stringify(reg, null, 2) + "\n", "utf8");
+    await handle.sync();
+    await handle.close();
+    handle = undefined;
+    await fs.rename(tmp, REGISTER_PATH);
+    try {
+      const dirHandle = await fs.open(REGISTER_DIR, "r");
+      try { await dirHandle.sync(); } finally { await dirHandle.close(); }
+    } catch {
+      // The file itself is fsynced and atomically published on platforms that
+      // do not permit opening directories.
+    }
+  } finally {
+    if (handle) await handle.close().catch(() => undefined);
+    await fs.unlink(tmp).catch(() => undefined);
+  }
 }
 
 // ---------------------------------------------------------------------------

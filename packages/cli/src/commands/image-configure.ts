@@ -24,7 +24,7 @@ export type ImageConfigureOptions = OutputOptions & {
    * For openai/custom, pass --api-key (and --base-url for custom).
    * Advanced: --mode auto|openai|openai-async (default auto).
    */
-  provider?: ImageConfigureChoice | "async";
+  provider?: ImageConfigureChoice;
   apiKey?: string;
   baseUrl?: string;
   model?: string;
@@ -246,15 +246,8 @@ async function runInteractive(cwd: string, options: OutputOptions & { probe?: bo
 }
 
 async function runNonInteractive(cwd: string, options: ImageConfigureOptions) {
-  let provider = options.provider;
-  if (!provider) throw new UsageError("Missing --provider openai|custom|skip");
-
-  // Back-compat: --provider async → custom + mode openai-async
-  let mode: ImageRequestMode = normalizeImageRequestMode(options.mode || "auto");
-  if (provider === "async") {
-    provider = "custom";
-    if (!options.mode) mode = "openai-async";
-  }
+  const provider = requireImageConfigureProvider(options.provider);
+  const mode: ImageRequestMode = normalizeImageRequestMode(options.mode || "auto");
 
   if (provider === "skip") {
     return void emitResult(options, "Skipped image configuration.", { action: "skipped" });
@@ -304,6 +297,11 @@ async function runNonInteractive(cwd: string, options: ImageConfigureOptions) {
     setDefault,
   });
   return finishSaved(cwd, options, saved);
+}
+
+export function requireImageConfigureProvider(provider: string | undefined): ImageConfigureChoice {
+  if (provider === "openai" || provider === "custom" || provider === "skip") return provider;
+  throw new UsageError("Missing or invalid --provider. Use openai|custom|skip");
 }
 
 function writeEndpoint(

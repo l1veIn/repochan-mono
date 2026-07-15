@@ -2,10 +2,10 @@ import path from "node:path";
 import {
   root,
   exists,
-  readJson,
-  writeJson,
+  readAnalysisArtifact,
   writeAnalysisArtifact,
   updateAnalysisArtifact,
+  enrichAnalysisArtifact,
 } from "@repochan/core";
 import { emitResult, type OutputOptions, UsageError } from "../lib/output.js";
 import { readDataFile } from "../lib/data-file.js";
@@ -26,7 +26,7 @@ export async function runAnalysisRun(cwd: string, options: OutputOptions & { ove
 export async function runAnalysisGet(cwd: string, options: OutputOptions) {
   const file = path.join(root(cwd), "analysis", "current.json");
   if (!(await exists(file))) throw new UsageError("No analysis found. Run `repochan analysis run` first.");
-  const data = await readJson(file);
+  const data = await readAnalysisArtifact(cwd);
   emitResult(options, JSON.stringify(data, null, 2), data);
 }
 
@@ -39,11 +39,9 @@ export async function runAnalysisUpdate(cwd: string, dataFile: string | undefine
     throw new UsageError("analysis update --data-file must contain a `patch` object.");
   }
   const { data } = await updateAnalysisArtifact(cwd, {
-    patch: params.patch as Record<string, unknown>,
+    ...params,
     overwrite: options.overwrite === true,
-    versionPrevious: params.versionPrevious !== false,
-    reason: typeof params.reason === "string" ? params.reason : undefined,
-  });
+  } as Parameters<typeof updateAnalysisArtifact>[1]);
   emitResult(options, "Updated .repochan/analysis/current.json", data);
 }
 
@@ -53,22 +51,8 @@ export async function runAnalysisUpdate(cwd: string, dataFile: string | undefine
 // ---------------------------------------------------------------------------
 export async function runAnalysisEnrich(cwd: string, dataFile: string | undefined, options: OutputOptions) {
   const params = readDataFile(dataFile);
-  const analysisPath = path.join(root(cwd), "analysis", "current.json");
-  if (!(await exists(analysisPath))) throw new UsageError("No analysis found. Run `repochan analysis run` first.");
-  const existing = await readJson(analysisPath);
-
-  // Version the pre-enrichment state (mirror the old pi-layer logic).
-  const versionDir = path.join(root(cwd), "analysis", "versions");
-  const versionStamp = new Date().toISOString().replace(/[:.]/g, "-");
-  await writeJson(path.join(versionDir, `${versionStamp}-pre-enrich.json`), existing, false);
-
-  const enriched = { ...existing } as Record<string, unknown>;
-  if (params.preAnalysis && typeof params.preAnalysis === "object") enriched.preAnalysis = params.preAnalysis;
-  if (params.abstract && typeof params.abstract === "object") enriched.abstract = params.abstract;
-  enriched.enrichedAt = new Date().toISOString();
-  await writeJson(analysisPath, enriched, true);
-
-  emitResult(options, "Enriched analysis/current.json with preAnalysis/abstract.", { analysis: enriched });
+  const { data } = await enrichAnalysisArtifact(cwd, params);
+  emitResult(options, "Enriched analysis/current.json with preAnalysis/abstract.", { analysis: data });
 }
 
 // ---------------------------------------------------------------------------

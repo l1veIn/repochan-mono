@@ -12,14 +12,13 @@ import {
   listOrders,
   listOrderResults,
   readOrderResult,
-  setCurrentOrderResult,
   setOrderStatus,
   updateOrder,
   readOrder,
   recoverOrderRecovery,
-  persistOrderVersionMetadata,
 } from '../src/entities/index.js';
 import { initProtocol } from '../src/protocol/index.js';
+import { seedUpstream } from '../test-support/fixtures.js';
 
 describe('entities (core business operations)', () => {
   let tmpRoot: string;
@@ -30,13 +29,7 @@ describe('entities (core business operations)', () => {
     projectRoot = tmpRoot;
     await initProtocol(projectRoot);
 
-    // seed minimal upstream artifacts so createOrders / createOrderResult pass their checks
-    const r = path.join(projectRoot, '.repochan');
-    await fs.writeFile(path.join(r, 'analysis', 'current.json'), JSON.stringify({ summary: 'test' }));
-    await fs.writeFile(
-      path.join(r, 'persona', 'current.json'),
-      JSON.stringify({ coreConcept: 'test persona' })
-    );
+    await seedUpstream(projectRoot);
   });
 
   afterEach(async () => {
@@ -97,6 +90,91 @@ describe('entities (core business operations)', () => {
     expect(listed.orders.some((o: any) => o.orderId === 'ord-test-001')).toBe(true);
   });
 
+  it('restores the order tree when materializing the second create reference fails', async () => {
+    const first = path.join(projectRoot, 'reference-first.png');
+    const second = path.join(projectRoot, 'reference-second.png');
+    await fs.writeFile(first, 'first reference bytes');
+    await fs.writeFile(second, 'second reference bytes');
+    const ordersDir = path.join(projectRoot, '.repochan', 'orders');
+    const before = await snapshotDirectory(ordersDir);
+    const originalCopy = fs.copyFile.bind(fs);
+    vi.spyOn(fs, 'copyFile').mockImplementation(async (source, destination, mode) => {
+      if (path.resolve(String(source)) === path.resolve(second)) throw new Error('simulated second reference copy failure');
+      return originalCopy(source, destination, mode);
+    });
+
+    await expect(createOrders(projectRoot, { order: {
+      orderId: 'ord-reference-create-atomic', requestType: 'new_asset', assetType: 'hero',
+      brief: { intent: 'atomic references', mustInclude: [], avoid: [], creativeFreedom: [] },
+      deliverables: [], acceptanceCriteria: [],
+      references: [
+        { type: 'file', path: first, role: 'style' },
+        { type: 'file', path: second, role: 'composition' },
+      ],
+    } })).rejects.toThrow(/simulated second reference copy failure/);
+
+    expect(await snapshotDirectory(ordersDir)).toEqual(before);
+  });
+
+  it('restores order and reference bytes when an update reference set cannot be staged', async () => {
+    const original = path.join(projectRoot, 'reference-original.png');
+    const first = path.join(projectRoot, 'reference-update-first.png');
+    const second = path.join(projectRoot, 'reference-update-second.png');
+    await fs.writeFile(original, 'original reference bytes');
+    await fs.writeFile(first, 'first update bytes');
+    await fs.writeFile(second, 'second update bytes');
+    await createOrders(projectRoot, { order: {
+      orderId: 'ord-reference-update-atomic', requestType: 'new_asset', assetType: 'hero',
+      brief: { intent: 'stable references', mustInclude: [], avoid: [], creativeFreedom: [] },
+      deliverables: [], acceptanceCriteria: [],
+      references: [{ type: 'file', path: original, role: 'style' }],
+    } });
+    const orderRoot = path.join(projectRoot, '.repochan', 'orders', 'ord-reference-update-atomic');
+    const before = await snapshotDirectory(orderRoot);
+    const originalCopy = fs.copyFile.bind(fs);
+    vi.spyOn(fs, 'copyFile').mockImplementation(async (source, destination, mode) => {
+      if (path.resolve(String(source)) === path.resolve(second)) throw new Error('simulated updated reference copy failure');
+      return originalCopy(source, destination, mode);
+    });
+
+    await expect(updateOrder(projectRoot, {
+      orderId: 'ord-reference-update-atomic', overwrite: true,
+      patch: { references: [
+        { type: 'file', path: first, role: 'character' },
+        { type: 'file', path: second, role: 'composition' },
+      ] },
+    })).rejects.toThrow(/simulated updated reference copy failure/);
+
+    expect(await snapshotDirectory(orderRoot)).toEqual(before);
+  });
+
+  it('publishes exactly the current file-reference set without orphan assets', async () => {
+    const first = path.join(projectRoot, 'reference-exact-first.png');
+    const second = path.join(projectRoot, 'reference-exact-second.png');
+    await fs.writeFile(first, 'first reference bytes');
+    await fs.writeFile(second, 'second reference bytes');
+    await createOrders(projectRoot, { order: {
+      orderId: 'ord-reference-exact', requestType: 'new_asset', assetType: 'hero',
+      brief: { intent: 'exact references', mustInclude: [], avoid: [], creativeFreedom: [] },
+      deliverables: [], acceptanceCriteria: [],
+      references: [{ type: 'file', path: first, role: 'style' }],
+    } });
+    const referencesDir = path.join(projectRoot, '.repochan', 'orders', 'ord-reference-exact', 'references');
+    expect(await fs.readdir(referencesDir)).toEqual(['reference-exact-first.png']);
+
+    await updateOrder(projectRoot, {
+      orderId: 'ord-reference-exact', overwrite: true,
+      patch: { references: [{ type: 'file', path: second, role: 'style' }] },
+    });
+    expect(await fs.readdir(referencesDir)).toEqual(['reference-exact-second.png']);
+
+    await updateOrder(projectRoot, {
+      orderId: 'ord-reference-exact', overwrite: true,
+      patch: { references: [] },
+    });
+    await expect(fs.stat(referencesDir)).rejects.toThrow();
+  });
+
   it('setOrderStatus updates status in place', async () => {
     await createOrders(projectRoot, {
       orders: [
@@ -143,7 +221,6 @@ describe('entities (core business operations)', () => {
       promptBrief: 'clean hero image',
       generationPrompt: 'full generation prompt sent to image_generate',
       revisedPrompt: 'provider revised prompt',
-      setCurrent: true,
     });
 
     expect(res.order.currentVersion).toBe('v1');
@@ -156,8 +233,7 @@ describe('entities (core business operations)', () => {
     expect(meta.generationPrompt).toBe('full generation prompt sent to image_generate');
     expect(meta.revisedPrompt).toBe('provider revised prompt');
     expect(await fs.readFile(path.join(projectRoot, '.repochan', 'orders', 'ord-asset-001', 'versions', 'v1', 'hero.png'), 'utf8')).toBe('fake image bytes');
-    expect(res.order.orderAsset.versions[0].generationPrompt).toBe('full generation prompt sent to image_generate');
-    expect(res.order.orderAsset.versions[0].revisedPrompt).toBe('provider revised prompt');
+    expect(res.order.candidateVersions).toEqual([]);
 
     const listed = await listOrderResults(projectRoot, 'ord-asset-001');
     expect(listed.results.length).toBe(1);
@@ -191,7 +267,6 @@ describe('entities (core business operations)', () => {
         tool: 'image_generate:gpt-image-2',
         promptBrief: 'a short summary only',
         // generationPrompt deliberately omitted — this is the bug we're preventing
-        setCurrent: true,
       }),
     ).rejects.toThrow(/generationPrompt is REQUIRED/);
 
@@ -203,7 +278,6 @@ describe('entities (core business operations)', () => {
         files: [sourceFile],
         tool: 'image-gen-pi:fal',
         promptBrief: 'another short summary',
-        setCurrent: true,
       }),
     ).rejects.toThrow(/generationPrompt is REQUIRED/);
   });
@@ -295,168 +369,6 @@ describe('entities (core business operations)', () => {
     await expect(fs.stat(path.join(projectRoot, '.repochan', 'orders', 'ord-asset-collision', 'versions', 'v1'))).rejects.toThrow();
   });
 
-  it('createOrderResult overwrite cannot substitute an old file for a missing input with the same basename', async () => {
-    await createOrders(projectRoot, {
-      orders: [
-        {
-          orderId: 'ord-asset-overwrite',
-          requestType: 'new_asset',
-          assetType: 'icon',
-          brief: { intent: 'replace an icon', mustInclude: [], avoid: [], creativeFreedom: [] },
-          deliverables: [],
-          acceptanceCriteria: [],
-        },
-      ],
-    });
-    await setOrderStatus(projectRoot, 'ord-asset-overwrite', 'approved');
-    const sourceFile = path.join(projectRoot, 'first', 'icon.png');
-    await fs.mkdir(path.dirname(sourceFile), { recursive: true });
-    await fs.writeFile(sourceFile, 'original bytes');
-    await createOrderResult(projectRoot, {
-      orderId: 'ord-asset-overwrite',
-      versionId: 'v1',
-      files: [sourceFile],
-      tool: 'manual-upload',
-    });
-
-    const missingSameBasename = 'icon.png';
-    await expect(createOrderResult(projectRoot, {
-      orderId: 'ord-asset-overwrite',
-      versionId: 'v1',
-      files: [missingSameBasename],
-      tool: 'manual-upload',
-      overwrite: true,
-      allowUnapprovedOrder: true,
-    })).rejects.toThrow(/does not exist or is not a non-empty regular file/);
-
-    const recorded = path.join(projectRoot, '.repochan', 'orders', 'ord-asset-overwrite', 'versions', 'v1', 'icon.png');
-    expect(await fs.readFile(recorded, 'utf8')).toBe('original bytes');
-    const order = (await listOrders(projectRoot)).orders.find((item: any) => item.orderId === 'ord-asset-overwrite');
-    expect(order).toMatchObject({ status: 'delivered', currentVersion: 'v1' });
-
-    await expect(createOrderResult(projectRoot, {
-      orderId: 'ord-asset-overwrite',
-      versionId: 'v1',
-      files: [path.relative(projectRoot, recorded)],
-      tool: 'manual-upload',
-      overwrite: true,
-      allowUnapprovedOrder: true,
-    })).resolves.toMatchObject({ version: { files: ['icon.png'] } });
-  });
-
-  it('setCurrentOrderResult rejects a version whose recorded file is no longer materialized', async () => {
-    await createOrders(projectRoot, {
-      orders: [{
-        orderId: 'ord-set-current', requestType: 'new_asset', assetType: 'icon',
-        brief: { intent: 'select result', mustInclude: [], avoid: [], creativeFreedom: [] },
-        deliverables: [], acceptanceCriteria: [],
-      }],
-    });
-    await setOrderStatus(projectRoot, 'ord-set-current', 'approved');
-    const source = path.join(projectRoot, 'select.png');
-    await fs.writeFile(source, 'selectable bytes');
-    await createOrderResult(projectRoot, {
-      orderId: 'ord-set-current', versionId: 'v1', files: [source], tool: 'manual-upload',
-      setCurrent: false, markDelivered: false,
-    });
-    const orderFile = path.join(projectRoot, '.repochan/orders/ord-set-current/order.json');
-    const orderBefore = await fs.readFile(orderFile);
-    await fs.rm(path.join(projectRoot, '.repochan/orders/ord-set-current/versions/v1/select.png'));
-
-    await expect(setCurrentOrderResult(projectRoot, 'ord-set-current', 'v1'))
-      .rejects.toThrow(/missing or is not a non-empty regular file/);
-    expect(await fs.readFile(orderFile)).toEqual(orderBefore);
-  });
-
-  it('atomically persists evidence-backed version metadata to stored and embedded mirrors', async () => {
-    await createOrders(projectRoot, {
-      orders: [{
-        orderId: 'ord-meta-persist', requestType: 'new_asset', assetType: 'sticker_grid',
-        brief: { intent: 'persist tiles', mustInclude: [], avoid: [], creativeFreedom: [] },
-        deliverables: [], acceptanceCriteria: [],
-      }],
-    });
-    await setOrderStatus(projectRoot, 'ord-meta-persist', 'approved');
-    const source = path.join(projectRoot, 'grid.png');
-    await fs.writeFile(source, 'grid evidence');
-    await createOrderResult(projectRoot, {
-      orderId: 'ord-meta-persist', versionId: 'v1', files: [source], tool: 'manual-upload',
-    });
-    const tiles = { rows: 1, cols: 1, cells: [{ row: 0, col: 0 }] };
-
-    await persistOrderVersionMetadata(projectRoot, {
-      orderId: 'ord-meta-persist', versionId: 'v1', metadata: { tiles }, evidenceFiles: ['grid.png'],
-    });
-    const stored = JSON.parse(await fs.readFile(path.join(projectRoot, '.repochan/orders/ord-meta-persist/versions/v1/meta.json'), 'utf8'));
-    const order = await readOrder(projectRoot, 'ord-meta-persist');
-    const embedded = order.orderAsset.versions.find((entry: any) => entry.versionId === 'v1');
-    expect(stored.tiles).toEqual(tiles);
-    expect(embedded).toEqual(stored);
-  });
-
-  it('rolls back both metadata mirrors when version metadata order publication fails', async () => {
-    await createOrders(projectRoot, {
-      orders: [{
-        orderId: 'ord-meta-rollback', requestType: 'new_asset', assetType: 'sticker_grid',
-        brief: { intent: 'rollback tiles', mustInclude: [], avoid: [], creativeFreedom: [] },
-        deliverables: [], acceptanceCriteria: [],
-      }],
-    });
-    await setOrderStatus(projectRoot, 'ord-meta-rollback', 'approved');
-    const source = path.join(projectRoot, 'rollback-grid.png');
-    await fs.writeFile(source, 'grid evidence');
-    await createOrderResult(projectRoot, {
-      orderId: 'ord-meta-rollback', versionId: 'v1', files: [source], tool: 'manual-upload',
-    });
-    const metaPath = path.join(projectRoot, '.repochan/orders/ord-meta-rollback/versions/v1/meta.json');
-    const orderPath = path.join(projectRoot, '.repochan/orders/ord-meta-rollback/order.json');
-    const before = await Promise.all([metaPath, orderPath].map((file) => fs.readFile(file)));
-    const originalRename = fs.rename.bind(fs);
-    let failed = false;
-    vi.spyOn(fs, 'rename').mockImplementation(async (sourcePath, destination) => {
-      if (!failed && String(sourcePath).includes('.metadata-txn-') && path.basename(String(sourcePath)) === 'order.json' && path.resolve(String(destination)) === path.resolve(orderPath)) {
-        failed = true;
-        throw new Error('simulated metadata order failure');
-      }
-      return originalRename(sourcePath, destination);
-    });
-
-    await expect(persistOrderVersionMetadata(projectRoot, {
-      orderId: 'ord-meta-rollback', versionId: 'v1', metadata: { tiles: { rows: 1, cols: 1 } }, evidenceFiles: ['rollback-grid.png'],
-    })).rejects.toThrow(/simulated metadata order failure/);
-    const after = await Promise.all([metaPath, orderPath].map((file) => fs.readFile(file)));
-    expect(after).toEqual(before);
-  });
-
-  it('setCurrentOrderResult deterministically materializes legacy result metadata', async () => {
-    await createOrders(projectRoot, {
-      orders: [{
-        orderId: 'ord-legacy-current', requestType: 'new_asset', assetType: 'icon',
-        brief: { intent: 'select legacy result', mustInclude: [], avoid: [], creativeFreedom: [] },
-        deliverables: [], acceptanceCriteria: [],
-      }],
-    });
-    await setOrderStatus(projectRoot, 'ord-legacy-current', 'approved');
-    const versionDir = path.join(projectRoot, '.repochan/orders/ord-legacy-current/versions/legacy1');
-    await fs.mkdir(versionDir, { recursive: true });
-    await fs.writeFile(path.join(versionDir, 'legacy.png'), 'legacy bytes');
-
-    await setCurrentOrderResult(projectRoot, 'ord-legacy-current', 'legacy1');
-    const metaPath = path.join(versionDir, 'meta.json');
-    const firstMetaBytes = await fs.readFile(metaPath);
-    expect(JSON.parse(firstMetaBytes.toString('utf8'))).toMatchObject({
-      versionId: 'legacy1',
-      tool: 'legacy-materialized',
-      files: ['legacy.png'],
-      provenance: { tool: 'repochan', action: 'order.set_current_result.legacy_materialize' },
-    });
-    expect((await listOrders(projectRoot)).orders.find((item: any) => item.orderId === 'ord-legacy-current'))
-      .toMatchObject({ currentVersion: 'legacy1' });
-
-    await setCurrentOrderResult(projectRoot, 'ord-legacy-current', 'legacy1');
-    expect(await fs.readFile(metaPath)).toEqual(firstMetaBytes);
-  });
-
   it('order.update cannot publish delivered state or a current pointer without materialized evidence', async () => {
     await createOrders(projectRoot, {
       orders: [{
@@ -473,43 +385,55 @@ describe('entities (core business operations)', () => {
       orderId: 'ord-update-ghost',
       overwrite: true,
       patch: { currentVersion: 'ghost' },
-    })).rejects.toThrow(/stored result version directory is missing/);
+    })).rejects.toThrow(/cannot change lifecycle field 'currentVersion'/);
     expect(await fs.readFile(orderFile)).toEqual(before);
 
     await expect(updateOrder(projectRoot, {
       orderId: 'ord-update-ghost',
       overwrite: true,
       patch: { status: 'delivered' },
-    })).rejects.toThrow(/cannot produce delivered\/current state without currentVersion/);
+    })).rejects.toThrow(/cannot change lifecycle field 'status'/);
     expect(await fs.readFile(orderFile)).toEqual(before);
   });
 
-  it('publishes overwrite as a complete replacement without stale omitted files', async () => {
+  it('order.update accepts only the canonical mutable patch and leaves bytes unchanged on rejection', async () => {
     await createOrders(projectRoot, {
       orders: [{
-        orderId: 'ord-replace', requestType: 'new_asset', assetType: 'bundle',
-        brief: { intent: 'replace bundle', mustInclude: [], avoid: [], creativeFreedom: [] },
+        orderId: 'ord-update-contract', requestType: 'new_asset', assetType: 'icon',
+        brief: { intent: 'original intent', mustInclude: [], avoid: [], creativeFreedom: [] },
         deliverables: [], acceptanceCriteria: [],
       }],
     });
-    await setOrderStatus(projectRoot, 'ord-replace', 'approved');
-    const oldSource = path.join(projectRoot, 'old.png');
-    const newSource = path.join(projectRoot, 'new.png');
-    await fs.writeFile(oldSource, 'old bytes');
-    await fs.writeFile(newSource, 'new bytes');
-    await createOrderResult(projectRoot, {
-      orderId: 'ord-replace', versionId: 'v1', files: [oldSource], tool: 'manual-upload',
-    });
-    await createOrderResult(projectRoot, {
-      orderId: 'ord-replace', versionId: 'v1', files: [newSource], tool: 'manual-upload',
-      overwrite: true, allowUnapprovedOrder: true,
-    });
+    const orderFile = path.join(projectRoot, '.repochan/orders/ord-update-contract/order.json');
+    const before = await fs.readFile(orderFile);
 
-    const versionDir = path.join(projectRoot, '.repochan/orders/ord-replace/versions/v1');
-    expect((await fs.readdir(versionDir)).sort()).toEqual(['meta.json', 'new.png']);
-    expect(await fs.readFile(path.join(versionDir, 'new.png'), 'utf8')).toBe('new bytes');
-    const meta = JSON.parse(await fs.readFile(path.join(versionDir, 'meta.json'), 'utf8'));
-    expect(meta.files).toEqual(['new.png']);
+    await expect(updateOrder(projectRoot, {
+      orderId: 'ord-update-contract', overwrite: true,
+      patch: { brief: { intent: 42 } },
+    })).rejects.toThrow(/validate order\.update/);
+    expect(await fs.readFile(orderFile)).toEqual(before);
+
+    await expect(updateOrder(projectRoot, {
+      orderId: 'ord-update-contract', overwrite: true,
+      patch: { removedField: true },
+    })).rejects.toThrow(/additional properties/);
+    expect(await fs.readFile(orderFile)).toEqual(before);
+
+    await expect(updateOrder(projectRoot, {
+      orderId: 'ord-update-contract', overwrite: true,
+      patch: { orderId: 'ord-replaced' },
+    })).rejects.toThrow(/additional properties/);
+    expect(await fs.readFile(orderFile)).toEqual(before);
+
+    const updated = await updateOrder(projectRoot, {
+      orderId: 'ord-update-contract', overwrite: true,
+      patch: { brief: { intent: 'canonical update' }, priority: 'high' },
+    });
+    expect(updated).toMatchObject({
+      orderId: 'ord-update-contract', priority: 'high',
+      brief: { intent: 'canonical update', mustInclude: [], avoid: [], creativeFreedom: [] },
+    });
+    expect(await readOrder(projectRoot, 'ord-update-contract')).toEqual(updated);
   });
 
   it('leaves version and order bytes unchanged when staging a multi-file result fails', async () => {
@@ -521,18 +445,12 @@ describe('entities (core business operations)', () => {
       }],
     });
     await setOrderStatus(projectRoot, 'ord-copy-rollback', 'approved');
-    const oldSource = path.join(projectRoot, 'old-copy.png');
-    await fs.writeFile(oldSource, 'old copy bytes');
-    await createOrderResult(projectRoot, {
-      orderId: 'ord-copy-rollback', versionId: 'v1', files: [oldSource], tool: 'manual-upload',
-    });
     const first = path.join(projectRoot, 'first-new.png');
     const second = path.join(projectRoot, 'second-new.png');
     await fs.writeFile(first, 'first new bytes');
     await fs.writeFile(second, 'second new bytes');
     const versionDir = path.join(projectRoot, '.repochan/orders/ord-copy-rollback/versions/v1');
     const orderFile = path.join(projectRoot, '.repochan/orders/ord-copy-rollback/order.json');
-    const versionBefore = await snapshotDirectory(versionDir);
     const orderBefore = await fs.readFile(orderFile);
     const originalCopyFile = fs.copyFile.bind(fs);
     let copies = 0;
@@ -544,9 +462,8 @@ describe('entities (core business operations)', () => {
 
     await expect(createOrderResult(projectRoot, {
       orderId: 'ord-copy-rollback', versionId: 'v1', files: [first, second], tool: 'manual-upload',
-      overwrite: true, allowUnapprovedOrder: true,
     })).rejects.toThrow(/simulated second copy failure/);
-    expect(await snapshotDirectory(versionDir)).toEqual(versionBefore);
+    await expect(fs.stat(versionDir)).rejects.toThrow();
     expect(await fs.readFile(orderFile)).toEqual(orderBefore);
   });
 
@@ -600,16 +517,10 @@ describe('entities (core business operations)', () => {
       }],
     });
     await setOrderStatus(projectRoot, 'ord-publish-rollback', 'approved');
-    const oldSource = path.join(projectRoot, 'publish-old.png');
     const newSource = path.join(projectRoot, 'publish-new.png');
-    await fs.writeFile(oldSource, 'publish old bytes');
     await fs.writeFile(newSource, 'publish new bytes');
-    await createOrderResult(projectRoot, {
-      orderId: 'ord-publish-rollback', versionId: 'v1', files: [oldSource], tool: 'manual-upload',
-    });
     const versionDir = path.join(projectRoot, '.repochan/orders/ord-publish-rollback/versions/v1');
     const orderFile = path.join(projectRoot, '.repochan/orders/ord-publish-rollback/order.json');
-    const versionBefore = await snapshotDirectory(versionDir);
     const orderBefore = await fs.readFile(orderFile);
     const originalRename = fs.rename.bind(fs);
     let failed = false;
@@ -623,9 +534,8 @@ describe('entities (core business operations)', () => {
 
     await expect(createOrderResult(projectRoot, {
       orderId: 'ord-publish-rollback', versionId: 'v1', files: [newSource], tool: 'manual-upload',
-      overwrite: true, allowUnapprovedOrder: true,
     })).rejects.toThrow(/simulated order publication failure/);
-    expect(await snapshotDirectory(versionDir)).toEqual(versionBefore);
+    await expect(fs.stat(versionDir)).rejects.toThrow();
     expect(await fs.readFile(orderFile)).toEqual(orderBefore);
     expect((await fs.readdir(path.dirname(orderFile))).some((entry) => entry.startsWith('.result-txn-'))).toBe(false);
   });
@@ -639,13 +549,8 @@ describe('entities (core business operations)', () => {
       }],
     });
     await setOrderStatus(projectRoot, 'ord-recovery-retain', 'approved');
-    const oldSource = path.join(projectRoot, 'recovery-old.png');
     const newSource = path.join(projectRoot, 'recovery-new.png');
-    await fs.writeFile(oldSource, 'recovery old bytes');
     await fs.writeFile(newSource, 'recovery new bytes');
-    await createOrderResult(projectRoot, {
-      orderId: 'ord-recovery-retain', versionId: 'v1', files: [oldSource], tool: 'manual-upload',
-    });
     const orderFile = path.join(projectRoot, '.repochan/orders/ord-recovery-retain/order.json');
     const orderBefore = await fs.readFile(orderFile);
     const originalRename = fs.rename.bind(fs);
@@ -666,7 +571,6 @@ describe('entities (core business operations)', () => {
     try {
       await createOrderResult(projectRoot, {
         orderId: 'ord-recovery-retain', versionId: 'v1', files: [newSource], tool: 'manual-upload',
-        overwrite: true, allowUnapprovedOrder: true,
       });
     } catch (error) {
       failure = error as Error;
@@ -685,7 +589,7 @@ describe('entities (core business operations)', () => {
       kind: 'result_publish',
       state: 'recovery_required',
       entries: [
-        { destination: 'versions/v1', backup: 'previous-version', kind: 'directory', existedBefore: true },
+        { destination: 'versions/v1', backup: 'previous-version', kind: 'directory', existedBefore: false },
         { destination: 'order.json', backup: 'previous-order.json', kind: 'file', existedBefore: true },
       ],
     });
@@ -695,7 +599,6 @@ describe('entities (core business operations)', () => {
     vi.restoreAllMocks();
     await expect(createOrderResult(projectRoot, {
       orderId: 'ord-recovery-retain', versionId: 'v2', files: [newSource], tool: 'manual-upload',
-      allowUnapprovedOrder: true,
     })).rejects.toThrow(/mutations must be serialized.*retained recovery directory/);
 
     await expect(abortOrderRecovery(projectRoot, 'ord-recovery-retain', path.basename(recoveryDir)))
@@ -704,8 +607,7 @@ describe('entities (core business operations)', () => {
     await expect(recoverOrderRecovery(projectRoot, 'ord-recovery-retain', path.basename(recoveryDir)))
       .resolves.toMatchObject({ action: 'recovered' });
     expect(await fs.readFile(orderFile)).toEqual(orderBefore);
-    expect(await fs.readFile(path.join(projectRoot, '.repochan/orders/ord-recovery-retain/versions/v1/recovery-old.png'), 'utf8'))
-      .toBe('recovery old bytes');
+    await expect(fs.stat(path.join(projectRoot, '.repochan/orders/ord-recovery-retain/versions/v1'))).rejects.toThrow();
     await expect(fs.stat(recoveryDir)).rejects.toThrow();
   });
 
@@ -778,8 +680,8 @@ describe('entities (core business operations)', () => {
         destination: 'versions/v1', backup: 'previous-version', kind: 'directory', existedBefore: false,
       }],
     }, null, 2)}\n`);
-    const lockDir = path.join(orderDir, '.order-mutation.lock');
-    await fs.mkdir(lockDir);
+    const lockDir = path.join(projectRoot, '.repochan/.locks/orders/ord-recovery-prepared/mutation.lock');
+    await fs.mkdir(lockDir, { recursive: true });
     await fs.writeFile(path.join(lockDir, 'owner.json'), JSON.stringify({
       schemaVersion: 'repochan.order-mutation-lock.v1', pid: 99_999_999,
       hostname: os.hostname(), operation: 'crashed publish', startedAt: new Date(0).toISOString(),
@@ -926,7 +828,7 @@ describe('entities (core business operations)', () => {
     const transactionRoot = path.join(orderDir, transactionId);
     await fs.mkdir(transactionRoot);
     const nonce = await anchorTransaction('ord-recovery-semantic', transactionId, 'result_publish', 'v1');
-    const forgedOrder = Buffer.from(`${JSON.stringify({ orderId: 'ord-other', status: 'draft' }, null, 2)}\n`);
+    const forgedOrder = Buffer.from(`${JSON.stringify({ ...JSON.parse(orderBefore.toString('utf8')), orderId: 'ord-other' }, null, 2)}\n`);
     await fs.writeFile(path.join(transactionRoot, 'previous-order.json'), forgedOrder);
     await fs.writeFile(path.join(transactionRoot, 'recovery.json'), JSON.stringify({
       schemaVersion: 'repochan.order-recovery.v1', transactionId, orderId: 'ord-recovery-semantic',
@@ -964,9 +866,6 @@ describe('entities (core business operations)', () => {
     await expect(createOrderResult(projectRoot, {
       orderId: 'ord-symlink', versionId: 'v1', files: [source], tool: 'manual-upload',
     })).rejects.toThrow(/refuses symlink path/);
-    await expect(createOrderResult(projectRoot, {
-      orderId: 'ord-symlink', versionId: 'v1', files: [source], tool: 'manual-upload', overwrite: true,
-    })).rejects.toThrow(/refuses symlink path/);
     expect(await fs.readdir(outside)).toEqual([]);
   });
 
@@ -996,7 +895,6 @@ describe('entities (core business operations)', () => {
       tool: 'repochan',
       promptBrief: 'manually uploaded asset',
       // no generationPrompt — OK because tool doesn't involve image generation
-      setCurrent: true,
     });
 
     expect(res.version.versionId).toBe('v1');

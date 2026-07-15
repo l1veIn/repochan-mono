@@ -9,18 +9,18 @@ import {
   promoteCandidate,
   listOrderResults,
   readOrderResult,
-  setCurrentOrderResult,
   listOrderRecoveries,
   recoverOrderRecovery,
   abortOrderRecovery,
   resolveOrderReferences,
   readOrder,
   inspectProtocol,
+  OrderAddRevisionParamsSchema,
+  validateInput,
   type OrderStatus,
 } from "@repochan/core";
 import { asArray, bullet, dim, heading, emitResult, printJson, type OutputOptions, UsageError } from "../lib/output.js";
 import { readDataFile } from "../lib/data-file.js";
-import { runOrderSlice, runOrderExtractStickers } from "./order-image.js";
 
 // repochan order list
 export async function runOrderList(cwd: string, options: OutputOptions) {
@@ -71,7 +71,11 @@ export async function runOrderAddRevision(cwd: string, orderId: string, dataFile
   if (!orderId) throw new UsageError("Usage: repochan order add-revision <id> --text '...' or --data-file -");
   let revisionRequest: string;
   if (text) revisionRequest = text;
-  else { const params = readDataFile(dataFile); revisionRequest = String(params.revisionRequest ?? params.text ?? ""); }
+  else {
+    const params = readDataFile(dataFile);
+    validateInput("order.add_revision", OrderAddRevisionParamsSchema, { ...params, orderId });
+    revisionRequest = String(params.revisionRequest ?? "");
+  }
   if (!revisionRequest) throw new UsageError("revision request text is required (--text or --data-file with revisionRequest).");
   const result = await addOrderRevision(cwd, orderId, revisionRequest);
   emitResult(options, `Added revision to order ${orderId}.`, result);
@@ -91,10 +95,16 @@ export async function runOrderListResults(cwd: string, orderId: string, options:
   emitResult(options, `Results for ${orderId}: ${asArray(result.results).length}`, result);
 }
 
-// repochan order get-result <id> [--version <v>]
-export async function runOrderGetResult(cwd: string, orderId: string, versionId: string | undefined, options: OutputOptions) {
-  if (!orderId) throw new UsageError("Usage: repochan order get-result <id> [--version <v>]");
-  const result = await readOrderResult(cwd, orderId, versionId);
+// repochan order get-result <id> [--result-version <v>]
+export async function runOrderGetResult(
+  cwd: string,
+  orderId: string,
+  resultVersion: string | undefined,
+  options: OutputOptions,
+) {
+  const usage = "Usage: repochan order get-result <id> [--result-version <version-id>]";
+  if (!orderId) throw new UsageError(usage);
+  const result = await readOrderResult(cwd, orderId, resultVersion);
   emitResult(options, JSON.stringify(result, null, 2), result);
 }
 
@@ -121,13 +131,6 @@ export async function runOrderCandidatePromote(cwd: string, orderId: string, ver
   emitResult(options, `Promoted candidate ${orderId}/${versionId} to current.`, result);
 }
 
-// repochan order set-current <id> <version>
-export async function runOrderSetCurrent(cwd: string, orderId: string, versionId: string, options: OutputOptions) {
-  if (!orderId || !versionId) throw new UsageError("Usage: repochan order set-current <id> <version>");
-  const result = await setCurrentOrderResult(cwd, orderId, versionId);
-  emitResult(options, `Set current result for ${orderId} → ${versionId}.`, result);
-}
-
 export async function runOrderRecoveryList(cwd: string, orderId: string, options: OutputOptions) {
   if (!orderId) throw new UsageError("Usage: repochan order recovery list <id>");
   const result = await listOrderRecoveries(cwd, orderId);
@@ -145,6 +148,3 @@ export async function runOrderRecoveryAbort(cwd: string, orderId: string, transa
   const result = await abortOrderRecovery(cwd, orderId, transactionId);
   emitResult(options, `Accepted current state and aborted ${transactionId}.`, result);
 }
-
-// re-export the image-backed slice/extract-stickers (orchestration in order-image.ts)
-export { runOrderSlice, runOrderExtractStickers };

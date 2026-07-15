@@ -31,7 +31,7 @@ description: >
 ## 关键硬规则 checklist
 
 1. 一次性创建全部订单（foundation + 下游），不需要等 foundation 出图。
-2. 下游任务 **必须** `references: [{ orderId: foundation, role: "character" }]`。
+2. 下游任务 **必须** `references: [{ type: "order", orderId: foundation, role: "character" }]`。
 3. AD **只选 templateId**，不填 prompt 插槽、不拼完整 prompt（那是 Painter 的活）。
 4. `mustInclude` 正向描述为主，`avoid` 轻量护栏（见 order-craft）。
 5. **海报选型强制序**（见 [poster-and-brand.md](references/poster-and-brand.md)）：① 先按 `persona.artStyle` 关键词映射；② 映射不上才看项目气质（**禁止**「工具=构成主义」默认）；③ 仍无方向则用 orderId+项目名 hash 在四个专用海报模板间分散选择。brief 写一句 `templateReason`。
@@ -72,7 +72,7 @@ repochan foundation find
 - `acceptanceCriteria`: 设定图中角色身份清晰一致
 
 **下游订单要点：**
-- 每个下游订单 `references`: `[{"orderId": "<foundation-order-id>", "role": "character"}]`
+- 每个下游订单 `references`: `[{"type": "order", "orderId": "<foundation-order-id>", "role": "character"}]`
 - 定 assetType 后 `repochan template list --tag <asset_type>` 选模板；空结果则不带 filter list，不臆造 templateId。
 - **模板策展**：单模板直接选；多模板时读 `persona.artStyle`（主）+ 项目气质（辅）+ interview，选最贴合的，写入 `templateId`。
 - **海报**：必须走 [poster-and-brand.md](references/poster-and-brand.md) 三步算法；不要总选 `poster-constructivist`。
@@ -85,7 +85,7 @@ repochan order create <<'EOF'
 {
   "orders": [
     { "orderId": "ord-foundation-001", "status": "approved", "requestType": "new_asset", "assetType": "foundation_sheet", "templateId": "official/foundation-sheet", "references": [], "brief": { "..." : "..." } },
-    { "orderId": "ord-sticker-001", "status": "approved", "requestType": "new_asset", "assetType": "sticker_sheet", "templateId": "official/chibi-grid-3x3", "references": [{ "orderId": "ord-foundation-001", "role": "character" }], "brief": { "..." : "..." } }
+    { "orderId": "ord-sticker-001", "status": "approved", "requestType": "new_asset", "assetType": "sticker_sheet", "templateId": "official/chibi-grid-3x3", "references": [{ "type": "order", "orderId": "ord-foundation-001", "role": "character" }], "brief": { "..." : "..." } }
   ]
 }
 EOF

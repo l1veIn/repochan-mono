@@ -8,6 +8,7 @@ import {
 } from "../src/entities/index.js";
 import { initProtocol } from "../src/protocol/index.js";
 import { hasInterview, requireInterview } from "../src/protocol/index.js";
+import { seedAnalysis } from "../test-support/fixtures.js";
 
 describe("interview report", () => {
   let tmpRoot: string;
@@ -17,12 +18,7 @@ describe("interview report", () => {
     tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), "repochan-core-interview-"));
     projectRoot = tmpRoot;
     await initProtocol(projectRoot);
-    // seed analysis (interview.create requires analysis to exist)
-    const r = path.join(projectRoot, ".repochan");
-    await fs.writeFile(
-      path.join(r, "analysis", "current.json"),
-      JSON.stringify({ summary: "test repo", documentLanguage: "English" }),
-    );
+    await seedAnalysis(projectRoot);
   });
 
   afterEach(async () => {
@@ -269,7 +265,10 @@ describe("interview report", () => {
       await createOrUpdateInterview(projectRoot, {
         interview: { summary: "x", keyConstraints: [] },
       });
-      await expect(requireInterview(projectRoot)).resolves.toBeUndefined();
+      await expect(requireInterview(projectRoot)).resolves.toMatchObject({
+        schemaVersion: "repochan.interview.v1",
+        summary: "x",
+      });
     });
 
     it("initProtocol creates interview/versions directory", async () => {

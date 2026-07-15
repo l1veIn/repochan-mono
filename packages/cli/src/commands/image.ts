@@ -164,10 +164,10 @@ export async function runImageEditSlice(
   const absIn = path.resolve(cwd, imagePath);
   const { sliceImage, sliceGridToFiles } = await import("@repochan/image-edit");
 
-  // No --out: metadata-only mode (backward-compatible). Returns tile coordinates as JSON.
+  // No --out: coordinate preview. Returns tile metadata as JSON and writes no files.
   if (!options.out) {
     const { tiles, sourceFile } = await sliceImage(absIn, options.rows!, options.cols!);
-    emitResult(options, `Sliced ${sourceFile} into ${tiles.rows}×${tiles.cols} (${tiles.cells.length} tiles).`, {
+    emitResult(options, `Previewed ${sourceFile} as a ${tiles.rows}×${tiles.cols} grid (${tiles.cells.length} coordinate cells; no files written).`, {
       tiles,
     });
     return;

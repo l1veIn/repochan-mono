@@ -22,22 +22,22 @@ export async function runTemplateList(cwd: string, options: OutputOptions & { ta
 
 /**
  * repochan template get <id> — show one template's full spec.
- * Matches by template id or assetType (first hit).
+ * Matches the canonical template id exactly.
  */
-export async function runTemplateGet(cwd: string, idOrAssetType: string | undefined, options: OutputOptions) {
-  if (!idOrAssetType) {
+export async function runTemplateGet(cwd: string, id: string | undefined, options: OutputOptions) {
+  if (!id) {
     throw new UsageError(
-      "template get requires a template id or assetType.",
-      "Usage: repochan template get <id>   (e.g. repochan template get official/pattern-grid-2x2)",
+      "template get requires a template id.",
+      "Usage: repochan template get <id>   (e.g. repochan template get official/pattern-tile)",
     );
   }
   const builtinDir = await getBuiltinTemplatesDir();
   const all = await loadAllTemplates(builtinDir, cwd);
-  const found = all.find((t) => t.id === idOrAssetType || t.assetType === idOrAssetType);
+  const found = all.find((t) => t.id === id);
   if (!found) {
     const available = all.map((t) => t.id).join(", ");
     throw new UsageError(
-      `No template matching '${idOrAssetType}'.`,
+      `No template matching '${id}'.`,
       `Available: ${available}`,
     );
   }
@@ -55,10 +55,8 @@ function formatTemplateHuman(t: TemplateData): string {
   lines.push(`  size: ${t.size} (${t.aspectRatio})`);
   if (t.grid) lines.push(`  grid: ${t.grid.rows}×${t.grid.cols}${t.grid.sliceable ? " (sliceable)" : ""}`);
   if (t.tags?.length) lines.push(`  tags: ${t.tags.join(", ")}`);
-  if (t.promptTemplate) {
-    lines.push("  prompt_template:");
-    for (const line of t.promptTemplate.trimEnd().split("\n")) lines.push(`    ${line}`);
-  }
+  lines.push("  prompt_template:");
+  for (const line of t.promptTemplate.trimEnd().split("\n")) lines.push(`    ${line}`);
   if (t.constraints.length) {
     lines.push("  constraints:");
     for (const c of t.constraints) lines.push(`    - ${c}`);

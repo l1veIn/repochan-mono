@@ -2,7 +2,7 @@
 
 正常流程下，每次 `repochan order create-result` 会直接把新版本设为 current 并交付。但有时用户想看**几个备选方案**再决定——"给我三个不同表情的版本选一个"。
 
-这种场景用候选态（candidate）：每个备选方案写成 `role=candidate` 的 version，不 promote、不交付，用户/AD 选定后再 promote 一个为 current。
+这种场景用候选态（candidate）：每个备选版本 id 记录在 order 的 `candidateVersions`，不 promote、不交付，用户/AD 选定后再 promote 一个为 current。
 
 ### 何时使用
 
@@ -33,14 +33,14 @@
    { "orderId": "<orderId>", "versionId": "c1", "verdict": "pass", "notes": "..." }
    EOF
    ```
-   review 能直接作用于 candidate（`orderResultExists` 通过文件系统找到它）。
+   review 能直接作用于 candidate；core 会严格读取其 `meta.json` 和实际交付文件。
 
 3. **用户选定后，promote 一个为 current**：
    ```
    repochan order candidate promote <orderId> <versionId>
    ```
    例：`repochan order candidate promote ord-readme-hero-001 c2`
-   被选中的 candidate 变成 current（role=current，currentVersion 指向它）。如果 order 之前已有一个 current version，它会被降为 snapshot。其余未选中的 candidate 保持 candidate 状态。
+   promote 只更新 order 的 `currentVersion`、`candidateVersions` 和交付状态；所有版本 `meta.json` 保持不变，之前的 current 自然成为历史结果。
 
 4. **未选中的 candidate 怎么处理**：留着。它们是"备选方案"的历史记录，用户可能改主意。不需要主动删除或归档。
 

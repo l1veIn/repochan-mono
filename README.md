@@ -11,7 +11,7 @@ core  keeps the rules   ·   skill  supplies the ideas   ·   cli  is the only d
 agent is yours          ·   .repochan/ is the source of truth on disk
 ```
 
-See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full design. The 2026-07-09 repositioning ADR is [`.plans/2026-07-09-repositioning.md`](./.plans/2026-07-09-repositioning.md).
+See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full design.
 
 ---
 
@@ -35,19 +35,21 @@ cli ──┬──> core
       ├──> skill
       ├──> image-gen
       ├──> image-edit
-      └──> templates
+      ├──> templates
+      └──> starters
 ```
 
-`core`, `image-gen`, `image-edit`, `templates`, and `skill` are leaves. Only the CLI aggregates them. Image libraries never write `.repochan/`; protocol writes always go through core.
+`core`, `image-gen`, `image-edit`, `templates`, `starters`, and `skill` are leaves. Only the CLI aggregates them. Image libraries never write `.repochan/`; protocol writes always go through core.
 
 | Package | Role | Loaded by |
 |---------|------|-----------|
 | `core` | `.repochan/` R/W, schema gates, state machine, analysis engine | CLI (and tests) |
 | `skill` | How to run the pipeline (wizard + roles) | Your agent (via `repochan setup`) |
 | `cli` | Deterministic subcommands + skill install | You / agent / CI |
-| `image-gen` | Image generation + `~/.repochan/image.json` (modes: `openai` / `openai-async`) | `repochan image gen\|configure\|status\|probe` |
+| `image-gen` | Image generation + `~/.repochan/image.json` (modes: `auto` / `openai` / `openai-async`) | `repochan image gen\|configure\|status\|probe` |
 | `image-edit` | Local pixel ops | `repochan image edit …` |
 | `templates` | Official asset templates | `repochan template list\|get` |
+| `starters` | Complete landing-page starter scaffolds | `repochan starter list\|get\|pull` |
 
 ---
 
@@ -85,7 +87,8 @@ You talk to **your agent**. The wizard skill (`repochan`) schedules the teams:
 | Mode | When | Behavior |
 |------|------|----------|
 | **Wizard (default)** | “Make me a mascot and site” | Full pipeline, stop at checkpoints |
-| **yolo** | You say `yolo` / non-interactive CI | Skip checkpoints; orders created as `approved` |
+| **yolo** | You explicitly say `yolo` | Use default creative decisions inside the authorized scope; external writes still require explicit authorization |
+| **Non-interactive** | CI / no TTY | Auto-select local reversible decisions; stop before unauthorized external writes |
 | **Per-team (advanced)** | “Only run analysis” / “redraw this order” | Single team skill |
 
 **Visual consistency** is anchored by a **foundation sheet** (character design cover). Downstream assets reference it. Core enforces dependency order — missing upstream → CLI fails.
@@ -100,34 +103,51 @@ overwritten. If rollback cannot complete, use `repochan order recovery list`,
 `recover`, or `abort`; never hand-edit or delete transaction directories.
 Recovery contends on the same order lock: an active publisher wins, while a
 crashed same-host owner is reclaimed. A listed `staging_unprepared` transaction
-predates protocol renames and is abort-only; `prepared` or `recovery_required`
+has no recoverable manifest and is abort-only; `prepared` or `recovery_required`
 transactions may be recovered to their manifest snapshot.
 Each Core-created transaction also has an out-of-directory identity/nonce anchor;
 recovery rejects hand-made directories, mismatched identities, fixed-path mapping
 violations, and semantically invalid order/version backups. This protects against
 accidental corruption and simple forged transaction directories, not an attacker
 who can arbitrarily rewrite the entire workspace including both protocol state
-and identity anchors. Generic `protocol write` cannot modify order-managed paths.
+and identity anchors. Protocol state is changed only through schema-validated
+entity commands.
 
 ---
 
 ## Prerequisites
 
 - **Node.js** ≥ 20
-- **pnpm** ≥ 9 (`corepack enable && corepack prepare pnpm@9 --activate`)
 - A coding agent you already use (Claude Code, Codex, Pi, Cursor, Hermes, …)
 - For image generation: an OpenAI-compatible images endpoint (direct OpenAI, relay, or local reverse-proxy)
 
 ```bash
 node --version   # ≥ 20
-pnpm --version   # ≥ 9
 ```
+
+Contributors building this monorepo also need **pnpm** ≥ 9.
 
 ---
 
 ## Getting started
 
-### From this monorepo
+### Install from npm
+
+```bash
+npm install -g repochan
+repochan --version
+
+cd /path/to/your-project
+repochan setup --agent codex --project   # choose your actual agent and scope
+repochan init
+```
+
+Then open your coding agent in the project and ask it to run the RepoChan
+workflow. Run `repochan setup` again after upgrading the CLI so the bundled
+skills are refreshed; `repochan status` reports version drift when a refresh is
+needed.
+
+### Build from this monorepo (contributors)
 
 ```bash
 cd repochan-mono
@@ -181,10 +201,9 @@ repochan analysis run|get|update|enrich|versions
 repochan interview get|create|append
 repochan persona get|create|update|review|candidate …
 repochan order list|get|create|update|set-status|add-revision|…
-repochan order create-result|list-results|get-result|set-current|…
+repochan order create-result|list-results|get-result
 repochan order resolve-references <id>
 repochan order candidate create|promote
-repochan order slice|extract-stickers
 repochan foundation find
 repochan starter list [--tag] | get <id> | pull [--starter <id>]
 repochan starter configure [--content-file <path>] [--repository-url <url>]
@@ -196,7 +215,7 @@ repochan review create
 repochan order recovery list <order-id>
 repochan order recovery recover <order-id> <transaction-id>
 repochan order recovery abort <order-id> <transaction-id>
-repochan protocol inspect|read|write
+repochan protocol inspect|read
 ```
 
 `order create-result` is evidence-bearing: its payload must include at least one
@@ -210,8 +229,8 @@ publication fails.
 Images & templates:
 
 ```bash
-repochan image gen --prompt "…" [--reference path] [--out path] [--endpoint id] [--mode openai|openai-async]
-repochan image configure [--provider openai|custom|async|skip] [--base-url …] [--api-key …] [--endpoint-id …] [--mode …]
+repochan image gen --prompt "…" [--reference path] [--out path] [--endpoint id] [--mode auto|openai|openai-async]
+repochan image configure [--provider openai|custom|skip] [--base-url …] [--api-key …] [--endpoint-id …] [--mode auto|openai|openai-async]
 repochan image status
 repochan image probe [--endpoint id]
 repochan image edit slice <image> --rows N --cols M [--out dir]
@@ -295,6 +314,7 @@ Before publishing, verify the packed dependency graph and the clean-room user
 journey with `pnpm release:pack-smoke`. Then run the registry-aware, read-only
 `pnpm release:preflight` to detect immutable npm version collisions. See
 [`docs/releasing.md`](./docs/releasing.md) for the leaf-first release contract.
+Both paths enforce the current runtime and Skill contracts.
 
 ---
 
@@ -316,7 +336,6 @@ Full rationale and known gaps: [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 | Doc | Contents |
 |-----|----------|
 | [`ARCHITECTURE.md`](./ARCHITECTURE.md) | Layers, packages, binding model, gaps, principles |
-| [`.plans/2026-07-09-repositioning.md`](./.plans/2026-07-09-repositioning.md) | Accepted ADR (core+skill center, pi-removal) |
 | [`packages/skill/README.md`](./packages/skill/README.md) | Skill inventory |
 | [`packages/core/README.md`](./packages/core/README.md) | Core API surface |
 | [`packages/image-gen/README.md`](./packages/image-gen/README.md) | Generation config |

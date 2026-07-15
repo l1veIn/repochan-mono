@@ -1,8 +1,9 @@
 import { createHash, randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
-import { hostname } from "node:os";
 import path from "node:path";
 import { orderDir } from "../protocol/index.js";
+export { withOrderMutationLock } from "../protocol/order-lock.js";
+import { withOrderMutationLock } from "../protocol/order-lock.js";
 
 export type RecoveryEntry = {
   destination: string;
@@ -16,7 +17,7 @@ export type OrderRecoveryManifest = {
   schemaVersion: "repochan.order-recovery.v1";
   transactionId: string;
   orderId: string;
-  kind: "result_publish" | "candidate_promotion" | "version_metadata";
+  kind: "result_publish" | "candidate_promotion";
   nonce: string;
   versionId: string;
   previousVersionId?: string;
@@ -34,12 +35,6 @@ export type OrderTransactionIdentity = {
   versionId: string;
   previousVersionId?: string;
 };
-
-function errorCode(error: unknown): string | undefined {
-  return typeof error === "object" && error !== null && "code" in error
-    ? String((error as { code?: unknown }).code)
-    : undefined;
-}
 
 async function assertNoSymlinkComponents(root: string, target: string, label: string): Promise<void> {
   const resolvedRoot = path.resolve(root);
@@ -145,7 +140,7 @@ export async function createOrderTransaction(
   versionId: string,
   previousVersionId?: string,
 ) {
-  const prefix = kind === "result_publish" ? ".result-txn-" : kind === "candidate_promotion" ? ".promotion-txn-" : ".metadata-txn-";
+  const prefix = kind === "result_publish" ? ".result-txn-" : ".promotion-txn-";
   const transactionRoot = path.join(orderDir(projectRoot, orderId), `${prefix}${randomUUID()}`);
   const identity = await registerOrderTransaction(projectRoot, orderId, transactionRoot, kind, versionId, previousVersionId);
   try {
@@ -171,72 +166,12 @@ async function readOrderTransactionIdentity(projectRoot: string, orderId: string
   const identity = JSON.parse(await fs.readFile(file, "utf8")) as OrderTransactionIdentity;
   if (
     identity.schemaVersion !== "repochan.order-transaction-identity.v1" || identity.transactionId !== transactionId ||
-    identity.orderId !== orderId || !["result_publish", "candidate_promotion", "version_metadata"].includes(identity.kind) ||
+    identity.orderId !== orderId || !["result_publish", "candidate_promotion"].includes(identity.kind) ||
     typeof identity.nonce !== "string" || !identity.nonce || typeof identity.versionId !== "string" || !identity.versionId
   ) {
     throw new Error(`Invalid Core transaction identity for ${orderId}/${transactionId}.`);
   }
   return identity;
-}
-
-export async function withOrderMutationLock<T>(
-  projectRoot: string,
-  orderId: string,
-  operation: string,
-  action: () => Promise<T>,
-): Promise<T> {
-  const dir = orderDir(projectRoot, orderId);
-  await fs.mkdir(dir, { recursive: true });
-  const lockDir = path.join(dir, ".order-mutation.lock");
-  const owner = {
-    schemaVersion: "repochan.order-mutation-lock.v1",
-    pid: process.pid,
-    hostname: hostname(),
-    operation,
-    startedAt: new Date().toISOString(),
-  };
-  let acquired = false;
-  for (let attempt = 0; attempt < 2 && !acquired; attempt++) {
-    const candidate = await fs.mkdtemp(path.join(dir, ".order-mutation-lock-candidate-"));
-    await fs.writeFile(path.join(candidate, "owner.json"), `${JSON.stringify(owner, null, 2)}\n`, "utf8");
-    try {
-      await fs.rename(candidate, lockDir);
-      acquired = true;
-    } catch (error) {
-      await fs.rm(candidate, { recursive: true, force: true }).catch(() => undefined);
-      if (errorCode(error) !== "EEXIST" && errorCode(error) !== "ENOTEMPTY") throw error;
-      const existingOwner = await fs.readFile(path.join(lockDir, "owner.json"), "utf8")
-        .then((raw) => JSON.parse(raw) as typeof owner)
-        .catch(() => undefined);
-      const lockStat = await fs.stat(lockDir).catch(() => undefined);
-      let stale = false;
-      if (existingOwner?.hostname === hostname() && Number.isInteger(existingOwner.pid)) {
-        try {
-          process.kill(existingOwner.pid, 0);
-        } catch (probeError) {
-          stale = errorCode(probeError) === "ESRCH";
-        }
-      } else if (!existingOwner && lockStat && Date.now() - lockStat.mtimeMs > 5 * 60_000) {
-        stale = true;
-      }
-      if (stale) {
-        const staleDir = path.join(dir, `.order-mutation-lock-stale-${process.pid}-${Date.now()}`);
-        await fs.rename(lockDir, staleDir).catch(() => undefined);
-        await fs.rm(staleDir, { recursive: true, force: true }).catch(() => undefined);
-        continue;
-      }
-      const detail = existingOwner
-        ? `owner pid=${existingOwner.pid} host=${existingOwner.hostname} operation=${existingOwner.operation}`
-        : "owner metadata is unavailable; ownerless locks are automatically reclaimed after 5 minutes";
-      throw new Error(`Order ${orderId} mutation conflict during ${operation}: another order mutation is publishing (${detail}). Retry the command.`);
-    }
-  }
-  if (!acquired) throw new Error(`Order ${orderId} mutation conflict during ${operation}: could not acquire the order lock.`);
-  try {
-    return await action();
-  } finally {
-    await fs.rm(lockDir, { recursive: true, force: true }).catch(() => undefined);
-  }
 }
 
 export async function assertOrderBytesUnchanged(orderFile: string, expected: Buffer, operation: string): Promise<void> {
@@ -294,8 +229,8 @@ export async function markRecoveryRequired(transactionRoot: string, manifest: Or
 }
 
 function validateTransactionId(transactionId: string): string {
-  if (!/^\.(result|promotion|metadata)-txn-[A-Za-z0-9._-]+$/.test(transactionId) || path.basename(transactionId) !== transactionId) {
-    throw new Error("Recovery transaction id must be the basename of a .result-txn-*, .promotion-txn-*, or .metadata-txn-* directory.");
+  if (!/^\.(result|promotion)-txn-[A-Za-z0-9._-]+$/.test(transactionId) || path.basename(transactionId) !== transactionId) {
+    throw new Error("Recovery transaction id must be the basename of a .result-txn-* or .promotion-txn-* directory.");
   }
   return transactionId;
 }
@@ -318,21 +253,14 @@ async function readRecoveryManifest(projectRoot: string, orderId: string, transa
   const resultShape = validEntries && raw.kind === "result_publish" && raw.entries.length === 2 &&
     raw.entries.some((entry) => entry.destination === "order.json" && entry.backup === "previous-order.json" && entry.kind === "file") &&
     raw.entries.some((entry) => entry.destination === `versions/${raw.versionId}` && entry.backup === "previous-version" && entry.kind === "directory");
-  const targetMetaDestination = `versions/${raw.versionId}/meta.json`;
-  const previousMetaDestination = raw.previousVersionId ? `versions/${raw.previousVersionId}/meta.json` : undefined;
-  const promotionShape = validEntries && raw.kind === "candidate_promotion" && raw.entries.length === (previousMetaDestination ? 3 : 2) &&
-    raw.entries.some((entry) => entry.destination === "order.json" && entry.backup === "order.json.bak" && entry.kind === "file") &&
-    raw.entries.some((entry) => entry.destination === targetMetaDestination && entry.backup === "target-meta.json.bak" && entry.kind === "file") &&
-    (!previousMetaDestination || raw.entries.some((entry) => entry.destination === previousMetaDestination && entry.backup === "previous-meta.json.bak" && entry.kind === "file"));
-  const metadataShape = validEntries && raw.kind === "version_metadata" && raw.entries.length === 2 &&
-    raw.entries.some((entry) => entry.destination === "order.json" && entry.backup === "order.json.bak" && entry.kind === "file") &&
-    raw.entries.some((entry) => entry.destination === targetMetaDestination && entry.backup === "meta.json.bak" && entry.kind === "file");
+  const promotionShape = validEntries && raw.kind === "candidate_promotion" && raw.entries.length === 1 &&
+    raw.entries[0]?.destination === "order.json" && raw.entries[0]?.backup === "order.json.bak" && raw.entries[0]?.kind === "file";
   if (
     raw.schemaVersion !== "repochan.order-recovery.v1" || raw.orderId !== orderId || raw.transactionId !== id ||
     raw.kind !== identity.kind || raw.nonce !== identity.nonce || raw.versionId !== identity.versionId ||
     raw.previousVersionId !== identity.previousVersionId ||
     (raw.state !== "prepared" && raw.state !== "recovery_required") || !validEntries || !uniqueDestinations ||
-    (!resultShape && !promotionShape && !metadataShape)
+    (!resultShape && !promotionShape)
   ) {
     throw new Error(`Invalid recovery manifest for ${orderId}/${id}.`);
   }
@@ -354,7 +282,7 @@ export async function listOrderRecoveryTransactions(projectRoot: string, orderId
   const dir = orderDir(projectRoot, orderId);
   await assertNoSymlinkComponents(projectRoot, dir, "Recovery order root");
   const entries = (await fs.readdir(dir, { withFileTypes: true }).catch(() => []))
-    .filter((entry) => entry.isDirectory() && (entry.name.startsWith(".result-txn-") || entry.name.startsWith(".promotion-txn-") || entry.name.startsWith(".metadata-txn-")))
+    .filter((entry) => entry.isDirectory() && (entry.name.startsWith(".result-txn-") || entry.name.startsWith(".promotion-txn-")))
     .map((entry) => entry.name)
     .sort();
   const recoveries = [];

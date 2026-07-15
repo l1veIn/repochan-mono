@@ -14,11 +14,8 @@ Canonical order:
 6. `@repochan/starters`
 7. `repochan`
 
-The current candidate versions and their pre-1.0 semver rationale are recorded
-in [`CHANGELOG.md`](../CHANGELOG.md). Five previously published leaf packages
-move to `0.2.0` because their protocol, API, data, or workflow contracts changed
-materially. The unpublished `@repochan/starters@0.1.0` and `repochan@0.3.0`
-retain their first available versions. Do not force every package to share one
+The candidate versions and their semver rationale are recorded in
+[`CHANGELOG.md`](../CHANGELOG.md). Do not force every package to share one
 version; the packed CLI pins the exact coordinated leaf versions.
 
 The executable contract lives in `scripts/release-contract.mjs`. Do not infer
@@ -34,11 +31,21 @@ pnpm release:pack-smoke
 
 It copies the current non-ignored worktree into a fresh source directory with no
 `node_modules` or `dist`, installs with the frozen lockfile, explicitly builds
-the compiled release packages, then packs all seven packages. It checks the
+the compiled release packages, then packs every package twice and requires
+byte-identical tarballs. Each raw pnpm pack is normalized by deep-sorting its
+packed manifest and rebuilding a portable archive with fixed timestamps and a
+sorted entry order before hashing. It checks the
 rewritten dependency graph and public workspace inventory. A local scoped
 registry exposes the six leaf tarballs while the empty npm project installs only
 the CLI tarball as a top-level dependency. The smoke then runs the packed CLI,
-pulls and validates `registry-modular`, installs its dependencies, and builds it.
+verifies the complete project-local Codex skill inventory and representative
+skill content, requires the exact canonical 21-template inventory, and exercises
+`template get`. It also requires exactly the `minimal` and `registry-modular`
+Starters with `minimal` as the sole default, builds `minimal` through a bare
+`starter pull`, and builds `registry-modular` through an explicit selection.
+This command tests
+current worktree changes for development feedback; its artifacts are not
+release-eligible.
 
 Before a real release, also compare every local artifact with npm:
 
@@ -46,7 +53,10 @@ Before a real release, also compare every local artifact with npm:
 pnpm release:preflight
 ```
 
-The command is read-only with respect to npm. Registry reads are explicitly
+This command requires a completely clean worktree, resolves `HEAD` to one commit,
+and builds from `git archive` of that commit. It therefore rejects uncommitted or
+untracked drift before producing candidate artifacts. The command is read-only
+with respect to npm. Registry reads are explicitly
 bound to each package's `publishConfig.registry`, so a user-level npm mirror
 cannot silently change the comparison target. It reports each package as:
 
@@ -64,6 +74,22 @@ SHA-256 hash even when a version collision makes the command exit non-zero.
 Every public manifest fixes `publishConfig.registry` to npm and
 `publishConfig.access` to `public`, including the first scoped Starter release.
 
+The preflight installs only the retained candidate CLI tarball into an isolated
+HOME, initially empty npm user config, cache, install prefix, and empty git
+project. It verifies exact installed package versions, project-local Codex setup
+and repeated-setup idempotence, status before and after repeated init, validation
+before and after deterministic analysis, Starter discovery, pull, validation,
+dependency install, and production build. This is CLI/package fresh-install
+evidence only: it does not run a real coding agent or an image endpoint and must
+not be reported as evidence for either flow. Setup evidence is specifically for
+project-local Codex installation; global setup and all other agent targets remain
+outside this preflight's support claim. The JSON report records the resolved
+default Starter and both production builds.
+
+The same preflight checks that current runtime and Skill surfaces expose only the
+current contract. OpenAI-compatible endpoint terminology, Starter runnable
+fallbacks, and business asset/template names containing `migrate` remain valid.
+
 Every child process has a finite five-minute timeout. Slow release environments
 may raise it explicitly, without disabling the guard:
 
@@ -78,13 +104,125 @@ currently restricted to macOS, Linux, or another POSIX CI runner; Windows exits
 early with an actionable error. This restriction applies to the release tool,
 not to the published CLI runtime contract.
 
-After the report has no blockers, publish the exact retained `.tgz` paths from
-that report—not a fresh pack—in the reported order. Verify each SHA-256 before
-use and pass the artifact's reported registry explicitly:
+## Human release gate
+
+Stop unless all of these are true:
+
+- the retained preflight report has no blockers and its candidate fresh-install smoke passed;
+- a human has approved the exact seven versions and retained SHA-256 values;
+- `npm whoami --registry https://registry.npmjs.org/` identifies the intended
+  publisher, and that human has verified public publish rights for the
+  `@repochan` scope as well as the unscoped `repochan` package;
+- the human has an npm OTP or other registry-approved interactive authentication
+  method available. Never copy a token or OTP into this repository, the report,
+  or a shell script.
+
+Publishing, changing dist-tags, commits, pushes, and deployment are separate
+authorized operations. The preflight deliberately performs none of them.
+
+## Stage the retained set under `next`
+
+Before the first `npm publish`, save the complete existing `dist-tags` response
+for all seven package names in the release record, including packages that return
+404 or have no prior `next`/`latest`. `npm publish --tag next` is itself a tag
+mutation, so this snapshot must exist before staging begins. Published package
+bytes are immutable; the recorded prior tags are the rollback surface.
+
+Publish the exact retained `.tgz` paths from the report—not a fresh pack. Verify
+each SHA-256 immediately before use, pass the reported registry explicitly, and
+use the `next` tag so `latest` remains unchanged:
 
 ```bash
-npm publish /absolute/path/from-report.tgz --registry https://registry.npmjs.org/
+# Repeat in the report's order. Use the SHA-256 and path printed by preflight.
+shasum -a 256 /absolute/path/from-report.tgz
+npm publish /absolute/path/from-report.tgz \
+  --tag next \
+  --access public \
+  --registry https://registry.npmjs.org/
 ```
 
-Keep `repochan` last. Publication, tags, commits, and pushes are separate
-authorized operations and are intentionally absent from the script.
+Publish all six leaves first and confirm each exact version is readable from npm
+before publishing the CLI tarball last. Do not continue past a failed leaf:
+
+```bash
+# Set these from the retained preflight report.
+CORE_VERSION=...
+CLI_VERSION=...
+npm view "@repochan/core@${CORE_VERSION}" version --registry https://registry.npmjs.org/
+# ...repeat for every published exact leaf...
+npm view "repochan@${CLI_VERSION}" version --registry https://registry.npmjs.org/
+```
+
+## Smoke the real `next` install
+
+After all seven packages are visible under `next`, verify an install that reads
+only from npm. This shell block keeps HOME, npm user config/cache, installation,
+and project state in one disposable directory:
+
+```bash
+SMOKE_ROOT="$(mktemp -d)"
+mkdir -p "$SMOKE_ROOT/home" "$SMOKE_ROOT/cache" "$SMOKE_ROOT/project"
+printf 'registry=https://registry.npmjs.org/\n' > "$SMOKE_ROOT/npmrc"
+
+(
+  export HOME="$SMOKE_ROOT/home"
+  export USERPROFILE="$HOME"
+  export XDG_CONFIG_HOME="$HOME/.config"
+  export XDG_CACHE_HOME="$HOME/.cache"
+  export npm_config_userconfig="$SMOKE_ROOT/npmrc"
+  export npm_config_cache="$SMOKE_ROOT/cache"
+
+  npm install --prefix "$SMOKE_ROOT/install" --no-audit --no-fund \
+    repochan@next --registry https://registry.npmjs.org/
+  CLI="$SMOKE_ROOT/install/node_modules/repochan/dist/index.js"
+
+  cd "$SMOKE_ROOT/project"
+  node "$CLI" --version
+  node "$CLI" status --json
+  node "$CLI" init --json
+  node "$CLI" setup --agent codex --project --json
+  node "$CLI" starter list --json
+  node "$CLI" starter pull --starter registry-modular --output-dir site --json
+  node "$CLI" starter validate --output-dir site --json
+  npm --prefix site install --no-audit --no-fund
+  npm --prefix site run build
+)
+```
+
+Confirm the reported CLI identity matches the candidate report and every bundled
+Starter and skill is present,
+setup writes only inside the disposable project/HOME, and the Starter build
+succeeds. This still does not validate a real agent session, deployment, image
+credentials, or a billed image generation request.
+
+## Promote to `latest`
+
+Only after a human accepts the `next` smoke, move `latest` to the exact staged
+versions. Promote the six leaves first and `repochan` last; verify every tag from
+the registry after changing it:
+
+```bash
+# Reuse the exact version variables recorded from the retained report.
+npm dist-tag add "@repochan/core@${CORE_VERSION}" latest --registry https://registry.npmjs.org/
+# ...image-edit, image-gen, skill, templates, starters...
+npm dist-tag add "repochan@${CLI_VERSION}" latest --registry https://registry.npmjs.org/
+npm view repochan dist-tags --json --registry https://registry.npmjs.org/
+```
+
+Remove or retain the `next` tags only as a separate, explicit human decision.
+
+## Stop and rollback boundaries
+
+- Before the first publish: fix the candidate and rerun preflight; no registry
+  rollback exists because no registry state changed.
+- After some leaves are staged but before the CLI is staged: stop. `latest` is
+  still safe. With human approval, restore every changed `next` tag from the
+  pre-publish record (or remove it only when the record proves it did not exist);
+  if package contents must change, bump the affected versions rather than trying
+  to replace immutable bytes.
+- If the real `next` install smoke fails: do not move any `latest` tag. Record the
+  exact failure and prepare a newly versioned coordinated set.
+- If promotion fails partway: restore `repochan`'s previous `latest` first if it
+  changed, then restore leaf tags from the saved release record (or remove a
+  newly-created `latest` for a first release). Verify registry state after every
+  change. Do not use `npm unpublish` as a routine rollback mechanism.

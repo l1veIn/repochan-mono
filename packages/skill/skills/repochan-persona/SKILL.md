@@ -61,13 +61,12 @@ description: >
 
 1. 需要分析报告已就绪（`repochan analysis get` 检查）。如果缺失，停止并要求用户先运行分析。
 2. 读取 `analysis.context.identity.namingSeeds`。这些仓库/产品/包名术语是吉祥物命名的主要来源。
-3. 如果旧制品中包含遗留的 `analysis.documentLanguage`、`analysis.languageSignals`、`persona.language` 和 `persona.nativeLanguage` 字段，忽略它们。它们是本地化元数据/已弃用字段，不是创作身份。
-4. **检查访谈报告**是否存在（`repochan interview get --json`）。访谈报告是**可选的**——如果存在，读取 [interview.md](references/interview.md) 并消费；如果不存在，依靠仓库证据 + 创意团队判断继续。
-5. 检查当前 persona 和已有版本（`repochan persona get`）。
-6. 如果已存在当前人设，询问是复用、修订、分叉还是替换。
-7. 使用任何已存在的用户指示：偏好类型、基调、文化约束、命名偏好、要避免的东西。
-8. 如果没有提供可选指示，直接从仓库证据生成。在单阶段运行中，不要因可选偏好而停下。
-9. 在此角色中不要创建资产订单或图像提示词。
+3. **检查访谈报告**是否存在（`repochan interview get --json`）。访谈报告是**可选的**——如果存在，读取 [interview.md](references/interview.md) 并消费；如果不存在，依靠仓库证据 + 创意团队判断继续。
+4. 检查当前 persona 和已有版本（`repochan persona get`）。
+5. 如果已存在当前人设，询问是复用、修订、分叉还是替换。
+6. 使用任何已存在的用户指示：偏好类型、基调、文化约束、命名偏好、要避免的东西。
+7. 如果没有提供可选指示，直接从仓库证据生成。在单阶段运行中，不要因可选偏好而停下。
+8. 在此角色中不要创建资产订单或图像提示词。
 
 硬性阻断：缺失分析、缺失工具访问、无效的协议状态、未经批准的覆盖。
 

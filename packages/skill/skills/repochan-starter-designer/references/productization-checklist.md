@@ -28,4 +28,4 @@
 - 运行 `repochan starter validate <id>`。
 - 运行 source starter build。
 - Pull 到临时实例，执行 configure、validate 与 build 的 smoke test。
-- 记录 validator 尚未覆盖的 section coverage、transition、production browser evidence 等 gap；pattern seam 和网格投影应使用现有原子命令验证。
+- 记录 production browser 的响应式、可访问性和视觉检查证据；manifest、locale、asset contract、required path 与配置结构由 `starter validate` 验证，网格投影使用 `starter asset-apply` 验证。

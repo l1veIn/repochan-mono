@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
+import { randomUUID } from "node:crypto";
 import path from "node:path";
-import type { AssetOrder, JsonObject, OrderReference, OrderResultVersion, OrderStatus, VersionRole } from "../types.js";
+import type { AssetOrder, JsonObject, OrderReference, OrderResultVersion, OrderStatus } from "../types.js";
 import {
   exists,
   initProtocol,
@@ -11,12 +12,12 @@ import {
   orderVersionsDir,
   protocolRoot,
   readJson,
-  readJsonIfExists,
   relativeProtocolPath,
   requireAnalysis,
   requirePersona,
   stamp,
   stampForPath,
+  withProtocolRollback,
   writeJson,
 } from "../protocol/index.js";
 import { validateInput } from "../validate.js";
@@ -27,8 +28,6 @@ import {
   OrderCreateResultParamsSchema,
   OrderResultVersionSchema,
   OrderPromoteCandidateParamsSchema,
-  OrderPersistVersionMetadataParamsSchema,
-  OrderSetCurrentResultParamsSchema,
   OrderSetStatusParamsSchema,
   OrderUpdateParamsSchema,
 } from "../schemas/index.js";
@@ -44,7 +43,7 @@ import {
   validateOrderId,
   validateVersionId,
 } from "../utils/index.js";
-import { readOrder, IMAGE_EXTENSIONS } from "./shared.js";
+import { readOrder, validateStoredOrder, IMAGE_EXTENSIONS } from "./shared.js";
 import {
   abortOrderTransaction,
   assertOrderBytesUnchanged,
@@ -70,16 +69,15 @@ import {
  * already relative to references/, it is left as-is.
  */
 async function materializeOrderReferences(projectRoot: string, orderId: string, order: AssetOrder): Promise<void> {
-  if (!Array.isArray(order.references) || order.references.length === 0) return;
   const refsDir = orderReferencesDir(projectRoot, orderId);
-
-  for (const ref of order.references) {
+  const orderRoot = orderDir(projectRoot, orderId);
+  const pending: Array<{ ref: Extract<OrderReference, { type: "file" }>; src: string; ext: string }> = [];
+  for (const ref of order.references ?? []) {
     if (ref.type !== "file") continue;
 
-    // Skip already-materialized refs (relative to order dir, under references/)
-    if (!path.isAbsolute(ref.path) && ref.path.startsWith("references/")) continue;
-
-    const src = path.isAbsolute(ref.path) ? ref.path : path.resolve(projectRoot, ref.path);
+    const src = !path.isAbsolute(ref.path) && ref.path.startsWith("references/")
+      ? path.join(orderRoot, ref.path)
+      : path.isAbsolute(ref.path) ? ref.path : path.resolve(projectRoot, ref.path);
     if (!(await exists(src))) {
       throw new Error(`Reference file '${ref.path}' does not exist (resolved: ${src}).`);
     }
@@ -87,22 +85,48 @@ async function materializeOrderReferences(projectRoot: string, orderId: string, 
     if (!IMAGE_EXTENSIONS.includes(ext)) {
       throw new Error(`Reference file '${ref.path}' is not a recognized image (extension '${ext}').`);
     }
+    pending.push({ ref, src, ext });
+  }
+  if (!pending.length) {
+    await fs.rm(refsDir, { recursive: true, force: true });
+    return;
+  }
 
-    await fs.mkdir(refsDir, { recursive: true });
-    const basename = path.basename(src);
-    const dest = path.join(refsDir, basename);
-    if (await exists(dest)) {
-      // Deduplicate by name; if a different file already occupies this name, suffix it.
-      const stem = path.basename(src, ext);
-      let i = 2;
-      let candidate = path.join(refsDir, `${stem}-${i}${ext}`);
-      while (await exists(candidate)) { i++; candidate = path.join(refsDir, `${stem}-${i}${ext}`); }
-      await fs.copyFile(src, candidate);
-      ref.path = `references/${path.basename(candidate)}`;
-    } else {
+  await fs.mkdir(orderRoot, { recursive: true });
+  const nonce = randomUUID();
+  const staged = path.join(orderRoot, `.references-staged-${nonce}`);
+  const backup = path.join(orderRoot, `.references-backup-${nonce}`);
+  let movedExisting = false;
+  try {
+    await fs.mkdir(staged, { recursive: true });
+
+    for (const { ref, src, ext } of pending) {
+      const basename = path.basename(src);
+      let dest = path.join(staged, basename);
+      if (await exists(dest)) {
+        const stem = path.basename(src, ext);
+        let i = 2;
+        dest = path.join(staged, `${stem}-${i}${ext}`);
+        while (await exists(dest)) { i++; dest = path.join(staged, `${stem}-${i}${ext}`); }
+      }
       await fs.copyFile(src, dest);
-      ref.path = `references/${basename}`;
+      ref.path = `references/${path.basename(dest)}`;
     }
+
+    if (await exists(refsDir)) {
+      await fs.rename(refsDir, backup);
+      movedExisting = true;
+    }
+    try {
+      await fs.rename(staged, refsDir);
+    } catch (error) {
+      if (movedExisting) await fs.rename(backup, refsDir);
+      throw error;
+    }
+    if (movedExisting) await fs.rm(backup, { recursive: true, force: true });
+  } finally {
+    await fs.rm(staged, { recursive: true, force: true }).catch(() => undefined);
+    await fs.rm(backup, { recursive: true, force: true }).catch(() => undefined);
   }
 }
 
@@ -116,7 +140,7 @@ export async function createOrders(projectRoot: string, params: JsonObject) {
   const orders = inputOrders.map((order) => normalizeOrder(order as AssetOrder));
   for (const order of orders) {
     validateOrderId(order.orderId);
-    if (order.status === "delivered" || order.currentVersion !== undefined || order.orderAsset !== undefined) {
+    if (order.status === "delivered" || order.currentVersion !== undefined || order.candidateVersions.length !== 0) {
       throw new Error("order.create cannot create delivered/current result state. Create the order first, then publish materialized files with order.create_result.");
     }
   }
@@ -126,16 +150,16 @@ export async function createOrders(projectRoot: string, params: JsonObject) {
     if ((await exists(file)) && !overwrite) throw new Error(`Order ${order.orderId} already exists. Ask before overwrite=true.`);
   }
   const written: string[] = [];
-  for (const order of orders) {
-    const file = orderJsonPath(projectRoot, order.orderId);
-    await fs.mkdir(orderVersionsDir(projectRoot, order.orderId), { recursive: true });
-    await withOrderMutationLock(projectRoot, order.orderId, "order.create", async () => {
+  await withProtocolRollback(orders.map((order) => orderDir(projectRoot, order.orderId)), async () => {
+    for (const order of orders) {
+      const file = orderJsonPath(projectRoot, order.orderId);
       if ((await exists(file)) && !overwrite) throw new Error(`Order ${order.orderId} already exists. Ask before overwrite=true.`);
+      await fs.mkdir(orderVersionsDir(projectRoot, order.orderId), { recursive: true });
       await materializeOrderReferences(projectRoot, order.orderId, order);
       await writeJson(file, order, overwrite);
-    });
-    written.push(relativeProtocolPath(projectRoot, file));
-  }
+      written.push(relativeProtocolPath(projectRoot, file));
+    }
+  });
   return { written, orders };
 }
 
@@ -153,7 +177,7 @@ export async function listOrders(projectRoot: string) {
   for (const orderId of orderDirs) {
     const file = `${orderId}/order.json`;
     try {
-      const order = await readJson(orderJsonPath(projectRoot, orderId));
+      const order = await readOrder(projectRoot, orderId);
       const results = await listOrderResults(projectRoot, orderId).catch(() => ({ results: [] as OrderResultVersion[] }));
       orders.push({
         orderId: order.orderId,
@@ -172,6 +196,14 @@ export async function listOrders(projectRoot: string) {
 }
 
 export async function updateOrder(projectRoot: string, params: JsonObject) {
+  const requestedPatch = isPlainObject(params.patch) ? params.patch : undefined;
+  if (requestedPatch) {
+    for (const lifecycleField of ["status", "currentVersion", "candidateVersions", "revisions"]) {
+      if (Object.prototype.hasOwnProperty.call(requestedPatch, lifecycleField)) {
+        throw new Error(`order.update cannot change lifecycle field '${lifecycleField}'. Use the dedicated order lifecycle command.`);
+      }
+    }
+  }
   validateInput("order.update", OrderUpdateParamsSchema, params);
   await initProtocol(projectRoot);
   const orderId = validateOrderId(String(params.orderId ?? ""));
@@ -179,10 +211,10 @@ export async function updateOrder(projectRoot: string, params: JsonObject) {
   if (params.overwrite !== true) {
     throw new Error("order.update requires params.overwrite=true after explicit user approval. Use order.set_status or order.add_revision for narrow updates.");
   }
-  const patch = isPlainObject(params.patch) ? params.patch : isPlainObject(params.order) ? params.order : undefined;
-  if (!patch) throw new Error("order.update requires params.patch or params.order.");
-  return withOrderMutationLock(projectRoot, orderId, "order.update", async () => {
-    const current = await readJson(file);
+  const patch = isPlainObject(params.patch) ? params.patch : undefined;
+  if (!patch) throw new Error("order.update requires params.patch.");
+  return withProtocolRollback([file, orderReferencesDir(projectRoot, orderId)], async () => {
+    const current = await readOrder(projectRoot, orderId);
     const next = {
       ...deepMerge(current, patch),
       orderId,
@@ -190,20 +222,11 @@ export async function updateOrder(projectRoot: string, params: JsonObject) {
       createdAt: current.createdAt ?? stamp(),
       updatedAt: stamp(),
     } as AssetOrder;
-    const topCurrent = next.currentVersion;
-    const assetCurrent = next.orderAsset?.currentVersion;
-    const currentChanged = topCurrent !== current.currentVersion || assetCurrent !== current.orderAsset?.currentVersion;
-    if (next.status === "delivered" || currentChanged) {
-      if (!topCurrent) throw new Error("order.update cannot produce delivered/current state without currentVersion.");
-      if (assetCurrent && assetCurrent !== topCurrent) {
-        throw new Error(`order.update currentVersion mismatch: order=${topCurrent}, orderAsset=${assetCurrent}.`);
-      }
-      await readMaterializedResultVersion(projectRoot, orderId, validateVersionId(topCurrent));
-    }
     if (Array.isArray(next.references) && next.references.length) {
       next.references = normalizeReferences(next.references);
-      await materializeOrderReferences(projectRoot, orderId, next);
     }
+    validateStoredOrder(next, orderId);
+    await materializeOrderReferences(projectRoot, orderId, next);
     await writeJson(file, next, true);
     return next;
   });
@@ -216,7 +239,7 @@ export async function setOrderStatus(projectRoot: string, orderId: string, statu
   requireValidStatus(status);
   const file = orderJsonPath(projectRoot, orderId);
   return withOrderMutationLock(projectRoot, orderId, "order.set_status", async () => {
-    const order = await readJson(file);
+    const order = await readOrder(projectRoot, orderId);
     const currentStatus = order.status as OrderStatus | undefined;
     if (currentStatus && !isValidStatusTransition(currentStatus, status)) {
       throw new Error(
@@ -246,7 +269,7 @@ export async function addOrderRevision(projectRoot: string, orderId: string, rev
   }
   const file = orderJsonPath(projectRoot, orderId);
   return withOrderMutationLock(projectRoot, orderId, "order.add_revision", async () => {
-    const order = await readJson(file);
+    const order = await readOrder(projectRoot, orderId);
     order.revisions ??= [];
     order.revisions.push({ requestedAt: stamp(), request: revisionRequest, status: "draft" });
     order.status = "needs_revision";
@@ -256,17 +279,13 @@ export async function addOrderRevision(projectRoot: string, orderId: string, rev
   });
 }
 
-function versionFilesFromDir(entries: string[]) {
-  return entries.filter((entry) => entry !== "meta.json").sort();
-}
-
 type ResolvedResultFile = { basename: string; source: string };
 
 function portableResultBasenameKey(basename: string): string {
   return basename.normalize("NFC").toLowerCase();
 }
 
-async function assertNoSymlinkPath(projectRoot: string, target: string, label: string): Promise<void> {
+export async function assertNoSymlinkPath(projectRoot: string, target: string, label: string): Promise<void> {
   const root = path.resolve(projectRoot);
   const resolved = path.resolve(target);
   if (resolved !== root && !resolved.startsWith(`${root}${path.sep}`)) {
@@ -364,35 +383,10 @@ async function copyResultFiles(
   return recorded;
 }
 
-async function materializeLegacyResultVersion(projectRoot: string, orderId: string, versionId: string): Promise<OrderResultVersion> {
-  const versionDir = orderVersionDir(projectRoot, orderId, versionId);
-  const files: string[] = [];
-  for (const entry of (await fs.readdir(versionDir, { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
-    if (entry.name === "meta.json" || entry.isDirectory()) continue;
-    const storedFile = path.join(versionDir, entry.name);
-    await assertNoSymlinkPath(projectRoot, storedFile, "Legacy result file");
-    const stat = await fs.lstat(storedFile);
-    if (stat.isFile() && stat.size > 0) files.push(entry.name);
-  }
-  if (!files.length) throw new Error("legacy result version has no non-empty regular files to materialize.");
-  const dirStat = await fs.stat(versionDir);
-  const version: OrderResultVersion = {
-    versionId,
-    createdAt: dirStat.mtime.toISOString(),
-    tool: "legacy-materialized",
-    files,
-    provenance: { tool: "repochan", action: "order.set_current_result.legacy_materialize" },
-  };
-  validateInput("order.result_version", OrderResultVersionSchema, version);
-  await writeJson(path.join(versionDir, "meta.json"), version, false);
-  return version;
-}
-
 async function readMaterializedResultVersion(
   projectRoot: string,
   orderId: string,
   versionId: string,
-  options: { materializeLegacy?: boolean } = {},
 ): Promise<OrderResultVersion> {
   const versionDir = orderVersionDir(projectRoot, orderId, versionId);
   await assertNoSymlinkPath(projectRoot, versionDir, "Result version");
@@ -401,9 +395,8 @@ async function readMaterializedResultVersion(
   const metaPath = path.join(versionDir, "meta.json");
   await assertNoSymlinkPath(projectRoot, metaPath, "Result version metadata");
   const metaStat = await fs.lstat(metaPath).catch(() => undefined);
-  const meta = metaStat
-    ? await readJson(metaPath)
-    : options.materializeLegacy ? await materializeLegacyResultVersion(projectRoot, orderId, versionId) : undefined;
+  if (!metaStat?.isFile()) throw new Error(`stored result version ${versionId} is missing meta.json.`);
+  const meta = await readJson(metaPath);
   validateInput("order.result_version", OrderResultVersionSchema, meta);
   const version = meta as OrderResultVersion;
   if (version.versionId !== versionId) {
@@ -422,17 +415,11 @@ async function validateRecoverySemanticSnapshot(
   const orderPath = snapshotPaths["order.json"];
   if (!orderPath) throw new Error("Recovery semantic validation requires an order.json snapshot.");
   await assertNoSymlinkPath(projectRoot, orderPath, "Recovery order snapshot");
-  const order = JSON.parse(await fs.readFile(orderPath, "utf8")) as AssetOrder;
+  const order = validateStoredOrder(JSON.parse(await fs.readFile(orderPath, "utf8")));
   if (order.orderId !== orderId) throw new Error(`Recovery orderId mismatch: expected ${orderId}, got ${String(order.orderId)}.`);
   const topCurrent = order.currentVersion;
-  const assetCurrent = order.orderAsset?.currentVersion;
-  if (order.orderAsset && assetCurrent !== topCurrent) {
-    throw new Error(`Recovery currentVersion mismatch: order=${String(topCurrent)}, orderAsset=${assetCurrent}.`);
-  }
+  const candidates = Array.isArray(order.candidateVersions) ? order.candidateVersions : [];
   if (order.status === "delivered" && !topCurrent) throw new Error("Recovery delivered order snapshot has no currentVersion.");
-  if (topCurrent && order.orderAsset?.versions && !order.orderAsset.versions.some((entry) => entry.versionId === topCurrent)) {
-    throw new Error(`Recovery currentVersion ${topCurrent} has no embedded version metadata.`);
-  }
 
   const relevantIds = [manifest.versionId, manifest.previousVersionId].filter((value): value is string => Boolean(value));
   for (const versionId of relevantIds) {
@@ -440,11 +427,10 @@ async function validateRecoverySemanticSnapshot(
     const metadataDestination = `${directoryDestination}/meta.json`;
     const directoryEntry = manifest.entries.find((entry) => entry.destination === directoryDestination);
     const metadataEntry = manifest.entries.find((entry) => entry.destination === metadataDestination);
-    const embedded = order.orderAsset?.versions?.find((entry) => entry.versionId === versionId);
-
     if (directoryEntry && !directoryEntry.existedBefore) {
-      if (embedded) throw new Error(`Recovery order snapshot embeds ${versionId}, but the original version directory did not exist.`);
-      if (topCurrent === versionId) throw new Error(`Recovery currentVersion ${versionId} points to an absent original version.`);
+      if (topCurrent === versionId || candidates.includes(versionId)) {
+        throw new Error(`Recovery order lifecycle points to absent result version ${versionId}.`);
+      }
       continue;
     }
 
@@ -458,16 +444,11 @@ async function validateRecoverySemanticSnapshot(
     validateInput("order.result_version", OrderResultVersionSchema, meta);
     if (meta.versionId !== versionId) throw new Error(`Recovery version identity mismatch: expected ${versionId}, got ${String(meta.versionId)}.`);
     await preflightStoredResultFilesAt(projectRoot, versionDir, meta.files);
-    if (!embedded || JSON.stringify(embedded) !== JSON.stringify(meta)) {
-      throw new Error(`Recovery embedded/stored metadata mismatch for ${versionId}.`);
-    }
   }
 
-  if (topCurrent && !relevantIds.includes(topCurrent)) {
-    const current = await readMaterializedResultVersion(projectRoot, orderId, validateVersionId(topCurrent));
-    const embedded = order.orderAsset?.versions?.find((entry) => entry.versionId === topCurrent);
-    if (embedded && JSON.stringify(embedded) !== JSON.stringify(current)) {
-      throw new Error(`Recovery current version metadata mismatch for ${topCurrent}.`);
+  for (const referenced of [topCurrent, ...candidates].filter((value): value is string => Boolean(value))) {
+    if (!relevantIds.includes(referenced)) {
+      await readMaterializedResultVersion(projectRoot, orderId, validateVersionId(referenced));
     }
   }
 }
@@ -495,7 +476,7 @@ class ProtocolRecoveryError extends Error {
 async function assertSerializedOrderMutation(projectRoot: string, orderId: string): Promise<void> {
   const dir = orderDir(projectRoot, orderId);
   const active = (await fs.readdir(dir).catch(() => []))
-    .find((entry) => entry.startsWith(".result-txn-") || entry.startsWith(".promotion-txn-") || entry.startsWith(".metadata-txn-"));
+    .find((entry) => entry.startsWith(".result-txn-") || entry.startsWith(".promotion-txn-"));
   if (active) {
     throw new Error(
       `Order ${orderId} mutations must be serialized; active transaction or retained recovery directory: ${path.join(dir, active)}. ` +
@@ -510,20 +491,15 @@ async function publishResultTransaction(input: {
   stagedOrderFile: string;
   versionDir: string;
   orderFile: string;
-  overwrite: boolean;
   recoveryManifest: OrderRecoveryManifest;
 }): Promise<void> {
-  const backupVersion = path.join(input.transactionRoot, "previous-version");
   const backupOrder = path.join(input.transactionRoot, "previous-order.json");
-  let movedPreviousVersion = false;
   let installedVersion = false;
   let movedPreviousOrder = false;
   let installedOrder = false;
   try {
     if (await exists(input.versionDir)) {
-      if (!input.overwrite) throw new Error(`Result version already exists: ${input.versionDir}`);
-      await fs.rename(input.versionDir, backupVersion);
-      movedPreviousVersion = true;
+      throw new Error(`Result version already exists: ${input.versionDir}. Choose a new versionId.`);
     }
     await fs.rename(input.stagedVersionDir, input.versionDir);
     installedVersion = true;
@@ -536,7 +512,6 @@ async function publishResultTransaction(input: {
     if (installedOrder) await fs.rm(input.orderFile, { force: true }).catch((failure) => rollbackErrors.push(failure));
     if (movedPreviousOrder) await fs.rename(backupOrder, input.orderFile).catch((failure) => rollbackErrors.push(failure));
     if (installedVersion) await fs.rm(input.versionDir, { recursive: true, force: true }).catch((failure) => rollbackErrors.push(failure));
-    if (movedPreviousVersion) await fs.rename(backupVersion, input.versionDir).catch((failure) => rollbackErrors.push(failure));
     if (rollbackErrors.length) {
       const failure = `Result publish failed and rollback was incomplete: ${error instanceof Error ? error.message : String(error)}.`;
       await markRecoveryRequired(input.transactionRoot, input.recoveryManifest, failure).catch(() => undefined);
@@ -587,10 +562,10 @@ async function publishPromotionTransaction(
 
 export async function createOrderResult(projectRoot: string, params: JsonObject) {
   validateInput("order.create_result", OrderCreateResultParamsSchema, params);
-  return createOrderResultVersion(projectRoot, params);
+  return createOrderResultVersion(projectRoot, params, "current");
 }
 
-async function createOrderResultVersion(projectRoot: string, params: JsonObject, role?: VersionRole) {
+async function createOrderResultVersion(projectRoot: string, params: JsonObject, kind: "current" | "candidate") {
   const orderId = validateOrderId(String(params.orderId ?? ""));
   const versionId = validateVersionId(typeof params.versionId === "string" && params.versionId ? params.versionId : `v${stampForPath()}`);
   const versionDir = orderVersionDir(projectRoot, orderId, versionId);
@@ -601,15 +576,20 @@ async function createOrderResultVersion(projectRoot: string, params: JsonObject,
   await assertSerializedOrderMutation(projectRoot, orderId);
   const orderFile = orderJsonPath(projectRoot, orderId);
   const originalOrderBytes = await fs.readFile(orderFile);
-  const order = JSON.parse(originalOrderBytes.toString("utf8")) as AssetOrder;
-  if (params.allowUnapprovedOrder !== true && !["approved", "in_progress"].includes(String(order.status ?? ""))) {
-    throw new Error(
-      `Order ${orderId} is not approved/in_progress (status=${order.status ?? "missing"}). ` +
-        "Approve it first with `repochan order set-status <orderId> approved`, or pass allowUnapprovedOrder=true.",
-    );
+  const order = validateStoredOrder(JSON.parse(originalOrderBytes.toString("utf8")), orderId);
+  const allowedStatuses = kind === "current"
+    ? ["approved", "in_progress"]
+    : ["approved", "in_progress", "delivered", "needs_revision"];
+  if (!allowedStatuses.includes(String(order.status ?? ""))) {
+    throw new Error(`Order ${orderId} cannot create a ${kind} result from status=${order.status ?? "missing"}. Allowed: ${allowedStatuses.join(", ")}.`);
   }
-  const overwrite = params.overwrite === true;
-  if ((await exists(versionDir)) && !overwrite) throw new Error(`Order result ${orderId}/${versionId} already exists. Ask before overwrite=true.`);
+  if (kind === "current" && order.candidateVersions.includes(versionId)) {
+    throw new Error(`Result version ${versionId} is a candidate and can become current only through candidate promotion.`);
+  }
+  if (kind === "candidate" && order.currentVersion === versionId) {
+    throw new Error(`Result version ${versionId} is already current and cannot also be a candidate.`);
+  }
+  if (await exists(versionDir)) throw new Error(`Order result ${orderId}/${versionId} already exists. Result versions are immutable; choose a new versionId.`);
   const inputFiles = Array.isArray(params.files) ? params.files.filter((file): file is string => typeof file === "string") : [];
   const resolvedTool = typeof params.tool === "string" ? params.tool : "repochan";
   const resolvedGenerationPrompt = typeof params.generationPrompt === "string" && params.generationPrompt.trim() ? params.generationPrompt.trim() : undefined;
@@ -642,7 +622,6 @@ async function createOrderResultVersion(projectRoot: string, params: JsonObject,
       createdAt: stamp(),
       tool: resolvedTool,
       files,
-      role,
       promptBrief: typeof params.promptBrief === "string" ? params.promptBrief : undefined,
       generationPrompt: resolvedGenerationPrompt,
       revisedPrompt: typeof params.revisedPrompt === "string" ? params.revisedPrompt : undefined,
@@ -651,25 +630,18 @@ async function createOrderResultVersion(projectRoot: string, params: JsonObject,
       meta: isPlainObject(params.meta) ? params.meta : undefined,
     };
 
-    // Embed previous Asset info directly into order.json as orderAsset.
-    const next = { ...order };
-    next.currentVersion = params.setCurrent === false ? order.currentVersion : versionId;
-    const embeddedVersions = [...(order.orderAsset?.versions ?? [])].filter((item: any) => item.versionId !== versionId);
-    embeddedVersions.push(version);
-    next.orderAsset = {
-      ...(order.orderAsset ?? { meta: {} }),
-      versions: embeddedVersions,
+    const next: AssetOrder = {
+      ...order,
+      candidateVersions: [...(order.candidateVersions ?? [])],
     };
-    next.orderAsset.currentVersion = next.currentVersion;
-    const shouldDeliver = params.markDelivered !== false && ["approved", "in_progress"].includes(String(next.status ?? ""));
-    if (shouldDeliver) {
-      if (!next.currentVersion) {
-        throw new Error("order.create_result cannot mark an order delivered without a current result version. Use setCurrent=true or markDelivered=false.");
-      }
-      if (next.currentVersion !== versionId) {
-        await readMaterializedResultVersion(projectRoot, orderId, next.currentVersion);
-      }
+    if (kind === "current") {
+      next.currentVersion = versionId;
       next.status = "delivered";
+    } else {
+      if (next.currentVersion === versionId || next.candidateVersions.includes(versionId)) {
+        throw new Error(`Order ${orderId} already references result version ${versionId}.`);
+      }
+      next.candidateVersions.push(versionId);
     }
     next.updatedAt = stamp();
     await fs.writeFile(path.join(stagedVersionDir, "meta.json"), `${JSON.stringify(version, null, 2)}\n`, "utf8");
@@ -680,7 +652,7 @@ async function createOrderResultVersion(projectRoot: string, params: JsonObject,
         { destination: versionDir, backup: "previous-version", kind: "directory" },
         { destination: orderFile, backup: "previous-order.json", kind: "file" },
       ]);
-      await publishResultTransaction({ transactionRoot, stagedVersionDir, stagedOrderFile, versionDir, orderFile, overwrite, recoveryManifest });
+      await publishResultTransaction({ transactionRoot, stagedVersionDir, stagedOrderFile, versionDir, orderFile, recoveryManifest });
     });
     return { order: next, version, checkedOrder: order };
   } catch (error) {
@@ -695,30 +667,20 @@ async function createOrderResultVersion(projectRoot: string, params: JsonObject,
 }
 
 /**
- * Create a candidate draft version — a parallel draft that is NOT promoted to
- * current and does NOT mark the order delivered. Reuses createOrderResult's
- * file-copy and meta-writing logic, then overrides the role to "candidate".
+ * Create a candidate draft version. Candidate identity is lifecycle state on
+ * order.json; immutable result metadata contains no mutable role.
  *
  * Multiple candidates can coexist on one order. The user/AD later calls
  * promoteCandidate to select one as current; the rest stay as candidates.
  */
 export async function createOrderCandidate(projectRoot: string, params: JsonObject) {
   validateInput("order.create_candidate", OrderCreateCandidateParamsSchema, params);
-  // Delegate to createOrderResult with flags that prevent promotion + delivery.
-  // allowUnapprovedOrder: candidates are typically added AFTER the order has been
-  // delivered (user wants alternatives) — the approval gate would block that.
-  // This is safe because candidates don't promote or change status.
-  return createOrderResultVersion(projectRoot, {
-    ...params,
-    setCurrent: false,             // do NOT point currentVersion at this candidate
-    markDelivered: false,          // do NOT change order status — candidates aren't deliveries
-    allowUnapprovedOrder: true,    // candidates can be added to delivered orders
-  }, "candidate");
+  return createOrderResultVersion(projectRoot, params, "candidate");
 }
 
 /**
- * Promote a candidate version to current. The previous current version (if any)
- * is demoted to snapshot. At most one version is "current" at any time.
+ * Promote a candidate version to current. Only order lifecycle state changes;
+ * versions/<id>/meta.json remains immutable.
  */
 export async function promoteCandidate(projectRoot: string, orderId: string, versionId: string) {
   validateInput("order.promote_candidate", OrderPromoteCandidateParamsSchema, { orderId, versionId });
@@ -732,91 +694,42 @@ export async function promoteCandidate(projectRoot: string, orderId: string, ver
   await assertSerializedOrderMutation(projectRoot, id);
   if (!(await exists(file))) throw new Error(`Order ${id} does not exist.`);
   const originalOrderBytes = await fs.readFile(file);
-  const order = JSON.parse(originalOrderBytes.toString("utf8")) as AssetOrder;
+  const order = validateStoredOrder(JSON.parse(originalOrderBytes.toString("utf8")), id);
 
-  if (!order.orderAsset || !Array.isArray(order.orderAsset.versions)) {
-    throw new Error(`Order ${id} has no result versions. Create a candidate first.`);
-  }
-
-  const versions = order.orderAsset.versions as OrderResultVersion[];
-  const targetIndex = versions.findIndex((v) => v.versionId === vid);
-  const embeddedTarget = versions[targetIndex];
-  if (!embeddedTarget) {
-    throw new Error(`Order ${id} has no version '${vid}'. Cannot promote.`);
-  }
-  if (embeddedTarget.role === "current") {
+  if (order.currentVersion === vid) {
     throw new Error(`Version ${vid} is already the current version of order ${id}.`);
   }
-  if (embeddedTarget.role !== "candidate") {
-    throw new Error(`Version ${vid} is not a candidate. Only role=candidate versions can be promoted.`);
+  if (!Array.isArray(order.candidateVersions) || !order.candidateVersions.includes(vid)) {
+    throw new Error(`Version ${vid} is not a candidate of order ${id}.`);
   }
 
-  // The embedded version entry is not evidence by itself. Re-check the files
-  // in the candidate's immutable version directory before changing any current
-  // pointers or demoting the previous current version.
   let target: OrderResultVersion;
   try {
     target = await readMaterializedResultVersion(projectRoot, id, vid);
-    if (target.role !== "candidate") throw new Error("stored result metadata role is not candidate.");
-    if (JSON.stringify(target.files) !== JSON.stringify(embeddedTarget.files)) {
-      throw new Error("embedded and stored result file lists do not match.");
-    }
   } catch (error) {
     throw new Error(
       `Cannot promote candidate ${id}/${vid}: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
-  versions[targetIndex] = target;
-
-  // Demote the previous current (if any) to snapshot.
-  let previousCurrent: OrderResultVersion | undefined;
-  let previousMetaPath: string | undefined;
   const prevCurrentId = order.currentVersion;
-  if (prevCurrentId) {
-    const prev = versions.find((v) => v.versionId === prevCurrentId);
-    if (prev && prev.versionId !== vid) {
-      prev.role = "snapshot" as VersionRole;
-      previousCurrent = { ...prev };
-      const prevDir = orderVersionDir(projectRoot, id, prev.versionId);
-      await assertNoSymlinkPath(projectRoot, prevDir, "Previous result version");
-      const candidatePreviousMeta = path.join(prevDir, "meta.json");
-      await assertNoSymlinkPath(projectRoot, candidatePreviousMeta, "Previous result metadata");
-      if (await exists(candidatePreviousMeta)) previousMetaPath = candidatePreviousMeta;
-    }
-  }
-
-  // Promote the target.
-  target.role = "current" as VersionRole;
   order.currentVersion = vid;
-  order.orderAsset.currentVersion = vid;
+  order.candidateVersions = order.candidateVersions.filter((candidate) => candidate !== vid);
+  order.status = "delivered";
   order.updatedAt = stamp();
 
-  const targetMetaPath = path.join(targetDir, "meta.json");
-  await assertNoSymlinkPath(projectRoot, targetMetaPath, "Promoted result metadata");
   await assertNoSymlinkPath(projectRoot, file, "Promoted order state");
   const { transactionRoot, identity: transactionIdentity } = await createOrderTransaction(
     projectRoot,
     id,
     "candidate_promotion",
     vid,
-    previousMetaPath ? previousCurrent?.versionId : undefined,
+    prevCurrentId,
   );
   let retainRecovery = false;
   try {
-    const publications: Array<{ destination: string; staged: string; backup: string }> = [];
-    if (previousMetaPath && previousCurrent) {
-      const staged = path.join(transactionRoot, "previous-meta.json");
-      await fs.writeFile(staged, `${JSON.stringify(previousCurrent, null, 2)}\n`, "utf8");
-      publications.push({ destination: previousMetaPath, staged, backup: "previous-meta.json.bak" });
-    }
-    const stagedTarget = path.join(transactionRoot, "target-meta.json");
     const stagedOrder = path.join(transactionRoot, "order.json");
-    await fs.writeFile(stagedTarget, `${JSON.stringify(target, null, 2)}\n`, "utf8");
     await fs.writeFile(stagedOrder, `${JSON.stringify(order, null, 2)}\n`, "utf8");
-    publications.push(
-      { destination: targetMetaPath, staged: stagedTarget, backup: "target-meta.json.bak" },
-      { destination: file, staged: stagedOrder, backup: "order.json.bak" },
-    );
+    const publications = [{ destination: file, staged: stagedOrder, backup: "order.json.bak" }];
     await withOrderMutationLock(projectRoot, id, "order.promote_candidate publish", async () => {
       await assertOrderBytesUnchanged(file, originalOrderBytes, "order.promote_candidate");
       const recoveryManifest = await prepareRecoveryManifest(
@@ -832,7 +745,7 @@ export async function promoteCandidate(projectRoot: string, orderId: string, ver
       );
       await publishPromotionTransaction(transactionRoot, publications, recoveryManifest);
     });
-    return { order, promotedVersion: target, previousCurrent };
+    return { order, promotedVersion: target, previousCurrentVersion: prevCurrentId };
   } catch (error) {
     retainRecovery = error instanceof ProtocolRecoveryError;
     throw error;
@@ -846,18 +759,7 @@ export async function promoteCandidate(projectRoot: string, orderId: string, ver
 
 export async function listOrderResults(projectRoot: string, orderId: string) {
   const id = validateOrderId(orderId);
-  const order = await readOrder(projectRoot, id).catch(() => ({} as any));
-
-  // Prefer embedded orderAsset info in order.json (previous Asset's data now here)
-  if (order.orderAsset && Array.isArray(order.orderAsset.versions)) {
-    return {
-      orderId: id,
-      results: order.orderAsset.versions as OrderResultVersion[],
-      currentVersion: order.orderAsset.currentVersion || order.currentVersion,
-    };
-  }
-
-  // Fallback to dir scan + meta.json
+  const order = await readOrder(projectRoot, id);
   const dir = orderVersionsDir(projectRoot, id);
   let entries: import("node:fs").Dirent[] = [];
   try {
@@ -866,157 +768,20 @@ export async function listOrderResults(projectRoot: string, orderId: string) {
     return { orderId: id, results: [] as OrderResultVersion[] };
   }
   const results: OrderResultVersion[] = [];
-  for (const entry of entries.filter((item) => item.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))) {
+  for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
+    if (entry.isSymbolicLink() || !entry.isDirectory()) throw new Error(`Invalid result entry for ${id}: ${entry.name}.`);
     const versionId = validateVersionId(entry.name);
-    const versionDir = orderVersionDir(projectRoot, id, versionId);
-    const meta = (await readJsonIfExists(path.join(versionDir, "meta.json"))) as Partial<OrderResultVersion> | undefined;
-    const dirFiles = versionFilesFromDir(await fs.readdir(versionDir).catch(() => []));
-    results.push({
-      versionId,
-      createdAt: typeof meta?.createdAt === "string" ? meta.createdAt : "",
-      tool: meta?.tool,
-      files: Array.isArray(meta?.files) && meta.files.length ? meta.files : dirFiles,
-      promptBrief: meta?.promptBrief,
-      generationPrompt: meta?.generationPrompt,
-      revisedPrompt: meta?.revisedPrompt,
-      notes: meta?.notes,
-      provenance: meta?.provenance,
-      meta: meta?.meta,
-    });
+    results.push(await readMaterializedResultVersion(projectRoot, id, versionId));
   }
-  return { orderId: id, results };
+  return { orderId: id, results, currentVersion: order.currentVersion, candidateVersions: order.candidateVersions };
 }
 
 export async function readOrderResult(projectRoot: string, orderId: string, versionId?: string) {
   const id = validateOrderId(orderId);
   const order = await readOrder(projectRoot, id);
-  const listed = versionId ? undefined : await listOrderResults(projectRoot, id);
-  const resolvedVersionId = versionId ? validateVersionId(versionId) : order.currentVersion ?? listed?.results.at(-1)?.versionId;
-  if (!resolvedVersionId) throw new Error(`Order ${id} has no currentVersion. Pass versionId or create a result first.`);
-  const dir = orderVersionDir(projectRoot, id, resolvedVersionId);
-  if (!(await exists(dir))) throw new Error(`Order ${id} has no result version ${resolvedVersionId}.`);
-  const meta = (await readJsonIfExists(path.join(dir, "meta.json"))) as Partial<OrderResultVersion> | undefined;
-  const files = versionFilesFromDir(await fs.readdir(dir).catch(() => []));
-  return {
-    orderId: id,
-    version: {
-      versionId: resolvedVersionId,
-      createdAt: typeof meta?.createdAt === "string" ? meta.createdAt : "",
-      tool: meta?.tool,
-      files: Array.isArray(meta?.files) && meta.files.length ? meta.files : files,
-      promptBrief: meta?.promptBrief,
-      generationPrompt: meta?.generationPrompt,
-      revisedPrompt: meta?.revisedPrompt,
-      notes: meta?.notes,
-      provenance: meta?.provenance,
-      meta: meta?.meta,
-    } as OrderResultVersion,
-  };
-}
-
-async function validateDerivedEvidence(projectRoot: string, versionDir: string, evidenceFiles: string[]) {
-  for (const relative of evidenceFiles) {
-    if (path.isAbsolute(relative) || relative.includes("\\")) throw new Error(`Evidence file must be relative to the version directory: ${relative}`);
-    const absolute = path.resolve(versionDir, relative);
-    if (!absolute.startsWith(`${path.resolve(versionDir)}${path.sep}`)) throw new Error(`Evidence file escapes the version directory: ${relative}`);
-    await assertNoSymlinkPath(projectRoot, absolute, "Version metadata evidence");
-    const stat = await fs.lstat(absolute).catch(() => undefined);
-    if (!(stat?.isFile() && stat.size > 0)) throw new Error(`Version metadata evidence is missing or empty: ${relative}`);
-  }
-}
-
-export async function persistOrderVersionMetadata(projectRoot: string, params: JsonObject) {
-  validateInput("order.persist_version_metadata", OrderPersistVersionMetadataParamsSchema, params);
-  const orderId = validateOrderId(String(params.orderId));
-  const versionId = validateVersionId(String(params.versionId));
-  const metadata = isPlainObject(params.metadata) ? params.metadata : {};
-  const allowedMetadata = new Set(["tiles", "stickers", "stickersConfig"]);
-  for (const key of Object.keys(metadata)) {
-    if (!allowedMetadata.has(key)) throw new Error(`Unsupported derived version metadata key: ${key}.`);
-  }
-  const evidenceFiles = params.evidenceFiles as string[];
-  await initProtocol(projectRoot);
-  const versionDir = orderVersionDir(projectRoot, orderId, versionId);
-  const metaPath = path.join(versionDir, "meta.json");
-  const orderFile = orderJsonPath(projectRoot, orderId);
-  await assertNoSymlinkPath(projectRoot, metaPath, "Version metadata persistence");
-
-  await validateDerivedEvidence(projectRoot, versionDir, evidenceFiles);
-  if (Array.isArray(metadata.stickers)) {
-    for (const sticker of metadata.stickers) {
-      const file = isPlainObject(sticker) && typeof sticker.file === "string" ? sticker.file : undefined;
-      if (!file || !evidenceFiles.includes(file)) throw new Error("Every recorded sticker file must be present in evidenceFiles.");
-    }
-  }
-
-  const { transactionRoot, identity } = await createOrderTransaction(projectRoot, orderId, "version_metadata", versionId);
-  let retainRecovery = false;
-  try {
-    return await withOrderMutationLock(projectRoot, orderId, "order.persist_version_metadata", async () => {
-      await validateDerivedEvidence(projectRoot, versionDir, evidenceFiles);
-      const stored = await readMaterializedResultVersion(projectRoot, orderId, versionId);
-      const order = await readJson(orderFile) as AssetOrder;
-      const embeddedIndex = order.orderAsset?.versions?.findIndex((entry) => entry.versionId === versionId) ?? -1;
-      if (embeddedIndex < 0 || !order.orderAsset?.versions) throw new Error(`Order ${orderId} does not embed result version ${versionId}.`);
-      const embedded = order.orderAsset.versions[embeddedIndex];
-      if (JSON.stringify(embedded) !== JSON.stringify(stored)) {
-        throw new Error(`Cannot persist metadata: embedded and stored version ${versionId} disagree.`);
-      }
-      const updatedAt = stamp();
-      const nextVersion = { ...stored, ...metadata, updatedAt } as OrderResultVersion;
-      validateInput("order.result_version", OrderResultVersionSchema, nextVersion);
-      const nextOrder = { ...order, orderAsset: { ...order.orderAsset, versions: [...order.orderAsset.versions] }, updatedAt };
-      nextOrder.orderAsset.versions[embeddedIndex] = nextVersion;
-
-      const stagedMeta = path.join(transactionRoot, "meta.json");
-      const stagedOrder = path.join(transactionRoot, "order.json");
-      await fs.writeFile(stagedMeta, `${JSON.stringify(nextVersion, null, 2)}\n`, "utf8");
-      await fs.writeFile(stagedOrder, `${JSON.stringify(nextOrder, null, 2)}\n`, "utf8");
-      const publications = [
-        { destination: metaPath, staged: stagedMeta, backup: "meta.json.bak" },
-        { destination: orderFile, staged: stagedOrder, backup: "order.json.bak" },
-      ];
-      const recoveryManifest = await prepareRecoveryManifest(projectRoot, orderId, transactionRoot, identity, [
-        { destination: metaPath, backup: "meta.json.bak", kind: "file" },
-        { destination: orderFile, backup: "order.json.bak", kind: "file" },
-      ]);
-      try {
-        await publishPromotionTransaction(transactionRoot, publications, recoveryManifest);
-      } catch (error) {
-        retainRecovery = error instanceof ProtocolRecoveryError;
-        throw error;
-      }
-      return { order: nextOrder, version: nextVersion };
-    });
-  } finally {
-    if (!retainRecovery) {
-      await fs.rm(transactionRoot, { recursive: true, force: true }).catch(() => undefined);
-      await removeOrderTransactionIdentity(projectRoot, orderId, path.basename(transactionRoot)).catch(() => undefined);
-    }
-  }
-}
-
-export async function setCurrentOrderResult(projectRoot: string, orderId: string, versionId: string) {
-  validateInput("order.set_current_result", OrderSetCurrentResultParamsSchema, { orderId, versionId });
-  const id = validateOrderId(orderId);
-  const version = validateVersionId(versionId);
-  await assertNoSymlinkPath(projectRoot, orderVersionDir(projectRoot, id, version), "Current result version");
-  await initProtocol(projectRoot);
-  const file = orderJsonPath(projectRoot, id);
-  return withOrderMutationLock(projectRoot, id, "order.set_current_result", async () => {
-    const materialized = await readMaterializedResultVersion(projectRoot, id, version, { materializeLegacy: true });
-    const order = await readJson(file);
-    order.currentVersion = version;
-    if (order.orderAsset) {
-      order.orderAsset.currentVersion = version;
-      const index = order.orderAsset.versions?.findIndex((item: OrderResultVersion) => item.versionId === version) ?? -1;
-      if (index >= 0) order.orderAsset.versions[index] = materialized;
-      else if (Array.isArray(order.orderAsset.versions)) order.orderAsset.versions.push(materialized);
-    }
-    order.updatedAt = stamp();
-    await writeJson(file, order, true);
-    return order;
-  });
+  const resolvedVersionId = versionId ? validateVersionId(versionId) : order.currentVersion;
+  if (!resolvedVersionId) throw new Error(`Order ${id} has no currentVersion. Pass --result-version or create/promote a result first.`);
+  return { orderId: id, version: await readMaterializedResultVersion(projectRoot, id, resolvedVersionId) };
 }
 
 export async function listOrderRecoveries(projectRoot: string, orderId: string) {
@@ -1034,23 +799,16 @@ export async function recoverOrderRecovery(projectRoot: string, orderId: string,
 export async function abortOrderRecovery(projectRoot: string, orderId: string, transactionId: string) {
   const id = validateOrderId(orderId);
   return abortOrderTransaction(projectRoot, id, transactionId, async () => {
-    const order = await readJson(orderJsonPath(projectRoot, id)).catch(() => {
+    const order = await readOrder(projectRoot, id).catch(() => {
       throw new Error("Cannot abort recovery: current order.json is missing or invalid. Run recovery recover instead.");
     }) as AssetOrder;
     const topCurrent = order.currentVersion;
-    const assetCurrent = order.orderAsset?.currentVersion;
-    if (assetCurrent && assetCurrent !== topCurrent) {
-      throw new Error("Cannot abort recovery: order currentVersion pointers disagree. Run recovery recover instead.");
-    }
     if (order.status === "delivered" || topCurrent) {
       if (!topCurrent) throw new Error("Cannot abort recovery: delivered order has no currentVersion. Run recovery recover instead.");
       await readMaterializedResultVersion(projectRoot, id, validateVersionId(topCurrent));
     }
-    for (const embedded of order.orderAsset?.versions ?? []) {
-      const stored = await readMaterializedResultVersion(projectRoot, id, validateVersionId(embedded.versionId));
-      if (JSON.stringify(stored) !== JSON.stringify(embedded)) {
-        throw new Error(`Cannot abort recovery: embedded and stored metadata disagree for ${embedded.versionId}. Run recovery recover instead.`);
-      }
+    for (const candidate of order.candidateVersions ?? []) {
+      await readMaterializedResultVersion(projectRoot, id, validateVersionId(candidate));
     }
   });
 }
@@ -1072,12 +830,12 @@ export async function findFoundationSheet(projectRoot: string): Promise<{
 } | null> {
   const { orders } = await listOrders(projectRoot);
   for (const summary of orders) {
-    if (summary.unreadable || !summary.assetType || !isFoundationAssetType(summary.assetType)) continue;
+    if (summary.unreadable) throw new Error(`Cannot find foundation: stored order ${summary.orderId ?? summary.file} is invalid.`);
+    if (!summary.assetType || !isFoundationAssetType(summary.assetType)) continue;
     if (!summary.currentVersion) continue;
     const orderId = validateOrderId(summary.orderId);
-    const dir = orderVersionDir(projectRoot, orderId, summary.currentVersion);
-    if (!(await exists(dir))) continue;
-    const files = (await fs.readdir(dir).catch(() => [])).filter((f) => IMAGE_EXTENSIONS.includes(path.extname(f).toLowerCase()));
+    const version = await readMaterializedResultVersion(projectRoot, orderId, summary.currentVersion);
+    const files = version.files.filter((f) => IMAGE_EXTENSIONS.includes(path.extname(f).toLowerCase()));
     if (files.length > 0) {
       return { orderId, versionId: summary.currentVersion, assetType: summary.assetType, files };
     }
@@ -1136,9 +894,9 @@ export async function resolveOrderReferences(
     if (!order) throw new Error(`Reference orderId '${ref.orderId}' does not exist.`);
     const versionId = ref.versionId ?? order.currentVersion;
     if (!versionId) throw new Error(`Reference order '${ref.orderId}' has no currentVersion and no versionId was specified.`);
+    const version = await readMaterializedResultVersion(projectRoot, ref.orderId, validateVersionId(versionId));
     const dir = orderVersionDir(projectRoot, ref.orderId, versionId);
-    if (!(await exists(dir))) throw new Error(`Reference order '${ref.orderId}' has no result version '${versionId}'.`);
-    const files = (await fs.readdir(dir).catch(() => []))
+    const files = version.files
       .filter((f) => IMAGE_EXTENSIONS.includes(path.extname(f).toLowerCase()))
       .map((f) => path.resolve(dir, f));
     if (files.length === 0) throw new Error(`Reference order '${ref.orderId}' version '${versionId}' has no image files.`);

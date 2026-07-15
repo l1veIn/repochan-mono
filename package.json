@@ -17,10 +17,11 @@
   },
   "scripts": {
     "build": "pnpm -r build",
-    "test": "pnpm --filter repochan... build && pnpm -r test && pnpm test:release-contract",
+    "test": "pnpm --filter repochan... build && pnpm -r test && pnpm test:release-contract && pnpm test:compatibility-debt",
     "test:release-contract": "node --test scripts/release-contract.test.mjs",
+    "test:compatibility-debt": "node scripts/compatibility-debt.mjs",
     "release:pack-smoke": "node scripts/release-preflight.mjs",
-    "release:preflight": "node scripts/release-preflight.mjs --registry-check",
+    "release:preflight": "node scripts/release-preflight.mjs --source-ref HEAD --registry-check",
     "dev": "pnpm --filter repochan exec tsx src/index.ts",
     "lint": "pnpm -r lint",
     "cli": "pnpm --filter repochan run cli",

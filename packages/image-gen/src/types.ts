@@ -93,8 +93,8 @@ export interface EndpointConfig {
 }
 
 export interface ImageGenConfig {
-  /** Schema version. Missing → treated as v1 (endpoints default mode=auto). */
-  version?: number;
+  /** Current persisted config schema. Stored config files must declare version 2. */
+  version?: 2;
   /** Active endpoint id. If unset, the first endpoint is used. */
   defaultEndpoint?: string;
   /** Named endpoints. */

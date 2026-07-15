@@ -9,7 +9,7 @@ import { UsageError } from "./output.js";
  *   2. `--data-file -`     — read stdin
  *   3. omitted + piped stdin (non-TTY) — read stdin (agent-friendly default)
  *
- * Complex nested JSON never has to cross argv (quoting hell), per ADR §5.4.
+ * Complex nested JSON never has to cross argv, avoiding shell quoting hazards.
  *
  *   repochan persona create --data-file persona.json
  *   echo '{...}' | repochan persona create --data-file -
