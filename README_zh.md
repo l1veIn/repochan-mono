@@ -94,13 +94,13 @@ cli ──┬──> core
 
 ## 前置条件
 
-- **Node.js** ≥ 18
+- **Node.js** ≥ 20
 - **pnpm** ≥ 9（`corepack enable && corepack prepare pnpm@9 --activate`）
 - 你已经在用的 coding agent（Claude Code、Codex、Pi、Cursor、Hermes …）
 - 出图需要：OpenAI-compatible 的 images endpoint（直连 OpenAI、中转站或本地 reverse-proxy）
 
 ```bash
-node --version   # ≥ 18
+node --version   # ≥ 20
 pnpm --version   # ≥ 9
 ```
 
@@ -251,6 +251,13 @@ pnpm --filter @repochan/core build && pnpm --filter @repochan/core test
 pnpm -r build
 pnpm -r test
 ```
+
+### 发布前验证
+
+发布前先用 `pnpm release:pack-smoke` 验证 pack 后的依赖图与 clean-room
+用户路径，再用只读的 `pnpm release:preflight` 对照 npm，检测不可覆盖的
+版本冲突。叶子包优先、CLI 最后的完整合同见
+[`docs/releasing.md`](./docs/releasing.md)。
 
 ---
 

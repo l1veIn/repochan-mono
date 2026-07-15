@@ -113,13 +113,13 @@ and identity anchors. Generic `protocol write` cannot modify order-managed paths
 
 ## Prerequisites
 
-- **Node.js** ≥ 18
+- **Node.js** ≥ 20
 - **pnpm** ≥ 9 (`corepack enable && corepack prepare pnpm@9 --activate`)
 - A coding agent you already use (Claude Code, Codex, Pi, Cursor, Hermes, …)
 - For image generation: an OpenAI-compatible images endpoint (direct OpenAI, relay, or local reverse-proxy)
 
 ```bash
-node --version   # ≥ 18
+node --version   # ≥ 20
 pnpm --version   # ≥ 9
 ```
 
@@ -288,6 +288,13 @@ pnpm --filter @repochan/core build && pnpm --filter @repochan/core test
 pnpm -r build
 pnpm -r test
 ```
+
+### Release preflight
+
+Before publishing, verify the packed dependency graph and the clean-room user
+journey with `pnpm release:pack-smoke`. Then run the registry-aware, read-only
+`pnpm release:preflight` to detect immutable npm version collisions. See
+[`docs/releasing.md`](./docs/releasing.md) for the leaf-first release contract.
 
 ---
 
