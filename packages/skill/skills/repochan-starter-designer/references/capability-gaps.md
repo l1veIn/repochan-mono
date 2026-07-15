@@ -17,11 +17,13 @@
 
 ### Section composition schema
 
-Core 尚不能表达 sections、baked/live layers、canonical viewport、safe zones、responsive variant 和 design reference。应先通过真实 starter 验证字段，再进入 v1.1。
+Core 尚不能表达 sections、baked/live layers、canonical viewport、safe zones、responsive variant、design provenance、shared L1 pattern 和 transition contract。应先通过真实 starter 验证字段，再进入 v1.1。
 
 ### Authoring order materialization
 
 现有 `starter create-order` 面向 pull 后实例 slot。Source starter 设计阶段仍需 generic `order create`。等 composition schema 稳定后，再增加 authoring 原子命令。
+
+该原子命令还应统一执行状态生命周期：materialize approved order → resolve references → generation 开始前进入 `in_progress` → result QA 后 delivered，避免不同代理遗漏机械状态传递。
 
 ### 可复现 render / visual diff
 
@@ -30,6 +32,18 @@ Core 尚不能表达 sections、baked/live layers、canonical viewport、safe zo
 ### 更强的提取质量检查
 
 缺少 alpha 边缘、spill、透明材质和 safe-zone 对比度的确定性报告。可在 image-edit 中逐步补齐，不由 Painter 手工修协议文件。
+
+### Pattern seam 与动效检查
+
+`official/pattern-tile` 能生成四方连续候选，但缺少确定性的 3×3 seam/hotspot 检查板、重复度报告和 reduced-motion validation。稳定后应由 image-edit/CLI 生成检查证据，不把人工拼图留给 Agent。
+
+### Section coverage validation
+
+Starter v1 validator 不知道非 Hero sections 是否有 design reference 或 HTML-first decision，也无法检查整页母稿被错误冒充为所有 section 的设计依据。Composition schema 稳定后，`starter validate` 应要求 coverage、shared L1 来源和相邻 transition contract 完整。
+
+### 研究运行与对照报告
+
+多代理视觉研究目前依靠独立 generic orders 和主代理人工汇总。待输入输出稳定后，可增加只做机械聚合的 CLI 报告：列出候选 order/version、固定参考、prompt hash、尺寸、状态和产物路径。方向分配、视觉比较与 Gate 结论仍保留在 skill 和人类判断中。
 
 ## 收敛原则
 

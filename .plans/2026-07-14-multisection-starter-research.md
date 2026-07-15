@@ -1,6 +1,6 @@
 # Image-driven multi-section Starter research
 
-> Status: RESEARCH MILESTONE 1
+> Status: RESEARCH MILESTONE 2 — HUMAN GATE 1
 > Date: 2026-07-14
 > Scope: bake-mask methodology, Starter Designer role, human visual gates, product gaps, and the path to RepoChan's first production multi-section starter.
 
@@ -89,7 +89,7 @@ This provides at least four different composition recipes and enough evidence to
 
 ### Milestone 2 — dogfood design
 
-- Produce two coherent visual directions for the full page or four key sections.
+- Produce two coherent visual directions for the full page or four key sections. **Complete.**
 - Human Gate 1 selects one.
 - Decompose Hero, Capabilities, Workflow and CTA.
 - Record normalized safe zones and responsive rules outside Core while fields are still exploratory.
@@ -110,7 +110,32 @@ Based on observed repetition, implement in order:
 4. Deterministic render/screenshot comparison.
 5. Alpha-edge and safe-zone quality reports where justified.
 
-## 8. Research exit criteria
+## 8. Multi-agent dogfood findings
+
+Three independent agents exercised the new workflow: two visual explorers with separate orders and one read-only L1-L4 auditor. The shared references and acceptance scale stayed fixed; visual conclusions were not shared until after delivery.
+
+Produced candidates:
+
+| Order | Hypothesis | Result |
+|---|---|---|
+| `ord-starter-visual-a-001` | Cinematic manga-tech editorial ribbon | Strongest spectacle; highest cross-section and mobile coupling. |
+| `ord-starter-visual-b-001` | Modular manga terminal zine | Clearest product system; favors independent L2 but requires a dedicated cutout order. |
+| `ord-starter-visual-a2-001` | Preserve A's cinema without character pixels crossing sections | Confirmed: Git DAG light and geometry can carry motion while Capabilities stays live. |
+| `ord-starter-visual-hybrid-001` | B structure plus A emotion | Confirmed: modular information architecture can absorb a cinematic composite and diagonal seam. |
+
+The blind audit and both visual explorations independently converged on these rules:
+
+1. Design masters are evidence, not production assets.
+2. Transparent cloth, hair, glow and particles invalidate direct cutout assumptions even when the silhouette looks clear.
+3. A production-grade independent L2 requires its own uniform-matte order and alpha QA.
+4. Hero `baked=[L1,L2]`, `live=[L3,L4]` remains the safest cinematic pattern.
+5. Cross-section motion can live in CSS/SVG seams and energy paths; the character itself need not cross the boundary.
+6. Capabilities should remain live and responsive, with independent SVG or image slots rather than a baked screenshot.
+7. Mobile is a recomposition decision. A/hybrid composites probably require a dedicated mobile variant.
+
+The experiment also exposed a mechanical inconsistency: visual agents created correct approved orders and delivered results, but did not consistently mark the order `in_progress` during remote generation. The skill now states this explicitly; a future authoring CLI should own the lifecycle transition.
+
+## 9. Research exit criteria
 
 The research phase is complete when:
 

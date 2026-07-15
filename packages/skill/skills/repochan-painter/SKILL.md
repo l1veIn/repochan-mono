@@ -33,6 +33,8 @@ description: >
 
 逐个订单执行：读取订单 → 解析引用 → 组装 prompt → `repochan image gen` → `repochan order create-result` → 下一个。
 
+开始实际生成前，将当前订单显式切换到 `in_progress`；通过 QA 的结果由 `create-result` 标记为 `delivered`。不要让订单在远端生成期间仍显示为 `approved`。
+
 ## 执行前检查
 
 1. 要求分析报告已就绪（`repochan analysis get` 检查）。
@@ -45,6 +47,7 @@ description: >
 8. **如果任务没有引用且不是设定集封面，警告用户**（见下方边界情况）。
 9. 检查相关的现有任务结果版本。
 10. 更改 `currentVersion` 前先询问。优先添加新版本。
+11. 完成引用解析与 prompt 组装后、调用图像工具前执行 `repochan order set-status <orderId> in_progress`（已经是 `in_progress` 时不重复）。
 
 用户反馈改图 / 多方案 → [workflows-review.md](references/workflows-review.md)、[workflows-candidate.md](references/workflows-candidate.md)。
 
