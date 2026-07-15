@@ -14,11 +14,22 @@ import * as setup from "./commands/setup.js";
 import * as template from "./commands/template.js";
 import * as starter from "./commands/starter.js";
 import * as image from "./commands/image.js";
+import * as dev from "./commands/dev.js";
+import { recordError, hasRecorded } from "./lib/dev-telemetry.js";
 
 // Version: semver from package.json + git hash suffix (shared with register.ts
 // so .repochan-version and --version always agree).
 const VERSION = cliVersion();
 const cli = cac("repochan");
+
+// Capture unknown top-level commands (e.g. `repochan foobar`) for dev telemetry.
+// cac emits `command:*` when no command matches and there is at least one
+// positional arg. We only record — we deliberately do NOT change the exit code
+// or print anything, preserving the current silent exit-0 behaviour.
+// Registered before parse() so the event is observed during cli.parse().
+cli.on("command:*", () => {
+  recordError({ argv: process.argv.slice(2), category: "unknown-command", exitCode: 0 });
+});
 
 // cac passes positional args unreliably to actions (variadic args collapse),
 // so each grouped handler reads positionals from `cli.args` (which always holds
@@ -279,6 +290,24 @@ cli.command("image <sub>", "Image generation, configure, status, probe, and edit
     }
   });
 
+// ---- dev (local-only tooling; telemetry opt-in via REPOCHAN_DEV_TELEMETRY) ----
+cli.command("dev <sub>", "Local dev tooling (telemetry / diagnostics)")
+  .option("--json", "Machine-readable JSON output")
+  .option("--limit <n>", "Number of recent entries to show")
+  .option("--clear", "Clear the dev telemetry log")
+  .action(async (_p: any, opts: any) => {
+    const args = cli.args; // [sub]
+    const sub = args[0];
+    switch (sub) {
+      case "errors": return await dev.runDevErrors(process.cwd(), {
+        json: opts.json,
+        limit: opts.limit ? Number(opts.limit) : undefined,
+        clear: opts.clear,
+      });
+      default: throw new Error(`Unknown dev subcommand: ${sub}. Use: errors`);
+    }
+  });
+
 // ---- setup ----
 cli.command("setup", "Install skills for your agent(s) + inject a reference")
   .option("--json", "Machine-readable JSON output")
@@ -322,9 +351,19 @@ async function main() {
     cli.parse(argv, { run: false });
     await cli.runMatchedCommand();
   } catch (err) {
+    recordError({ error: err, argv: process.argv.slice(2), exitCode: 1 });
     printError(err);
     process.exit(1);
   }
 }
+
+// Capture non-throwing failures (e.g. `repochan validate`, image seam-validate)
+// that set process.exitCode directly and bypass the catch block above. If a
+// thrown error already recorded itself, skip to avoid double-counting.
+process.on("exit", () => {
+  if (process.exitCode && process.exitCode !== 0 && !hasRecorded()) {
+    recordError({ argv: process.argv.slice(2), category: "validation", exitCode: Number(process.exitCode) });
+  }
+});
 
 main();
