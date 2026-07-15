@@ -67,9 +67,11 @@ repochan image gen --prompt "<你组装的 persona + order + template prompt>" -
 
 当输出被接受时：
 
-1. 使用 `repochan order create-result` 将二进制图像文件保存为新结果版本；通过 heredoc 管道 stdin 传 JSON payload，不要写临时 JSON 文件。payload 参数包括：`{ orderId, files, versionId?, tool?, promptBrief?, generationPrompt?, revisedPrompt?, notes?, meta?, provenance?, setCurrent: true }`。
+1. 使用 `repochan order create-result` 将二进制图像文件保存为新结果版本；通过 heredoc 管道 stdin 传 JSON payload，不要写临时 JSON 文件。payload 参数包括：`{ orderId, files, versionId?, tool?, promptBrief?, generationPrompt?, revisedPrompt?, notes?, meta?, provenance?, setCurrent: true }`。`files` 必须至少包含一个当前可读、非空的普通文件；core 会在创建版本目录和推进 `delivered` 前预检全部路径，不能用空数组、空文件、缺失路径或 notes 冒充交付物。
 2. 在 `meta.json` 中记录是否使用了参考图，以及它们来自哪个 foundation/order。
 3. **强制——`generationPrompt`**：将 `generationPrompt` 记录为你传给 `repochan image gen --prompt` 的精确完整 prompt。**这是 core 强制执行的硬性要求**——当 `tool` 字段涉及图像生成（任何包含 `image-gen` 的工具名）时，`repochan order create-result` 如果缺少或为空的 `generationPrompt`，将**抛出错误并拒绝保存**。**没有它你无法保存结果。** 不要用 `promptBrief` 替代 `generationPrompt`——`promptBrief` 是简短的人类可读摘要；`generationPrompt` 是逐字的完整 prompt 字符串。如果你组装了一个 500 词的 prompt 并传给了 `repochan image gen --prompt`，那整个 500 词的字符串都进入 `generationPrompt`。
 4. **绝不在 `meta` 中存储绝对文件系统路径**（如临时生成路径或 `/Users/.../generated-images/...`）。image-gen 配置缓存位于 `~/.repochan/image.json`，但结果元数据不应依赖本机缓存路径。图像已经被 `repochan order create-result` 复制到版本目录；`meta` 应只包含可移植信息：`referenceImagesUsed`（布尔值）、`references`（orderId/role 列表）、`templateId`、`aspectRatio`、`safetyConstraintsApplied`。
 5. 更新任务状态和交付 notes；`repochan order create-result` 通常会将任务标记为已交付。
 6. 保留先前版本，绝不在没有用户明确批准的情况下覆盖现有结果版本。
+7. 同一 order 的结果发布、候选提升和普通状态修改必须串行。如果 CLI 报告 transaction/recovery 冲突，先运行 `repochan order recovery list <order-id>` 查看；活跃发布仍持锁时等待并重试，崩溃进程的 stale lock 会由 core 自动回收。`prepared` / `recovery_required` 可用 `repochan order recovery recover <order-id> <transaction-id>` 恢复事务前状态；`staging_unprepared` 尚未改写协议目标，只能用 `repochan order recovery abort <order-id> <transaction-id>` 丢弃暂存目录。其他情况下仅在确认接受当前完整状态时使用 `abort`。**禁止手改或删除 `.repochan/` 下的 transaction/recovery 文件。**
+8. 不要用 `repochan protocol write` 修改任何 order 文件。切片和贴纸提取必须调用 `repochan order slice` / `repochan order extract-stickers`；它们会把派生文件作为 evidence 交给 core，并在同一锁与事务内原子更新版本 `meta.json` 和 `order.json` 镜像。

@@ -39,6 +39,41 @@ repochan starter asset-apply hero-composite --order ord-hero-001 --overwrite
 repochan starter validate --output-dir .repochan/web-starter
 ```
 
+`repochan order create-result` requires at least one readable, non-empty regular
+file in the payload's `files` array. Missing paths and metadata-only results are
+rejected before a version directory is written or the order is marked `delivered`.
+Candidate promotion also re-checks its recorded files before changing the current
+version. Result replacement stages a complete version directory, removes stale
+omitted files, and restores the previous version and order if publication fails.
+Mutations for the same order must be serialized by the caller. If an active
+transaction or retained recovery directory is present, Core rejects another
+result write or candidate promotion with the directory path; retry after the
+first mutation completes, or recover the retained directory before continuing.
+Publication uses an order-byte compare-and-swap guard, so a revision/status/current
+mutation that completes during staging is preserved and the older transaction
+fails with a conflict. A retained transaction contains `recovery.json`; manage it
+only through `repochan order recovery list|recover|abort`. `recover` restores the
+manifest's original state. `abort` accepts the current state only after Core
+validates it. Never hand-edit or delete recovery directories.
+An active publisher holds the order lock, so recovery commands fail with a
+retryable conflict. After a crash, Core reclaims a stale same-host lock:
+`prepared` and `recovery_required` transactions can be recovered, while a
+`staging_unprepared` directory is guaranteed to predate protocol renames and is
+therefore abort-only.
+Core anchors every real transaction outside its staging directory with an identity
+and nonce, then validates fixed backup mappings plus order/version semantics before
+and after recovery. It rejects simple forged transaction directories; it is not a
+security boundary against an actor able to rewrite the whole workspace and its
+anchors. `repochan protocol write` is intentionally blocked for all order-managed
+paths. `order slice` and `order extract-stickers` persist evidence-backed metadata
+through Core's locked, atomic stored/embedded mirror transaction.
+
+```bash
+repochan order recovery list <order-id>
+repochan order recovery recover <order-id> <transaction-id>
+repochan order recovery abort <order-id> <transaction-id>
+```
+
 ## Image endpoints
 
 Config: `~/.repochan/image.json` (credentials stay in image-gen; not in project protocol).

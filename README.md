@@ -90,6 +90,25 @@ You talk to **your agent**. The wizard skill (`repochan`) schedules the teams:
 
 **Visual consistency** is anchored by a **foundation sheet** (character design cover). Downstream assets reference it. Core enforces dependency order — missing upstream → CLI fails.
 
+Result creation/replacement and candidate promotion for the same order must be
+serialized by the caller. Core rejects a new mutation while an active transaction
+or retained recovery directory is present and reports its path; retry after the
+first mutation completes, or recover the retained directory before continuing.
+Final publication also compares the original `order.json` bytes, so a revision or
+status update that completes during staging wins instead of being silently
+overwritten. If rollback cannot complete, use `repochan order recovery list`,
+`recover`, or `abort`; never hand-edit or delete transaction directories.
+Recovery contends on the same order lock: an active publisher wins, while a
+crashed same-host owner is reclaimed. A listed `staging_unprepared` transaction
+predates protocol renames and is abort-only; `prepared` or `recovery_required`
+transactions may be recovered to their manifest snapshot.
+Each Core-created transaction also has an out-of-directory identity/nonce anchor;
+recovery rejects hand-made directories, mismatched identities, fixed-path mapping
+violations, and semantically invalid order/version backups. This protects against
+accidental corruption and simple forged transaction directories, not an attacker
+who can arbitrarily rewrite the entire workspace including both protocol state
+and identity anchors. Generic `protocol write` cannot modify order-managed paths.
+
 ---
 
 ## Prerequisites
@@ -174,8 +193,19 @@ repochan starter asset-apply <slot> --order <order-id> [--result-version <id>]
 repochan starter asset-import <slot> --file <path> [--overwrite]
 repochan starter validate <id> | --all | --output-dir <dir>
 repochan review create
+repochan order recovery list <order-id>
+repochan order recovery recover <order-id> <transaction-id>
+repochan order recovery abort <order-id> <transaction-id>
 repochan protocol inspect|read|write
 ```
+
+`order create-result` is evidence-bearing: its payload must include at least one
+readable, non-empty regular file. Core copies those files into the immutable
+result version before it can advance the order to `delivered`; notes or paths
+that do not exist cannot stand in for a deliverable. Candidate promotion repeats
+the file check before changing the current-version pointer. Result replacement is
+staged as a complete directory and rolls back both version and order state if
+publication fails.
 
 Images & templates:
 

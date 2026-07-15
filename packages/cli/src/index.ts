@@ -110,13 +110,18 @@ cli.command("order <sub>", "Manage creation orders")
       case "get-result": return await order.runOrderGetResult(process.cwd(), id, opts.version, opts);
       case "resolve-references": return await order.runOrderResolveReferences(process.cwd(), id, opts);
       case "set-current": return await order.runOrderSetCurrent(process.cwd(), id, args[2], opts);
+      case "recovery":
+        if (id === "list") return await order.runOrderRecoveryList(process.cwd(), args[2], opts);
+        if (id === "recover") return await order.runOrderRecoveryRecover(process.cwd(), args[2], args[3], opts);
+        if (id === "abort") return await order.runOrderRecoveryAbort(process.cwd(), args[2], args[3], opts);
+        throw new Error(`Unknown order recovery subcommand: ${id}. Use: list <id> | recover <id> <transaction> | abort <id> <transaction>`);
       case "candidate":
         if (id === "create") return await order.runOrderCandidateCreate(process.cwd(), opts.dataFile, opts);
         if (id === "promote") return await order.runOrderCandidatePromote(process.cwd(), args[2], args[3], opts);
         throw new Error(`Unknown order candidate subcommand: ${id}. Use: create | promote <id> <version>`);
       case "slice": return await order.runOrderSlice(process.cwd(), id, opts);
       case "extract-stickers": return await order.runOrderExtractStickers(process.cwd(), id, opts);
-      default: throw new Error(`Unknown order subcommand: ${sub}. Use: list | get | create | update | set-status | add-revision | create-result | list-results | get-result | resolve-references | set-current | candidate | slice | extract-stickers`);
+      default: throw new Error(`Unknown order subcommand: ${sub}. Use: list | get | create | update | set-status | add-revision | create-result | list-results | get-result | resolve-references | set-current | recovery | candidate | slice | extract-stickers`);
     }
   });
 

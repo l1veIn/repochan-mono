@@ -10,6 +10,9 @@ import {
   listOrderResults,
   readOrderResult,
   setCurrentOrderResult,
+  listOrderRecoveries,
+  recoverOrderRecovery,
+  abortOrderRecovery,
   resolveOrderReferences,
   readOrder,
   inspectProtocol,
@@ -123,6 +126,24 @@ export async function runOrderSetCurrent(cwd: string, orderId: string, versionId
   if (!orderId || !versionId) throw new UsageError("Usage: repochan order set-current <id> <version>");
   const result = await setCurrentOrderResult(cwd, orderId, versionId);
   emitResult(options, `Set current result for ${orderId} → ${versionId}.`, result);
+}
+
+export async function runOrderRecoveryList(cwd: string, orderId: string, options: OutputOptions) {
+  if (!orderId) throw new UsageError("Usage: repochan order recovery list <id>");
+  const result = await listOrderRecoveries(cwd, orderId);
+  emitResult(options, `Recovery transactions for ${orderId}.`, result);
+}
+
+export async function runOrderRecoveryRecover(cwd: string, orderId: string, transactionId: string, options: OutputOptions) {
+  if (!orderId || !transactionId) throw new UsageError("Usage: repochan order recovery recover <id> <transaction>");
+  const result = await recoverOrderRecovery(cwd, orderId, transactionId);
+  emitResult(options, `Recovered ${orderId} from ${transactionId}.`, result);
+}
+
+export async function runOrderRecoveryAbort(cwd: string, orderId: string, transactionId: string, options: OutputOptions) {
+  if (!orderId || !transactionId) throw new UsageError("Usage: repochan order recovery abort <id> <transaction>");
+  const result = await abortOrderRecovery(cwd, orderId, transactionId);
+  emitResult(options, `Accepted current state and aborted ${transactionId}.`, result);
 }
 
 // re-export the image-backed slice/extract-stickers (orchestration in order-image.ts)

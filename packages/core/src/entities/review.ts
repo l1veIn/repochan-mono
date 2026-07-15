@@ -4,6 +4,7 @@ import { exists, initProtocol, orderJsonPath, orderVersionDir, readJson, require
 import { validateInput } from "../validate.js";
 import { ReviewCreateParamsSchema } from "../schemas/index.js";
 import { validateOrderId, validateVersionId } from "../utils/index.js";
+import { withOrderMutationLock } from "./order-transactions.js";
 
 /**
  * Check whether an order result version exists (either as a directory under
@@ -78,18 +79,22 @@ export async function createReview(projectRoot: string, params: JsonObject) {
   // back to needs_revision, mirroring how addRevision works. Other statuses
   // (draft/in_progress/cancelled) are left untouched — they haven't been
   // "finalized" yet, so a review can't unwind them.
-  const next: AssetOrder = { ...order };
+  let next: AssetOrder = { ...order };
   let statusChanged = false;
-  if (verdict !== "pass" && String(next.status ?? "") === "delivered") {
-    next.revisions = Array.isArray(next.revisions) ? next.revisions : [];
-    const reason = typeof params.notes === "string" && params.notes.trim()
-      ? params.notes.trim()
-      : `Review verdict: ${verdict} for version ${versionId}`;
-    next.revisions.push({ requestedAt: stamp(), request: reason, status: "draft" });
-    next.status = "needs_revision";
-    next.updatedAt = stamp();
-    statusChanged = true;
-    await writeJson(orderFile, next, true);
+  if (verdict !== "pass") {
+    await withOrderMutationLock(projectRoot, orderId, "review.create order update", async () => {
+      next = await readJson(orderFile) as AssetOrder;
+      if (String(next.status ?? "") !== "delivered") return;
+      next.revisions = Array.isArray(next.revisions) ? next.revisions : [];
+      const reason = typeof params.notes === "string" && params.notes.trim()
+        ? params.notes.trim()
+        : `Review verdict: ${verdict} for version ${versionId}`;
+      next.revisions.push({ requestedAt: stamp(), request: reason, status: "draft" });
+      next.status = "needs_revision";
+      next.updatedAt = stamp();
+      statusChanged = true;
+      await writeJson(orderFile, next, true);
+    });
   }
 
   return { review: data, order: next, statusChanged };

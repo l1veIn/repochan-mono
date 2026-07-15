@@ -20,7 +20,11 @@ export {
   promoteCandidate,
   listOrderResults,
   readOrderResult,
+  persistOrderVersionMetadata,
   setCurrentOrderResult,
+  listOrderRecoveries,
+  recoverOrderRecovery,
+  abortOrderRecovery,
   findFoundationSheet,
   resolveOrderReferences,
 } from "./orders.js";

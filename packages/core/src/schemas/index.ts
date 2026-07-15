@@ -221,7 +221,15 @@ const SingleOrderSchema = Type.Object({
   brief: BriefSchema,
   deliverables: Type.Array(DeliverableSchema),
   acceptanceCriteria: Type.Array(Type.String()),
-  status: Type.Optional(OrderStatusSchema),
+  status: Type.Optional(Type.Union([
+    Type.Literal("draft"),
+    Type.Literal("approved"),
+    Type.Literal("in_progress"),
+    Type.Literal("needs_revision"),
+    Type.Literal("cancelled"),
+  ])),
+  currentVersion: Type.Optional(Type.Never()),
+  orderAsset: Type.Optional(Type.Never()),
   priority: Type.Optional(Type.Union([Type.Literal("low"), Type.Literal("normal"), Type.Literal("high")])),
   templateId: Type.Optional(Type.String()),
   references: Type.Optional(Type.Array(OrderReferenceSchema)),
@@ -253,7 +261,7 @@ export const OrderAddRevisionParamsSchema = Type.Object({
 
 export const OrderCreateResultParamsSchema = Type.Object({
   orderId: OrderIdSchema,
-  files: Type.Optional(Type.Array(Type.String())),
+  files: Type.Array(Type.String({ minLength: 1 }), { minItems: 1 }),
   versionId: Type.Optional(VersionIdSchema),
   tool: Type.Optional(Type.String()),
   promptBrief: Type.Optional(Type.String()),
@@ -283,7 +291,7 @@ export const OrderSetCurrentResultParamsSchema = Type.Object({
  */
 export const OrderCreateCandidateParamsSchema = Type.Object({
   orderId: OrderIdSchema,
-  files: Type.Optional(Type.Array(Type.String())),
+  files: Type.Array(Type.String({ minLength: 1 }), { minItems: 1 }),
   versionId: Type.Optional(VersionIdSchema),
   tool: Type.Optional(Type.String()),
   promptBrief: Type.Optional(Type.String()),
@@ -334,6 +342,13 @@ export const OrderExtractStickersParamsSchema = Type.Object({
   cols: Type.Integer({ minimum: 1, description: "Grid column count." }),
   model: Type.Optional(Type.Union([Type.Literal("small"), Type.Literal("medium"), Type.Literal("large")], { description: "ISNet model size. small (~40MB) by default; larger = slower but higher quality." })),
   overwrite: Type.Optional(Type.Boolean({ description: "Replace existing stickers/ dir if present." })),
+});
+
+export const OrderPersistVersionMetadataParamsSchema = Type.Object({
+  orderId: OrderIdSchema,
+  versionId: VersionIdSchema,
+  metadata: Type.Record(Type.String(), JsonValueSchema),
+  evidenceFiles: Type.Array(Type.String({ minLength: 1 }), { minItems: 1 }),
 });
 
 // ── Analysis ──
@@ -532,6 +547,7 @@ export const WriteOpSchemas = {
   "order.promote_candidate": OrderPromoteCandidateParamsSchema,
   "order.slice": OrderSliceParamsSchema,
   "order.extract_stickers": OrderExtractStickersParamsSchema,
+  "order.persist_version_metadata": OrderPersistVersionMetadataParamsSchema,
   "analysis.run": AnalysisRunParamsSchema,
   "analysis.update": AnalysisUpdateParamsSchema,
   "review.create": ReviewCreateParamsSchema,

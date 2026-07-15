@@ -1,18 +1,13 @@
 import path from "node:path";
 import { promises as fs } from "node:fs";
 import {
-  root,
   exists,
   readJson,
-  writeJson,
-  stamp,
   validateVersionId,
   validateOrderId,
-  isPlainObject,
   orderVersionDir,
   orderJsonPath,
-  readOrder,
-  type JsonObject,
+  persistOrderVersionMetadata,
 } from "@repochan/core";
 import { sliceImage, extractStickersFromImage } from "@repochan/image-edit";
 import { emitResult, type OutputOptions, UsageError } from "../lib/output.js";
@@ -44,37 +39,6 @@ async function findSingleGridImage(versionDir: string, orderId: string, versionI
   return path.join(versionDir, imageFiles[0]);
 }
 
-async function writeMetaAndMirror(
-  projectRoot: string,
-  orderId: string,
-  versionId: string,
-  key: string,
-  value: unknown,
-  extraMeta?: Record<string, unknown>,
-): Promise<void> {
-  const versionDir = orderVersionDir(projectRoot, orderId, versionId);
-  const metaPath = path.join(versionDir, "meta.json");
-  const meta = ((await exists(metaPath)) ? await readJson(metaPath) : {}) as JsonObject;
-  meta[key] = value;
-  if (extraMeta) Object.assign(meta, extraMeta);
-  meta.updatedAt = stamp();
-  await writeJson(metaPath, meta, true);
-
-  const orderPath = orderJsonPath(projectRoot, orderId);
-  const order = await readJson(orderPath);
-  if (order.orderAsset && Array.isArray(order.orderAsset.versions)) {
-    const idx = order.orderAsset.versions.findIndex((v: any) => v && v.versionId === versionId);
-    if (idx >= 0) {
-      const v = order.orderAsset.versions[idx];
-      v.meta = isPlainObject(v.meta) ? v.meta : {};
-      v.meta[key] = value;
-      if (extraMeta) Object.assign(v.meta, extraMeta);
-    }
-  }
-  order.updatedAt = stamp();
-  await writeJson(orderPath, order, true);
-}
-
 // ---------------------------------------------------------------------------
 // repochan order slice <id> --rows --cols [--version]
 // ---------------------------------------------------------------------------
@@ -99,7 +63,12 @@ export async function runOrderSlice(
   }
 
   const { tiles, sourceFile } = await sliceImage(imagePath, rows!, cols!);
-  await writeMetaAndMirror(cwd, id, versionId, "tiles", tiles);
+  await persistOrderVersionMetadata(cwd, {
+    orderId: id,
+    versionId,
+    metadata: { tiles },
+    evidenceFiles: [path.basename(imagePath)],
+  });
   emitResult(options, `Sliced ${id}/${versionId} into ${tiles.rows}×${tiles.cols} (${tiles.cells.length} tiles).`, { tiles, sourceFile, versionId, orderId: id });
 }
 
@@ -133,6 +102,11 @@ export async function runOrderExtractStickers(
   const stickers = result.stickers.map((s) => ({ ...s, file: `stickers/${s.file}` }));
   const stickersConfig = { model, engine: "imgly-isnet", method: "blob-detection", expected: result.config.expected, detected: result.config.detected, sourceFile: result.sourceFile };
 
-  await writeMetaAndMirror(cwd, id, versionId, "stickers", stickers, { stickersConfig });
+  await persistOrderVersionMetadata(cwd, {
+    orderId: id,
+    versionId,
+    metadata: { stickers, stickersConfig },
+    evidenceFiles: [path.basename(imagePath), ...stickers.map((sticker) => sticker.file)],
+  });
   emitResult(options, `Extracted ${stickers.length} stickers from ${id}/${versionId}.`, { stickers, sourceFile: result.sourceFile, versionId, orderId: id });
 }

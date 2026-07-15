@@ -48,6 +48,13 @@ export async function runProtocolRead(cwd: string, artifactPath: string | undefi
 export async function runProtocolWrite(cwd: string, artifactPath: string | undefined, dataFile: string | undefined, options: OutputOptions & { overwrite?: boolean }) {
   if (!artifactPath) throw new UsageError("Usage: repochan protocol write <artifact-path> --data-file -");
   const file = safeProtocolPath(cwd, artifactPath);
+  const protocolRelative = path.relative(root(cwd), file).split(path.sep).join("/");
+  if (/^orders\/[^/]+\//.test(protocolRelative)) {
+    throw new UsageError(
+      `protocol write cannot modify Core-managed order state: ${protocolRelative}.`,
+      "Use the corresponding `repochan order ...` command so evidence, locking, history, and mirrored metadata stay consistent.",
+    );
+  }
   const data = readDataFile(dataFile);
   await writeJson(file, data, options.overwrite === true);
   emitResult(options, `Wrote ${artifactPath}`, { artifactPath, path: path.relative(cwd, file) });
