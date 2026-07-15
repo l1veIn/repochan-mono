@@ -1,6 +1,6 @@
 {
   "name": "@repochan/templates",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Built-in asset templates (YAML) for RepoChan image pipeline — prompt skeletons, sizes, grids, constraints.",
   "type": "module",
   "license": "MIT",

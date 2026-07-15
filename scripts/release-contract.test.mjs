@@ -8,7 +8,9 @@ import {
   compareExtractedPackages,
   createGitWorktreeSnapshot,
   npmResultIsNotFound,
+  parseReleaseManifest,
   registryCommandPlan,
+  releaseCommandTimeout,
   releasePackages,
   validatePackedRelease,
   validatePublicWorkspaceInventory,
@@ -24,10 +26,13 @@ function validEntries() {
     manifest: {
       name,
       version: versions.get(name),
+      license: "MIT",
+      publishConfig: { access: "public", registry: "https://registry.npmjs.org/" },
       dependencies: name === "repochan"
         ? Object.fromEntries(releasePackages.slice(0, -1).map(({ name: dependency }) => [dependency, versions.get(dependency)]))
         : {},
     },
+    files: [{ path: "LICENSE" }, { path: "README.md" }],
   }));
 }
 
@@ -76,6 +81,45 @@ test("rejects public workspace inventory drift", () => {
   assert.throws(
     () => validatePublicWorkspaceInventory([...validInventory(), { name: "@repochan/new-public-package" }]),
     /unexpected: @repochan\/new-public-package/,
+  );
+});
+
+test("rejects a packed release without explicit public npm metadata", () => {
+  const entries = validEntries();
+  delete entries[0].manifest.publishConfig;
+  assert.throws(() => validatePackedRelease(entries, validInventory()), /publish publicly/);
+});
+
+test("rejects a tarball without a license file", () => {
+  const entries = validEntries();
+  entries[0].files = [{ path: "README.md" }];
+  assert.throws(() => validatePackedRelease(entries, validInventory()), /missing a license file/);
+});
+
+test("rejects compiled test artifacts in a public tarball", () => {
+  const entries = validEntries();
+  entries[0].files.push({ path: "dist/starter.test.js.map" });
+  assert.throws(() => validatePackedRelease(entries, validInventory()), /compiled test artifact/);
+});
+
+test("release command timeout is finite and rejects unsafe values", () => {
+  assert.equal(releaseCommandTimeout("120000"), 120000);
+  assert.throws(() => releaseCommandTimeout("0"), /at least 1000/);
+  assert.throws(() => releaseCommandTimeout("forever"), /at least 1000/);
+});
+
+test("release manifest parsing rejects duplicate top-level keys", () => {
+  assert.deepEqual(parseReleaseManifest('{"name":"x","publishConfig":{"access":"public"}}'), {
+    name: "x",
+    publishConfig: { access: "public" },
+  });
+  assert.throws(
+    () => parseReleaseManifest('{"name":"x","publishConfig":{},"publishConfig":{"access":"public"}}', "fixture"),
+    /fixture contains duplicate top-level key\(s\): publishConfig/,
+  );
+  assert.throws(
+    () => parseReleaseManifest('{"name":"x","\\u006eame":"y"}', "escaped fixture"),
+    /escaped fixture contains duplicate top-level key\(s\): name/,
   );
 });
 

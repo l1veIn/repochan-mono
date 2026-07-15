@@ -14,6 +14,13 @@ Canonical order:
 6. `@repochan/starters`
 7. `repochan`
 
+The current candidate versions and their pre-1.0 semver rationale are recorded
+in [`CHANGELOG.md`](../CHANGELOG.md). Five previously published leaf packages
+move to `0.2.0` because their protocol, API, data, or workflow contracts changed
+materially. The unpublished `@repochan/starters@0.1.0` and `repochan@0.3.0`
+retain their first available versions. Do not force every package to share one
+version; the packed CLI pins the exact coordinated leaf versions.
+
 The executable contract lives in `scripts/release-contract.mjs`. Do not infer
 publishability from workspace tests or source `package.json` files: `workspace:*`
 is rewritten only in packed manifests, and an old package with the same version
@@ -54,6 +61,22 @@ package versions and exact CLI dependencies together, then rerun the preflight.
 The preflight never bumps versions and never publishes. Unlike the local-only
 smoke, it retains every candidate tarball and reports its absolute path and
 SHA-256 hash even when a version collision makes the command exit non-zero.
+Every public manifest fixes `publishConfig.registry` to npm and
+`publishConfig.access` to `public`, including the first scoped Starter release.
+
+Every child process has a finite five-minute timeout. Slow release environments
+may raise it explicitly, without disabling the guard:
+
+```bash
+REPOCHAN_RELEASE_COMMAND_TIMEOUT_MS=600000 pnpm release:preflight
+```
+
+The preflight uses Node for tar extraction and invokes the packed CLI through
+the current Node executable, so a POSIX release operator does not need a system
+`tar` binary or a package-manager `.bin` shim. The release operator itself is
+currently restricted to macOS, Linux, or another POSIX CI runner; Windows exits
+early with an actionable error. This restriction applies to the release tool,
+not to the published CLI runtime contract.
 
 After the report has no blockers, publish the exact retained `.tgz` paths from
 that report—not a fresh pack—in the reported order. Verify each SHA-256 before

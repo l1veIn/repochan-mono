@@ -8,12 +8,15 @@ import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import * as tar from "tar";
 import {
   compareExtractedPackages,
   createGitWorktreeSnapshot,
   npmResultIsNotFound,
+  parseReleaseManifest,
   registryCommandPlan,
   registryForManifest,
+  releaseCommandTimeout,
   releasePackages,
   sha256File,
   validatePackedRelease,
@@ -21,6 +24,7 @@ import {
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const registryCheck = process.argv.includes("--registry-check");
+const commandTimeout = releaseCommandTimeout();
 const temporaryRoot = mkdtempSync(path.join(os.tmpdir(), "repochan-release-preflight-"));
 const sourceRoot = path.join(temporaryRoot, "source");
 const artifactDir = registryCheck
@@ -34,6 +38,8 @@ function run(command, args, options = {}) {
     encoding: options.encoding ?? "utf8",
     env: { ...process.env, npm_config_update_notifier: "false", ...options.env },
     maxBuffer: 64 * 1024 * 1024,
+    timeout: options.timeout ?? commandTimeout,
+    killSignal: "SIGTERM",
     stdio: options.stdio ?? ["ignore", "pipe", "pipe"],
   });
 }
@@ -47,10 +53,26 @@ function runAsync(command, args, options = {}) {
     });
     let stdout = "";
     let stderr = "";
+    let settled = false;
+    const timeout = options.timeout ?? commandTimeout;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      child.kill("SIGTERM");
+      reject(new Error(`${command} ${args.join(" ")} timed out after ${timeout}ms.`));
+    }, timeout);
     child.stdout.on("data", (chunk) => { stdout += chunk; });
     child.stderr.on("data", (chunk) => { stderr += chunk; });
-    child.on("error", reject);
+    child.on("error", (error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      reject(error);
+    });
     child.on("close", (status) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
       if (status === 0) resolve(stdout);
       else reject(new Error(`${command} ${args.join(" ")} failed with status ${status}:\n${stderr || stdout}`));
     });
@@ -72,7 +94,9 @@ async function loadWorkspaceManifests(directory) {
       if (entry.name === "node_modules" || entry.name === "dist" || entry.name === ".git") continue;
       const absolute = path.join(current, entry.name);
       if (entry.isDirectory()) await walk(absolute);
-      else if (entry.name === "package.json") manifests.push(JSON.parse(await fs.readFile(absolute, "utf8")));
+      else if (entry.name === "package.json") {
+        manifests.push(parseReleaseManifest(await fs.readFile(absolute, "utf8"), path.relative(directory, absolute)));
+      }
     }
   }
   await walk(path.join(directory, "packages"));
@@ -109,12 +133,16 @@ async function packRelease() {
     const packed = parseJsonOutput(output, `pnpm pack ${expected.name}`);
     if (packed.name !== expected.name) throw new Error(`Expected ${expected.name}, packed ${packed.name}.`);
     const archive = path.resolve(packed.filename);
-    const manifestOutput = run("tar", ["-xOf", archive, "package/package.json"], { cwd: sourceRoot });
+    const extracted = path.join(temporaryRoot, "packed", expected.name.replaceAll("/", "-").replace(/^@/, ""));
+    await fs.mkdir(extracted, { recursive: true });
+    await tar.extract({ file: archive, cwd: extracted, filter: (entryPath) => entryPath === "package/package.json" });
+    const manifestOutput = await fs.readFile(path.join(extracted, "package", "package.json"), "utf8");
     entries.push({
       ...expected,
       archive,
       sha256: await sha256File(archive),
-      manifest: JSON.parse(manifestOutput),
+      manifest: parseReleaseManifest(manifestOutput, `${expected.name} packed package.json`),
+      files: packed.files,
     });
   }
   validatePackedRelease(entries, workspaceManifests);
@@ -203,20 +231,20 @@ async function cleanRoomSmoke(entries) {
     throw new Error("Clean-room smoke must install only the CLI tarball as a top-level dependency.");
   }
 
-  const cli = path.join(cleanRoom, "node_modules", ".bin", "repochan");
-  const version = run(cli, ["--version"], { cwd: hostProject }).trim();
+  const cliEntry = path.join(cleanRoom, "node_modules", "repochan", "dist", "index.js");
+  const version = run(process.execPath, [cliEntry, "--version"], { cwd: hostProject }).trim();
   if (version !== `repochan/${entries.at(-1).manifest.version} ${process.platform}-${process.arch} node-${process.version}`) {
     throw new Error(`Unexpected clean-room CLI identity: ${version}`);
   }
 
-  const starterList = parseJsonOutput(run(cli, ["starter", "list", "--json"], { cwd: hostProject }), "starter list");
+  const starterList = parseJsonOutput(run(process.execPath, [cliEntry, "starter", "list", "--json"], { cwd: hostProject }), "starter list");
   const starterIds = new Set(starterList.starters?.map(({ id }) => id));
   for (const required of ["minimal", "registry-modular"]) {
     if (!starterIds.has(required)) throw new Error(`Clean-room package is missing starter ${required}.`);
   }
 
-  run(cli, ["starter", "pull", "--starter", "registry-modular", "--output-dir", site, "--json"], { cwd: hostProject });
-  run(cli, ["starter", "validate", "--output-dir", site, "--json"], { cwd: hostProject });
+  run(process.execPath, [cliEntry, "starter", "pull", "--starter", "registry-modular", "--output-dir", site, "--json"], { cwd: hostProject });
+  run(process.execPath, [cliEntry, "starter", "validate", "--output-dir", site, "--json"], { cwd: hostProject });
   run("npm", ["install", "--no-audit", "--no-fund"], { cwd: site });
   run("npm", ["run", "build"], { cwd: site });
   return { cliVersion: version, starters: [...starterIds].sort() };
@@ -231,6 +259,8 @@ async function registryStatus(entry) {
     cwd: root,
     encoding: "utf8",
     env: { ...process.env, npm_config_update_notifier: "false" },
+    timeout: commandTimeout,
+    killSignal: "SIGTERM",
   });
   if (view.status !== 0) {
     if (npmResultIsNotFound(view)) return { package: spec, registry: plan.registry, status: "unpublished" };
@@ -242,8 +272,10 @@ async function registryStatus(entry) {
   const localExtracted = path.join(publishedDir, "local");
   const publishedExtracted = path.join(publishedDir, "published");
   await Promise.all([fs.mkdir(localExtracted, { recursive: true }), fs.mkdir(publishedExtracted, { recursive: true })]);
-  run("tar", ["-xzf", entry.archive, "-C", localExtracted]);
-  run("tar", ["-xzf", path.join(publishedDir, publishedArchive), "-C", publishedExtracted]);
+  await Promise.all([
+    tar.extract({ file: entry.archive, cwd: localExtracted }),
+    tar.extract({ file: path.join(publishedDir, publishedArchive), cwd: publishedExtracted }),
+  ]);
   const differences = await compareExtractedPackages(localExtracted, publishedExtracted);
   return differences.length === 0
     ? { package: spec, registry: plan.registry, status: "already-published-identical" }
@@ -251,6 +283,9 @@ async function registryStatus(entry) {
 }
 
 async function main() {
+  if (process.platform === "win32") {
+    throw new Error("RepoChan release preflight currently requires a POSIX operator environment. Run it from macOS, Linux, or a POSIX CI runner; do not bypass this guard to publish.");
+  }
   const entries = await packRelease();
   const smoke = await cleanRoomSmoke(entries);
   const report = {

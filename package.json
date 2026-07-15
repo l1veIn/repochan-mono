@@ -2,6 +2,8 @@
   "name": "repochan-monorepo",
   "private": true,
   "version": "0.1.0",
+  "license": "MIT",
+  "author": "l1veIn",
   "description": "RepoChan monorepo: core protocol + CLI (sole binding surface) + skill + asset templates. Agent-agnostic — bring your own (Pi / Claude Code / Codex).",
   "type": "module",
   "packageManager": "pnpm@9.15.4",
@@ -25,6 +27,7 @@
     "cli:dev": "pnpm --filter repochan exec tsx src/index.ts"
   },
   "devDependencies": {
+    "tar": "^7.5.19",
     "tsx": "^4.19.3",
     "typescript": "^5.9.3"
   }

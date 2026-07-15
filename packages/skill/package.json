@@ -1,6 +1,6 @@
 {
   "name": "@repochan/skill",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Platform-agnostic RepoChan skills: a wizard skill orchestrating the full pipeline plus single-role team skills.",
   "type": "module",
   "license": "MIT",

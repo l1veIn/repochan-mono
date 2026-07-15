@@ -1,6 +1,6 @@
 {
   "name": "@repochan/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Pure RepoChan protocol, schemas, and entity management primitives.",
   "type": "module",
   "license": "MIT",
@@ -46,7 +46,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc -p tsconfig.json",
     "prepublishOnly": "npm run build",
     "test": "vitest run",
     "lint": "tsc -p tsconfig.json --noEmit"

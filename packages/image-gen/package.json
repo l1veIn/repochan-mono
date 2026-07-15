@@ -1,6 +1,6 @@
 {
   "name": "@repochan/image-gen",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Image generation library for RepoChan — prompt→PNG via OpenAI-compatible endpoints (sync + optional async queue). Credentials self-managed, no .repochan/ protocol writes.",
   "type": "module",
   "license": "MIT",
@@ -37,7 +37,7 @@
     "vitest": "^2.1.9"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc -p tsconfig.json",
     "prepublishOnly": "npm run build",
     "test": "vitest run",
     "lint": "tsc -p tsconfig.json --noEmit"

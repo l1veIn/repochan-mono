@@ -16,6 +16,70 @@ export const releasePackages = Object.freeze([
 const dependencyFields = ["dependencies", "optionalDependencies", "peerDependencies"];
 export const defaultNpmRegistry = "https://registry.npmjs.org/";
 
+export function releaseCommandTimeout(value = process.env.REPOCHAN_RELEASE_COMMAND_TIMEOUT_MS ?? "300000") {
+  const timeout = Number(value);
+  if (!Number.isSafeInteger(timeout) || timeout < 1000) {
+    throw new Error("REPOCHAN_RELEASE_COMMAND_TIMEOUT_MS must be an integer of at least 1000 milliseconds.");
+  }
+  return timeout;
+}
+
+/** Parse a release manifest while rejecting duplicate top-level JSON keys. */
+export function parseReleaseManifest(source, label = "package.json") {
+  const manifest = JSON.parse(source);
+  const seen = new Set();
+  const duplicates = new Set();
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  let token = "";
+  let keyCandidate = false;
+  let pendingKey;
+  let expectingKey = false;
+
+  for (const character of source) {
+    if (inString) {
+      if (escaped) {
+        token += character;
+        escaped = false;
+      } else if (character === "\\") {
+        token += character;
+        escaped = true;
+      } else if (character === '"') {
+        inString = false;
+        if (keyCandidate) pendingKey = JSON.parse(`"${token}"`);
+      } else {
+        token += character;
+      }
+      continue;
+    }
+
+    if (character === '"') {
+      inString = true;
+      token = "";
+      keyCandidate = depth === 1 && expectingKey;
+    } else if (character === "{") {
+      depth += 1;
+      if (depth === 1) expectingKey = true;
+    } else if (character === "}") {
+      depth -= 1;
+    } else if (depth === 1 && character === ":" && pendingKey !== undefined) {
+      if (seen.has(pendingKey)) duplicates.add(pendingKey);
+      seen.add(pendingKey);
+      pendingKey = undefined;
+      expectingKey = false;
+    } else if (depth === 1 && character === ",") {
+      expectingKey = true;
+      pendingKey = undefined;
+    }
+  }
+
+  if (duplicates.size > 0) {
+    throw new Error(`${label} contains duplicate top-level key(s): ${[...duplicates].join(", ")}.`);
+  }
+  return manifest;
+}
+
 export function validatePublicWorkspaceInventory(workspaceManifests) {
   const actual = workspaceManifests
     .filter((manifest) => manifest?.private !== true)
@@ -61,9 +125,30 @@ export function validatePackedRelease(entries, workspaceManifests) {
   const positions = new Map(entries.map((entry, index) => [entry.manifest.name, index]));
   const versions = new Map(entries.map((entry) => [entry.manifest.name, entry.manifest.version]));
 
-  for (const { manifest } of entries) {
+  for (const entry of entries) {
+    const { manifest } = entry;
     if (typeof manifest.version !== "string" || manifest.version.length === 0) {
       throw new Error(`${manifest.name} has no packed version.`);
+    }
+    if (manifest.license !== "MIT") {
+      throw new Error(`${manifest.name} must declare license=MIT in the packed manifest.`);
+    }
+    if (manifest.publishConfig?.registry !== defaultNpmRegistry || manifest.publishConfig?.access !== "public") {
+      throw new Error(`${manifest.name} must explicitly publish publicly to ${defaultNpmRegistry}.`);
+    }
+
+    const packedFiles = entry.files?.map((file) => typeof file === "string" ? file : file?.path).filter(Boolean);
+    if (!Array.isArray(packedFiles) || packedFiles.length === 0) {
+      throw new Error(`${manifest.name} is missing its immutable packed file inventory.`);
+    }
+    if (!packedFiles.some((file) => /(^|\/)licen[cs]e(?:\.[^/]*)?$/i.test(file))) {
+      throw new Error(`${manifest.name} tarball is missing a license file.`);
+    }
+    const testArtifact = packedFiles.find((file) =>
+      /(^|\/)(?:__tests__|tests?)(\/|$)/i.test(file) || /\.(?:test|spec)\.[^/]+$/i.test(file),
+    );
+    if (testArtifact) {
+      throw new Error(`${manifest.name} tarball contains compiled test artifact ${testArtifact}.`);
     }
 
     for (const field of dependencyFields) {
