@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 672" role="img" aria-labelledby="title desc">
+  <title id="title">Call to action section composition reference</title>
+  <desc id="desc">Centered live copy and controls framed by two large geometric arches.</desc>
+  <rect width="1440" height="672" fill="#f3ecd8"/>
+  <path d="M-120 672V360c0-220 150-330 320-330s320 110 320 330v312M920 672V360c0-220 150-330 320-330s320 110 320 330v312" fill="none" stroke="#e6b94a" stroke-width="10" opacity=".65"/>
+  <circle cx="720" cy="142" r="34" fill="#5ed4b5"/>
+  <path d="M430 250h580M520 325h400M580 405h280" stroke="#17213b" stroke-width="30" stroke-linecap="round"/>
+  <rect x="500" y="500" width="190" height="62" fill="#e6b94a" stroke="#17213b" stroke-width="4"/><rect x="750" y="500" width="190" height="62" fill="none" stroke="#17213b" stroke-width="4"/>
+</svg>

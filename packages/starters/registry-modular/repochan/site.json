@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "Project",
+    "description": "A clear, modular open-source project with a story worth exploring."
+  },
+  "theme": {
+    "primary": "#17213b",
+    "base": "#f3ecd8",
+    "accents": ["#5ed4b5", "#e6b94a"]
+  },
+  "brand": {
+    "artStyle": "Constructivist editorial geometry with clean cel-shaded character art.",
+    "motifs": ["registry seal", "arched module", "numbered record"],
+    "patterns": ["low-contrast geometric registry grid"]
+  },
+  "locales": {
+    "default": "en",
+    "supported": ["en", "zh"]
+  }
+}

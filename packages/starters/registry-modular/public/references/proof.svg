@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 560" role="img" aria-labelledby="title desc">
+  <title id="title">Proof section composition reference</title>
+  <desc id="desc">Four equal proof statements separated by narrow vertical rules.</desc>
+  <rect width="1440" height="560" fill="#17213b"/>
+  <g stroke="#e6b94a" stroke-width="3"><path d="M360 90v380M720 90v380M1080 90v380"/></g>
+  <g fill="none" stroke="#5ed4b5" stroke-width="14"><circle cx="180" cy="180" r="46"/><circle cx="540" cy="180" r="46"/><circle cx="900" cy="180" r="46"/><circle cx="1260" cy="180" r="46"/></g>
+  <g stroke="#f3ecd8" stroke-width="24" stroke-linecap="round"><path d="M100 310h160M130 370h100"/><path d="M460 310h160M490 370h100"/><path d="M820 310h160M850 370h100"/><path d="M1180 310h160M1210 370h100"/></g>
+</svg>

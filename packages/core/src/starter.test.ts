@@ -319,6 +319,33 @@ describe("starter v1", () => {
     expect(validateStarterAssetState(manifest, assets, ["public/assets/hero.webp"])).toContain("hero-composite: required asset is not ready");
   });
 
+  it("uses numeric dotted paths to enforce fixed content cardinality and required leaves", () => {
+    const fixedContentManifest: StarterManifest = {
+      ...manifest,
+      content: {
+        ...manifest.content,
+        requiredPaths: [
+          "content.cards.0.title",
+          "content.cards.0.href",
+          "content.cards.1.title",
+          "content.cards.1.href",
+        ],
+      },
+    };
+    const locale: StarterLocaleContent = {
+      schemaVersion: "repochan.starter-content.v1",
+      locale: "en",
+      meta: { title: "Demo", description: "Demo" },
+      content: { cards: [{ title: "One", href: "#one" }, { title: "Two", href: "#two" }] },
+    };
+
+    expect(validateStarterContentRequirements(fixedContentManifest, [locale])).toEqual([]);
+    expect(validateStarterContentRequirements(fixedContentManifest, [{ ...locale, content: { cards: [] } }]))
+      .toContain("en: missing content.cards.0.title");
+    expect(validateStarterContentRequirements(fixedContentManifest, [{ ...locale, content: { cards: [{}, {}] } }]))
+      .toContain("en: missing content.cards.1.href");
+  });
+
   it("validates structured local-file provenance", () => {
     expect(validateStarterAssetsConfig({
       schemaVersion: "repochan.starter-assets.v1",

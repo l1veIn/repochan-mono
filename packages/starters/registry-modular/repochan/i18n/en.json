@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "Project — Built in the open",
+    "description": "A modular project homepage with capabilities, workflow, proof, and clear ways to get started."
+  },
+  "content": {
+    "nav": {
+      "ariaLabel": "Primary navigation",
+      "brand": "Project",
+      "menuLabel": "Menu",
+      "links": [
+        { "label": "Capabilities", "href": "#features" },
+        { "label": "Workflow", "href": "#architecture" },
+        { "label": "Proof", "href": "#proof" },
+        { "label": "Get started", "href": "#get-started" }
+      ],
+      "localeLabel": "中文",
+      "localeHref": "/zh/"
+    },
+    "hero": {
+      "ariaLabel": "Project introduction",
+      "eyebrow": "Open by design",
+      "headline": "Make complex work feel clear.",
+      "body": "A focused project can be powerful, understandable, and ready to extend without hiding how it works.",
+      "primaryCta": { "label": "Get started", "href": "#get-started" },
+      "secondaryCta": { "label": "See the workflow", "href": "#architecture" }
+    },
+    "capabilities": {
+      "eyebrow": "Built for real work",
+      "title": "Clear pieces. Serious range.",
+      "items": [
+        { "title": "Focused core", "body": "Keep the primary path small, understandable, and dependable.", "icon": "shield" },
+        { "title": "Friendly interface", "body": "Start with conventions that help newcomers reach a useful result quickly.", "icon": "file" },
+        { "title": "Composable design", "body": "Combine independent modules without losing one source of truth.", "icon": "modules" },
+        { "title": "Open integration", "body": "Connect the project to the tools and environments around it.", "icon": "globe" },
+        { "title": "Auditable flow", "body": "Make important inputs, transitions, and outcomes easy to inspect.", "icon": "code" },
+        { "title": "Portable output", "body": "Produce artifacts that remain useful outside one runtime or conversation.", "icon": "binary" }
+      ]
+    },
+    "workflow": {
+      "eyebrow": "How it works",
+      "title": "A visible path from input to outcome.",
+      "steps": [
+        { "title": "Understand", "body": "Read the real context and constraints." },
+        { "title": "Configure", "body": "Choose explicit inputs and boundaries." },
+        { "title": "Execute", "body": "Run small, inspectable operations." },
+        { "title": "Verify", "body": "Check the produced result, not a claim about it." }
+      ],
+      "aside": "Each step stays inspectable and replaceable."
+    },
+    "proof": {
+      "eyebrow": "Evidence over promises",
+      "items": [
+        { "lead": "Designed for", "emphasis": "clarity", "tail": "from the first run." },
+        { "lead": "Structured for", "emphasis": "change", "tail": "without hidden coupling." },
+        { "lead": "Ready for", "emphasis": "review", "tail": "with visible evidence." },
+        { "lead": "Built to stay", "emphasis": "useful", "tail": "beyond one session." }
+      ]
+    },
+    "cta": {
+      "headline": "Start with a path you can inspect.",
+      "body": "Try the project, read its documentation, and adapt the modular pieces to your own work.",
+      "primary": { "label": "View repository", "href": "#top" },
+      "secondary": { "label": "Read the docs", "href": "#architecture" }
+    },
+    "footer": {
+      "summary": "An open project built around clear boundaries, useful artifacts, and verifiable outcomes.",
+      "groups": [
+        { "title": "Project", "links": [{ "label": "Capabilities", "href": "#features" }, { "label": "Workflow", "href": "#architecture" }] },
+        { "title": "Explore", "links": [{ "label": "Proof", "href": "#proof" }, { "label": "Get started", "href": "#get-started" }] },
+        { "title": "Language", "links": [{ "label": "中文", "href": "/zh/" }] }
+      ],
+      "legal": "Replace this fallback with the project's license or attribution."
+    }
+  }
+}

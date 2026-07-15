@@ -1,0 +1,273 @@
+---
+import Icon from "./Icon.astro";
+
+type Link = { label: string; href: string };
+type Content = {
+  nav: { ariaLabel: string; brand: string; menuLabel: string; links: Link[]; localeLabel: string; localeHref: string };
+  hero: { ariaLabel: string; eyebrow: string; headline: string; body: string; primaryCta: Link; secondaryCta: Link };
+  capabilities: { eyebrow: string; title: string; items: Array<{ title: string; body: string; icon: string }> };
+  workflow: { eyebrow: string; title: string; steps: Array<{ title: string; body: string }>; aside: string };
+  proof: { eyebrow: string; items: Array<{ lead: string; emphasis: string; tail: string }> };
+  cta: { headline: string; body: string; primary: Link; secondary: Link };
+  footer: { summary: string; groups: Array<{ title: string; links: Link[] }>; legal: string };
+};
+
+type Props = { content: Content; heroSrc: string };
+const { content, heroSrc } = Astro.props;
+const proofIcons = ["globe", "file", "modules", "shield"];
+const workflowIcons = ["file", "code", "modules", "globe"];
+---
+
+<div class="site-shell">
+  <header class="site-nav">
+    <a class="brand" href="#top" aria-label={content.nav.brand}>
+      <span class="brand-lock"><Icon name="shield" size={24} /></span>
+      <span>{content.nav.brand}</span>
+    </a>
+    <nav aria-label={content.nav.ariaLabel} class="desktop-nav">
+      {content.nav.links.map((link) => <a href={link.href}>{link.label}</a>)}
+    </nav>
+    <a class="locale-link" href={content.nav.localeHref}>{content.nav.localeLabel}</a>
+    <details class="mobile-menu">
+      <summary>{content.nav.menuLabel}</summary>
+      <nav aria-label={content.nav.ariaLabel}>
+        {content.nav.links.map((link) => <a href={link.href}>{link.label}</a>)}
+      </nav>
+    </details>
+  </header>
+
+  <main id="top">
+    <section class="hero registry-grid" aria-label={content.hero.ariaLabel}>
+      <img class="hero-composite" src={heroSrc} alt="" fetchpriority="high" decoding="async" />
+      <div class="hero-copy" data-reveal>
+        <p class="eyebrow"><Icon name="shield" size={18} />{content.hero.eyebrow}</p>
+        <h1>{content.hero.headline}</h1>
+        <p class="lede">{content.hero.body}</p>
+        <div class="actions">
+          <a class="button primary" href={content.hero.primaryCta.href}>{content.hero.primaryCta.label}<span aria-hidden="true">→</span></a>
+          <a class="button secondary" href={content.hero.secondaryCta.href}>{content.hero.secondaryCta.label}</a>
+        </div>
+      </div>
+      <div class="seal-anchor seal-compass" aria-hidden="true"><span>✦</span></div>
+    </section>
+
+    <section class="section capabilities dark-section" id="features">
+      <div class="section-inner">
+        <header class="section-heading" data-reveal>
+          <p class="eyebrow">{content.capabilities.eyebrow}</p>
+          <h2>{content.capabilities.title}</h2>
+        </header>
+        <div class="capability-grid">
+          {content.capabilities.items.map((item, index) => (
+            <article class="capability-card" data-reveal style={`--reveal-index:${index}`}>
+              <span class="registry-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+              <span class="feature-icon"><Icon name={item.icon} size={46} /></span>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+              <span class="verified" aria-hidden="true"><Icon name="shield" size={18} /></span>
+            </article>
+          ))}
+        </div>
+      </div>
+      <div class="seal-anchor" aria-hidden="true"><Icon name="shield" size={28} /></div>
+    </section>
+
+    <section class="section workflow registry-grid" id="architecture">
+      <div class="section-inner">
+        <header class="section-heading" data-reveal>
+          <p class="eyebrow">{content.workflow.eyebrow}</p>
+          <h2>{content.workflow.title}</h2>
+        </header>
+        <ol class="workflow-rail">
+          {content.workflow.steps.map((step, index) => (
+            <li class="workflow-step" data-reveal style={`--reveal-index:${index}`}>
+              <span class="step-number">{index + 1}</span>
+              <span class="step-icon"><Icon name={workflowIcons[index] ?? "shield"} size={42} /></span>
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+              {index < content.workflow.steps.length - 1 && <span class="rail-arrow" aria-hidden="true">→</span>}
+            </li>
+          ))}
+        </ol>
+        <p class="workflow-aside">{content.workflow.aside}</p>
+      </div>
+      <div class="seal-anchor" aria-hidden="true"><Icon name="shield" size={28} /></div>
+    </section>
+
+    <section class="section proof dark-section" id="proof">
+      <div class="section-inner">
+        <p class="eyebrow proof-eyebrow" data-reveal>{content.proof.eyebrow}</p>
+        <div class="proof-grid">
+          {content.proof.items.map((item, index) => (
+            <article class="proof-item" data-reveal style={`--reveal-index:${index}`}>
+              <span class="proof-icon"><Icon name={proofIcons[index] ?? "shield"} size={48} /></span>
+              <p><span>{item.lead}</span><strong>{item.emphasis}</strong><span>{item.tail}</span></p>
+            </article>
+          ))}
+        </div>
+      </div>
+      <div class="seal-anchor" aria-hidden="true"><Icon name="shield" size={28} /></div>
+    </section>
+
+    <section class="section cta registry-grid" id="get-started">
+      <div class="arch arch-left" aria-hidden="true"></div>
+      <div class="arch arch-right" aria-hidden="true"></div>
+      <div class="cta-content" data-reveal>
+        <span class="cta-star" aria-hidden="true">✦</span>
+        <h2>{content.cta.headline}</h2>
+        <p>{content.cta.body}</p>
+        <div class="actions centered">
+          <a class="button primary" href={content.cta.primary.href}>{content.cta.primary.label}<span aria-hidden="true">→</span></a>
+          <a class="button secondary" href={content.cta.secondary.href}>{content.cta.secondary.label}</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-intro">
+      <a class="brand footer-brand" href="#top"><span class="brand-lock"><Icon name="shield" size={24} /></span><span>{content.nav.brand}</span></a>
+      <p>{content.footer.summary}</p>
+    </div>
+    <div class="footer-groups">
+      {content.footer.groups.map((group) => (
+        <section>
+          <h2>{group.title}</h2>
+          {group.links.map((link) => <a href={link.href}>{link.label}</a>)}
+        </section>
+      ))}
+    </div>
+    <p class="legal">{content.footer.legal}</p>
+  </footer>
+</div>
+
+<script>
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const targets = document.querySelectorAll("[data-reveal]");
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    targets.forEach((target) => target.classList.add("is-visible"));
+  } else {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.14 });
+    targets.forEach((target) => observer.observe(target));
+  }
+</script>
+
+<style>
+  .site-shell { overflow: clip; }
+  .site-nav { min-height: 4.75rem; display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: clamp(1rem, 3vw, 3rem); padding: 0 clamp(1.1rem, 5vw, 5rem); border-bottom: 1px solid color-mix(in srgb, var(--c-accent-2) 70%, transparent); background: var(--c-base); position: relative; z-index: 20; }
+  .brand { display: inline-flex; align-items: center; gap: .65rem; font-size: 1.5rem; font-weight: 800; letter-spacing: -.04em; }
+  .brand-lock { color: var(--c-accent-1); display: grid; place-items: center; }
+  .desktop-nav { display: flex; align-items: center; gap: clamp(1.2rem, 3vw, 3rem); }
+  .desktop-nav a, .locale-link { font-weight: 650; padding: .7rem .15rem; border-bottom: 1px solid transparent; }
+  .desktop-nav a:hover, .locale-link:hover { border-color: var(--c-accent-2); }
+  .locale-link { font-family: var(--font-mono); font-size: .78rem; }
+  .mobile-menu { display: none; }
+  .hero { min-height: min(52rem, calc(100vh - 4.75rem)); position: relative; display: grid; align-items: center; background: var(--c-base); isolation: isolate; border-bottom: 1px solid var(--c-accent-2); }
+  .hero-composite { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; z-index: -2; }
+  .hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, var(--c-base) 0%, color-mix(in srgb, var(--c-base) 92%, transparent) 36%, transparent 63%); }
+  .hero-copy { width: min(42rem, 48vw); padding: clamp(3rem, 8vw, 8rem) 0 clamp(5rem, 10vw, 9rem) clamp(1.4rem, 6vw, 6rem); }
+  .eyebrow { display: flex; align-items: center; gap: .55rem; margin: 0 0 1rem; color: var(--c-accent-1); font-family: var(--font-mono); font-size: .78rem; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; }
+  h1, h2, h3, p { margin-top: 0; }
+  h1 { max-width: 11ch; font-size: clamp(3.5rem, 7.2vw, 7.6rem); line-height: .9; letter-spacing: -.07em; margin-bottom: 1.8rem; text-wrap: balance; }
+  .lede { max-width: 34rem; font-size: clamp(1.1rem, 1.65vw, 1.5rem); line-height: 1.55; margin-bottom: 2rem; }
+  .actions { display: flex; flex-wrap: wrap; gap: .9rem; }
+  .button { min-height: 3.45rem; display: inline-flex; align-items: center; justify-content: center; gap: 1.2rem; padding: .85rem 1.5rem; border: 1px solid var(--c-primary); font-weight: 760; transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease; }
+  .button:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1.4rem color-mix(in srgb, var(--c-primary) 14%, transparent); }
+  .button.primary { background: var(--c-accent-2); color: var(--c-primary); border-color: var(--c-accent-2); }
+  .button.secondary { background: color-mix(in srgb, var(--c-base) 82%, transparent); }
+  .section { position: relative; padding: clamp(5rem, 9vw, 8rem) clamp(1.2rem, 5vw, 5rem); border-bottom: 1px solid var(--c-accent-2); }
+  .section-inner { width: min(88rem, 100%); margin-inline: auto; }
+  .dark-section { color: var(--c-base); background: var(--c-primary); }
+  .dark-section::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--c-accent-1) 5%, transparent), transparent); }
+  .section-heading { text-align: center; margin-bottom: 3.2rem; }
+  .section-heading .eyebrow { justify-content: center; color: var(--c-accent-2); }
+  .section-heading h2, .cta h2 { font-family: var(--font-display); font-size: clamp(2.2rem, 4.3vw, 4.7rem); line-height: 1; letter-spacing: -.05em; text-wrap: balance; }
+  .capability-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.2rem; }
+  .capability-card { min-height: 20rem; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 2.5rem 1.6rem 1.5rem; border: 1px solid var(--c-accent-2); position: relative; background: color-mix(in srgb, var(--c-primary) 90%, var(--c-accent-1)); clip-path: polygon(1.2rem 0, calc(100% - 1.2rem) 0, 100% 1.2rem, 100% calc(100% - 1.2rem), calc(100% - 1.2rem) 100%, 1.2rem 100%, 0 calc(100% - 1.2rem), 0 1.2rem); }
+  .registry-number { position: absolute; top: -.7rem; min-width: 2.4rem; padding: .25rem .4rem; border: 1px solid var(--c-accent-2); border-radius: 50%; background: var(--c-primary); color: var(--c-accent-2); font-family: var(--font-mono); }
+  .feature-icon { color: var(--c-accent-1); margin: .8rem 0 1.3rem; }
+  .capability-card h3 { font-size: 1.35rem; margin-bottom: .8rem; }
+  .capability-card p { max-width: 27ch; color: color-mix(in srgb, var(--c-base) 80%, transparent); line-height: 1.55; }
+  .verified { margin-top: auto; color: var(--c-accent-1); }
+  .workflow { background: var(--c-base); }
+  .workflow-rail { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.4rem; }
+  .workflow-step { min-height: 22rem; position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 2rem 1.1rem; border: 1px solid color-mix(in srgb, var(--c-accent-2) 65%, transparent); border-radius: 50% 50% .25rem .25rem / 18% 18% .25rem .25rem; }
+  .step-number { font-family: var(--font-display); font-size: 2rem; color: var(--c-accent-2); }
+  .step-icon { margin: 2rem 0 1.5rem; color: var(--c-accent-1); }
+  .workflow-step h3 { font-size: 1.3rem; max-width: 16ch; }
+  .workflow-step p { color: color-mix(in srgb, var(--c-primary) 72%, transparent); }
+  .rail-arrow { position: absolute; right: -1.75rem; top: 50%; font-size: 2rem; color: var(--c-accent-2); z-index: 2; }
+  .workflow-aside { text-align: center; font-family: var(--font-mono); margin: 2rem 0 0; font-size: .82rem; }
+  .proof-eyebrow { color: var(--c-accent-2); }
+  .proof-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .proof-item { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 1.5rem; border-right: 1px solid var(--c-accent-2); }
+  .proof-item:last-child { border-right: 0; }
+  .proof-icon { color: var(--c-accent-2); margin-bottom: 1.2rem; }
+  .proof-item p { display: flex; flex-direction: column; gap: .2rem; line-height: 1.05; }
+  .proof-item strong { color: var(--c-base); font-family: var(--font-display); font-size: clamp(2.3rem, 4.2vw, 4.8rem); letter-spacing: -.04em; }
+  .proof-item span { color: color-mix(in srgb, var(--c-base) 80%, transparent); }
+  .cta { min-height: 42rem; display: grid; place-items: center; background: var(--c-base); isolation: isolate; }
+  .cta-content { width: min(58rem, 100%); text-align: center; position: relative; z-index: 2; }
+  .cta-content h2 { font-family: var(--font-serif); }
+  .cta-content p { width: min(44rem, 100%); margin: 0 auto 2rem; font-size: 1.08rem; line-height: 1.65; }
+  .centered { justify-content: center; }
+  .cta-star { color: var(--c-accent-2); font-size: 2rem; display: block; margin-bottom: 1.4rem; }
+  .arch { position: absolute; bottom: 0; width: 23rem; height: 28rem; border: 1px solid color-mix(in srgb, var(--c-accent-2) 28%, transparent); border-radius: 50% 50% 0 0; }
+  .arch-left { left: -7rem; }
+  .arch-right { right: -7rem; }
+  .seal-anchor { position: absolute; left: 50%; bottom: 0; translate: -50% 50%; width: 4.5rem; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; color: var(--c-accent-1); background: var(--c-primary); border: 2px solid var(--c-accent-2); z-index: 10; animation: seal-turn 18s linear infinite; }
+  .seal-compass span { color: var(--c-accent-2); font-size: 2rem; }
+  .registry-grid::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .28; background-image: linear-gradient(color-mix(in srgb, var(--c-primary) 8%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--c-primary) 8%, transparent) 1px, transparent 1px); background-size: 4.5rem 4.5rem; mask-image: linear-gradient(to bottom, transparent, currentColor 25%, currentColor 75%, transparent); }
+  .site-footer { display: grid; grid-template-columns: minmax(15rem, 1fr) 2fr; gap: 3rem; padding: clamp(4rem, 7vw, 6rem) clamp(1.2rem, 5vw, 5rem) 2rem; background: var(--c-primary); color: var(--c-base); border-top: 1px solid var(--c-accent-2); }
+  .footer-intro p { max-width: 28rem; color: color-mix(in srgb, var(--c-base) 76%, transparent); line-height: 1.6; }
+  .footer-groups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
+  .footer-groups h2 { color: var(--c-accent-2); font-family: var(--font-mono); font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; }
+  .footer-groups a { display: block; width: fit-content; margin: .65rem 0; color: color-mix(in srgb, var(--c-base) 78%, transparent); }
+  .legal { grid-column: 1 / -1; text-align: center; color: color-mix(in srgb, var(--c-base) 58%, transparent); font-size: .78rem; margin: 2rem 0 0; }
+  [data-reveal] { opacity: 0; transform: translateY(1.2rem); transition: opacity .65s ease calc(var(--reveal-index, 0) * 70ms), transform .65s ease calc(var(--reveal-index, 0) * 70ms); }
+  [data-reveal].is-visible { opacity: 1; transform: none; }
+  @keyframes seal-turn { to { rotate: 1turn; } }
+  @media (max-width: 900px) {
+    .site-nav { grid-template-columns: 1fr auto auto; }
+    .desktop-nav { display: none; }
+    .mobile-menu { display: block; order: 2; }
+    .mobile-menu summary { cursor: pointer; font-weight: 700; }
+    .mobile-menu nav { position: absolute; left: 1rem; right: 1rem; top: calc(100% + .25rem); padding: 1rem; background: var(--c-base); border: 1px solid var(--c-accent-2); box-shadow: 0 1rem 2rem color-mix(in srgb, var(--c-primary) 14%, transparent); }
+    .mobile-menu nav a { display: block; padding: .75rem; }
+    .hero { min-height: auto; padding-top: 2rem; align-items: start; }
+    .hero-composite { position: relative; height: auto; aspect-ratio: 16 / 9; object-position: center; order: 2; margin-top: 1rem; }
+    .hero::after { background: linear-gradient(to bottom, var(--c-base), color-mix(in srgb, var(--c-base) 88%, transparent), transparent); }
+    .hero-copy { width: 100%; padding: 3rem 1.25rem 0; }
+    h1 { font-size: clamp(3rem, 14vw, 5.4rem); }
+    .capability-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .workflow-rail { grid-template-columns: 1fr 1fr; }
+    .rail-arrow { display: none; }
+    .proof-grid { grid-template-columns: 1fr 1fr; gap: 1px; background: var(--c-accent-2); }
+    .proof-item { background: var(--c-primary); border: 0; }
+    .site-footer { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .site-nav { min-height: 4.25rem; padding-inline: 1rem; gap: .7rem; }
+    .brand { font-size: 1.25rem; }
+    .locale-link { font-size: .7rem; }
+    .section { padding: 5rem 1rem; }
+    .hero-copy { padding-top: 2rem; }
+    .capability-grid, .workflow-rail, .proof-grid, .footer-groups { grid-template-columns: 1fr; }
+    .capability-card { min-height: 18rem; }
+    .proof-item { border-bottom: 1px solid var(--c-accent-2); }
+    .arch { width: 13rem; height: 23rem; opacity: .65; }
+    .actions .button { width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    [data-reveal] { opacity: 1; transform: none; }
+  }
+</style>

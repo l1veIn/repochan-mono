@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 920" role="img" aria-labelledby="title desc">
+  <title id="title">Capabilities section composition reference</title>
+  <desc id="desc">A centered heading above six numbered registry cards in a three by two grid.</desc>
+  <rect width="1440" height="920" fill="#17213b"/>
+  <g fill="#21304d" stroke="#e6b94a" stroke-width="3">
+    <path d="M120 250h360l24 24v230l-24 24H120l-24-24V274z"/><path d="M540 250h360l24 24v230l-24 24H540l-24-24V274z"/><path d="M960 250h360l24 24v230l-24 24H960l-24-24V274z"/>
+    <path d="M120 570h360l24 24v230l-24 24H120l-24-24V594z"/><path d="M540 570h360l24 24v230l-24 24H540l-24-24V594z"/><path d="M960 570h360l24 24v230l-24 24H960l-24-24V594z"/>
+  </g>
+  <g fill="none" stroke="#5ed4b5" stroke-width="18"><circle cx="300" cy="350" r="44"/><circle cx="720" cy="350" r="44"/><circle cx="1140" cy="350" r="44"/><circle cx="300" cy="670" r="44"/><circle cx="720" cy="670" r="44"/><circle cx="1140" cy="670" r="44"/></g>
+  <path d="M520 100h400M610 160h220" stroke="#f3ecd8" stroke-width="28" stroke-linecap="round"/>
+</svg>

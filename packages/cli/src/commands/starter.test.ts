@@ -188,6 +188,39 @@ describe("starter v1 commands", () => {
     });
   });
 
+  it("rejects pulled registry content with empty required objects or fixed-cardinality arrays", async () => {
+    const root = await projectFixture();
+    const siteDir = path.join(root, "registry-site");
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    await runStarterPull(root, { starter: "registry-modular", outputDir: siteDir, json: true });
+    await expect(runStarterValidate(root, undefined, { outputDir: siteDir, json: true })).resolves.toBeUndefined();
+
+    const localePath = path.join(siteDir, "repochan", "i18n", "en.json");
+    const fallback = JSON.parse(await readFile(localePath, "utf8"));
+    const cardinalityCases: Array<[(content: any) => void, RegExp]> = [
+      [(content) => { content.nav.links = content.nav.links.slice(0, 3); }, /content\.nav\.links\.3\.label/],
+      [(content) => { content.capabilities.items = content.capabilities.items.slice(0, 5); }, /content\.capabilities\.items\.5\.title/],
+      [(content) => { content.workflow.steps = content.workflow.steps.slice(0, 3); }, /content\.workflow\.steps\.3\.title/],
+      [(content) => { content.proof.items = content.proof.items.slice(0, 3); }, /content\.proof\.items\.3\.lead/],
+      [(content) => { content.cta.primary = {}; }, /content\.cta\.primary\.label/],
+      [(content) => { content.footer.groups = content.footer.groups.slice(0, 2); }, /content\.footer\.groups\.2\.title/],
+      [(content) => { content.footer.groups[1].links = content.footer.groups[1].links.slice(0, 1); }, /content\.footer\.groups\.1\.links\.1\.label/],
+    ];
+    for (const [mutate, expected] of cardinalityCases) {
+      const invalid = structuredClone(fallback);
+      mutate(invalid.content);
+      await writeFile(localePath, JSON.stringify(invalid));
+      await expect(runStarterValidate(root, undefined, { outputDir: siteDir, json: true }))
+        .rejects.toThrow(expected);
+    }
+
+    const emptyContent = structuredClone(fallback);
+    emptyContent.content = {};
+    await writeFile(localePath, JSON.stringify(emptyContent));
+    await expect(runStarterValidate(root, undefined, { outputDir: siteDir, json: true }))
+      .rejects.toThrow(/en: missing content\.nav\.ariaLabel/);
+  });
+
   it("atomically imports a local file into a scalar slot with portable provenance", async () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const root = await projectFixture();

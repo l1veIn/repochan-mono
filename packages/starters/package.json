@@ -19,7 +19,15 @@
     "registry": "https://registry.npmjs.org/"
   },
   "files": [
-    "*/",
+    "*/README.md",
+    "*/astro.config.mjs",
+    "*/package.json",
+    "*/public/**",
+    "!*/public/**/.DS_Store",
+    "*/repochan/**",
+    "*/src/**",
+    "*/tailwind.config.mjs",
+    "*/tsconfig.json",
     "README.md",
     "package.json"
   ],

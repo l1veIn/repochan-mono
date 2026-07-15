@@ -196,7 +196,7 @@ packages/
 ├── templates    @repochan/templates    纯数据：内置资产 YAML 模板。
 └── starters     @repochan/starters     纯数据：落地页 starter（完整 Astro/Tailwind 脚手架目录）。
 
-> 落地页 starter 位于 `packages/starters/`；当前 Starter v1 默认实现为 Hero-only 的 `minimal`。
+> 落地页 starter 位于 `packages/starters/`；Starter v1 默认仍是 Hero-only 的 `minimal`，并提供首个七 section 的 `registry-modular` 作为完整页面供给。
 > `repochan starter pull --starter <id>` 从包内 scaffold 出可编辑实例；实例与 source 都以 `repochan/starter.json` 为唯一 manifest。
 ```
 

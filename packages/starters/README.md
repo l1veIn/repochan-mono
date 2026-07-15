@@ -5,7 +5,7 @@ Pure scaffold data for RepoChan landing pages. Each child directory is an indepe
 ## Starter v1 layout
 
 ```text
-minimal/
+<starter-id>/
 ├── repochan/
 │   ├── starter.json
 │   ├── site.json
@@ -47,8 +47,9 @@ repochan starter validate --all
 
 Color literals are allowed only in `repochan/site.json` theme data. Presentation files consume CSS variables and token-derived colors. `repochan starter validate` enforces the rule together with manifest, locale, asset, path, and template checks.
 
-## Available starter
+## Available starters
 
 | ID | Scope | Default |
 |---|---|---|
 | `minimal` | One project-focused Hero (`capabilities.sections=[hero]`) | yes |
+| `registry-modular` | Seven-section modular registry with one Hero visual slot and live HTML/CSS/SVG sections | no |
