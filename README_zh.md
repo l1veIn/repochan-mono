@@ -116,15 +116,11 @@ node --version   # ≥ 20
 ```bash
 npm install -g repochan
 repochan --version
-
-cd /path/to/your-project
-repochan setup --agent codex --project   # 换成你实际使用的 agent 与 scope
-repochan init
+repochan setup
+#随后在项目中打开 coding agent，输入`/repochan`启动 RepoChan 流程。
 ```
 
-随后在项目中打开 coding agent，让它执行 RepoChan 流程。升级 CLI 后请再次运行
-`repochan setup` 来刷新随包分发的 skills；若需要刷新，`repochan status` 会报告
-版本漂移。
+升级 CLI 后请再次运行`repochan setup` 来刷新随包分发的 skills；若需要刷新，`repochan status` 会报告版本漂移。
 
 ### 从本 monorepo 构建（贡献者）
 

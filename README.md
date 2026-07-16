@@ -136,14 +136,10 @@ Contributors building this monorepo also need **pnpm** ≥ 9.
 ```bash
 npm install -g repochan
 repochan --version
-
-cd /path/to/your-project
-repochan setup --agent codex --project   # choose your actual agent and scope
-repochan init
+repochan setup
+#Then open your coding agent in the project and input `/repochan` to run the RepoChanworkflow.
 ```
-
-Then open your coding agent in the project and ask it to run the RepoChan
-workflow. Run `repochan setup` again after upgrading the CLI so the bundled
+Run `repochan setup` again after upgrading the CLI so the bundled
 skills are refreshed; `repochan status` reports version drift when a refresh is
 needed.
 
