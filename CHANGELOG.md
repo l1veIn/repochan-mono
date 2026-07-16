@@ -14,7 +14,7 @@ starters as one dependency-closed set.
 | `@repochan/image-gen` | `0.2.0` | Image endpoint routing and generation. |
 | `@repochan/skill` | `0.2.0` | Wizard and specialist workflow contracts. |
 | `@repochan/templates` | `0.2.0` | Asset prompt and composition templates. |
-| `@repochan/starters` | `0.1.0` | `minimal` and `registry-modular` website scaffolds. |
+| `@repochan/starters` | `0.1.0` | Complete Source Starter scaffolds with concentrated Transfer Kits. |
 | `repochan` | `0.3.0` | Sole CLI binding surface for the complete set. |
 
 Release verification uses a fresh-source, registry-aware preflight, explicit

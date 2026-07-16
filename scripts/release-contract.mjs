@@ -106,7 +106,7 @@ export async function scanReleaseSurfaceDebt(repositoryRoot) {
           });
           continue;
         }
-        if (![".git", "node_modules", "dist", "test-repos", "test-results", "score-review"].includes(entry.name)) await walk(relative);
+        if (![".git", ".zcode", "node_modules", "dist", "test-repos", "test-results", "score-review"].includes(entry.name)) await walk(relative);
         continue;
       }
       const isPublicDocument = topLevel.has(relative) || relative.startsWith("docs/") || (relative.startsWith("packages/") && relative.endsWith("/README.md"));

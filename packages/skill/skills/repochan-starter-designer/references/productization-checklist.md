@@ -1,31 +1,31 @@
 # Starter 产品化检查表
 
-## 脱模
+## 成品保真
 
-- 搜索并移除项目名、仓库 URL、角色名、专属口号、订单路径和测试数据。
-- 将文案、theme、资产路径分别集中到 `i18n/`、`site.json`、`assets.json`。
-- 展示层无颜色字面量、散落文案和环境专属绝对路径。
-- 用中性 fallback 替代原项目身份；fallback 不依赖 `.repochan/orders/`。
+- 保留项目名、仓库 URL、角色名、专属口号、全部源码和原始视觉资产。
+- Pull 后无需订单或 RepoChan 协议历史即可安装、构建并看到原始成品。
+- `site.json`、完整 `i18n/`、`assets.json` 是明确的本地化入口。
+- 展示层无硬编码颜色；可配置文案不在组件中重复散落。
 
-## 合同
+## 最小迁移合同
 
-- `repochan/starter.json` 是唯一 manifest，id/name/version 与目录一致。
-- 每个 required content path 和 locale 都可由 `starter configure` 表达。
-- 每个 asset slot 声明 template、引用角色、fallback output 与 postprocess。
-- 每个 section 保留 composition、baked/live layers、safe zone 和 responsive 规则。
-- Transition 与共享 pattern 用参数表达，不依赖原页面截图或 orderId。
-- 网格资产使用 `publications[]` + 独占 `extract-grid`，并验证所有具名 PNG、逐项状态与 QA 后才可设为 required。
+- `repochan/starter.json` 是唯一 manifest；目录内不维护第二份快照。
+- desktop/mobile 预览都被声明且文件存在。
+- 所有 supported locale 与 default locale 的键、类型和数组长度完全一致。
+- `assets.json` 中原成品资产使用 `source`；每个 required slot 都有可运行的 source output。
+- 每个 slot 只描述下游要替换的资产、目标路径、订单模板、迁移参考和确定性后处理。
+- Bundle 使用具名 `publications[]` + 唯一 `extract-grid`；Page Designer 不需手工切格或拼状态。
 
-## 可运行性
+## 复杂烘焙图
 
-- Pull 后不生成订单也能用 fallback 安装与构建。
-- 默认、窄屏和宽屏无溢出；键盘、locale、外链与 reduced-motion 可用。
-- L3/L4 保持语义化、可访问、可翻译；L4 不烘焙进图片。
-- 资产缺失或后处理失败时不写半完成 `ready` 状态。
+- 原始成品图保持完整，不被低信息参考覆盖。
+- 只有确实存在身份泄露风险时才创建迁移参考。
+- 参考图保留必要构图、姿态、轮廓和安全留白，并移除不该迁移的角色身份、文字、背景细节与渲染风格。
+- 降采样质量问题回到对应 template 提示词修复，不增加无人消费的 schema 字段。
 
-## 验证
+## 验证与贡献
 
-- 运行 `repochan starter validate <id>`。
-- 运行 source starter build。
-- Pull 到临时实例，执行 configure、validate 与 build 的 smoke test。
-- 记录 production browser 的响应式、可访问性和视觉检查证据；manifest、locale、asset contract、required path 与配置结构由 `starter validate` 验证，网格投影使用 `starter asset-apply` 验证。
+- `repochan starter validate --output-dir <creator-starter-dir>` 通过。
+- source starter build 通过，桌面/移动、locale、键盘、链接、overflow、裁切和 reduced-motion 经浏览器检查。
+- `starter pull --from` 到全新临时目录后，validate 与 build 再次通过。
+- 创作者保管产物；官方收录使用 PR，并附预览与验证证据。

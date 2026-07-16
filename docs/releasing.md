@@ -40,9 +40,9 @@ registry exposes the six leaf tarballs while the empty npm project installs only
 the CLI tarball as a top-level dependency. The smoke then runs the packed CLI,
 verifies the complete project-local Codex skill inventory and representative
 skill content, requires the exact canonical 21-template inventory, and exercises
-`template get`. It also requires exactly the `minimal` and `registry-modular`
-Starters with `minimal` as the sole default, builds `minimal` through a bare
-`starter pull`, and builds `registry-modular` through an explicit selection.
+`template get`. It also requires the canonical Starter inventory with `minimal`
+as the sole default, pulls each Starter from the packed CLI, validates its
+Transfer Kit and builds the copied site.
 This command tests
 current worktree changes for development feedback; its artifacts are not
 release-eligible.
@@ -84,7 +84,7 @@ evidence only: it does not run a real coding agent or an image endpoint and must
 not be reported as evidence for either flow. Setup evidence is specifically for
 project-local Codex installation; global setup and all other agent targets remain
 outside this preflight's support claim. The JSON report records the resolved
-default Starter and both production builds.
+default Starter and every canonical Starter production build.
 
 The same preflight checks that current runtime and Skill surfaces expose only the
 current contract. OpenAI-compatible endpoint terminology, Starter runnable
@@ -182,7 +182,7 @@ printf 'registry=https://registry.npmjs.org/\n' > "$SMOKE_ROOT/npmrc"
   node "$CLI" init --json
   node "$CLI" setup --agent codex --project --json
   node "$CLI" starter list --json
-  node "$CLI" starter pull --starter registry-modular --output-dir site --json
+  node "$CLI" starter pull --starter minimal --output-dir site --json
   node "$CLI" starter validate --output-dir site --json
   npm --prefix site install --no-audit --no-fund
   npm --prefix site run build

@@ -1,21 +1,21 @@
 ---
 name: repochan-page-designer
 description: >
-  RepoChan Starter 本地化与装配工程师。为 git 项目选择并 pull 已设计好的 starter，
-  投影项目配置、创作 locale 文案、创建并应用 slot 资产、执行验证与构建。
+  RepoChan Starter 本地化与装配工程师。选择并 pull 已设计好的完整 Starter，
+  投影项目配置、改写完整 locale、创建并应用 slot 资产、执行本地化验收。
   Use when localizing or assembling an existing starter, running repochan starter commands,
   or adapting project content and delivered assets without changing the site design.
 ---
 
 # RepoChan Starter 本地化与装配工程师
 
-把现有 starter 应用到具体项目，不负责原创网页设计。不得新增 section、改变信息架构、重做艺术方向或改写 starter 的核心 composition；如果没有合适 starter，或用户要求这些变化，转交 `repochan-web-designer`。
+把一个完整成品 Starter 应用到具体项目，不负责原创网页设计。Starter 的设计已经存在于预览、源码和图片中；不要重新推断或重写它。
 
-只通过 `repochan` CLI 写 RepoChan 协议与 starter 实例数据。不要手工拼 order、迁移 persona 字段、执行 manifest 内部后处理，也不要修改 `packages/starters/`。
+不得新增/删除 section、改变信息架构、重做艺术方向或核心构图。没有合适 Starter 时转 `repochan-web-designer`。只通过 `repochan` CLI 写 RepoChan 协议与 Starter 实例数据，不修改官方 `packages/starters/`。
 
 ## 工作流
 
-### 1. 选择并拉取 starter
+### 1. 选择并拉取成品
 
 ```bash
 repochan analysis get --json
@@ -25,61 +25,63 @@ repochan starter get <id> --json
 repochan starter pull --starter <id>
 ```
 
-先从 `starter get` 返回的 `capabilities.sections[]` / `transitions[]` 确认 section、内容容量、composition、响应式与动效是否匹配。当前实例没有 section mutation：不得删除任何已声明 section。若必须新增/删除 section、改变主要视觉关系或动效叙事才能适配，停止本地化并转 `repochan-web-designer`。
+先看 desktop/mobile 预览、标签和完整成品，再判断其 section 容量、内容结构和视觉关系是否适合当前项目。必要时 pull 后运行并检查源码；直接以成品为准。如果需要改设计才能适配，换 Starter 或转 Web Designer。
 
-默认实例目录是 `.repochan/web-starter/`。已存在时先检查；未获明确授权不要 `--overwrite`。实例 `repochan/starter.json` 是后续命令的唯一 manifest。
+也可以消费创作者提供的可信本地 Starter：
 
-### 2. 投影确定性配置
+```bash
+repochan starter pull --from <creator-starter-dir>
+```
+
+默认实例目录是 `.repochan/web-starter/`。已存在时先检查；未获明确授权不要 `--overwrite`。实例内 `repochan/starter.json` 是唯一 manifest。
+
+### 2. 投影项目配置
 
 ```bash
 repochan starter configure
 ```
 
-该命令把 analysis/persona 中已有字段写入实例 `repochan/site.json`。不要手改 `src/lib/site.ts`；它只是稳定读取器。
+CLI 将 analysis/persona 的确定性字段写入 `repochan/site.json`。不要手改 `src/lib/site.ts`，也不要手工搬运机械字段。
 
-### 3. 创作 locale 内容
+### 3. 改写完整 locale
 
-按 manifest 的 `content.requiredPaths` 为所有 supported locale 创作文案。只填充既有 section 的内容职责，不借本地化改造信息架构。
+读取每个 `repochan/i18n/<locale>.json` 作为结构模板，保留全部键、值类型和数组长度，只替换内容。为所有 supported locale 提供完整文案；不得删除看似不需要的字段或增减卡片来改变信息架构。
 
 ```bash
 repochan starter configure --content-file /tmp/repochan-content.json --overwrite
 ```
 
-字段来源和文案规则见 [data-mapping.md](references/data-mapping.md) 与 [copy-and-structure.md](references/copy-and-structure.md)。
+CLI 会对完整结构进行递归校验。字段来源与文案规则见 [data-mapping.md](references/data-mapping.md) 和 [copy-and-structure.md](references/copy-and-structure.md)。
 
-### 4. 补齐并应用 slot 资产
+### 4. 定制 required asset slot
 
-先检查 `repochan/assets.json` 与 manifest slots；fallback 仅保证可运行，不等于完成定制。
+`repochan/assets.json` 中 `source` 表示 Starter 原成品资产，保证 pull 后可运行；`customized` 表示已经为当前项目替换。所有 required slot 必须完成定制。
 
 ```bash
-repochan order list --json
 repochan starter create-order <slot> --intent "<项目特定意图>" --foundation <foundation-order-id>
 repochan order set-status <order-id> approved
 repochan starter asset-apply <slot> --order <delivered-order-id> --overwrite
 ```
 
-`create-order` 负责机械字段与引用；Painter 交付原图；`asset-apply` 执行 manifest 声明的后处理并同步资产状态。不要手工运行 compress/slice/bg-remove 来拼出半完成实例。
+`create-order` 负责机械字段和 manifest 中已有的迁移参考；Painter 交付原图；`asset-apply` 完成声明的后处理、文件投影和 `customized` 状态。不要直接用 Source Starter 的角色资产冒充当前项目定制，也不要手工拼协议状态。
 
-对于仓库截图、真实产品证明等已经是最终格式的本地文件，使用 `repochan starter asset-import <slot> --file <path> --overwrite`；它只接受普通单输出 slot、要求扩展名与 `output` 一致，并记录 SHA-256 来源。不要把真实 proof 伪造成生成订单。
-
-若 starter 声明 `kind: "bundle"` 的 3×3/4×4 uniform-matte 角色网格，cell 语义、`publications[]` 与 fallback 必须来自 manifest，并由 `asset-apply` 的 `extract-grid` 完成确定性切分、chroma、alpha QA、normalize 与原子投影。不得手工切格、逐项改 `assets.json` 或伪造 ready；合同缺失或不完整就是 source starter 缺陷。
+已经是最终格式的真实截图等本地资产，可用 `repochan starter asset-import <slot> --file <path> --overwrite`。Bundle 的切格、chroma、alpha QA、normalize 和具名 PNG 投影必须由 `asset-apply` 原子完成。
 
 完整边界见 [phase2-assemble.md](references/phase2-assemble.md)。
 
-### 5. 验证、构建与检查
+### 5. 本地化验收
 
 ```bash
-repochan starter validate --output-dir .repochan/web-starter
+repochan starter validate --output-dir .repochan/web-starter --localized
 pnpm --dir .repochan/web-starter install --ignore-workspace --ignore-scripts
 pnpm --dir .repochan/web-starter build
 ```
 
-最后检查桌面/移动、locale、键盘、可读性、裁切、overflow 和 reduced-motion。只修复内容、配置、资产映射及明确暴露的本地化参数；设计结构问题转回 Web Designer，source starter 缺陷报告给 Starter Designer。
+最后对照 Source Starter 预览检查桌面/移动、全部 locale、键盘、可读性、裁切、overflow 和 reduced-motion。内容、配置或资产映射问题由你修复；设计结构缺陷转 Web Designer，Source Starter 合同缺陷反馈给 Starter Designer。
 
 ## 完成标准
 
-- 项目内容和资产完整映射到 starter 既有合同，未偷偷改变设计。
-- `repochan/site.json`、`assets.json`、`i18n/` 是项目特定数据入口。
-- required slots、locale requirements、validate 与 build 全部通过。
-- 派生资产只在实例 `public/`，不回灌 `.repochan/orders/`。
-- 不适配问题已转给正确角色，而不是由本地化工程师临场重做页面。
+- `site.json`、每个完整 locale 和所有 required slot 已针对项目替换。
+- `starter validate --localized` 与 build 通过。
+- 页面保持 Source Starter 的设计关系，没有临场重做 section。
+- 派生资产只进入实例 `public/`，原始订单结果保持不可变。

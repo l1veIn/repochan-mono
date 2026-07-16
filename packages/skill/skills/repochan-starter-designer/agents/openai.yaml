@@ -1,4 +1,4 @@
 interface:
   display_name: "RepoChan Starter Productizer"
-  short_description: "Turn an approved website into a reusable source starter"
-  default_prompt: "Use $repochan-starter-designer to productize this Gate-2-approved website into a reusable RepoChan source starter."
+  short_description: "Preserve an approved site as a creator-owned Starter"
+  default_prompt: "Use $repochan-starter-designer to preserve this Gate-2-approved website as a creator-owned RepoChan Source Starter with its Transfer Kit."

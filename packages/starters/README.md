@@ -1,55 +1,64 @@
 # @repochan/starters
 
-Pure scaffold data for RepoChan landing pages. Each child directory is an independent Astro/Tailwind project copied by `repochan starter pull`; this package has no runtime exports or build logic.
+Complete, real project websites that can be localized for another repository. Each child directory is an independent Astro/Tailwind site copied by `repochan starter pull`; the package has no runtime exports or build logic.
 
-## Starter v1 layout
+## Source Starter and Transfer Kit
+
+A Source Starter preserves its original project name, character, URLs, copy, source code, and production assets. It is a finished website, not an anonymous wireframe. Its previews and running source are the authoritative expression of the design.
+
+The **Transfer Kit** is the small, concentrated handoff surface inside that full site:
 
 ```text
 <starter-id>/
 ├── repochan/
-│   ├── starter.json
-│   ├── site.json
-│   ├── assets.json
-│   └── i18n/{en,zh}.json
-├── src/
-│   ├── components/
-│   ├── layouts/
-│   ├── lib/site.ts
-│   ├── pages/
-│   └── styles/
-├── public/
+│   ├── starter.json              # sole manifest: previews, locales, slots, orders, postprocess
+│   ├── site.json                 # project metadata and theme tokens
+│   ├── assets.json               # source/customized asset state
+│   ├── i18n/{locale}.json        # complete content structures
+│   └── previews/{desktop,mobile}.png
+├── public/                       # full source assets plus optional low-information slot references
+├── src/                          # complete implemented site
 └── package.json
 ```
 
-`repochan/starter.json` is the sole manifest in both the source and pulled instance. Core owns its schema and deterministic rules; the CLI owns discovery, projection, order materialization, post-processing, and validation.
+The Transfer Kit is not a second package or manifest. It lets the Page Designer replace deterministic configuration, complete locale values, and declared asset slots without reconstructing the design or copying fields by hand.
 
-Every source starter declares `capabilities.sections[]` and adjacent `capabilities.transitions[]`. The section contract records recipe, design provenance or an explicit HTML-first decision, baked/live layers, canonical viewport, normalized safe zones, responsive behavior, asset slots, and motion. Declared section order and every adjacent transition are authoritative.
+Core owns the manifest and config schemas. The CLI owns discovery, projection, order materialization, deterministic post-processing, local-source pull, and validation.
 
-Each asset slot declares `kind: "scalar" | "bundle"`. Scalar slots own one `output`; bundle slots own named `publications[]` and an exclusive `extract-grid` postprocess. Asset state mirrors the same discriminant: scalar state owns `src`, while bundle state owns `items` and never fabricates a representative top-level `src`.
+## Asset contract
 
-Project-specific text, palette, links, brand data, and asset state stay concentrated under root-level `repochan/`. `src/lib/site.ts` is a stable reader and token derivation layer, not an agent editing target.
+Each slot is either:
+
+- `scalar`: one `output`;
+- `bundle`: named `publications[]` plus one exclusive `extract-grid` postprocess.
+
+`repochan/assets.json` mirrors the discriminant. `source` means the original finished Starter asset is present and buildable. `customized` means the pulled instance has replaced it for the target project. Source validation accepts the preserved original; `starter validate --localized` requires every required slot to be customized.
+
+For a complex baked composition, the original full asset remains in the Starter. A slot may additionally reference a low-information migration guide, such as a pose line drawing produced by `official/hero-pose-lineart-extract`. The guide preserves composition and safe zones while reducing character or background identity; it never replaces the original artwork.
+
+All supported locale files must have the same complete recursive shape as the default locale, including keys, value types, and array lengths. Presentation colors live only in `repochan/site.json`; source files consume derived CSS variables.
 
 ## Commands
 
 ```bash
 repochan starter list
 repochan starter get minimal --json
-repochan starter pull [--starter minimal]
+repochan starter pull --starter minimal
+repochan starter pull --from /path/to/creator-starter
 repochan starter configure [--content-file content.json --overwrite]
 repochan starter create-order hero-composite --intent "..." --foundation ord-foundation-001
 repochan starter asset-apply hero-composite --order ord-hero-001 --overwrite
 repochan starter validate minimal
-repochan starter validate --output-dir .repochan/web-starter
+repochan starter validate --output-dir .repochan/web-starter --localized
 repochan starter validate --all
 ```
 
-## Color boundary
+## Contributing a Starter
 
-Color literals are allowed only in `repochan/site.json` theme data. Presentation files consume CSS variables and token-derived colors. `repochan starter validate` enforces the rule together with manifest, locale, asset, path, and template checks.
+Starter Designer works in a creator-owned directory or repository. Official inclusion happens through a pull request containing the complete Source Starter, desktop/mobile previews, and validation/build evidence. The official package is not a direct output directory for the skill.
 
 ## Available starters
 
-| ID | Scope | Default |
+| ID | Original project site | Default |
 |---|---|---|
-| `minimal` | One project-focused Hero (`capabilities.sections=[hero]`) | yes |
-| `registry-modular` | Seven-section modular registry with one Hero visual slot and live HTML/CSS/SVG sections | no |
+| `minimal` | RepoChan single-screen editorial Hero | yes |

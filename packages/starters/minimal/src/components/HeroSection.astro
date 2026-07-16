@@ -889,11 +889,42 @@ const { content, heroSrc } = Astro.props;
       --tilt-start: -9deg;
     }
 
+    .hero {
+      min-height: 100svh;
+      aspect-ratio: auto;
+    }
+
+    .layer-bg::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgb(var(--c-base-rgb) / 0.12) 0%,
+        rgb(var(--c-base-rgb) / 0.05) 42%,
+        rgb(var(--c-base-rgb) / 0.82) 72%,
+        var(--c-base) 100%
+      );
+    }
+
     .layer-type {
-      left: 0.85rem;
-      top: 12%;
-      transform: none;
-      width: min(92vw, 720px);
+      left: 1rem;
+      top: 17%;
+      width: min(92vw, 42rem);
+      height: auto;
+      --box-h: 18rem;
+      transform: rotate(-6deg) scale(0.76);
+      transform-origin: left top;
+    }
+
+    .type-word {
+      margin-right: 0.65rem;
+    }
+
+    .layer-row.row-1,
+    .layer-row.row-2,
+    .layer-row.row-3 {
+      flex: none;
     }
 
     .cta-start {
@@ -939,18 +970,80 @@ const { content, heroSrc } = Astro.props;
     }
 
     .layer-bg img {
-      object-position: 75% 50%;
+      object-position: 64% 50%;
     }
 
     .hero-summary {
-      display: none;
+      display: block;
+      left: 1rem;
+      right: 1rem;
+      bottom: 7.4rem;
+      width: auto;
+      padding: 1rem 1.1rem;
+      background: rgb(var(--c-base-rgb) / 0.76);
+      border: 1px solid rgb(var(--c-primary-rgb) / 0.22);
+      backdrop-filter: blur(12px);
+      text-shadow: 0 2px 10px rgb(var(--c-base-rgb) / 0.8);
+    }
+
+    .hero-summary h1 {
+      font-size: clamp(1.55rem, 7vw, 2.25rem);
+    }
+
+    .hero-summary p {
+      margin-top: 0.55rem;
+      font-size: clamp(0.78rem, 3.5vw, 1rem);
+    }
+
+    .brand-badge,
+    .github-badge {
+      top: 1rem;
+    }
+
+    .brand-badge-face {
+      gap: 0.55rem;
+      padding: 0.48rem 1rem 0.48rem 0.48rem;
+    }
+
+    .brand-mark {
+      width: 36px;
+      height: 36px;
+    }
+
+    .brand-name {
+      font-size: 1.1rem;
+    }
+
+    .tech-tag.t-mascot,
+    .tech-tag.t-local {
+      top: 11%;
+    }
+
+    .tech-tag.t-mascot {
+      left: 1rem;
+    }
+
+    .tech-tag.t-local {
+      right: 1rem;
+    }
+
+    .tech-tag.t-pipeline {
+      right: 1rem;
+      top: 59%;
+    }
+
+    .tech-tag.t-discribe {
+      left: 1rem;
+      top: 55%;
+      transform: rotate(-8deg) !important;
     }
   }
 
   @media (max-width: 520px) {
     .layer-type {
-      top: 10%;
-      width: 94vw;
+      top: 16%;
+      width: 124vw;
+      transform: rotate(-6deg) scale(0.62);
     }
   }
 

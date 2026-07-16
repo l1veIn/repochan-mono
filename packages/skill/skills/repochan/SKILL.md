@@ -37,7 +37,7 @@ description: >
 
 每一步你要：读对应团队 skill 的指引 → 按它的指导跑（调 cli 子命令、用 `repochan <entity> get` 读上游产物）→ 完成后进入下一阶段。
 
-默认链只做既有 starter 的本地化与装配。若用户明确要求原创网站、全新信息架构/section/艺术方向，或 Page Designer 判断没有合适 starter，显式进入 `repochan-web-designer` 分支，完成 Gate 1/2 后交付具体项目网站。把获批网站转成 `packages/starters/` source starter 是维护者任务，只有用户明确要求产品化时才调用 `repochan-starter-designer`，不属于默认项目流水线。
+默认链只做既有 Starter 的本地化与装配。若用户明确要求原创网站、全新信息架构/section/艺术方向，或 Page Designer 判断没有合适 Starter，显式进入 `repochan-web-designer` 分支，完成 Gate 1/2 后交付具体项目网站。只有用户明确要求产品化时才调用 `repochan-starter-designer`：它在创作者目录中整理 Source Starter；进入官方 Starter 库需由创作者提交 PR，不属于默认项目流水线。
 
 若在显式 yolo 或非交互执行中进入 Web Designer 分支，Gate 1/2 不阻塞本地、可逆的设计工作：由执行 agent 记录候选、自动选择推荐方向，并在自动 QA 全绿后记录 auto-selected 决策；这不等同于有人类审美批准，交付报告必须明确标注。非交互环境本身不授予 push、部署、发布或其他外部写操作的权限。
 

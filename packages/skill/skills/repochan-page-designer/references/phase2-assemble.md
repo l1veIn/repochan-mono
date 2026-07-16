@@ -7,7 +7,7 @@
 - `.repochan/orders/`: 保存 Painter 原始交付和版本历史。
 - `.repochan/web-starter/public/`: 保存 starter 本地化与装配阶段的派生文件。
 
-默认资产让 scaffold 始终可构建，但它不代表已经完成项目定制。判断能否复用订单时，同时检查 asset type、templateId、项目身份、构图和 foundation 引用；不要只因文件存在就跳过视觉判断。
+`source` 资产让 scaffold 始终可构建，但它仍属于 Starter 的原项目；`customized` 才表示当前项目已完成替换。判断能否复用订单时，同时检查 asset type、templateId、项目身份、构图和 foundation 引用；不要只因文件存在就跳过视觉判断。
 
 ## CLI 边界
 
@@ -22,10 +22,10 @@ repochan starter asset-apply <slot> --order <order-id> [--result-version <versio
 
 ## 验收顺序
 
-1. `repochan starter validate --output-dir .repochan/web-starter`
+1. `repochan starter validate --output-dir .repochan/web-starter --localized`
 2. `pnpm --dir .repochan/web-starter build`
 3. 浏览器检查默认 locale 与其他 locale。
 4. 检查窄屏、宽屏、键盘焦点、外链和 reduced-motion。
 5. 核对角色身份、文字留白、CTA 可读性以及图片裁切。
 
-不要通过降低 required slot、伪造 `ready` 或删除 locale 来绕过 validator。
+不要通过降低 required slot、伪造 `customized` 或删除 locale 来绕过 validator。

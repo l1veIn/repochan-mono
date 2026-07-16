@@ -61,7 +61,7 @@ const canonicalTemplateIds = Object.freeze([
   "official/three-view",
   "official/web-state-grid-3x3",
 ]);
-const canonicalStarterIds = Object.freeze(["minimal", "registry-modular"]);
+const canonicalStarterIds = Object.freeze(["minimal"]);
 const canonicalDefaultStarter = "minimal";
 const temporaryRoot = mkdtempSync(path.join(os.tmpdir(), "repochan-release-preflight-"));
 const sourceRoot = path.join(temporaryRoot, "source");
@@ -489,8 +489,9 @@ async function candidateFreshInstallSmoke(entries) {
     run("npm", ["run", "build"], { cwd: site, env: isolatedEnv, replaceEnv: true });
     starterBuilds[starterId] = "passed";
   };
-  buildStarter(canonicalDefaultStarter, []);
-  buildStarter("registry-modular", ["--starter", "registry-modular"]);
+  for (const starterId of canonicalStarterIds) {
+    buildStarter(starterId, starterId === canonicalDefaultStarter ? [] : ["--starter", starterId]);
+  }
 
   return {
     cliVersion: version,

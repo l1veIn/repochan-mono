@@ -124,7 +124,7 @@ RepoChan 给 agent 提供一套**交付拓扑**：每个角色的工作目标不
 - **C 位是向导 skill `repochan`**：默认一句话调度全流程；显式 yolo 在已授权范围采用默认创意决策；非交互环境不扩大外部写权限；逐团队是高级模式。
 - 默认团队 skill：`repochan-analysis` / `repochan-interviewer` / `repochan-persona` / `repochan-art-director` / `repochan-painter` / `repochan-page-designer`。其中 Page Designer 的稳定机器 id 保留，但职责是既有 starter 的本地化与装配，只编辑 pull 后实例。
 - 原创分支 skill：`repochan-web-designer`。它为具体项目负责信息架构、艺术方向、整页/section 母稿、bake mask、生产资产策略、实现与 Gate 1/2；不写 source starter。
-- 维护者 skill：`repochan-starter-designer`。它只把 Gate-2-approved implemented page 产品化为 `packages/starters/<id>/` source starter，是唯一可写该目录的 skill，不属于普通项目生成流水线。
+- 产品化 skill：`repochan-starter-designer`。它把 Gate-2-approved implemented page 保真整理为创作者持有的 Source Starter 与 Transfer Kit；保留原项目身份与完整资产。进入 `packages/starters/` 必须由创作者提交 PR 并经过维护者审核，不属于普通项目生成流水线。
 - 采用 progressive disclosure：精炼 `SKILL.md` + 按需 `references/`。
 - skill **不亲自执行代码**——它告诉 agent 该想什么、该跑哪条 `repochan` 子命令、该读哪个上游产物。
 
@@ -193,8 +193,8 @@ packages/
 ├── templates    @repochan/templates    纯数据：内置资产 YAML 模板。
 └── starters     @repochan/starters     纯数据：落地页 starter（完整 Astro/Tailwind 脚手架目录）。
 
-> 落地页 starter 位于 `packages/starters/`；Starter v1 默认仍是 Hero-only 的 `minimal`，并提供首个七 section 的 `registry-modular` 作为完整页面供给。
-> `repochan starter pull --starter <id>` 从包内 scaffold 出可编辑实例；实例与 source 都以 `repochan/starter.json` 为唯一 manifest。
+> 落地页 Starter 位于 `packages/starters/`；每个目录保留原项目的完整成品、desktop/mobile 预览与 Transfer Kit。`minimal` 是默认的 Hero-only Starter。
+> `repochan starter pull --starter <id>` 从官方包复制实例，`repochan starter pull --from <dir>` 消费可信的创作者本地 Starter；source 与实例都以 `repochan/starter.json` 为唯一 manifest。
 ```
 
 ### 依赖方向（必须单向）
@@ -284,7 +284,7 @@ repochan setup                   # 检测 agent、安装 skill、可选配置 im
    ⏸ 检查点 3：部署前
 ```
 
-默认链不做原创网页设计。需要全新信息架构、section 或艺术方向，或没有 starter 适配时，显式进入 `repochan-web-designer`，产出经 Gate 1/2 批准的具体项目网站。只有用户/维护者进一步要求沉淀模板时，才由 `repochan-starter-designer` 执行 approved page → source starter 产品化；该步骤不在默认链中。
+默认链不做原创网页设计。需要全新信息架构、section 或艺术方向，或没有 Starter 适配时，显式进入 `repochan-web-designer`，产出经 Gate 1/2 批准的具体项目网站。只有用户进一步要求产品化时，才由 `repochan-starter-designer` 在创作者目录中保真整理 Source Starter 与 Transfer Kit；官方收录走 PR，该步骤不在默认链中。
 
 | 模式 | 触发 | 行为 |
 |---|---|---|

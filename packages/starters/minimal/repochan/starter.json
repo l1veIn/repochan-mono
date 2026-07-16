@@ -6,6 +6,10 @@
   "style": "editorial-tech",
   "tags": ["landing", "hero", "minimal"],
   "default": true,
+  "previews": {
+    "desktop": "repochan/previews/desktop.png",
+    "mobile": "repochan/previews/mobile.png"
+  },
   "config": {
     "site": "repochan/site.json",
     "assets": "repochan/assets.json",
@@ -13,40 +17,7 @@
   },
   "content": {
     "defaultLocale": "en",
-    "supportedLocales": ["en", "zh"],
-    "requiredPaths": [
-      "meta.title",
-      "meta.description",
-      "content.hero.headline",
-      "content.hero.body",
-      "content.hero.primaryCta.label",
-      "content.hero.primaryCta.href"
-    ]
-  },
-  "capabilities": {
-    "sections": [
-      {
-        "id": "hero",
-        "recipe": "hero-composite-live-copy",
-        "provenance": {
-          "type": "design-reference",
-          "reference": "public/assets/hero-pose-lineart.webp"
-        },
-        "bakedLayers": ["L1", "L2"],
-        "liveLayers": ["L3", "L4"],
-        "canonicalViewport": { "width": 2560, "height": 1440 },
-        "safeZones": [
-          { "id": "live-copy", "x": 0.06, "y": 0.18, "width": 0.44, "height": 0.64 }
-        ],
-        "responsive": {
-          "mode": "recompose",
-          "notes": "Keep live copy before the artwork in reading order and preserve the character face and primary CTA at narrow widths."
-        },
-        "assetSlots": ["hero-composite"],
-        "motion": []
-      }
-    ],
-    "transitions": []
+    "supportedLocales": ["en", "zh"]
   },
   "assets": [
     {

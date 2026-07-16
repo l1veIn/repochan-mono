@@ -14,8 +14,9 @@ import {
   readPersonaArtifact,
   validateStarterAssetState,
   validateStarterAssetsConfig,
-  validateStarterContentRequirements,
   validateStarterLocaleContent,
+  validateStarterLocaleShape,
+  validateStarterLocaleStructures,
   validateStarterPresentationColors,
   validateStarterSiteConfig,
   type StarterAssetSlot,
@@ -64,6 +65,8 @@ type StarterOptions = OutputOptions & {
   order?: string;
   resultVersion?: string;
   file?: string;
+  from?: string;
+  localized?: boolean;
 };
 
 function outputDir(cwd: string, value?: string): string {
@@ -119,9 +122,8 @@ export async function runStarterList(_cwd: string, options: StarterOptions) {
   const starters = options.tag ? all.filter((starter) => starter.tags.includes(options.tag!)) : all;
   const lines = starters.map((starter) => {
     const tags = starter.tags.length ? ` [${starter.tags.join(", ")}]` : "";
-    const sections = starter.capabilities.sections.map((section) => section.id).join(", ");
-    const coverage = ` ${dim("•")} sections: ${sections}`;
-    return `  ${starter.id}  ${dim("—")} ${starter.name}${starter.default ? " (default)" : ""}${tags}${coverage}`;
+    const preview = ` ${dim("•")} preview: ${starter.previews.desktop}`;
+    return `  ${starter.id}  ${dim("—")} ${starter.name}${starter.default ? " (default)" : ""}${tags}${preview}`;
   });
   emitResult(options, `Starters${options.tag ? ` tagged '${options.tag}'` : ""} (${starters.length}):${lines.length ? `\n${lines.join("\n")}` : ""}`, { starters });
 }
@@ -129,19 +131,11 @@ export async function runStarterList(_cwd: string, options: StarterOptions) {
 export async function runStarterGet(_cwd: string, id: string | undefined, options: StarterOptions) {
   if (!id) throw new UsageError("starter get requires a starter id.");
   const starter = await getStarter(id);
-  const sections = starter.capabilities.sections;
-  const transitions = starter.capabilities.transitions;
   const lines = [
     `${starter.id} — ${starter.name}${starter.default ? " (default)" : ""}`,
     `  style: ${starter.style ?? "?"}`,
     `  tags: ${starter.tags.join(", ") || "(none)"}`,
-    `  sections (${sections.length}):`,
-    ...sections.map((section) => {
-      const layers = `baked=${section.bakedLayers.join("+") || "none"}, live=${section.liveLayers.join("+") || "none"}`;
-      return `    ${section.id} ${dim("—")} ${section.recipe}; ${layers}; responsive=${section.responsive.mode}`;
-    }),
-    `  transitions (${transitions.length}):${transitions.length ? "" : " none"}`,
-    ...transitions.map((transition) => `    ${transition.from} → ${transition.to} [${transition.kind}]`),
+    `  previews: ${starter.previews.desktop}, ${starter.previews.mobile}`,
     `  assets (${starter.assets.length}):`,
     ...starter.assets.map((asset) => `    ${asset.slot} → ${asset.postprocess?.map((step) => step.op).join("+") || "copy"}${asset.order ? " [order]" : ""}`),
   ];
@@ -150,10 +144,16 @@ export async function runStarterGet(_cwd: string, id: string | undefined, option
 
 export async function runStarterPull(cwd: string, options: StarterOptions) {
   const target = outputDir(cwd, options.outputDir);
-  const starterId = options.starter ?? await getDefaultStarterId();
-  const source = await getStarterDir(starterId);
+  if (options.from && options.starter) throw new UsageError("starter pull accepts either --starter <id> or --from <local-dir>, not both.");
+  const localSource = options.from ? path.resolve(cwd, options.from) : undefined;
+  const starterId = localSource ? (await readStarterInstance(localSource)).id : options.starter ?? await getDefaultStarterId();
+  const source = localSource ?? await getStarterDir(starterId);
   if (path.resolve(target) === path.resolve(source)) {
     return void emitResult(options, `Starter already present at ${target}.`, { outputDir: target, starter: starterId, generated: false });
+  }
+  const relativeTarget = path.relative(source, target);
+  if (relativeTarget && !relativeTarget.startsWith(`..${path.sep}`) && relativeTarget !== ".." && !path.isAbsolute(relativeTarget)) {
+    throw new UsageError(`Starter output cannot be inside its source directory: ${target}`);
   }
   if (await exists(target)) {
     if (!options.overwrite) throw new UsageError(`outputDir exists: ${target}. Pass --overwrite to replace.`);
@@ -162,7 +162,9 @@ export async function runStarterPull(cwd: string, options: StarterOptions) {
   await fs.mkdir(path.dirname(target), { recursive: true });
   await fs.cp(source, target, {
     recursive: true,
-    filter: (src) => {
+    filter: async (src) => {
+      const stat = await fs.lstat(src);
+      if (stat.isSymbolicLink()) throw new UsageError(`Starter source refuses symlink path: ${src}`);
       const parts = path.relative(source, src).split(path.sep);
       return !parts.some((part) => ["node_modules", "dist", ".astro", ".DS_Store"].includes(part));
     },
@@ -199,6 +201,12 @@ export async function runStarterConfigure(cwd: string, options: StarterOptions) 
       const content = validateStarterLocaleContent(raw);
       if (!manifest.content.supportedLocales.includes(content.locale)) throw new UsageError(`Unsupported locale for ${manifest.id}: ${content.locale}`);
       const file = path.join(sitePath(target, manifest.config.i18nDir), `${content.locale}.json`);
+      if (!(await exists(file))) throw new UsageError(`Starter locale template does not exist: ${file}`);
+      const template = validateStarterLocaleContent(await readJson(file));
+      const shapeIssues = validateStarterLocaleShape(template, content);
+      if (shapeIssues.length) {
+        throw new UsageError(`Locale content shape does not match ${content.locale} template:\n${shapeIssues.map((issue) => `- ${issue}`).join("\n")}`);
+      }
       if ((await exists(file)) && !options.overwrite) throw new UsageError(`Content exists: ${file}. Pass --overwrite to replace.`);
       pendingContent.push({ content, file });
     }
@@ -284,7 +292,6 @@ export async function runStarterCreateOrder(cwd: string, slotName: string | unde
     deliverables: slot.order.deliverables ?? [],
     acceptanceCriteria: [...mustInclude],
     references,
-    meta: { starterId: manifest.id, starterSlot: slot.slot },
   };
   const result = await createOrders(cwd, { order });
   emitResult(options, `Created starter order ${orderId} for ${slot.slot}.`, { ...result, orderId, slot: slot.slot });
@@ -462,7 +469,7 @@ export async function runStarterAssetApply(cwd: string, slotName: string | undef
         if (!item) throw new Error(`extract-grid did not produce publication '${publication.key}'.`);
         return [publication.key, {
           src: `/${publication.output.replace(/^public\//, "")}`,
-          status: "ready" as const,
+          status: "customized" as const,
           orderId: options.order,
           versionId: result.version.versionId,
           qa: { ...item.qa, geometry: item.geometry },
@@ -470,7 +477,7 @@ export async function runStarterAssetApply(cwd: string, slotName: string | undef
       }));
       assets.assets[slot.slot] = {
         kind: "bundle",
-        status: "ready",
+        status: "customized",
         orderId: options.order,
         versionId: result.version.versionId,
         qa: { rows: gridResult.rows, cols: gridResult.cols, matteColor: gridResult.matteColor, matteColorSource: gridResult.matteColorSource },
@@ -480,7 +487,7 @@ export async function runStarterAssetApply(cwd: string, slotName: string | undef
       assets.assets[slot.slot] = {
         kind: "scalar",
         src: `/${slot.output.replace(/^public\//, "")}`,
-        status: "ready",
+        status: "customized",
         orderId: options.order,
         versionId: result.version.versionId,
       };
@@ -551,7 +558,7 @@ export async function runStarterAssetImport(cwd: string, slotName: string | unde
   assets.assets[slot.slot] = {
     kind: "scalar",
     src: `/${slot.output.replace(/^public\//, "")}`,
-    status: "ready",
+    status: "customized",
     provenance,
   };
   // Validate the complete new state before touching either destination file.
@@ -577,7 +584,7 @@ export async function runStarterAssetImport(cwd: string, slotName: string | unde
   }
 }
 
-async function validateStarterDir(cwd: string, starter: StarterMeta): Promise<string[]> {
+async function validateStarterDir(cwd: string, starter: StarterMeta, options: { localized?: boolean } = {}): Promise<string[]> {
   const issues: string[] = [];
   const files = await walkFiles(starter.dir);
   for (const asset of starter.assets) {
@@ -591,12 +598,9 @@ async function validateStarterDir(cwd: string, starter: StarterMeta): Promise<st
       }
     }
   }
-  for (const section of starter.capabilities.sections) {
-    if (section.provenance.type === "design-reference") {
-      const reference = sitePath(starter.dir, section.provenance.reference);
-      const stat = await fs.stat(reference).catch(() => undefined);
-      if (!stat?.isFile()) issues.push(`${section.id}: design reference must be a regular file: ${section.provenance.reference}`);
-    }
+  for (const [name, preview] of Object.entries(starter.previews)) {
+    const previewStat = await fs.stat(sitePath(starter.dir, preview)).catch(() => undefined);
+    if (!previewStat?.isFile()) issues.push(`${name} preview must be a regular file: ${preview}`);
   }
   const templates = await loadAllTemplates(await getBuiltinTemplatesDir(), cwd);
   const templatesById = new Map(templates.map((template) => [template.id, template]));
@@ -610,8 +614,8 @@ async function validateStarterDir(cwd: string, starter: StarterMeta): Promise<st
     if (site.locales.default !== starter.content.defaultLocale) issues.push(`site default locale does not match manifest: ${site.locales.default}`);
     if (site.locales.supported.join("\0") !== starter.content.supportedLocales.join("\0")) issues.push("site supported locales do not match manifest");
     const relativeFiles = files.map((file) => path.relative(starter.dir, file).split(path.sep).join("/"));
-    issues.push(...validateStarterAssetState(starter, assets, relativeFiles));
-    issues.push(...validateStarterContentRequirements(starter, locales));
+    issues.push(...validateStarterAssetState(starter, assets, relativeFiles, { requireCustomized: options.localized }));
+    issues.push(...validateStarterLocaleStructures(starter, locales));
   } catch (error) {
     issues.push(error instanceof Error ? error.message : String(error));
   }
@@ -631,7 +635,7 @@ export async function runStarterValidate(cwd: string, id: string | undefined, op
   else if (id) targets = [await getStarter(id)];
   else throw new UsageError("Usage: repochan starter validate <id> | --all | --output-dir <dir>");
   const results = [];
-  for (const target of targets) results.push({ id: target.id, dir: target.dir, issues: await validateStarterDir(cwd, target) });
+  for (const target of targets) results.push({ id: target.id, dir: target.dir, issues: await validateStarterDir(cwd, target, { localized: options.localized }) });
   const issueCount = results.reduce((total, result) => total + result.issues.length, 0);
   if (issueCount) throw new UsageError(`Starter validation failed (${issueCount} issue${issueCount === 1 ? "" : "s"}):\n${results.flatMap((result) => result.issues.map((issue) => `- ${result.id}: ${issue}`)).join("\n")}`);
   emitResult(options, `Starter validation passed (${results.length} starter${results.length === 1 ? "" : "s"}).`, { valid: true, starters: results });
