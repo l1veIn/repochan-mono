@@ -65,13 +65,14 @@ const themeGallery = galleryItems.slice(2);
       </div>
       <p class="platforms">{content.hero.platforms}</p>
     </div>
-    <div class="spine hero-spine" aria-hidden="true"><span></span></div>
+    <!-- Spine is line-only here; the diamond lives on the next section's top so it is never painted over. -->
+    <div class="spine hero-spine" aria-hidden="true"></div>
   </section>
 
   <main>
     <section class="paper-section capabilities" id="features" aria-labelledby="capabilities-title">
       <div class="pattern-layer" aria-hidden="true"></div>
-      <div class="spine section-spine" aria-hidden="true"><span></span></div>
+      <div class="spine section-spine" aria-hidden="true"><span class="spine-node"></span></div>
       <div class="section-intro">
         <h2 id="capabilities-title">{content.capabilities.title}</h2>
         <p>{content.capabilities.body}</p>
@@ -92,7 +93,8 @@ const themeGallery = galleryItems.slice(2);
 
     <section class="paper-section workflow" id="workflow" aria-labelledby="workflow-title">
       <div class="pattern-layer" aria-hidden="true"></div>
-      <div class="spine workflow-spine" aria-hidden="true"><span></span></div>
+      <!-- Spine is a direct section child so left:var(--spine-x) shares the same origin as other sections. -->
+      <div class="spine workflow-spine" aria-hidden="true"><span class="spine-node"></span></div>
       <div class="workflow-intro">
         <h2 id="workflow-title">{content.workflow.title}</h2>
         <p>{content.workflow.body}</p>
@@ -116,9 +118,13 @@ const themeGallery = galleryItems.slice(2);
 
     <section class="gallery" id="gallery" aria-labelledby="gallery-title">
       <div class="deco-atmosphere gallery-atmosphere" aria-hidden="true"></div>
-      <div class="gallery-track-handoff" aria-hidden="true"><span></span></div>
+      <!-- Full-height spine passes *behind* gallery chrome; node sits on the section seam. -->
+      <div class="spine gallery-spine" aria-hidden="true">
+        <span class="spine-node"></span>
+        <span class="spine-branch"></span>
+      </div>
       <div class="gallery-head">
-        <div>
+        <div class="gallery-copy">
           <p class="eyebrow">{content.gallery.eyebrow}</p>
           <h2 id="gallery-title">{content.gallery.title}</h2>
           <p>{content.gallery.body}</p>
@@ -177,7 +183,12 @@ const themeGallery = galleryItems.slice(2);
 
     <section class="cta" id="download" aria-labelledby="cta-title">
       <div class="pattern-layer" aria-hidden="true"></div>
-      <div class="cta-ticket-handoff" aria-hidden="true"><span></span></div>
+      <!-- Designed terminus: short vertical run, then L-branch into the ticket. -->
+      <div class="spine cta-spine" aria-hidden="true">
+        <span class="spine-node"></span>
+        <span class="spine-branch spine-branch--ticket"></span>
+        <span class="spine-node spine-node--end"></span>
+      </div>
       <div class="ticket">
         <div>
           <h2 id="cta-title">{content.cta.title}</h2>
@@ -247,7 +258,10 @@ const themeGallery = galleryItems.slice(2);
 
 <style>
   .site-shell {
-    --spine-x: 39%;
+    /* Viewport-relative so section padding and content calcs share one coordinate system. */
+    --spine-x: 39vw;
+    --spine-clear: 1.35rem;
+    --inline-pad: max(5vw, calc((100vw - 90rem) / 2));
     --pattern-size: 30rem;
     --pattern-phase-x: 0rem;
     overflow: clip;
@@ -260,7 +274,8 @@ const themeGallery = galleryItems.slice(2);
     color: var(--c-base);
     background: var(--c-accent-2);
     isolation: isolate;
-    overflow: hidden;
+    /* Do not clip spine seams; media is contained by its own absolute inset. */
+    overflow: visible;
   }
 
   .hero-media,
@@ -273,6 +288,7 @@ const themeGallery = galleryItems.slice(2);
 
   .hero-media {
     z-index: -2;
+    overflow: hidden;
     background: var(--hero-image) center / cover no-repeat;
   }
 
@@ -337,8 +353,9 @@ const themeGallery = galleryItems.slice(2);
   .hero-copy {
     position: relative;
     z-index: 3;
-    width: min(44rem, 45vw);
-    margin-left: 49%;
+    /* Stay fully to the right of the spine corridor. */
+    width: min(44rem, calc(100% - var(--spine-x) - var(--spine-clear) - 4rem));
+    margin-left: max(49%, calc(var(--spine-x) + var(--spine-clear) + 1rem));
     padding-top: clamp(6rem, 12vw, 11rem);
   }
 
@@ -403,25 +420,70 @@ const themeGallery = galleryItems.slice(2);
     letter-spacing: 0.08em;
   }
 
+  /*
+   * Page spine system
+   * - One vertical rail at --spine-x in every major section (no stub gaps).
+   * - Diamonds live at the TOP of the receiving section (translateY -50%) so the
+   *   later sibling paints them on the seam — never buried under the next bg.
+   * - Content stacks above the rail; opaque cards let the rail pass behind.
+   * - Left-of-spine copy is width-clamped so glyphs never sit on the rail.
+   */
   .spine {
     position: absolute;
-    z-index: 2;
+    z-index: 1;
+    top: 0;
+    bottom: 0;
     left: var(--spine-x);
     width: 1px;
-    background: var(--c-brass);
+    background: color-mix(in srgb, var(--c-brass) 88%, transparent);
     pointer-events: none;
   }
 
   .hero-spine { top: 8rem; bottom: 0; }
-  .spine span {
+
+  .spine-node {
     position: absolute;
+    z-index: 3;
+    top: 0;
     left: 50%;
-    bottom: 0;
-    width: 2.5rem;
+    width: 2.35rem;
     aspect-ratio: 1;
     border: 1px solid var(--c-brass);
     background: var(--c-accent-2);
+    transform: translate(-50%, -50%) rotate(45deg);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--c-base) 0%, transparent);
+  }
+
+  /* Paper seams: give the diamond a paper halo so it reads on light sections. */
+  .paper-section .spine-node {
+    box-shadow: 0 0 0 5px var(--c-base);
+  }
+
+  .spine-branch {
+    position: absolute;
+    top: 4.5rem;
+    left: 0;
+    width: clamp(3.5rem, 10vw, 9rem);
+    height: 1px;
+    background: color-mix(in srgb, var(--c-brass) 70%, transparent);
+  }
+
+  .spine-branch--ticket {
+    top: auto;
+    bottom: 0;
+    width: min(36vw, 34rem);
+    background: color-mix(in srgb, var(--c-brass) 78%, transparent);
+  }
+
+  .spine-node--end {
+    top: auto;
+    bottom: 0;
+    left: min(36vw, 34rem);
+    width: 0.85rem;
+    /* Sit on the terminus line (not half-buried under the ticket). */
     transform: translate(-50%, 50%) rotate(45deg);
+    background: var(--c-accent-2);
+    box-shadow: 0 0 0 3px var(--c-accent-2);
   }
 
   .paper-section {
@@ -448,15 +510,29 @@ const themeGallery = galleryItems.slice(2);
   .capabilities {
     display: grid;
     min-height: 47rem;
-    grid-template-columns: minmax(15rem, 0.78fr) minmax(28rem, 1.65fr);
-    gap: clamp(4rem, 9vw, 10rem);
+    /* Left track ends before the spine; right track starts after it. */
+    grid-template-columns:
+      minmax(14rem, calc(var(--spine-x) - var(--inline-pad) - var(--spine-clear)))
+      minmax(22rem, 1fr);
+    column-gap: calc(var(--spine-clear) * 2);
     align-items: center;
-    padding: 7rem max(5vw, calc((100vw - 90rem) / 2));
+    padding: 7rem var(--inline-pad);
   }
 
-  .section-spine { top: 0; bottom: 0; }
+  .section-intro,
+  .workflow-intro,
+  .capability-list,
+  .workflow-steps {
+    position: relative;
+    z-index: 2;
+  }
 
-  .section-intro { max-width: 24rem; }
+  .section-intro {
+    max-width: 24rem;
+    /* Hard stop so title glyphs never cross the rail. */
+    width: min(24rem, calc(var(--spine-x) - var(--inline-pad) - var(--spine-clear)));
+  }
+
   .section-intro h2,
   .workflow-intro h2,
   .gallery-head h2,
@@ -502,40 +578,90 @@ const themeGallery = galleryItems.slice(2);
   .workflow {
     position: relative;
     min-height: 46rem;
-    padding: 6rem max(5vw, calc((100vw - 90rem) / 2)) 7rem;
+    padding: 6rem var(--inline-pad) 7rem;
   }
-  .workflow-spine { top: 0; bottom: 0; }
-  .workflow-intro { max-width: 35rem; margin-bottom: 4rem; }
-  .workflow-steps {
+
+  .workflow-spine {
+    top: 0;
+    bottom: 0;
+    z-index: 1;
+  }
+
+  .workflow-intro {
     position: relative;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: clamp(1.25rem, 4vw, 4rem);
+    z-index: 2;
+    max-width: min(32rem, calc(var(--spine-x) - var(--inline-pad) - var(--spine-clear)));
+    margin-bottom: 4rem;
   }
+
+  .workflow-steps {
+    /*
+     * Column 1 ends just before the page spine so left-aligned node 02 is
+     * centered on --spine-x. Nodes 01/03 stay left-aligned in their tracks.
+     * --s is spine x inside the padded content box.
+     */
+    --step-gap: clamp(1.25rem, 4vw, 4rem);
+    --step-node: 2.8rem;
+    --step-node-r: calc(var(--step-node) / 2);
+    --s: calc(var(--spine-x) - var(--inline-pad));
+    --col1: calc(var(--s) - var(--step-gap) - var(--step-node-r));
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns:
+      minmax(0, var(--col1))
+      minmax(0, 1fr)
+      minmax(0, 1fr);
+    gap: var(--step-gap);
+    margin-bottom: 2.5rem;
+  }
+
+  /*
+   * Horizontal rail: center of node 01 → center of node 03.
+   * Vertical page spine runs full section height and crosses node 02.
+   */
   .workflow-steps::before {
     content: "";
     position: absolute;
-    top: 1.35rem;
-    right: 8%;
-    left: 8%;
+    z-index: 0;
+    top: var(--step-node-r);
+    left: var(--step-node-r);
+    /* right inset = last-col width - node radius; last two cols share remaining space equally. */
+    right: calc((100% - var(--col1) - 2 * var(--step-gap)) / 2 - var(--step-node-r));
     height: 1px;
-    background: var(--c-brass);
+    background: color-mix(in srgb, var(--c-brass) 88%, transparent);
   }
+
   .workflow-steps li { position: relative; }
+
   .step-index {
     position: relative;
     z-index: 1;
     display: grid;
-    width: 2.8rem;
+    width: var(--step-node);
     aspect-ratio: 1;
     place-items: center;
-    margin-bottom: 1.25rem;
+    margin: 0 0 1.25rem;
+    border: 1px solid var(--c-brass);
     background: var(--c-accent-2);
     color: var(--c-base);
     transform: rotate(45deg);
+    /* Halo so the horizontal rail is interrupted cleanly by the diamond. */
+    box-shadow: 0 0 0 5px var(--c-base);
   }
+
+  /*
+   * Keep diamonds on the timeline/spine, but nudge title + body + card right
+   * so the vertical rail clears step-02 copy and card chrome.
+   */
+  .workflow-steps h3,
+  .workflow-steps li > p,
+  .workflow-pane {
+    margin-left: calc(var(--step-node-r) + 1.05rem);
+  }
+
   .workflow-steps h3 { font-size: 1.35rem; margin-bottom: 0.35rem; }
-  .workflow-steps p { min-height: 3rem; color: color-mix(in srgb, var(--c-accent-2) 72%, transparent); }
+  .workflow-steps li > p { min-height: 3rem; color: color-mix(in srgb, var(--c-accent-2) 72%, transparent); }
   .workflow-pane {
     display: grid;
     min-height: 15rem;
@@ -569,42 +695,31 @@ const themeGallery = galleryItems.slice(2);
     opacity: 0.055;
     mask-image: radial-gradient(circle at 90% 45%, var(--c-base), transparent 64%);
   }
-  .gallery-track-handoff {
-    position: absolute;
-    top: 0;
-    left: var(--spine-x);
-    width: 1px;
-    height: 5rem;
-    background: color-mix(in srgb, var(--c-base) 62%, transparent);
-    pointer-events: none;
+
+  .gallery-spine {
+    z-index: 0;
   }
-  .gallery-track-handoff::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: clamp(4rem, 12vw, 11rem);
-    height: 1px;
-    background: color-mix(in srgb, var(--c-base) 48%, transparent);
+
+  .gallery-spine .spine-node {
+    box-shadow: 0 0 0 5px var(--c-accent-2);
   }
-  .gallery-track-handoff span,
-  .cta-ticket-handoff span {
-    position: absolute;
-    width: 0.8rem;
-    aspect-ratio: 1;
-    border: 1px solid var(--c-brass);
-    background: var(--c-accent-2);
-    transform: translate(-50%, 50%) rotate(45deg);
+
+  .gallery-head,
+  .gallery-panels {
+    position: relative;
+    z-index: 2;
   }
-  .gallery-track-handoff span { bottom: 0; left: 0; }
+
   .gallery-head {
     display: grid;
     grid-template-columns: minmax(18rem, 1fr) auto;
     gap: 3rem;
     align-items: end;
     margin-bottom: 3rem;
+    /* Keep copy to the right of the spine corridor. */
+    padding-left: max(0px, calc(var(--spine-x) - max(4vw, calc((100vw - 92rem) / 2)) + var(--spine-clear)));
   }
-  .gallery-head > div:first-child { max-width: 48rem; }
+  .gallery-copy { max-width: 48rem; }
   .gallery-head p:not(.eyebrow) { max-width: 40rem; color: color-mix(in srgb, var(--c-base) 72%, transparent); line-height: 1.6; }
   .eyebrow { color: var(--c-brass); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; }
   .filter-list { display: flex; flex-wrap: wrap; gap: 0.6rem; }
@@ -677,30 +792,23 @@ const themeGallery = galleryItems.slice(2);
     background: var(--c-accent-2);
     isolation: isolate;
   }
-  .cta-ticket-handoff {
-    position: absolute;
-    z-index: 0;
+
+  .cta-spine {
+    /* Above the ticket so the L-terminus and end diamond are never buried. */
+    z-index: 3;
     top: 0;
-    left: var(--spine-x);
-    width: 1px;
+    bottom: auto;
     height: 4rem;
-    background: color-mix(in srgb, var(--c-brass) 72%, transparent);
-    pointer-events: none;
   }
-  .cta-ticket-handoff::after {
-    content: "";
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    width: min(36vw, 34rem);
-    height: 1px;
-    background: color-mix(in srgb, var(--c-brass) 72%, transparent);
+
+  .cta-spine .spine-node:not(.spine-node--end) {
+    box-shadow: 0 0 0 5px var(--c-accent-2);
   }
-  .cta-ticket-handoff span { right: 0; bottom: 0; }
+
   .cta .pattern-layer { inset: 4rem max(3vw, calc((100vw - 94rem) / 2)); mask-image: linear-gradient(to right, var(--c-base), transparent); }
   .ticket {
     position: relative;
-    z-index: 1;
+    z-index: 2;
     display: grid;
     grid-template-columns: 1fr auto;
     gap: 3rem;
@@ -734,7 +842,11 @@ const themeGallery = galleryItems.slice(2);
   .copyright { grid-column: 1 / -1; margin: 1rem 0 0; text-align: center; color: color-mix(in srgb, var(--c-base) 48%, transparent); font-size: 0.78rem; }
 
   @media (max-width: 900px) {
-    .site-shell { --spine-x: 1.6rem; }
+    .site-shell {
+      --spine-x: 1.3rem;
+      --spine-clear: 0.9rem;
+      --inline-pad: 1.25rem;
+    }
     .desktop-nav { display: none; }
     .mobile-nav { display: block; position: relative; }
     .mobile-nav summary { cursor: pointer; list-style: none; padding: 0.6rem 0.8rem; border: 1px solid var(--c-brass); border-radius: 0.35rem; }
@@ -744,36 +856,79 @@ const themeGallery = galleryItems.slice(2);
     .hero-media { top: auto; height: 49%; background-size: auto 100%; background-position: 23% bottom; }
     .deco-atmosphere { display: none; }
     .site-nav { width: calc(100% - 2rem); }
-    .hero-copy { width: auto; margin: 0; padding: 5rem 1.25rem 0; }
+    .hero-copy {
+      width: auto;
+      margin: 0;
+      padding: 5rem 1.25rem 0;
+    }
     h1 { max-width: 11ch; font-size: clamp(2.8rem, 13vw, 3.4rem); }
     .hero-copy > p:not(.platforms) { max-width: 32rem; }
-    .hero-spine { display: block; top: 72%; bottom: 0; left: 1.3rem; opacity: 0.55; }
-    .capabilities { grid-template-columns: 1fr; gap: 2.5rem; padding: 5rem 1.25rem; }
-    .section-spine { display: block; left: 1.3rem; opacity: 0.5; }
-    .section-intro { padding-left: 1.5rem; }
-    .capability-list { padding-left: 1.5rem; }
+    /* Mobile: spine becomes a quiet left margin rail under the hero art. */
+    .hero-spine { top: 72%; bottom: 0; opacity: 0.5; }
+    .spine { opacity: 0.55; }
+    .spine-node { width: 1.7rem; }
+    .capabilities {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+      padding: 5rem 1.25rem;
+    }
+    .section-intro,
+    .workflow-intro {
+      width: auto;
+      max-width: none;
+      padding-left: 1.75rem;
+    }
+    .capability-list { padding-left: 1.75rem; }
     .capability-list li { grid-template-columns: 1fr auto; }
     .capability-list .index { position: absolute; left: -2.65rem; width: 2.25rem; background: var(--c-base); }
     .workflow { padding: 5rem 1.25rem; }
-    .workflow-spine { left: 1.3rem; opacity: 0.5; }
-    .workflow-steps { grid-template-columns: 1fr; gap: 2.5rem; padding-left: 1.75rem; }
-    .workflow-steps::before { top: 0; bottom: 0; left: 1.35rem; width: 1px; height: auto; }
+    .workflow-steps {
+      --col1: minmax(0, 1fr);
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+      padding-left: 1.75rem;
+    }
+    /* Mobile: steps become a vertical list on the left margin rail. */
+    .workflow-steps::before {
+      top: 0;
+      bottom: 0;
+      left: 1.35rem;
+      right: auto;
+      width: 1px;
+      height: auto;
+    }
     .workflow-steps li { padding-left: 2.25rem; }
-    .step-index { position: absolute; left: -2.25rem; top: 0; }
+    .step-index {
+      position: absolute;
+      left: -2.25rem;
+      top: 0;
+      margin: 0;
+    }
+    /* Mobile list already clears the rail via padding-left; don't double-shift. */
+    .workflow-steps h3,
+    .workflow-steps li > p,
+    .workflow-pane {
+      margin-left: 0;
+    }
     .gallery { padding: 5rem 1.25rem; }
-    .gallery-head { grid-template-columns: 1fr; gap: 1.5rem; }
-    .gallery-track-handoff { left: 1.3rem; height: 3rem; }
-    .gallery-track-handoff::after { width: 2.5rem; }
+    .gallery-head {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      padding-left: 1.75rem;
+    }
+    .spine-branch { top: 3rem; width: 2.5rem; }
     .filter-list { width: 100%; flex-wrap: nowrap; overflow-x: auto; padding: 0.2rem 0 0.7rem; scroll-snap-type: x mandatory; }
     .filter-list button { min-width: 8rem; text-align: center; scroll-snap-align: start; }
-    .gallery-panels { min-height: 29rem; }
+    .gallery-panels { min-height: 29rem; padding-left: 0.5rem; }
     .theme-gallery { grid-auto-columns: 82%; }
     .theme-panel { padding-bottom: 4rem; }
     .gallery-control { top: auto; bottom: -3.2rem; }
     .gallery-control.previous { left: 0; }
     .gallery-control.next { right: 0; }
-    .cta-ticket-handoff { left: 1.3rem; }
-    .cta-ticket-handoff::after { display: none; }
+    .cta { padding: 3rem 1.25rem; }
+    .cta-spine { height: 3rem; }
+    .spine-branch--ticket { width: 2.5rem; }
+    .spine-node--end { left: 2.5rem; }
     .ticket { grid-template-columns: 1fr; gap: 1rem; padding: 2rem 1.25rem; }
     .cta-actions { text-align: left; }
     .cta-actions .button-row { justify-content: flex-start; }

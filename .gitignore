@@ -22,3 +22,4 @@ test-repos-archive-*/
 chibi-review/
 .spike/
 .zcode/
+.vscode/

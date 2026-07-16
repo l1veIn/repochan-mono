@@ -34,7 +34,7 @@
     "hero": {
       "ariaLabel": "Caddy introduction",
       "eyebrow": "Automatic HTTPS",
-      "headline": "Every site on HTTPS.",
+      "headline": ["Every site", "on HTTPS."],
       "body": "Caddy is an extensible server platform that uses TLS by default.",
       "primaryCta": {
         "label": "Get Caddy",

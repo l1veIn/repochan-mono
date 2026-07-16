@@ -2,8 +2,8 @@
   "schemaVersion": "repochan.starter-content.v1",
   "locale": "zh",
   "meta": {
-    "title": "Caddy — 让每个站点都运行在 HTTPS 上",
-    "description": "Caddy 是一个默认使用 TLS 的可扩展服务器平台，提供自动 HTTPS、简洁配置与模块化架构。"
+    "title": "Caddy — 每个站点，天生 HTTPS",
+    "description": "默认开启 TLS 的可扩展服务器平台：自动 HTTPS、简洁配置、模块化架构。"
   },
   "content": {
     "nav": {
@@ -34,8 +34,8 @@
     "hero": {
       "ariaLabel": "Caddy 项目介绍",
       "eyebrow": "自动 HTTPS",
-      "headline": "让每个站点都运行在 HTTPS 上。",
-      "body": "Caddy 是一个默认使用 TLS 的可扩展服务器平台。",
+      "headline": ["每个站点", "天生 HTTPS。"],
+      "body": "默认开启 TLS 的可扩展服务器平台。",
       "primaryCta": {
         "label": "获取 Caddy",
         "href": "https://github.com/caddyserver/caddy/releases"
@@ -51,32 +51,32 @@
       "items": [
         {
           "title": "自动 HTTPS",
-          "body": "公共域名可使用 ZeroSSL 或 Let’s Encrypt，内部名称与 IP 可使用完全托管的本地 CA。",
+          "body": "公共域名走 ZeroSSL 或 Let’s Encrypt，内部名称与 IP 走托管的本地 CA。",
           "icon": "lock"
         },
         {
           "title": "简洁的 Caddyfile",
-          "body": "用面向人类的配置快速完成常见服务器任务，再按需要逐步深入。",
+          "body": "用贴近人类的配置完成常见任务，需要时再逐步深入。",
           "icon": "file"
         },
         {
           "title": "动态 JSON API",
-          "body": "使用原生 JSON 配置和 API，在线动态调整服务器配置。",
+          "body": "原生 JSON 配置加 API，在线动态调整。",
           "icon": "code"
         },
         {
           "title": "HTTP/1.1 · HTTP/2 · HTTP/3",
-          "body": "在一个可扩展的服务器平台中默认支持现代 HTTP 协议。",
+          "body": "在一个平台内默认支持现代 HTTP 协议。",
           "icon": "globe"
         },
         {
           "title": "模块化架构",
-          "body": "应用、处理器、配置适配器、存储、日志与 TLS 均可通过模块扩展。",
+          "body": "应用、处理器、适配器、存储、日志、TLS 皆可模块扩展。",
           "icon": "modules"
         },
         {
           "title": "无外部依赖",
-          "body": "Caddy 是一个自包含的 Go 程序，不需要外部运行时依赖，甚至不依赖 libc。",
+          "body": "自包含的 Go 程序，无运行时依赖，连 libc 也不需要。",
           "icon": "binary"
         }
       ]
@@ -102,7 +102,7 @@
           "body": "安全地承载流量。"
         }
       ],
-      "aside": "还包括可观测性、日志、指标等能力。"
+      "aside": "还有可观测性、日志、指标等。"
     },
     "proof": {
       "eyebrow": "经受互联网规模验证",
@@ -131,7 +131,7 @@
     },
     "cta": {
       "headline": "默认安全，需要时依然灵活。",
-      "body": "从 Caddyfile 开始，需要更强控制时使用原生 JSON，并通过模块扩展整个平台。",
+      "body": "从 Caddyfile 起步，需要更强控制时用原生 JSON，再用模块扩展平台。",
       "primary": {
         "label": "获取 Caddy",
         "href": "https://github.com/caddyserver/caddy/releases"
@@ -142,7 +142,7 @@
       }
     },
     "footer": {
-      "summary": "让站点更安全、让运维更简单的开源 Web 服务器。",
+      "summary": "让站点更安全、运维更简单的开源 Web 服务器。",
       "groups": [
         {
           "title": "Caddy",

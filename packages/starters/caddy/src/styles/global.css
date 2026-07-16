@@ -25,9 +25,14 @@ a {
 }
 
 :root {
-  --font-display: "Outfit", "Noto Sans JP", system-ui, sans-serif;
+  --font-display: "Outfit", "Noto Sans SC", system-ui, sans-serif;
   --font-serif: Georgia, "Times New Roman", serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* 中文方块字专属字体（标题排版覆盖见 LandingPage scoped style） */
+:lang(zh) {
+  --font-display: "Noto Sans SC", "Outfit", system-ui, sans-serif;
 }
 
 button,
