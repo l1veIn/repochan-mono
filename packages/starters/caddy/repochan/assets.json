@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "repochan.starter-assets.v1",
+  "assets": {
+    "hero-composite": {
+      "kind": "scalar",
+      "src": "/assets/hero-composite.webp",
+      "status": "source"
+    }
+  }
+}

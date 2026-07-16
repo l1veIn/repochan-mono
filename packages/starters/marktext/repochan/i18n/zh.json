@@ -1,0 +1,153 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "zh",
+  "meta": {
+    "title": "MarkText — 简洁优雅的 Markdown 编辑器",
+    "description": "快速、开源的 Markdown 编辑器，提供实时预览、专注模式、丰富主题、图表与灵活导出。"
+  },
+  "content": {
+    "nav": {
+      "features": "功能",
+      "workflow": "工作流",
+      "gallery": "界面",
+      "download": "下载",
+      "github": "GitHub",
+      "language": "EN",
+      "menu": "菜单",
+      "primaryLabel": "主导航",
+      "sectionsLabel": "页面分区",
+      "mobileSectionsLabel": "移动端页面分区",
+      "brandLabel": "MarkText 首页"
+    },
+    "hero": {
+      "ariaLabel": "MarkText 项目介绍",
+      "headline": "安静地写作，清晰地表达。",
+      "body": "一个专注速度与可用性的简洁、优雅、开源 Markdown 编辑器。",
+      "primaryCta": {
+        "label": "下载 MarkText",
+        "href": "https://github.com/marktext/marktext/releases"
+      },
+      "secondaryCta": {
+        "label": "前往 GitHub",
+        "href": "https://github.com/marktext/marktext"
+      },
+      "platforms": "macOS · Windows · Linux"
+    },
+    "capabilities": {
+      "title": "文字需要的，都在这里。",
+      "body": "功能强大，保持简单。",
+      "items": [
+        {
+          "title": "实时预览与 CommonMark",
+          "body": "实时渲染，并完整支持 CommonMark 与 GitHub Flavored Markdown。"
+        },
+        {
+          "title": "专注、打字机与源码模式",
+          "body": "自由选择沉浸写作视图，或直接编辑 Markdown 源码。"
+        },
+        {
+          "title": "主题、数学公式与图表",
+          "body": "内置 40 多款主题，并支持 LaTeX、Mermaid 与 PlantUML。"
+        },
+        {
+          "title": "导出 HTML、PDF 与图片",
+          "body": "只需几次点击，即可将完成的文档转换为所需格式。"
+        }
+      ]
+    },
+    "workflow": {
+      "title": "从纯文本到精美文档。",
+      "body": "专注书写，即时渲染，一键导出。",
+      "steps": [
+        {
+          "title": "书写",
+          "body": "从清晰易读的 Markdown 开始。"
+        },
+        {
+          "title": "即时呈现",
+          "body": "无需切换上下文，随时查看渲染结果。"
+        },
+        {
+          "title": "导出",
+          "body": "发布为 HTML、PDF 或图片。"
+        }
+      ],
+      "sourceLabel": "Markdown 源码",
+      "previewLabel": "实时预览",
+      "exportLabel": "导出选项"
+    },
+    "gallery": {
+      "eyebrow": "真实界面",
+      "title": "让每一篇文档呈现最佳状态。",
+      "body": "全部来自 MarkText 仓库的真实界面：编辑器、设置与内置主题。",
+      "filters": [
+        "编辑器",
+        "设置",
+        "主题"
+      ],
+      "tabsLabel": "界面截图分类",
+      "themeScrollerLabel": "MarkText 主题截图",
+      "previous": "上一组截图",
+      "next": "下一组截图",
+      "items": [
+        {
+          "asset": "gallery-editor",
+          "label": "默认编辑器",
+          "body": "清爽的 Markdown 书写与预览空间。"
+        },
+        {
+          "asset": "gallery-settings",
+          "label": "设置",
+          "body": "无需离开应用即可调整编辑体验。"
+        },
+        {
+          "asset": "theme-dracula",
+          "label": "Dracula",
+          "body": "专注而鲜明的深色主题。"
+        },
+        {
+          "asset": "theme-rose-pine",
+          "label": "Rose Pine",
+          "body": "适合长时间写作的柔和对比。"
+        },
+        {
+          "asset": "theme-nord",
+          "label": "Nord",
+          "body": "克制冷静的配色。"
+        },
+        {
+          "asset": "theme-light",
+          "label": "Light",
+          "body": "明亮安静的日间写作界面。"
+        }
+      ]
+    },
+    "cta": {
+      "title": "下一篇文档，从这里开始。",
+      "body": "简洁、优雅，并且完全开源。",
+      "primaryCta": {
+        "label": "免费下载",
+        "href": "https://github.com/marktext/marktext/releases"
+      },
+      "secondaryCta": {
+        "label": "在 GitHub 上加星",
+        "href": "https://github.com/marktext/marktext"
+      },
+      "platforms": "macOS · Windows · Linux"
+    },
+    "footer": {
+      "tagline": "开源 Markdown 编辑器，简洁、优雅、强大。",
+      "openSource": "开放源代码",
+      "license": "MIT 许可证",
+      "platforms": "原生跨平台",
+      "documentation": "使用文档",
+      "documentationBody": "指南与 API",
+      "documentationHref": "https://www.marktext.cc/docs/",
+      "community": "社区",
+      "communityBody": "讨论与帮助",
+      "communityHref": "https://github.com/marktext/marktext/discussions",
+      "copyrightYears": "2017–2026",
+      "copyright": "MarkText 贡献者"
+    }
+  }
+}

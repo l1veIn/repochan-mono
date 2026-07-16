@@ -1,0 +1,803 @@
+---
+import en from "../../repochan/i18n/en.json";
+import { assets, site } from "../lib/site";
+
+type PageContent = typeof en.content;
+
+type Props = {
+  content: PageContent;
+  lang: "en" | "zh";
+  languageHref: string;
+};
+
+const { content, lang, languageHref } = Astro.props;
+const galleryItems = content.gallery.items.map((item) => ({
+  ...item,
+  src: assets[item.asset as keyof typeof assets]?.src,
+}));
+const primaryGallery = galleryItems.slice(0, 2);
+const themeGallery = galleryItems.slice(2);
+---
+
+<div
+  class="site-shell"
+  style={`--hero-image: url(${assets["hero-composite"].src}); --pattern-ink: url(${assets["pattern-ink"].src}); --pattern-deco: url(${assets["pattern-deco"].src});`}
+>
+  <section class="hero" id="top" aria-label={content.hero.ariaLabel}>
+    <div class="hero-media" aria-hidden="true"></div>
+    <div class="deco-atmosphere" aria-hidden="true"></div>
+
+    <header class="site-nav" aria-label={content.nav.primaryLabel}>
+      <a class="brand" href={lang === "en" ? "/" : "/zh"} aria-label={content.nav.brandLabel}>
+        <span class="brand-mark" aria-hidden="true"><span>M</span></span>
+        <span>{site.project.name}</span>
+      </a>
+      <nav class="desktop-nav" aria-label={content.nav.sectionsLabel}>
+        <a href="#features">{content.nav.features}</a>
+        <a href="#workflow">{content.nav.workflow}</a>
+        <a href="#gallery">{content.nav.gallery}</a>
+        <a href={content.hero.primaryCta.href}>{content.nav.download}</a>
+        <a href={content.hero.secondaryCta.href}>{content.nav.github}</a>
+        <a href={languageHref} lang={lang === "en" ? "zh" : "en"}>{content.nav.language}</a>
+      </nav>
+      <details class="mobile-nav">
+        <summary aria-label={content.nav.menu}>{content.nav.menu}</summary>
+        <nav aria-label={content.nav.mobileSectionsLabel}>
+          <a href="#features">{content.nav.features}</a>
+          <a href="#workflow">{content.nav.workflow}</a>
+          <a href="#gallery">{content.nav.gallery}</a>
+          <a href={content.hero.primaryCta.href}>{content.nav.download}</a>
+          <a href={languageHref}>{content.nav.language}</a>
+        </nav>
+      </details>
+    </header>
+
+    <div class="hero-copy">
+      <h1>{content.hero.headline}</h1>
+      <p>{content.hero.body}</p>
+      <div class="button-row">
+        <a class="button primary" href={content.hero.primaryCta.href} target="_blank" rel="noreferrer">
+          <span aria-hidden="true">↓</span>{content.hero.primaryCta.label}
+        </a>
+        <a class="button secondary" href={content.hero.secondaryCta.href} target="_blank" rel="noreferrer">
+          <span aria-hidden="true">◇</span>{content.hero.secondaryCta.label}
+        </a>
+      </div>
+      <p class="platforms">{content.hero.platforms}</p>
+    </div>
+    <div class="spine hero-spine" aria-hidden="true"><span></span></div>
+  </section>
+
+  <main>
+    <section class="paper-section capabilities" id="features" aria-labelledby="capabilities-title">
+      <div class="pattern-layer" aria-hidden="true"></div>
+      <div class="spine section-spine" aria-hidden="true"><span></span></div>
+      <div class="section-intro">
+        <h2 id="capabilities-title">{content.capabilities.title}</h2>
+        <p>{content.capabilities.body}</p>
+      </div>
+      <ol class="capability-list">
+        {content.capabilities.items.map((item, index) => (
+          <li>
+            <span class="index" aria-hidden="true"><span>{String(index + 1).padStart(2, "0")}</span></span>
+            <div>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+            </div>
+            <span class="row-arrow" aria-hidden="true">›</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="paper-section workflow" id="workflow" aria-labelledby="workflow-title">
+      <div class="pattern-layer" aria-hidden="true"></div>
+      <div class="spine workflow-spine" aria-hidden="true"><span></span></div>
+      <div class="workflow-intro">
+        <h2 id="workflow-title">{content.workflow.title}</h2>
+        <p>{content.workflow.body}</p>
+      </div>
+      <ol class="workflow-steps">
+        {content.workflow.steps.map((step, index) => (
+          <li>
+            <span class="step-index"><span>{String(index + 1).padStart(2, "0")}</span></span>
+            <h3>{step.title}</h3>
+            <p>{step.body}</p>
+            <div class:list={["workflow-pane", `pane-${index + 1}`]} aria-hidden="true">
+              <span class="pane-label">
+                {[content.workflow.sourceLabel, content.workflow.previewLabel, content.workflow.exportLabel][index]}
+              </span>
+              <span></span><span></span><span></span><span></span>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="gallery" id="gallery" aria-labelledby="gallery-title">
+      <div class="deco-atmosphere gallery-atmosphere" aria-hidden="true"></div>
+      <div class="gallery-track-handoff" aria-hidden="true"><span></span></div>
+      <div class="gallery-head">
+        <div>
+          <p class="eyebrow">{content.gallery.eyebrow}</p>
+          <h2 id="gallery-title">{content.gallery.title}</h2>
+          <p>{content.gallery.body}</p>
+        </div>
+        <div class="filter-list" role="tablist" aria-label={content.gallery.tabsLabel}>
+          {content.gallery.filters.map((filter, index) => (
+            <button
+              id={`gallery-tab-${index}`}
+              type="button"
+              role="tab"
+              aria-selected={index === 0 ? "true" : "false"}
+              aria-controls={`gallery-panel-${index}`}
+              tabindex={index === 0 ? 0 : -1}
+            >{filter}</button>
+          ))}
+        </div>
+      </div>
+
+      <div class="gallery-panels">
+        {primaryGallery.map((item, index) => (
+          <div
+            class="gallery-panel primary-gallery"
+            id={`gallery-panel-${index}`}
+            role="tabpanel"
+            aria-labelledby={`gallery-tab-${index}`}
+            hidden={index !== 0}
+          >
+            <figure>
+              <div class="screenshot-frame"><img src={item.src} alt={item.label} loading="lazy" /></div>
+              <figcaption><strong>{item.label}</strong><span>{item.body}</span></figcaption>
+            </figure>
+          </div>
+        ))}
+        <div
+          class="gallery-panel theme-panel"
+          id="gallery-panel-2"
+          role="tabpanel"
+          aria-labelledby="gallery-tab-2"
+          hidden
+        >
+          <div class="theme-gallery-wrap">
+            <button class="gallery-control previous" type="button" aria-label={content.gallery.previous} aria-controls="theme-gallery">‹</button>
+            <div class="theme-gallery" id="theme-gallery" tabindex="0" aria-label={content.gallery.themeScrollerLabel}>
+              {themeGallery.map((item) => (
+                <figure>
+                  <img src={item.src} alt={item.label} loading="lazy" />
+                  <figcaption><strong>{item.label}</strong><span>{item.body}</span></figcaption>
+                </figure>
+              ))}
+            </div>
+            <button class="gallery-control next" type="button" aria-label={content.gallery.next} aria-controls="theme-gallery">›</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta" id="download" aria-labelledby="cta-title">
+      <div class="pattern-layer" aria-hidden="true"></div>
+      <div class="cta-ticket-handoff" aria-hidden="true"><span></span></div>
+      <div class="ticket">
+        <div>
+          <h2 id="cta-title">{content.cta.title}</h2>
+          <p>{content.cta.body}</p>
+        </div>
+        <div class="cta-actions">
+          <div class="button-row">
+            <a class="button primary" href={content.cta.primaryCta.href} target="_blank" rel="noreferrer">↓ {content.cta.primaryCta.label}</a>
+            <a class="button light" href={content.cta.secondaryCta.href} target="_blank" rel="noreferrer">◇ {content.cta.secondaryCta.label}</a>
+          </div>
+          <p>{content.cta.platforms}</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-brand">
+      <span class="brand-mark" aria-hidden="true"><span>M</span></span>
+      <div><strong>{site.project.name}</strong><p>{content.footer.tagline}</p></div>
+    </div>
+    <a href={site.project.repositoryUrl} target="_blank" rel="noreferrer"><strong>{content.footer.openSource}</strong><span>{content.footer.license}</span></a>
+    <a href={content.hero.primaryCta.href} target="_blank" rel="noreferrer"><strong>{content.hero.platforms}</strong><span>{content.footer.platforms}</span></a>
+    <a href={content.footer.documentationHref} target="_blank" rel="noreferrer"><strong>{content.footer.documentation}</strong><span>{content.footer.documentationBody}</span></a>
+    <a href={content.footer.communityHref} target="_blank" rel="noreferrer"><strong>{content.footer.community}</strong><span>{content.footer.communityBody}</span></a>
+    <p class="copyright">© {content.footer.copyrightYears} {content.footer.copyright}</p>
+  </footer>
+</div>
+
+<script>
+  const gallery = document.querySelector<HTMLElement>("#theme-gallery");
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const scrollBehavior = () => reducedMotion.matches ? "auto" : "smooth";
+  document.querySelector<HTMLButtonElement>(".gallery-control.previous")?.addEventListener("click", () => {
+    gallery?.scrollBy({ left: -(gallery.clientWidth * 0.72), behavior: scrollBehavior() });
+  });
+  document.querySelector<HTMLButtonElement>(".gallery-control.next")?.addEventListener("click", () => {
+    gallery?.scrollBy({ left: gallery.clientWidth * 0.72, behavior: scrollBehavior() });
+  });
+
+  const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+  const panels = Array.from(document.querySelectorAll<HTMLElement>('[role="tabpanel"]'));
+  const selectTab = (nextIndex: number, moveFocus = false) => {
+    tabs.forEach((tab, index) => {
+      const selected = index === nextIndex;
+      tab.setAttribute("aria-selected", String(selected));
+      tab.tabIndex = selected ? 0 : -1;
+      panels[index].hidden = !selected;
+    });
+    if (moveFocus) tabs[nextIndex].focus();
+    tabs[nextIndex].scrollIntoView({ inline: "nearest", block: "nearest", behavior: scrollBehavior() });
+  };
+  tabs.forEach((tab, index) => {
+    tab.addEventListener("click", () => selectTab(index));
+    tab.addEventListener("keydown", (event) => {
+      let nextIndex = index;
+      if (event.key === "ArrowRight") nextIndex = (index + 1) % tabs.length;
+      else if (event.key === "ArrowLeft") nextIndex = (index - 1 + tabs.length) % tabs.length;
+      else if (event.key === "Home") nextIndex = 0;
+      else if (event.key === "End") nextIndex = tabs.length - 1;
+      else return;
+      event.preventDefault();
+      selectTab(nextIndex, true);
+    });
+  });
+</script>
+
+<style>
+  .site-shell {
+    --spine-x: 39%;
+    --pattern-size: 30rem;
+    --pattern-phase-x: 0rem;
+    overflow: clip;
+    background: var(--c-accent-2);
+  }
+
+  .hero {
+    position: relative;
+    min-height: min(56.25vw, 54rem);
+    color: var(--c-base);
+    background: var(--c-accent-2);
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .hero-media,
+  .deco-atmosphere,
+  .pattern-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .hero-media {
+    z-index: -2;
+    background: var(--hero-image) center / cover no-repeat;
+  }
+
+  .deco-atmosphere {
+    z-index: -1;
+    background: var(--pattern-deco) center / 46rem repeat;
+    opacity: 0.07;
+    mask-image: radial-gradient(circle at 12% 44%, var(--c-base), transparent 67%);
+  }
+
+  .site-nav {
+    position: relative;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: min(92rem, calc(100% - 4rem));
+    margin: 0 auto;
+    padding: 1.45rem 0;
+  }
+
+  .brand,
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+  }
+
+  .brand-mark {
+    display: grid;
+    width: 2.35rem;
+    aspect-ratio: 1;
+    place-items: center;
+    border: 1px solid var(--c-brass);
+    transform: rotate(45deg);
+    color: var(--c-base);
+  }
+
+  .brand-mark > span,
+  .index > span,
+  .step-index > span { transform: rotate(-45deg); }
+
+  .desktop-nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(1rem, 2.4vw, 2.2rem);
+    font-size: 0.92rem;
+  }
+
+  .desktop-nav a,
+  .site-footer a { transition: color 180ms ease; }
+  .desktop-nav a:hover,
+  .desktop-nav a:focus-visible,
+  .site-footer a:hover,
+  .site-footer a:focus-visible { color: var(--c-primary); }
+
+  .mobile-nav { display: none; }
+
+  .hero-copy {
+    position: relative;
+    z-index: 3;
+    width: min(44rem, 45vw);
+    margin-left: 49%;
+    padding-top: clamp(6rem, 12vw, 11rem);
+  }
+
+  h1,
+  h2,
+  h3,
+  p { margin-top: 0; }
+
+  h1,
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+
+  h1 {
+    max-width: 13ch;
+    margin-bottom: 1.6rem;
+    font-size: clamp(3rem, 5vw, 6.2rem);
+    line-height: 0.95;
+    text-transform: uppercase;
+  }
+
+  .hero-copy > p:not(.platforms) {
+    max-width: 36rem;
+    color: color-mix(in srgb, var(--c-base) 75%, transparent);
+    font-size: clamp(1rem, 1.4vw, 1.25rem);
+    line-height: 1.65;
+  }
+
+  .button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    margin: 2rem 0 1.25rem;
+  }
+
+  .button {
+    display: inline-flex;
+    min-height: 3.35rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    padding: 0.85rem 1.35rem;
+    border: 1px solid var(--c-brass);
+    border-radius: 0.55rem;
+    font-weight: 700;
+    transition: transform 180ms ease, background 180ms ease;
+  }
+
+  .button:hover,
+  .button:focus-visible { transform: translateY(-2px); }
+  .button.primary { border-color: var(--c-primary); background: var(--c-primary); color: var(--c-accent-2); }
+  .button.secondary { background: color-mix(in srgb, var(--c-accent-2) 78%, transparent); }
+  .button.light { color: var(--c-accent-2); background: var(--c-base); }
+
+  .platforms,
+  .cta-actions > p {
+    color: color-mix(in srgb, var(--c-base) 65%, transparent);
+    font-size: 0.9rem;
+    letter-spacing: 0.08em;
+  }
+
+  .spine {
+    position: absolute;
+    z-index: 2;
+    left: var(--spine-x);
+    width: 1px;
+    background: var(--c-brass);
+    pointer-events: none;
+  }
+
+  .hero-spine { top: 8rem; bottom: 0; }
+  .spine span {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 2.5rem;
+    aspect-ratio: 1;
+    border: 1px solid var(--c-brass);
+    background: var(--c-accent-2);
+    transform: translate(-50%, 50%) rotate(45deg);
+  }
+
+  .paper-section {
+    position: relative;
+    isolation: isolate;
+    color: var(--c-accent-2);
+    background: var(--c-base);
+  }
+
+  .pattern-layer {
+    z-index: -1;
+    background-image: var(--pattern-ink);
+    background-position: var(--pattern-phase-x) 0;
+    background-size: var(--pattern-size);
+    opacity: 0.34;
+    animation: pattern-drift 80s linear infinite;
+    mask-image: linear-gradient(to right, var(--c-base), transparent 48%, var(--c-base));
+  }
+
+  @keyframes pattern-drift {
+    to { background-position: calc(var(--pattern-phase-x) + var(--pattern-size)) 0; }
+  }
+
+  .capabilities {
+    display: grid;
+    min-height: 47rem;
+    grid-template-columns: minmax(15rem, 0.78fr) minmax(28rem, 1.65fr);
+    gap: clamp(4rem, 9vw, 10rem);
+    align-items: center;
+    padding: 7rem max(5vw, calc((100vw - 90rem) / 2));
+  }
+
+  .section-spine { top: 0; bottom: 0; }
+
+  .section-intro { max-width: 24rem; }
+  .section-intro h2,
+  .workflow-intro h2,
+  .gallery-head h2,
+  .ticket h2 {
+    margin-bottom: 1.25rem;
+    font-size: clamp(2.8rem, 5vw, 5.8rem);
+    line-height: 0.95;
+  }
+
+  .section-intro p,
+  .workflow-intro p { font-size: 1.1rem; line-height: 1.7; }
+
+  .capability-list,
+  .workflow-steps { margin: 0; padding: 0; list-style: none; }
+  .capability-list { display: grid; gap: 1rem; }
+  .capability-list li {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1.25rem;
+    align-items: center;
+    min-height: 7rem;
+    padding: 1.35rem 1.5rem;
+    border: 1px solid color-mix(in srgb, var(--c-brass) 55%, transparent);
+    border-radius: 0.75rem;
+    background: color-mix(in srgb, var(--c-base) 88%, var(--c-accent-1));
+    box-shadow: 0 1.25rem 3rem color-mix(in srgb, var(--c-accent-2) 8%, transparent);
+  }
+  .capability-list li:nth-child(even) { background: color-mix(in srgb, var(--c-base) 78%, var(--c-accent-1)); }
+  .capability-list h3 { margin-bottom: 0.4rem; font-size: 1.15rem; }
+  .capability-list p { margin-bottom: 0; color: color-mix(in srgb, var(--c-accent-2) 72%, transparent); line-height: 1.55; }
+  .index {
+    display: grid;
+    width: 3rem;
+    aspect-ratio: 1;
+    place-items: center;
+    border: 1px solid var(--c-brass);
+    transform: rotate(45deg);
+    font-family: var(--font-display);
+  }
+  .row-arrow { color: var(--c-accent-1); font-size: 2rem; }
+
+  .workflow {
+    position: relative;
+    min-height: 46rem;
+    padding: 6rem max(5vw, calc((100vw - 90rem) / 2)) 7rem;
+  }
+  .workflow-spine { top: 0; bottom: 0; }
+  .workflow-intro { max-width: 35rem; margin-bottom: 4rem; }
+  .workflow-steps {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(1.25rem, 4vw, 4rem);
+  }
+  .workflow-steps::before {
+    content: "";
+    position: absolute;
+    top: 1.35rem;
+    right: 8%;
+    left: 8%;
+    height: 1px;
+    background: var(--c-brass);
+  }
+  .workflow-steps li { position: relative; }
+  .step-index {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: 2.8rem;
+    aspect-ratio: 1;
+    place-items: center;
+    margin-bottom: 1.25rem;
+    background: var(--c-accent-2);
+    color: var(--c-base);
+    transform: rotate(45deg);
+  }
+  .workflow-steps h3 { font-size: 1.35rem; margin-bottom: 0.35rem; }
+  .workflow-steps p { min-height: 3rem; color: color-mix(in srgb, var(--c-accent-2) 72%, transparent); }
+  .workflow-pane {
+    display: grid;
+    min-height: 15rem;
+    gap: 0.8rem;
+    align-content: start;
+    margin-top: 1.5rem;
+    padding: 1.25rem;
+    border: 1px solid color-mix(in srgb, var(--c-brass) 55%, transparent);
+    border-radius: 0.8rem;
+    background: color-mix(in srgb, var(--c-base) 92%, var(--c-accent-1));
+    box-shadow: 0 1.5rem 3rem color-mix(in srgb, var(--c-accent-2) 10%, transparent);
+  }
+  .pane-1 { color: var(--c-base); background: var(--c-accent-2); }
+  .pane-3 { background: color-mix(in srgb, var(--c-base) 85%, var(--c-primary)); }
+  .pane-label { margin-bottom: 0.5rem; font-weight: 700; }
+  .workflow-pane > span:not(.pane-label) { height: 0.65rem; border-radius: 1rem; background: currentColor; opacity: 0.12; }
+  .workflow-pane > span:nth-child(3) { width: 82%; }
+  .workflow-pane > span:nth-child(4) { width: 64%; }
+  .workflow-pane > span:nth-child(5) { width: 76%; }
+
+  .gallery {
+    position: relative;
+    min-height: 62rem;
+    padding: 7rem max(4vw, calc((100vw - 92rem) / 2));
+    color: var(--c-base);
+    background: var(--c-accent-2);
+    isolation: isolate;
+  }
+  .gallery-atmosphere {
+    z-index: -1;
+    opacity: 0.055;
+    mask-image: radial-gradient(circle at 90% 45%, var(--c-base), transparent 64%);
+  }
+  .gallery-track-handoff {
+    position: absolute;
+    top: 0;
+    left: var(--spine-x);
+    width: 1px;
+    height: 5rem;
+    background: color-mix(in srgb, var(--c-base) 62%, transparent);
+    pointer-events: none;
+  }
+  .gallery-track-handoff::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: clamp(4rem, 12vw, 11rem);
+    height: 1px;
+    background: color-mix(in srgb, var(--c-base) 48%, transparent);
+  }
+  .gallery-track-handoff span,
+  .cta-ticket-handoff span {
+    position: absolute;
+    width: 0.8rem;
+    aspect-ratio: 1;
+    border: 1px solid var(--c-brass);
+    background: var(--c-accent-2);
+    transform: translate(-50%, 50%) rotate(45deg);
+  }
+  .gallery-track-handoff span { bottom: 0; left: 0; }
+  .gallery-head {
+    display: grid;
+    grid-template-columns: minmax(18rem, 1fr) auto;
+    gap: 3rem;
+    align-items: end;
+    margin-bottom: 3rem;
+  }
+  .gallery-head > div:first-child { max-width: 48rem; }
+  .gallery-head p:not(.eyebrow) { max-width: 40rem; color: color-mix(in srgb, var(--c-base) 72%, transparent); line-height: 1.6; }
+  .eyebrow { color: var(--c-brass); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; }
+  .filter-list { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .filter-list button {
+    flex: 0 0 auto;
+    padding: 0.65rem 1rem;
+    border: 1px solid var(--c-brass);
+    border-radius: 0.45rem;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+  .filter-list button[aria-selected="true"] { border-color: var(--c-primary); background: var(--c-primary); color: var(--c-accent-2); }
+  .gallery-panels { min-height: clamp(28rem, 49vw, 43rem); }
+  .gallery-panel[hidden] { display: none; }
+
+  .primary-gallery {
+    max-width: 68rem;
+    margin: 0 auto;
+  }
+  figure { margin: 0; }
+  .screenshot-frame {
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border: 1px solid var(--c-brass);
+    border-radius: 0.75rem;
+    background: color-mix(in srgb, var(--c-accent-2) 86%, var(--c-primary));
+  }
+  .screenshot-frame img,
+  .theme-gallery img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+  figcaption { display: flex; gap: 0.8rem; justify-content: space-between; padding-top: 0.8rem; }
+  figcaption span { color: color-mix(in srgb, var(--c-base) 65%, transparent); font-size: 0.86rem; }
+  .theme-gallery-wrap { position: relative; }
+  .theme-gallery {
+    display: grid;
+    grid-auto-columns: 31%;
+    grid-auto-flow: column;
+    gap: 1rem;
+    overflow-x: auto;
+    padding: 1rem 0 4rem;
+    scroll-snap-type: x mandatory;
+    scrollbar-color: var(--c-brass) transparent;
+  }
+  .theme-gallery figure { scroll-snap-align: start; }
+  .theme-gallery img { aspect-ratio: 16 / 10; border: 1px solid var(--c-brass); border-radius: 0.55rem; }
+  .gallery-control {
+    position: absolute;
+    z-index: 2;
+    top: 38%;
+    display: grid;
+    width: 2.8rem;
+    aspect-ratio: 1;
+    place-items: center;
+    border: 1px solid var(--c-brass);
+    border-radius: 50%;
+    background: var(--c-accent-2);
+    color: var(--c-base);
+    font: inherit;
+    font-size: 1.6rem;
+    cursor: pointer;
+  }
+  .gallery-control.previous { left: -1.4rem; }
+  .gallery-control.next { right: -1.4rem; }
+
+  .cta {
+    position: relative;
+    padding: 4rem max(3vw, calc((100vw - 94rem) / 2));
+    color: var(--c-base);
+    background: var(--c-accent-2);
+    isolation: isolate;
+  }
+  .cta-ticket-handoff {
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    left: var(--spine-x);
+    width: 1px;
+    height: 4rem;
+    background: color-mix(in srgb, var(--c-brass) 72%, transparent);
+    pointer-events: none;
+  }
+  .cta-ticket-handoff::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: min(36vw, 34rem);
+    height: 1px;
+    background: color-mix(in srgb, var(--c-brass) 72%, transparent);
+  }
+  .cta-ticket-handoff span { right: 0; bottom: 0; }
+  .cta .pattern-layer { inset: 4rem max(3vw, calc((100vw - 94rem) / 2)); mask-image: linear-gradient(to right, var(--c-base), transparent); }
+  .ticket {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 3rem;
+    align-items: center;
+    padding: clamp(2rem, 5vw, 5rem);
+    border: 1px solid var(--c-brass);
+    border-radius: 1.2rem;
+    color: var(--c-accent-2);
+    background: color-mix(in srgb, var(--c-base) 94%, var(--c-accent-1));
+  }
+  .ticket h2 { max-width: 12ch; margin-bottom: 1rem; font-size: clamp(2.8rem, 4.5vw, 5.2rem); text-transform: uppercase; }
+  .ticket p { margin-bottom: 0; }
+  .cta-actions { text-align: center; }
+  .cta-actions .button-row { justify-content: center; }
+  .cta-actions > p { color: color-mix(in srgb, var(--c-accent-2) 65%, transparent); }
+
+  .site-footer {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(4, 1fr);
+    gap: 2rem;
+    align-items: start;
+    padding: 3.5rem max(4vw, calc((100vw - 92rem) / 2)) 2rem;
+    color: var(--c-base);
+    background: var(--c-accent-2);
+    border-top: 1px solid color-mix(in srgb, var(--c-brass) 55%, transparent);
+  }
+  .footer-brand { align-items: flex-start; font-size: 1rem; }
+  .footer-brand p { margin: 0.35rem 0 0; color: color-mix(in srgb, var(--c-base) 58%, transparent); font-family: var(--font-body); font-weight: 400; line-height: 1.5; }
+  .site-footer a { display: grid; gap: 0.35rem; }
+  .site-footer a span { color: color-mix(in srgb, var(--c-base) 58%, transparent); font-size: 0.82rem; }
+  .copyright { grid-column: 1 / -1; margin: 1rem 0 0; text-align: center; color: color-mix(in srgb, var(--c-base) 48%, transparent); font-size: 0.78rem; }
+
+  @media (max-width: 900px) {
+    .site-shell { --spine-x: 1.6rem; }
+    .desktop-nav { display: none; }
+    .mobile-nav { display: block; position: relative; }
+    .mobile-nav summary { cursor: pointer; list-style: none; padding: 0.6rem 0.8rem; border: 1px solid var(--c-brass); border-radius: 0.35rem; }
+    .mobile-nav nav { position: absolute; right: 0; display: grid; min-width: 12rem; gap: 0.35rem; padding: 0.8rem; background: var(--c-accent-2); border: 1px solid var(--c-brass); }
+    .mobile-nav a { padding: 0.55rem; }
+    .hero { min-height: 64rem; }
+    .hero-media { top: auto; height: 49%; background-size: auto 100%; background-position: 23% bottom; }
+    .deco-atmosphere { display: none; }
+    .site-nav { width: calc(100% - 2rem); }
+    .hero-copy { width: auto; margin: 0; padding: 5rem 1.25rem 0; }
+    h1 { max-width: 11ch; font-size: clamp(2.8rem, 13vw, 3.4rem); }
+    .hero-copy > p:not(.platforms) { max-width: 32rem; }
+    .hero-spine { display: block; top: 72%; bottom: 0; left: 1.3rem; opacity: 0.55; }
+    .capabilities { grid-template-columns: 1fr; gap: 2.5rem; padding: 5rem 1.25rem; }
+    .section-spine { display: block; left: 1.3rem; opacity: 0.5; }
+    .section-intro { padding-left: 1.5rem; }
+    .capability-list { padding-left: 1.5rem; }
+    .capability-list li { grid-template-columns: 1fr auto; }
+    .capability-list .index { position: absolute; left: -2.65rem; width: 2.25rem; background: var(--c-base); }
+    .workflow { padding: 5rem 1.25rem; }
+    .workflow-spine { left: 1.3rem; opacity: 0.5; }
+    .workflow-steps { grid-template-columns: 1fr; gap: 2.5rem; padding-left: 1.75rem; }
+    .workflow-steps::before { top: 0; bottom: 0; left: 1.35rem; width: 1px; height: auto; }
+    .workflow-steps li { padding-left: 2.25rem; }
+    .step-index { position: absolute; left: -2.25rem; top: 0; }
+    .gallery { padding: 5rem 1.25rem; }
+    .gallery-head { grid-template-columns: 1fr; gap: 1.5rem; }
+    .gallery-track-handoff { left: 1.3rem; height: 3rem; }
+    .gallery-track-handoff::after { width: 2.5rem; }
+    .filter-list { width: 100%; flex-wrap: nowrap; overflow-x: auto; padding: 0.2rem 0 0.7rem; scroll-snap-type: x mandatory; }
+    .filter-list button { min-width: 8rem; text-align: center; scroll-snap-align: start; }
+    .gallery-panels { min-height: 29rem; }
+    .theme-gallery { grid-auto-columns: 82%; }
+    .theme-panel { padding-bottom: 4rem; }
+    .gallery-control { top: auto; bottom: -3.2rem; }
+    .gallery-control.previous { left: 0; }
+    .gallery-control.next { right: 0; }
+    .cta-ticket-handoff { left: 1.3rem; }
+    .cta-ticket-handoff::after { display: none; }
+    .ticket { grid-template-columns: 1fr; gap: 1rem; padding: 2rem 1.25rem; }
+    .cta-actions { text-align: left; }
+    .cta-actions .button-row { justify-content: flex-start; }
+    .site-footer { grid-template-columns: repeat(2, 1fr); padding: 3rem 1.25rem 2rem; }
+    .footer-brand { grid-column: 1 / -1; }
+  }
+
+  @media (max-width: 520px) {
+    .button-row { display: grid; }
+    .button { width: 100%; }
+    .capability-list li { padding: 1.1rem; }
+    .capability-list p { font-size: 0.9rem; }
+    .gallery-head h2 { font-size: 3.3rem; }
+    .theme-gallery { grid-auto-columns: 91%; }
+    figcaption { display: grid; }
+    .site-footer { grid-template-columns: 1fr; }
+    .footer-brand,
+    .copyright { grid-column: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pattern-layer { animation: none; }
+    .button,
+    .desktop-nav a,
+    .site-footer a { transition: none; }
+  }
+</style>

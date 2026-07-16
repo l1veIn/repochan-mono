@@ -61,4 +61,7 @@ Starter Designer works in a creator-owned directory or repository. Official incl
 
 | ID | Original project site | Default |
 |---|---|---|
+| `caddy` | Caddy architectural automatic-HTTPS landing page | no |
+| `marktext` | MarkText midnight Art Deco editorial landing page | no |
 | `minimal` | RepoChan single-screen editorial Hero | yes |
+| `redis` | Redis kinetic real-time signal-relay landing page | no |

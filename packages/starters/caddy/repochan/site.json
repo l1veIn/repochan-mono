@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "caddy",
+    "description": "Caddy 是一个可扩展的服务器平台，默认使用 TLS，以「每个站点都跑在 HTTPS 上」为使命。自动证书管理、简洁的 Caddyfile、模块化架构使其成为生产级反向代理/web 服务器的标杆选择。",
+    "repositoryUrl": "https://github.com/caddyserver/caddy"
+  },
+  "theme": {
+    "primary": "#1a3a4a",
+    "base": "#eceff4",
+    "accents": [
+      "#5cb85c",
+      "#f0ad4e"
+    ]
+  },
+  "brand": {
+    "artStyle": "赛璐璐 + 构成主义——干净线条+平涂色块+几何精确构图，强调秩序感与自动化之美。选择理由：Caddy 配置的精确结构（层级化JSON/Caddyfile）和「默认正确」的自动化哲学，与构成主义的「形式追随秩序」完美契合；赛璐璐的平涂干净感则呼应了 Caddy 清爽的用户体验。",
+    "motifs": [
+      "拱形回廊的穹顶剪影",
+      "旋转的印章符轮",
+      "薄荷绿的锁与钥匙",
+      "金色光纱/半透明防护层"
+    ],
+    "patterns": [
+      "金色拱形穹顶与薄荷绿锁形重复纹样组成的平铺图案，用于页面 section 背景——低调到不干扰阅读、但又能让人隐约感觉到「这是一个有序安全的场所」",
+      "抽象化的印章圆轮叠加半透明薄纱纹理，适合用作社交媒体卡片底纹或品牌物料的分割线装饰",
+      "极简的拱形线条 + 锁孔轮廓二方连续图案，用于边框和分割线 —— 呼应回廊的拱形结构和加密安全的锁孔意象"
+    ]
+  },
+  "locales": {
+    "default": "en",
+    "supported": [
+      "en",
+      "zh"
+    ]
+  }
+}

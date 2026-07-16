@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "repochan.starter.v1",
+  "id": "marktext",
+  "name": "MarkText Midnight Editorial",
+  "description": "A complete multi-section MarkText landing page with a midnight Art Deco hero and product gallery.",
+  "style": "art-deco-editorial",
+  "tags": ["landing", "multi-section", "editorial", "art-deco"],
+  "previews": {
+    "desktop": "repochan/previews/desktop.png",
+    "mobile": "repochan/previews/mobile.png"
+  },
+  "config": {
+    "site": "repochan/site.json",
+    "assets": "repochan/assets.json",
+    "i18nDir": "repochan/i18n"
+  },
+  "content": {
+    "defaultLocale": "en",
+    "supportedLocales": ["en", "zh"]
+  },
+  "assets": [
+    {
+      "kind": "scalar",
+      "slot": "hero-composite",
+      "required": true,
+      "reference": "public/assets/hero-pose-lineart.webp",
+      "output": "public/assets/hero-composite.webp",
+      "description": "A 16:9 L1+L2 composite with Sumine on the left and quiet negative space on the right for live HTML copy.",
+      "order": {
+        "assetType": "hero_composite",
+        "templateId": "official/hero-character-migrate-localize",
+        "brief": {
+          "mustInclude": [
+            "keep the right half quiet enough for live HTML typography",
+            "preserve the reference composition while using the project's foundation character"
+          ],
+          "avoid": ["rendered text", "logos", "UI baked into the image"],
+          "creativeFreedom": ["lighting", "background details that support the project identity"]
+        },
+        "deliverables": [
+          {
+            "name": "hero-composite",
+            "format": "png",
+            "width": 2560,
+            "height": 1440,
+            "aspectRatio": "16:9"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": { "format": "webp", "quality": 82, "maxWidth": 2560 },
+          "out": "public/assets/hero-composite.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "pattern-ink",
+      "required": true,
+      "output": "public/assets/pattern-ink.webp",
+      "description": "Canonical warm-paper seamless Pattern B used across light sections.",
+      "order": {
+        "assetType": "visual_pattern",
+        "templateId": "official/pattern-tile",
+        "brief": {"mustInclude": [], "avoid": [], "creativeFreedom": []},
+        "deliverables": [{"name": "pattern-ink", "format": "png", "width": 768, "height": 768, "aspectRatio": "1:1"}]
+      },
+      "postprocess": [{"op": "compress", "args": {"format": "webp", "quality": 82, "maxWidth": 1024}, "out": "public/assets/pattern-ink.webp"}]
+    },
+    {
+      "kind": "scalar",
+      "slot": "pattern-deco",
+      "required": true,
+      "output": "public/assets/pattern-deco.webp",
+      "description": "Dark Deco Pattern A, consumed only through masks at low opacity.",
+      "order": {
+        "assetType": "visual_pattern",
+        "templateId": "official/pattern-tile",
+        "brief": {"mustInclude": [], "avoid": [], "creativeFreedom": []},
+        "deliverables": [{"name": "pattern-deco", "format": "png", "width": 768, "height": 768, "aspectRatio": "1:1"}]
+      },
+      "postprocess": [{"op": "compress", "args": {"format": "webp", "quality": 78, "maxWidth": 1024}, "out": "public/assets/pattern-deco.webp"}]
+    },
+    {
+      "kind": "scalar",
+      "slot": "gallery-editor",
+      "required": true,
+      "output": "public/assets/gallery/editor-default.png",
+      "description": "Real MarkText default editor screenshot from packages/website/public/docs/assets."
+    },
+    {
+      "kind": "scalar",
+      "slot": "gallery-settings",
+      "required": true,
+      "output": "public/assets/gallery/settings.png",
+      "description": "Real MarkText settings screenshot from packages/website/public/docs/assets."
+    },
+    {
+      "kind": "scalar",
+      "slot": "theme-dracula",
+      "required": true,
+      "output": "public/assets/gallery/theme-dracula.png",
+      "description": "Real bundled Dracula theme screenshot."
+    },
+    {
+      "kind": "scalar",
+      "slot": "theme-rose-pine",
+      "required": true,
+      "output": "public/assets/gallery/theme-rose-pine.png",
+      "description": "Real bundled Rose Pine theme screenshot."
+    },
+    {
+      "kind": "scalar",
+      "slot": "theme-nord",
+      "required": true,
+      "output": "public/assets/gallery/theme-nord.png",
+      "description": "Real bundled Nord theme screenshot."
+    },
+    {
+      "kind": "scalar",
+      "slot": "theme-light",
+      "required": true,
+      "output": "public/assets/gallery/theme-light.png",
+      "description": "Real bundled Light theme screenshot."
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "repochan.starter.v1",
+  "id": "caddy",
+  "name": "Caddy Gatehouse",
+  "description": "A complete multi-section Caddy landing page shaped by automatic HTTPS, gateways, and protective architecture.",
+  "style": "cel-shaded-constructivist",
+  "tags": ["landing", "multi-section", "constructivist", "architectural"],
+  "previews": {
+    "desktop": "repochan/previews/desktop.png",
+    "mobile": "repochan/previews/mobile.png"
+  },
+  "config": {
+    "site": "repochan/site.json",
+    "assets": "repochan/assets.json",
+    "i18nDir": "repochan/i18n"
+  },
+  "content": {
+    "defaultLocale": "en",
+    "supportedLocales": ["en", "zh"]
+  },
+  "assets": [
+    {
+      "kind": "scalar",
+      "slot": "hero-composite",
+      "required": true,
+      "reference": "public/assets/hero-pose-lineart.webp",
+      "output": "public/assets/hero-composite.webp",
+      "description": "A 16:9 character composition with the character on the right and quiet negative space on the left for live HTML copy.",
+      "order": {
+        "assetType": "hero_composite",
+        "templateId": "official/hero-character-migrate",
+        "brief": {
+          "mustInclude": [
+            "keep the left half quiet enough for live HTML typography",
+            "preserve the reference composition while using the project's foundation character"
+          ],
+          "avoid": ["rendered text", "logos", "UI baked into the image"],
+          "creativeFreedom": ["lighting", "background details that support the project identity"]
+        },
+        "deliverables": [
+          {
+            "name": "hero-composite",
+            "format": "png",
+            "width": 2560,
+            "height": 1440,
+            "aspectRatio": "16:9"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": { "format": "webp", "quality": 82, "maxWidth": 2560 },
+          "out": "public/assets/hero-composite.webp"
+        }
+      ]
+    }
+  ]
+}

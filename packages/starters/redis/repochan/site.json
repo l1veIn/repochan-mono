@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "redis",
+    "description": "Redis — 最快的 in-memory 数据结构服务器，集缓存、数据库、向量引擎、消息代理于一身，驱动实时应用。",
+    "repositoryUrl": "https://github.com/redis/redis"
+  },
+  "theme": {
+    "primary": "#DC382D",
+    "base": "#FFF5E8",
+    "accents": [
+      "#4F46E5",
+      "#F59E0B"
+    ]
+  },
+  "brand": {
+    "artStyle": "赛璐璐 + 动态速度线美学 —— 干净平涂色块、黑色勾线、高饱和主色；融合新构成主义的几何精确感与日系动画的速度线/冲击帧技法，强调运动中的形态变形与粒子拖尾效果",
+    "motifs": [
+      "闪电/速度线（速度）",
+      "钥匙（key-value）",
+      "光粒彗尾（热数据流转）",
+      "星点火苗（缓存生命）"
+    ],
+    "patterns": [
+      "绯红底色上排列着微型金色钥匙与闪电交替的四方连续纹样 —— 用于页面 section 背景，低调不抢标题",
+      "渐变粒子点阵：从右下角密集金色过渡到左上角稀疏深蓝，模拟数据从热到冷的分布 —— 用于卡片/横幅背景",
+      "白色底 + 极细的绯红速度线水平条纹 + 点缀间歇的金色光斑 —— 用于边框分割线和社交媒体底纹"
+    ]
+  },
+  "locales": {
+    "default": "en",
+    "supported": [
+      "en",
+      "zh"
+    ]
+  }
+}

@@ -1,0 +1,343 @@
+---
+import ProjectIcon from "./ProjectIcon.astro";
+
+type Props = {
+  content: any;
+  heroSrc: string;
+  patternSrc: string;
+};
+
+const { content, heroSrc, patternSrc } = Astro.props;
+const proofIcons = ["T", "#", "{ }", "→", "1 2 3", "⌁", "Q", "◌"];
+---
+
+<div class="site-shell" style={`--pattern-image: url(${patternSrc})`}>
+  <a class="skip-link" href="#main">{content.ui.skipLinkLabel}</a>
+  <div class="pattern-layer" aria-hidden="true"></div>
+  <svg class="page-ribbon" viewBox="0 0 100 900" preserveAspectRatio="none" aria-hidden="true">
+    <path class="ribbon-shadow" pathLength="1" d="M7 115 C2 165 97 150 93 225 S4 300 8 374 S97 452 92 532 S4 610 8 695 S96 775 91 860" />
+    <path class="ribbon-core" pathLength="1" d="M7 115 C2 165 97 150 93 225 S4 300 8 374 S97 452 92 532 S4 610 8 695 S96 775 91 860" />
+  </svg>
+
+  <header class="site-nav">
+    <a class="brand" href={content.nav.languageHref === "/" ? "/zh/" : "/"} aria-label={content.nav.brandLabel}>
+      <span class="redis-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <strong>{content.nav.brandLabel}</strong>
+    </a>
+    <nav aria-label={content.nav.ariaLabel}>
+      {content.nav.links.map((link: any) => <a href={link.href}>{link.label}</a>)}
+    </nav>
+    <div class="nav-actions">
+      <a class="language-link" href={content.nav.languageHref}>{content.nav.languageLabel}</a>
+      <a class="github-link" href={content.nav.repositoryHref} target="_blank" rel="noopener noreferrer" aria-label={content.nav.repositoryLabel}>GitHub <span aria-hidden="true">↗</span></a>
+    </div>
+    <details class="mobile-menu">
+      <summary aria-label={content.nav.ariaLabel}><span></span><span></span><span></span></summary>
+      <div class="mobile-menu-panel">
+        {content.nav.links.map((link: any) => <a href={link.href}>{link.label}</a>)}
+        <a href={content.nav.repositoryHref}>GitHub ↗</a>
+        <a href={content.nav.languageHref}>{content.nav.languageLabel}</a>
+      </div>
+    </details>
+  </header>
+
+  <main id="main">
+    <section class="hero section" aria-label={content.hero.ariaLabel}>
+      <img class="hero-art" src={heroSrc} alt="" fetchpriority="high" decoding="async" />
+      <div class="hero-scrim" aria-hidden="true"></div>
+      <div class="hero-copy section-inner">
+        <p class="eyebrow">{content.hero.eyebrow}</p>
+        <h1>{content.hero.headline}</h1>
+        <p class="lede">{content.hero.body}</p>
+        <div class="button-row">
+          <a class="button primary" href={content.hero.primaryCta.href}>{content.hero.primaryCta.label}<span aria-hidden="true">→</span></a>
+          <a class="button secondary" href={content.hero.secondaryCta.href}>{content.hero.secondaryCta.label}<span aria-hidden="true">↗</span></a>
+        </div>
+        <ul class="hero-proofs" aria-label={content.hero.proofsAriaLabel}>
+          {content.hero.proofs.map((proof: any, index: number) => <li><span class="proof-symbol" aria-hidden="true">{index === 0 ? "ϟ" : index === 1 ? "◴" : "◇"}</span><strong>{proof.label}</strong><small>{proof.detail}</small></li>)}
+        </ul>
+      </div>
+    </section>
+
+    <section class="capabilities section" id="capabilities">
+      <div class="section-inner">
+        <header class="section-heading split-heading">
+          <div><p class="eyebrow">{content.capabilities.eyebrow}</p><h2>{content.capabilities.headline}</h2></div>
+          <p>{content.capabilities.body}</p>
+        </header>
+        <div class="capability-grid">
+          {content.capabilities.items.map((item: any, index: number) => (
+            <article class={`capability-card card-${index + 1}`}>
+              <div class="icon-well"><ProjectIcon kind={item.key} size={38} /></div>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+              <a href={item.action.href}>{item.action.label}<span aria-hidden="true">→</span></a>
+            </article>
+          ))}
+        </div>
+        <div class="relay-handoff" aria-hidden="true"><span></span><b>{content.capabilities.relayLabel}</b></div>
+      </div>
+    </section>
+
+    <section class="workflow section" id="workflow">
+      <div class="section-inner">
+        <header class="section-heading compact-heading">
+          <p class="eyebrow">{content.workflow.eyebrow}</p>
+          <h2>{content.workflow.headline}</h2>
+          <p>{content.workflow.body}</p>
+        </header>
+        <ol class="workflow-steps">
+          {content.workflow.steps.map((step: any, index: number) => (
+            <li class={index === 2 ? "is-core" : ""}>
+              <span class="step-number">0{index + 1}</span>
+              <div class="step-icon"><ProjectIcon kind={step.key} size={36} /></div>
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <section class="proof section" id="proof">
+      <div class="section-inner proof-layout">
+        <div class="proof-main">
+          <header class="section-heading">
+            <p class="eyebrow">{content.proof.eyebrow}</p>
+            <h2>{content.proof.headline}</h2>
+            <p>{content.proof.body}</p>
+          </header>
+          <div class="data-grid">
+            {content.proof.dataTypes.map((item: string, index: number) => <div class="data-type"><span aria-hidden="true">{proofIcons[index]}</span><strong>{item}</strong></div>)}
+          </div>
+        </div>
+        <aside class="proof-aside">
+          {content.proof.proofCards.map((card: any, index: number) => <article><span class="proof-card-icon" aria-hidden="true">{index === 0 ? "✓" : card.badge}</span><div><h3>{card.title}</h3><p>{card.body}</p></div></article>)}
+          <a href={content.proof.action.href}>{content.proof.action.label}<span aria-hidden="true">→</span></a>
+        </aside>
+      </div>
+    </section>
+
+    <section class="cta section" id="start">
+      <div class="cta-burst" aria-hidden="true"><span class="data-stack"><i></i><i></i><i></i></span></div>
+      <div class="section-inner cta-inner">
+        <p class="eyebrow">{content.cta.eyebrow}</p>
+        <h2>{content.cta.headline}</h2>
+        <p>{content.cta.body}</p>
+        <div class="command-bar">
+          <code>{content.cta.command}</code>
+          <button type="button" class="copy-command" data-copy={content.cta.command} data-label={content.cta.copyLabel} data-copied={content.cta.copiedLabel} aria-label={content.cta.copyLabel}>
+            <span aria-hidden="true">⧉</span><b class="sr-only">{content.cta.copyLabel}</b>
+          </button>
+        </div>
+        <div class="button-row">
+          <a class="button light" href={content.cta.primaryCta.href}>{content.cta.primaryCta.label}<span aria-hidden="true">→</span></a>
+          <a class="button outline-light" href={content.cta.secondaryCta.href}>{content.cta.secondaryCta.label}<span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-brand"><span class="redis-mark" aria-hidden="true"><i></i><i></i><i></i></span><strong>{content.nav.brandLabel}</strong><p>{content.footer.tagline}</p></div>
+    <div class="footer-groups">
+      {content.footer.groups.map((group: any) => <section><h2>{group.title}</h2>{group.links.map((link: any) => <a href={link.href}>{link.label}</a>)}</section>)}
+    </div>
+    <p class="footer-legal">{content.footer.legal}</p>
+  </footer>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>(".copy-command").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const value = button.dataset.copy ?? "";
+      await navigator.clipboard.writeText(value);
+      const label = button.querySelector("b");
+      if (label) label.textContent = button.dataset.copied ?? "Copied";
+      button.dataset.state = "copied";
+      window.setTimeout(() => {
+        if (label) label.textContent = button.dataset.label ?? "Copy command";
+        delete button.dataset.state;
+      }, 1800);
+    });
+  });
+</script>
+
+<style>
+  .site-shell { --ink: color-mix(in srgb, var(--c-accent-1) 62%, var(--c-primary)); --surface: color-mix(in srgb, var(--c-base) 94%, var(--c-accent-2)); --line: color-mix(in srgb, var(--c-accent-1) 22%, transparent); position: relative; overflow: clip; background: var(--c-base); color: var(--ink); }
+  .skip-link { position: fixed; left: 1rem; top: 1rem; z-index: 100; padding: .7rem 1rem; background: var(--ink); color: var(--c-base); transform: translateY(-180%); }
+  .skip-link:focus { transform: translateY(0); }
+  .pattern-layer { position: absolute; inset: 0; z-index: 0; pointer-events: none; background-image: var(--pattern-image); background-repeat: repeat; background-size: 520px 520px; opacity: .085; animation: pattern-drift 90s linear infinite; mask-image: linear-gradient(to bottom, transparent 0, currentColor 9%, currentColor 82%, transparent 96%); }
+  @keyframes pattern-drift { to { background-position: 520px 260px; } }
+  .page-ribbon { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+  .page-ribbon path { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; }
+  .ribbon-shadow { stroke: color-mix(in srgb, var(--c-primary) 26%, transparent); stroke-width: 10; }
+  .ribbon-core { stroke: var(--c-primary); stroke-width: 3; }
+  @supports (animation-timeline: scroll()) { .page-ribbon path { stroke-dasharray: 1; animation: draw-ribbon linear both; animation-timeline: scroll(root block); } @keyframes draw-ribbon { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } } }
+  .section, .site-nav, .site-footer { position: relative; z-index: 2; }
+  .section-inner { width: min(1180px, calc(100% - 3rem)); margin-inline: auto; }
+  .site-nav { height: 74px; display: flex; align-items: center; gap: 2rem; padding: 0 max(1.5rem, calc((100vw - 1180px) / 2)); background: color-mix(in srgb, var(--c-base) 88%, transparent); border-bottom: 1px solid var(--line); backdrop-filter: blur(16px); }
+  .brand, .nav-actions, .site-nav nav { display: flex; align-items: center; }
+  .brand { gap: .7rem; font-size: 1.35rem; }
+  .redis-mark { width: 28px; height: 25px; position: relative; display: inline-block; color: var(--c-primary); }
+  .redis-mark i { position: absolute; left: 1px; width: 26px; height: 10px; background: currentColor; transform: rotate(30deg) skewX(-30deg) scaleY(.65); border-radius: 2px; }
+  .redis-mark i:nth-child(1) { top: 0; } .redis-mark i:nth-child(2) { top: 7px; } .redis-mark i:nth-child(3) { top: 14px; }
+  .site-nav nav { gap: 1.5rem; margin-left: auto; font-size: .92rem; font-weight: 600; }
+  .site-nav nav a, .nav-actions a { padding: .7rem .2rem; border-bottom: 2px solid transparent; }
+  .site-nav nav a:hover, .nav-actions a:hover { border-color: var(--c-primary); }
+  .nav-actions { gap: 1rem; font-size: .86rem; font-weight: 700; }
+  .github-link { color: var(--c-primary); }
+  .mobile-menu { display: none; margin-left: auto; position: relative; }
+  .mobile-menu summary { width: 44px; height: 44px; display: grid; place-content: center; gap: 5px; cursor: pointer; list-style: none; }
+  .mobile-menu summary span { width: 22px; height: 2px; background: currentColor; }
+  .mobile-menu-panel { position: absolute; right: 0; top: 48px; width: min(280px, calc(100vw - 2rem)); padding: 1rem; display: grid; background: var(--c-base); border: 1px solid var(--line); box-shadow: 0 20px 50px color-mix(in srgb, var(--ink) 16%, transparent); }
+  .mobile-menu-panel a { padding: .85rem; border-bottom: 1px solid var(--line); }
+  .hero { min-height: min(860px, calc(100vh - 74px)); display: grid; align-items: center; overflow: hidden; background: var(--c-base); }
+  .hero-art, .hero-scrim { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hero-art { object-fit: cover; object-position: center; }
+  .hero-scrim { background: linear-gradient(90deg, color-mix(in srgb, var(--c-base) 97%, transparent) 0%, color-mix(in srgb, var(--c-base) 80%, transparent) 37%, transparent 62%); }
+  .hero-copy { position: relative; z-index: 2; padding-block: 6rem 7rem; }
+  .hero-copy > * { max-width: 560px; }
+  .eyebrow { margin: 0 0 1rem; color: var(--c-primary); font-size: .78rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+  h1, h2, h3, p { margin-top: 0; }
+  h1, h2 { font-family: "Oswald", "Noto Sans SC", sans-serif; letter-spacing: -.035em; line-height: .98; text-wrap: balance; }
+  h1 { margin-bottom: 1.4rem; max-width: 640px; font-size: clamp(4rem, 7.7vw, 7.4rem); }
+  h2 { margin-bottom: 1rem; font-size: clamp(3rem, 5.6vw, 5.5rem); }
+  .lede { font-size: clamp(1.08rem, 1.7vw, 1.28rem); line-height: 1.65; color: color-mix(in srgb, var(--ink) 78%, transparent); }
+  .button-row { display: flex; flex-wrap: wrap; gap: .9rem; margin-top: 2rem; }
+  .button { min-height: 52px; padding: 0 1.35rem; display: inline-flex; align-items: center; justify-content: center; gap: 1rem; border: 1px solid currentColor; border-radius: 8px; font-weight: 800; transition: transform .2s ease, box-shadow .2s ease; }
+  .button:hover { transform: translateY(-2px); box-shadow: 0 10px 26px color-mix(in srgb, var(--ink) 16%, transparent); }
+  .button:focus-visible, a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid var(--c-accent-2); outline-offset: 4px; }
+  .button.primary { border-color: var(--c-primary); background: var(--c-primary); color: var(--c-base); }
+  .button.secondary { background: color-mix(in srgb, var(--c-base) 88%, transparent); }
+  .hero-proofs { list-style: none; padding: 0; margin: 2.4rem 0 0; display: flex; gap: 1.2rem; }
+  .hero-proofs li { display: grid; grid-template-columns: auto auto; column-gap: .55rem; padding-right: 1.2rem; border-right: 1px solid var(--line); }
+  .hero-proofs li:last-child { border-right: 0; }
+  .proof-symbol { grid-row: 1 / 3; align-self: center; color: var(--c-primary); font-size: 1.8rem; }
+  .hero-proofs strong { font-size: .84rem; } .hero-proofs small { color: color-mix(in srgb, var(--ink) 64%, transparent); }
+  .capabilities { padding: 8rem 0 7rem; background: color-mix(in srgb, var(--c-base) 88%, transparent); }
+  .section-heading { max-width: 720px; }
+  .section-heading > p:not(.eyebrow), .split-heading > p { color: color-mix(in srgb, var(--ink) 72%, transparent); font-size: 1.04rem; line-height: 1.7; }
+  .split-heading { max-width: none; display: grid; grid-template-columns: 1.15fr .7fr; align-items: end; gap: 4rem; }
+  .split-heading h2 { max-width: 650px; }
+  .capability-grid { margin-top: 3.5rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+  .capability-card { min-height: 360px; padding: 1.6rem; display: flex; flex-direction: column; background: color-mix(in srgb, var(--c-base) 88%, transparent); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 18px 48px color-mix(in srgb, var(--ink) 6%, transparent); }
+  .capability-card:nth-child(2), .capability-card:nth-child(4) { transform: translateY(1.5rem); }
+  .icon-well { width: 62px; height: 62px; display: grid; place-content: center; color: var(--c-primary); border-radius: 16px; background: color-mix(in srgb, var(--c-primary) 9%, transparent); }
+  .capability-card:nth-child(even) .icon-well { color: var(--c-accent-1); background: color-mix(in srgb, var(--c-accent-1) 9%, transparent); }
+  .capability-card h3 { margin: 1.7rem 0 .8rem; font-family: "Oswald", "Noto Sans SC", sans-serif; font-size: 1.65rem; }
+  .capability-card p { color: color-mix(in srgb, var(--ink) 70%, transparent); line-height: 1.65; }
+  .capability-card a { margin-top: auto; color: var(--c-primary); font-weight: 800; display: flex; justify-content: space-between; }
+  .relay-handoff { margin: 4.5rem 0 -4rem auto; width: 42%; display: flex; align-items: center; gap: 1rem; color: var(--c-primary); font-size: .72rem; letter-spacing: .12em; }
+  .relay-handoff::before { content: ""; height: 2px; flex: 1; background: currentColor; }
+  .relay-handoff span { width: 18px; height: 18px; border: 4px solid currentColor; border-radius: 50%; }
+  .workflow { padding: 8rem 0; background: linear-gradient(115deg, color-mix(in srgb, var(--c-base) 91%, transparent), color-mix(in srgb, var(--c-accent-1) 12%, var(--c-base))); }
+  .compact-heading h2 { max-width: 760px; }
+  .workflow-steps { list-style: none; padding: 0; margin: 4rem 0 0; display: grid; grid-template-columns: repeat(5, 1fr); }
+  .workflow-steps li { position: relative; min-width: 0; padding: 1.5rem 1rem 0; text-align: center; }
+  .workflow-steps li::after { content: ""; position: absolute; top: 54px; left: calc(50% + 42px); width: calc(100% - 84px); height: 2px; background: var(--c-primary); }
+  .workflow-steps li:last-child::after { display: none; }
+  .step-number { position: absolute; left: 1rem; top: 0; color: color-mix(in srgb, var(--c-accent-1) 50%, transparent); font-family: "JetBrains Mono", monospace; font-size: .72rem; }
+  .step-icon { width: 82px; height: 82px; margin: 0 auto 1.4rem; display: grid; place-content: center; color: var(--c-primary); background: var(--c-base); border: 1px solid var(--line); border-radius: 50%; box-shadow: 0 10px 30px color-mix(in srgb, var(--ink) 8%, transparent); }
+  .workflow-steps .is-core .step-icon { color: var(--c-base); background: var(--c-accent-1); box-shadow: 0 0 0 10px color-mix(in srgb, var(--c-accent-1) 12%, transparent), 0 18px 45px color-mix(in srgb, var(--c-accent-1) 22%, transparent); }
+  .workflow-steps h3 { font-size: 1.05rem; }
+  .workflow-steps p { margin: 0; color: color-mix(in srgb, var(--ink) 64%, transparent); font-size: .86rem; line-height: 1.5; }
+  .proof { padding: 8rem 0; background: color-mix(in srgb, var(--c-base) 89%, transparent); }
+  .proof-layout { display: grid; grid-template-columns: 1.15fr .7fr; gap: 4rem; align-items: end; }
+  .data-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; margin-top: 2.5rem; }
+  .data-type { min-height: 116px; display: grid; place-content: center; gap: .8rem; text-align: center; background: color-mix(in srgb, var(--c-base) 92%, transparent); border: 1px solid var(--line); border-radius: 14px; }
+  .data-type span { color: var(--c-primary); font-family: "JetBrains Mono", monospace; font-size: 1.7rem; }
+  .proof-aside { display: grid; gap: 1rem; }
+  .proof-aside article { min-height: 156px; padding: 1.5rem; display: flex; align-items: center; gap: 1.3rem; background: color-mix(in srgb, var(--c-base) 92%, transparent); border: 1px solid var(--line); border-radius: 18px; }
+  .proof-card-icon { min-width: 74px; height: 74px; display: grid; place-content: center; color: var(--c-accent-1); background: color-mix(in srgb, var(--c-accent-1) 8%, transparent); border-radius: 50%; font-weight: 900; }
+  .proof-aside h3 { margin-bottom: .45rem; color: var(--c-accent-1); font-size: 1.2rem; }
+  .proof-aside p { margin: 0; color: color-mix(in srgb, var(--ink) 66%, transparent); line-height: 1.5; }
+  .proof-aside > a { justify-self: end; padding: 1rem 0; color: var(--c-primary); font-weight: 800; }
+  .cta { min-height: 700px; display: grid; align-items: center; overflow: hidden; background: linear-gradient(110deg, color-mix(in srgb, var(--c-primary) 86%, var(--c-accent-1)), var(--c-primary)); color: var(--c-base); }
+  .cta::after { content: ""; position: absolute; inset: 0; background-image: var(--pattern-image); background-size: 520px; opacity: .08; mix-blend-mode: screen; pointer-events: none; }
+  .cta-inner { z-index: 2; padding-block: 6rem; }
+  .cta-inner > * { max-width: 610px; }
+  .cta .eyebrow { color: var(--c-accent-2); }
+  .cta h2 { font-size: clamp(4.2rem, 7vw, 7rem); }
+  .cta-inner > p:not(.eyebrow) { font-size: 1.15rem; line-height: 1.6; color: color-mix(in srgb, var(--c-base) 82%, transparent); }
+  .command-bar { margin-top: 2rem; padding: .55rem .6rem .55rem 1.2rem; display: flex; align-items: center; gap: 1rem; background: var(--c-base); color: var(--ink); border-radius: 10px; box-shadow: 0 20px 60px color-mix(in srgb, var(--ink) 22%, transparent); }
+  .command-bar code { min-width: 0; flex: 1; overflow-x: auto; font-family: "JetBrains Mono", monospace; white-space: nowrap; }
+  .copy-command { width: 46px; height: 46px; flex: none; border: 1px solid var(--line); border-radius: 8px; background: color-mix(in srgb, var(--c-base) 88%, var(--c-accent-2)); color: var(--ink); cursor: pointer; }
+  .copy-command[data-state="copied"] { color: var(--c-primary); }
+  .button.light { background: var(--c-base); color: var(--c-primary); border-color: var(--c-base); }
+  .button.outline-light { color: var(--c-base); }
+  .cta-burst { position: absolute; right: -5%; top: 5%; width: 50%; aspect-ratio: 1; display: grid; place-content: center; border-radius: 50%; background: radial-gradient(circle, var(--c-accent-2), color-mix(in srgb, var(--c-accent-2) 32%, transparent) 22%, transparent 68%); filter: drop-shadow(0 0 60px color-mix(in srgb, var(--c-accent-2) 62%, transparent)); }
+  .data-stack { width: 190px; height: 180px; position: relative; transform: rotate(-5deg); }
+  .data-stack i { position: absolute; left: 0; width: 100%; height: 72px; background: var(--c-primary); border: 3px solid var(--c-accent-2); transform: rotate(30deg) skewX(-30deg) scaleY(.72); border-radius: 14px; box-shadow: 0 18px 34px color-mix(in srgb, var(--ink) 25%, transparent); }
+  .data-stack i:nth-child(1) { top: 0; } .data-stack i:nth-child(2) { top: 48px; } .data-stack i:nth-child(3) { top: 96px; }
+  .site-footer { padding: 4.5rem max(1.5rem, calc((100vw - 1180px) / 2)) 2rem; display: grid; grid-template-columns: .8fr 1.4fr; gap: 4rem; color: var(--c-base); background: color-mix(in srgb, var(--c-accent-1) 78%, var(--c-primary)); }
+  .footer-brand { display: grid; grid-template-columns: auto 1fr; align-content: start; gap: .7rem; font-size: 1.5rem; }
+  .footer-brand p { grid-column: 1 / -1; color: color-mix(in srgb, var(--c-base) 66%, transparent); font-size: .95rem; }
+  .footer-groups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+  .footer-groups section { display: grid; align-content: start; gap: .75rem; }
+  .footer-groups h2 { margin: 0 0 .4rem; font-family: "Outfit", sans-serif; font-size: .82rem; letter-spacing: .12em; text-transform: uppercase; }
+  .footer-groups a { color: color-mix(in srgb, var(--c-base) 72%, transparent); font-size: .9rem; }
+  .footer-groups a:hover { color: var(--c-base); }
+  .footer-legal { grid-column: 1 / -1; margin: 1rem 0 0; padding-top: 1.5rem; color: color-mix(in srgb, var(--c-base) 54%, transparent); border-top: 1px solid color-mix(in srgb, var(--c-base) 18%, transparent); font-size: .82rem; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+  @media (max-width: 980px) {
+    .site-nav nav, .nav-actions { display: none; } .mobile-menu { display: block; }
+    .hero { min-height: 920px; align-items: start; }
+    .hero-art { top: auto; bottom: 0; height: 67%; width: 150%; max-width: none; object-position: 70% center; transform: translateX(-30%); }
+    .hero-scrim { background: linear-gradient(180deg, var(--c-base) 0%, color-mix(in srgb, var(--c-base) 96%, transparent) 40%, color-mix(in srgb, var(--c-base) 28%, transparent) 70%, transparent); }
+    .hero-copy { padding-top: 4.5rem; }
+    .hero-copy > * { max-width: 650px; }
+    .hero-proofs { width: 100%; }
+    .split-heading, .proof-layout { grid-template-columns: 1fr; gap: 2rem; }
+    .capability-grid { grid-template-columns: repeat(2, 1fr); }
+    .capability-card:nth-child(even) { transform: none; }
+    .workflow-steps { grid-template-columns: 1fr; margin-left: 1rem; }
+    .workflow-steps li { min-height: 150px; display: grid; grid-template-columns: 90px 1fr; grid-template-rows: auto auto; text-align: left; column-gap: 1.2rem; padding: 0 0 2rem; }
+    .workflow-steps li::after { top: 82px; left: 40px; width: 2px; height: calc(100% - 60px); }
+    .step-icon { grid-row: 1 / 3; margin: 0; }
+    .step-number { left: 0; top: -1.3rem; }
+    .workflow-steps h3 { align-self: end; margin-bottom: .4rem; }
+    .workflow-steps p { align-self: start; }
+    .cta-burst { right: -18%; width: 64%; opacity: .7; }
+    .site-footer { grid-template-columns: 1fr; gap: 2.5rem; }
+  }
+  @media (max-width: 640px) {
+    .section-inner { width: min(100% - 2rem, 1180px); }
+    .site-nav { height: 64px; padding-inline: 1rem; }
+    .hero { min-height: 1080px; }
+    .hero-copy { padding-top: 3.5rem; }
+    h1 { font-size: clamp(3.7rem, 18vw, 5.2rem); }
+    h2 { font-size: clamp(2.8rem, 14vw, 4rem); }
+    .hero-art { top: auto; bottom: 0; width: 100%; height: 47%; transform: none; object-position: 72% center; }
+    .hero-scrim { background: linear-gradient(180deg, var(--c-base) 0%, var(--c-base) 43%, color-mix(in srgb, var(--c-base) 90%, transparent) 51%, color-mix(in srgb, var(--c-base) 20%, transparent) 67%, transparent 82%); }
+    .hero-proofs { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; }
+    .hero-proofs li { grid-template-columns: 1fr; padding: .65rem .35rem; text-align: center; border-right: 0; border-top: 1px solid var(--line); }
+    .proof-symbol { grid-row: auto; }
+    .capabilities, .workflow, .proof { padding: 6rem 0; }
+    .capability-grid { grid-template-columns: 1fr; margin-top: 2.5rem; }
+    .capability-card { min-height: 310px; }
+    .relay-handoff { width: 82%; }
+    .data-grid { grid-template-columns: repeat(2, 1fr); }
+    .proof-aside article { align-items: flex-start; }
+    .proof-card-icon { min-width: 58px; height: 58px; }
+    .cta { min-height: 760px; align-items: start; }
+    .cta-inner { padding-top: 5rem; }
+    .cta h2 { font-size: clamp(4rem, 20vw, 5.4rem); }
+    .cta-burst { width: 90%; right: -34%; top: 48%; opacity: .42; }
+    .data-stack { transform: scale(.68) rotate(-5deg); }
+    .command-bar { padding-left: .8rem; }
+    .command-bar code { font-size: .73rem; }
+    .cta .button-row { display: grid; }
+    .site-footer { padding: 3.5rem 1rem 2rem; }
+    .footer-groups { grid-template-columns: 1fr 1fr; }
+    .page-ribbon { opacity: .48; }
+    .pattern-layer { background-size: 360px 360px; opacity: .07; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pattern-layer { animation: none; }
+    .page-ribbon path { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; }
+    .button { transition: none; }
+    .cta-burst { filter: none; }
+  }
+</style>
