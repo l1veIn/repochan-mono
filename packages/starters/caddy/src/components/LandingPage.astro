@@ -177,20 +177,20 @@ const proofIcons = ["globe", "file", "modules", "shield"];
   h1 { max-width: 11ch; font-size: clamp(3.5rem, 7.2vw, 7.6rem); line-height: .9; letter-spacing: -.07em; margin-bottom: 1.8rem; text-wrap: balance; }
   .lede { max-width: 34rem; font-size: clamp(1.1rem, 1.65vw, 1.5rem); line-height: 1.55; margin-bottom: 2rem; }
   .actions { display: flex; flex-wrap: wrap; gap: .9rem; }
-  .button { min-height: 3.45rem; display: inline-flex; align-items: center; justify-content: center; gap: 1.2rem; padding: .85rem 1.5rem; border: 1px solid var(--c-primary); font-weight: 760; transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease; }
-  .button:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1.4rem color-mix(in srgb, var(--c-primary) 14%, transparent); }
-  .button.primary { background: var(--c-accent-2); color: var(--c-primary); border-color: var(--c-accent-2); }
+  .button { min-height: 3.45rem; display: inline-flex; align-items: center; justify-content: center; gap: 1.2rem; padding: .85rem 1.5rem; border: 1px solid var(--c-ink); font-weight: 760; transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease; }
+  .button:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1.4rem color-mix(in srgb, var(--c-ink) 14%, transparent); }
+  .button.primary { background: var(--c-accent-2); color: var(--c-ink); border-color: var(--c-accent-2); }
   .button.secondary { background: color-mix(in srgb, var(--c-base) 82%, transparent); }
   .section { position: relative; padding: clamp(5rem, 9vw, 8rem) clamp(1.2rem, 5vw, 5rem); border-bottom: 1px solid var(--c-accent-2); }
   .section-inner { width: min(88rem, 100%); margin-inline: auto; }
-  .dark-section { color: var(--c-base); background: var(--c-primary); }
+  .dark-section { color: var(--c-base); background: var(--c-ink); }
   .dark-section::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--c-accent-1) 5%, transparent), transparent); }
   .section-heading { text-align: center; margin-bottom: 3.2rem; }
   .section-heading .eyebrow { justify-content: center; color: var(--c-accent-2); }
   .section-heading h2, .cta h2 { font-family: var(--font-display); font-size: clamp(2.2rem, 4.3vw, 4.7rem); line-height: 1; letter-spacing: -.05em; text-wrap: balance; }
   .capability-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.2rem; }
-  .capability-card { min-height: 20rem; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 2.5rem 1.6rem 1.5rem; border: 1px solid var(--c-accent-2); position: relative; background: color-mix(in srgb, var(--c-primary) 90%, var(--c-accent-1)); clip-path: polygon(1.2rem 0, calc(100% - 1.2rem) 0, 100% 1.2rem, 100% calc(100% - 1.2rem), calc(100% - 1.2rem) 100%, 1.2rem 100%, 0 calc(100% - 1.2rem), 0 1.2rem); }
-  .registry-number { position: absolute; top: -.7rem; min-width: 2.4rem; padding: .25rem .4rem; border: 1px solid var(--c-accent-2); border-radius: 50%; background: var(--c-primary); color: var(--c-accent-2); font-family: var(--font-mono); }
+  .capability-card { min-height: 20rem; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 2.5rem 1.6rem 1.5rem; border: 1px solid var(--c-accent-2); position: relative; background: color-mix(in srgb, var(--c-ink) 90%, var(--c-accent-1)); clip-path: polygon(1.2rem 0, calc(100% - 1.2rem) 0, 100% 1.2rem, 100% calc(100% - 1.2rem), calc(100% - 1.2rem) 100%, 1.2rem 100%, 0 calc(100% - 1.2rem), 0 1.2rem); }
+  .registry-number { position: absolute; top: -.7rem; min-width: 2.4rem; padding: .25rem .4rem; border: 1px solid var(--c-accent-2); border-radius: 50%; background: var(--c-ink); color: var(--c-accent-2); font-family: var(--font-mono); }
   .feature-icon { color: var(--c-accent-1); margin: .8rem 0 1.3rem; }
   .capability-card h3 { font-size: 1.35rem; margin-bottom: .8rem; }
   .capability-card p { max-width: 27ch; color: color-mix(in srgb, var(--c-base) 80%, transparent); line-height: 1.55; }
@@ -201,7 +201,7 @@ const proofIcons = ["globe", "file", "modules", "shield"];
   .step-number { font-family: var(--font-display); font-size: 2rem; color: var(--c-accent-2); }
   .step-icon { margin: 2rem 0 1.5rem; color: var(--c-accent-1); }
   .workflow-step h3 { font-size: 1.3rem; max-width: 16ch; }
-  .workflow-step p { color: color-mix(in srgb, var(--c-primary) 72%, transparent); }
+  .workflow-step p { color: color-mix(in srgb, var(--c-ink) 72%, transparent); }
   .rail-arrow { position: absolute; right: -1.75rem; top: 50%; font-size: 2rem; color: var(--c-accent-2); z-index: 2; }
   .workflow-aside { text-align: center; font-family: var(--font-mono); margin: 2rem 0 0; font-size: .82rem; }
   .proof-eyebrow { color: var(--c-accent-2); }
@@ -221,10 +221,10 @@ const proofIcons = ["globe", "file", "modules", "shield"];
   .arch { position: absolute; bottom: 0; width: 23rem; height: 28rem; border: 1px solid color-mix(in srgb, var(--c-accent-2) 28%, transparent); border-radius: 50% 50% 0 0; }
   .arch-left { left: -7rem; }
   .arch-right { right: -7rem; }
-  .seal-anchor { position: absolute; left: 50%; bottom: 0; translate: -50% 50%; width: 4.5rem; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; color: var(--c-accent-1); background: var(--c-primary); border: 2px solid var(--c-accent-2); z-index: 10; animation: seal-turn 18s linear infinite; }
+  .seal-anchor { position: absolute; left: 50%; bottom: 0; translate: -50% 50%; width: 4.5rem; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; color: var(--c-accent-1); background: var(--c-ink); border: 2px solid var(--c-accent-2); z-index: 10; animation: seal-turn 18s linear infinite; }
   .seal-compass span { color: var(--c-accent-2); font-size: 2rem; }
   .registry-grid::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .28; background-image: linear-gradient(color-mix(in srgb, var(--c-primary) 8%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--c-primary) 8%, transparent) 1px, transparent 1px); background-size: 4.5rem 4.5rem; mask-image: linear-gradient(to bottom, transparent, currentColor 25%, currentColor 75%, transparent); }
-  .site-footer { display: grid; grid-template-columns: minmax(15rem, 1fr) 2fr; gap: 3rem; padding: clamp(4rem, 7vw, 6rem) clamp(1.2rem, 5vw, 5rem) 2rem; background: var(--c-primary); color: var(--c-base); border-top: 1px solid var(--c-accent-2); }
+  .site-footer { display: grid; grid-template-columns: minmax(15rem, 1fr) 2fr; gap: 3rem; padding: clamp(4rem, 7vw, 6rem) clamp(1.2rem, 5vw, 5rem) 2rem; background: var(--c-ink); color: var(--c-base); border-top: 1px solid var(--c-accent-2); }
   .footer-intro p { max-width: 28rem; color: color-mix(in srgb, var(--c-base) 76%, transparent); line-height: 1.6; }
   .footer-groups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
   .footer-groups h2 { color: var(--c-accent-2); font-family: var(--font-mono); font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; }
@@ -238,7 +238,7 @@ const proofIcons = ["globe", "file", "modules", "shield"];
     .desktop-nav { display: none; }
     .mobile-menu { display: block; order: 2; }
     .mobile-menu summary { cursor: pointer; font-weight: 700; }
-    .mobile-menu nav { position: absolute; left: 1rem; right: 1rem; top: calc(100% + .25rem); padding: 1rem; background: var(--c-base); border: 1px solid var(--c-accent-2); box-shadow: 0 1rem 2rem color-mix(in srgb, var(--c-primary) 14%, transparent); }
+    .mobile-menu nav { position: absolute; left: 1rem; right: 1rem; top: calc(100% + .25rem); padding: 1rem; background: var(--c-base); border: 1px solid var(--c-accent-2); box-shadow: 0 1rem 2rem color-mix(in srgb, var(--c-ink) 14%, transparent); }
     .mobile-menu nav a { display: block; padding: .75rem; }
     .hero { min-height: auto; padding-top: 2rem; align-items: start; }
     .hero-composite { position: relative; height: auto; aspect-ratio: 16 / 9; object-position: center; order: 2; margin-top: 1rem; }
@@ -249,7 +249,7 @@ const proofIcons = ["globe", "file", "modules", "shield"];
     .workflow-rail { grid-template-columns: 1fr 1fr; }
     .rail-arrow { display: none; }
     .proof-grid { grid-template-columns: 1fr 1fr; gap: 1px; background: var(--c-accent-2); }
-    .proof-item { background: var(--c-primary); border: 0; }
+    .proof-item { background: var(--c-ink); border: 0; }
     .site-footer { grid-template-columns: 1fr; }
   }
   @media (max-width: 560px) {

@@ -36,7 +36,7 @@ const manifest: StarterManifest = {
 const site: StarterSiteConfig = {
   schemaVersion: "repochan.starter-site.v1",
   project: { name: "Fallback" },
-  theme: { primary: "#111111", base: "#eeeeee", accents: ["#ff00ff"] },
+  theme: { primary: "#111111", base: "#eeeeee", ink: "#111111", accents: ["#ff00ff"] },
   brand: { motifs: [], patterns: [] },
   locales: { default: "en", supported: ["en"] },
 };
@@ -191,7 +191,25 @@ describe("starter v1", () => {
     expect(projected.project.name).toBe("Demo");
     expect(projected.theme.primary).toBe("#123456");
     expect(projected.theme.base).toBe("#eeeeee");
+    expect(projected.theme.ink).toBe("#123456");
     expect(projected.brand.motifs).toEqual(["diamond"]);
+  });
+
+  it("derives a readable semantic ink color from the persona palette", () => {
+    const projected = projectStarterSiteConfig({
+      defaults: site,
+      persona: {
+        mainColor: "#06B6D4",
+        secondaryColor: "#F5F0E8",
+        accentColors: ["#1E3A5F", "#F59E0B"],
+      },
+    });
+    expect(projected.theme).toEqual({
+      primary: "#06B6D4",
+      base: "#F5F0E8",
+      ink: "#1E3A5F",
+      accents: ["#1E3A5F", "#F59E0B"],
+    });
   });
 
   it("projects repository URLs by override, analysis, origin fetch remote, then defaults", () => {

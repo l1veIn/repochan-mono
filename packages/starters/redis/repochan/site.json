@@ -8,6 +8,7 @@
   "theme": {
     "primary": "#DC382D",
     "base": "#FFF5E8",
+    "ink": "#4F46E5",
     "accents": [
       "#4F46E5",
       "#F59E0B"
