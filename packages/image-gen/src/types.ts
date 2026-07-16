@@ -18,6 +18,17 @@ export type ImageRequestMode = "auto" | "openai" | "openai-async";
 /** Mode actually used for a single HTTP generation (never auto). */
 export type RuntimeImageMode = "openai" | "openai-async";
 
+/**
+ * How an endpoint authenticates.
+ *   - bearer (default): use `apiKey` as the Authorization Bearer token.
+ *   - codex: OAuth via `codex login` — image-gen resolves a short-lived
+ *     access token from ~/.codex/auth.json (refreshed on demand). `apiKey`
+ *     is ignored on the wire for codex endpoints.
+ */
+export type EndpointAuth =
+  | { kind: "bearer" }
+  | { kind: "codex" };
+
 /** Parameters for a generation request. */
 export interface GenerateParams {
   prompt: string;
@@ -90,6 +101,11 @@ export interface EndpointConfig {
   timeoutMs?: number;
   /** Overall async poll budget override (ms). */
   asyncMaxWaitMs?: number;
+  /**
+   * Authentication strategy. Defaults to `{ kind: "bearer" }` (uses apiKey).
+   * Use `{ kind: "codex" }` for OAuth via `codex login`.
+   */
+  auth?: EndpointAuth;
 }
 
 export interface ImageGenConfig {
@@ -117,4 +133,6 @@ export interface EndpointStatus {
   modeSource: string;
   hasKey: boolean;
   isDefault: boolean;
+  /** Auth strategy in use (bearer | codex). */
+  authKind: "bearer" | "codex";
 }

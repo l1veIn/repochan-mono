@@ -1,6 +1,7 @@
 # @repochan/image-gen
 
-Image generation library for RepoChan — **prompt → PNG bytes** via OpenAI-compatible HTTP.
+Image generation library for RepoChan — **prompt → PNG bytes** via OpenAI-compatible HTTP,
+or natively through the Codex `/responses` backend (OAuth via `codex login`).
 
 ## Modes (users usually ignore this)
 
@@ -47,12 +48,57 @@ Missing `mode` → **`auto`**.
 ## CLI
 
 ```bash
-repochan image configure          # OpenAI | Custom OpenAI-compatible | skip
-repochan image status             # shows mode → effectiveMode
+repochan image configure          # OpenAI | Codex | Custom OpenAI-compatible | skip
+repochan image status             # shows mode → effectiveMode (+ auth=codex)
 repochan image gen --prompt "…"
 ```
 
 Advanced: `--mode openai-async` or config `mode: "openai-async"` for relays that require async submit headers.
+
+## Codex / ChatGPT login (`auth.kind: codex`)
+
+Reach `gpt-image-2` through the Codex `/responses` backend using the OAuth token
+from the official `codex login`. image-gen reads `~/.codex/auth.json` (read-only)
+and refreshes short-lived access tokens itself — no separate reverse-proxy needed.
+
+**One-time setup:**
+
+```bash
+codex login                       # official CLI writes ~/.codex/auth.json
+repochan image configure --provider codex   # or pick "Codex (ChatGPT login)" interactively
+```
+
+This writes an endpoint with `auth: { kind: "codex" }`, pointed at
+`https://chatgpt.com/backend-api/codex`, model `gpt-image-2`. The `apiKey` field
+is left empty — the OAuth access token is injected per request.
+
+```json
+{
+  "version": 2,
+  "defaultEndpoint": "codex",
+  "endpoints": {
+    "codex": {
+      "id": "codex",
+      "baseURL": "https://chatgpt.com/backend-api/codex",
+      "apiKey": "",
+      "model": "gpt-image-2",
+      "auth": { "kind": "codex" }
+    }
+  }
+}
+```
+
+**Behavior & boundaries:**
+- image-gen never writes back to `~/.codex/`. Refreshed access tokens are cached
+  at `~/.repochan/codex-token-cache.json` (mode `0600`).
+- A 401 from the upstream triggers one token refresh + retry (not a full
+  generation replay — the global "never auto-retry" invariant still holds).
+- Only `gpt-image-2` is supported on this transport.
+- `repochan image probe` on a codex endpoint resolves a valid token (exercising
+  the refresh path) instead of `GET /models`, which the Codex backend lacks.
+- macOS note: `codex login` may store tokens in the Keychain rather than
+  `~/.codex/auth.json`. If `loadCodexAuth` can't find the file, re-login or use
+  another provider.
 
 ## Boundaries
 

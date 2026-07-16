@@ -233,7 +233,7 @@ cli.command("image <sub>", "Image generation, configure, status, probe, and edit
   .option("--spill <n>", "Chroma key edge spill suppression 0-1, default 0.85 (image edit chroma-key)")
   .option("--format <fmt>", "Output format: webp | jpeg | avif | png (image edit compress)")
   .option("--max-width <n>", "Max output width in pixels, downscales if larger (image edit compress)")
-  .option("--provider <p>", "openai | custom | skip (image configure)")
+  .option("--provider <p>", "openai | codex | custom | skip (image configure)")
   .option("--api-key <key>", "API key (image configure)")
   .option("--base-url <url>", "Custom OpenAI-compatible base URL (image configure)")
   .option("--model <model>", "Model id (image configure) or ISNet model small|medium|large (bg-remove)")

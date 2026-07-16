@@ -90,6 +90,81 @@ describe("config (pure)", () => {
     await fs.rm(dir, { recursive: true, force: true });
   });
 
+  it("accepts auth.kind=codex without an apiKey and validates auth shape", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "rc-img-auth-"));
+    await fs.mkdir(path.join(dir, ".repochan"), { recursive: true });
+    const configPath = path.join(dir, ".repochan", "image.json");
+
+    // codex endpoint: apiKey may be empty
+    await fs.writeFile(configPath, JSON.stringify({
+      version: 2,
+      endpoints: {
+        codex: {
+          id: "codex",
+          baseURL: "https://chatgpt.com/backend-api/codex",
+          apiKey: "",
+          model: "gpt-image-2",
+          auth: { kind: "codex" },
+        },
+      },
+    }));
+    const cfg = loadConfig(dir);
+    expect(cfg.endpoints?.codex.auth).toEqual({ kind: "codex" });
+
+    // bearer endpoint still requires apiKey
+    await fs.writeFile(configPath, JSON.stringify({
+      version: 2,
+      endpoints: {
+        nodel: { id: "nodel", baseURL: "https://x/v1", apiKey: "", model: "gpt-image-2" },
+      },
+    }));
+    expect(() => loadConfig(dir)).toThrow(/apiKey must not be empty/);
+
+    // invalid auth kind rejected
+    await fs.writeFile(configPath, JSON.stringify({
+      version: 2,
+      endpoints: {
+        bad: {
+          id: "bad",
+          baseURL: "https://x/v1",
+          apiKey: "k",
+          model: "gpt-image-2",
+          auth: { kind: "weird" },
+        },
+      },
+    }));
+    expect(() => loadConfig(dir)).toThrow(/auth\.kind must be/);
+
+    // unknown field inside auth rejected (auth is validated via normalizeEndpointAuth,
+    // but the endpoint allow-list itself still accepts the auth object shape)
+    await fs.rm(dir, { recursive: true, force: true });
+  });
+
+  it("exposes authKind in listEndpointStatuses", () => {
+    const config = {
+      version: 2 as const,
+      endpoints: {
+        codex: {
+          id: "codex",
+          baseURL: "https://chatgpt.com/backend-api/codex",
+          apiKey: "",
+          model: "gpt-image-2",
+          auth: { kind: "codex" as const },
+        },
+        bearer: {
+          id: "bearer",
+          baseURL: "https://api.openai.com/v1",
+          apiKey: "sk-x",
+          model: "gpt-image-2",
+        },
+      },
+    };
+    const statuses = listEndpointStatuses(config);
+    expect(statuses.find((s) => s.id === "codex")?.authKind).toBe("codex");
+    expect(statuses.find((s) => s.id === "codex")?.hasKey).toBe(true); // codex counts as configured
+    expect(statuses.find((s) => s.id === "bearer")?.authKind).toBe("bearer");
+  });
+
   it("treats project endpoints and their default as one replacement layer", () => {
     const globalConfig = {
       version: 2 as const,

@@ -32,6 +32,7 @@ import {
 import { resolveEffectiveMode, normalizeImageRequestMode } from "./resolveMode.js";
 import { generateOpenAI } from "./modes/openai.js";
 import { generateOpenAIAsync } from "./modes/openai-async.js";
+import { generateCodex, isCodexEndpoint } from "./modes/codex.js";
 import type { ModeContext } from "./modes/shared.js";
 
 export {
@@ -68,7 +69,7 @@ export function resolveEndpoint(config: ImageGenConfig, endpointId?: string): En
   if (!ep) throw new Error(`Endpoint '${id}' not found in config. Available: ${ids.join(", ")}`);
   const normalized = normalizeEndpoint(id, ep);
   if (!normalized.baseURL) throw new Error(`Endpoint '${id}' is missing baseURL.`);
-  if (!normalized.apiKey) {
+  if (normalized.auth?.kind !== "codex" && !normalized.apiKey) {
     throw new Error(`Endpoint '${id}' is missing apiKey (or its ${"$"}{ENV} is unset).`);
   }
   return normalized;
@@ -126,8 +127,11 @@ export async function generate(
   };
 
   try {
-    const outcome =
-      mode === "openai-async" ? await generateOpenAIAsync(ctx) : await generateOpenAI(ctx);
+    const outcome = isCodexEndpoint(endpoint)
+      ? await generateCodex(ctx)
+      : mode === "openai-async"
+        ? await generateOpenAIAsync(ctx)
+        : await generateOpenAI(ctx);
 
     const bytes = outcome.bytes;
     if (!bytes.length || bytes.length < 1000) {

@@ -6,6 +6,7 @@
 import type { EndpointConfig, ImageGenConfig } from "./types.js";
 import { resolveEndpoint } from "./generate.js";
 import { createImageFetch, endpointUrl, IMAGE_HTTP_TIMEOUT_MS } from "./http.js";
+import { getValidAccessToken } from "./auth/codex-auth-store.js";
 
 export type ProbeResult = {
   endpoint: string;
@@ -46,6 +47,24 @@ export async function probeEndpoint(
     modelsNote:
       "GET /models is an OpenAI-compatible probe only. Failure does not mean image generation is unavailable.",
   };
+
+  // Codex endpoints authenticate via OAuth; probe by resolving a valid token
+  // (this also exercises the refresh path) instead of GET /models, which the
+  // Codex /responses backend does not implement.
+  if (ep.auth?.kind === "codex") {
+    try {
+      const { tokens } = await getValidAccessToken(false);
+      result.hasKey = true;
+      result.modelsOk = true;
+      result.modelsStatus = 200;
+      result.modelsNote = `Codex OAuth OK (account ${tokens.account_id}). Token resolves${tokens.refresh_token ? " + refreshes" : ""} without error.`;
+    } catch (err) {
+      result.modelsOk = false;
+      result.error = err instanceof Error ? err.message : String(err);
+      result.modelsNote = "Codex OAuth probe failed. Run `codex login` then retry.";
+    }
+    return result;
+  }
 
   if (!result.hasKey) {
     result.error = "API key empty after env expansion";

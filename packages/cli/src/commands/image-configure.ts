@@ -8,15 +8,18 @@ import {
   saveGlobalConfig,
   normalizeImageRequestMode,
   probeEndpoint,
+  loadCodexAuth,
   type ImageGenConfig,
   type ImageRequestMode,
+  type EndpointAuth,
 } from "@repochan/image-gen";
 import { emitResult, type OutputOptions, UsageError, dim, heading, bullet } from "../lib/output.js";
 
 const OPENAI_BASE_URL = "https://api.openai.com/v1";
+const CODEX_BASE_URL = "https://chatgpt.com/backend-api/codex";
 const DEFAULT_MODEL = "gpt-image-2";
 
-export type ImageConfigureChoice = "openai" | "custom" | "skip";
+export type ImageConfigureChoice = "openai" | "codex" | "custom" | "skip";
 
 export type ImageConfigureOptions = OutputOptions & {
   /**
@@ -102,6 +105,7 @@ export async function runImageConfigure(cwd: string, options: ImageConfigureOpti
     throw new UsageError(
       "No image provider flags and stdin is not a TTY.",
       "Usage: repochan image configure --provider openai --api-key sk-...\n" +
+        "       repochan image configure --provider codex   (uses `codex login`)\n" +
         "       repochan image configure --provider custom --base-url https://... --api-key ...\n" +
         "       repochan image configure --provider skip",
     );
@@ -148,6 +152,45 @@ export async function maybeConfigureImageDuringSetup(
   await runImageConfigure(cwd, { onlyIfMissing: true });
 }
 
+/**
+ * Configure the Codex (ChatGPT-login) endpoint. Verifies ~/.codex/auth.json is
+ * readable and derives a chatgpt_account_id before writing the endpoint — this
+ * fails fast with a friendly "run codex login" message instead of at gen time.
+ */
+async function configureCodex(
+  cwd: string,
+  options: OutputOptions & {
+    probe?: boolean;
+    setDefault?: boolean;
+    endpointId?: string;
+    model?: string;
+    mode?: string;
+  },
+) {
+  const loaded = loadCodexAuth();
+  if (!loaded.ok) {
+    throw new UsageError(
+      `Codex auth unavailable: ${loaded.detail}`,
+      "Run `codex login` first, then re-run `repochan image configure --provider codex`. " +
+        "(image-gen reads ~/.codex/auth.json — it never runs its own OAuth login.)",
+    );
+  }
+  const id = options.endpointId?.trim() || "codex";
+  const saved = writeEndpoint(cwd, {
+    id,
+    baseURL: CODEX_BASE_URL,
+    apiKey: "",
+    model: (options.model?.trim() || DEFAULT_MODEL),
+    mode: "auto",
+    auth: { kind: "codex" },
+    setDefault: options.setDefault !== false,
+  });
+  if (!options.json) {
+    console.log(dim(`Codex account: ${loaded.tokens.account_id}`));
+  }
+  return finishSaved(cwd, options, saved);
+}
+
 async function runInteractive(cwd: string, options: OutputOptions & { probe?: boolean }) {
   const choice = await select<ImageConfigureChoice>({
     message: "Image generation endpoint",
@@ -156,6 +199,11 @@ async function runInteractive(cwd: string, options: OutputOptions & { probe?: bo
         name: "OpenAI (official API)",
         value: "openai",
         description: "api.openai.com — paste your API key",
+      },
+      {
+        name: "Codex (ChatGPT login)",
+        value: "codex",
+        description: "Reuse `codex login` — OAuth token, gpt-image-2 via /responses",
       },
       {
         name: "Custom OpenAI-compatible",
@@ -176,6 +224,10 @@ async function runInteractive(cwd: string, options: OutputOptions & { probe?: bo
       "Skipped image configuration. Run `repochan image configure` when you need generation.",
       { action: "skipped" },
     );
+  }
+
+  if (choice === "codex") {
+    return configureCodex(cwd, options);
   }
 
   if (choice === "openai") {
@@ -272,6 +324,13 @@ async function runNonInteractive(cwd: string, options: ImageConfigureOptions) {
     return finishSaved(cwd, options, saved);
   }
 
+  if (provider === "codex") {
+    return configureCodex(cwd, {
+      ...options,
+      mode,
+    });
+  }
+
   const baseURL = options.baseUrl?.trim();
   const apiKey = options.apiKey?.trim();
   if (!baseURL || !apiKey) {
@@ -300,8 +359,8 @@ async function runNonInteractive(cwd: string, options: ImageConfigureOptions) {
 }
 
 export function requireImageConfigureProvider(provider: string | undefined): ImageConfigureChoice {
-  if (provider === "openai" || provider === "custom" || provider === "skip") return provider;
-  throw new UsageError("Missing or invalid --provider. Use openai|custom|skip");
+  if (provider === "openai" || provider === "codex" || provider === "custom" || provider === "skip") return provider;
+  throw new UsageError("Missing or invalid --provider. Use openai|codex|custom|skip");
 }
 
 function writeEndpoint(
@@ -313,6 +372,7 @@ function writeEndpoint(
     model: string;
     mode: ImageRequestMode;
     setDefault: boolean;
+    auth?: EndpointAuth;
   },
 ): {
   path: string;
@@ -322,6 +382,7 @@ function writeEndpoint(
   mode: ImageRequestMode;
   effectiveMode?: string;
   modeSource?: string;
+  authKind?: "bearer" | "codex";
 } {
   void cwd;
   const patch: ImageGenConfig = {
@@ -333,6 +394,7 @@ function writeEndpoint(
         apiKey: ep.apiKey,
         model: ep.model,
         mode: ep.mode,
+        ...(ep.auth ? { auth: ep.auth } : {}),
       },
     },
   };
@@ -426,16 +488,18 @@ export async function runImageStatus(cwd: string, options: OutputOptions = {}) {
   for (const s of statuses) {
     const mark = s.isDefault ? " (default)" : "";
     const key = s.hasKey ? "key=yes" : "key=MISSING";
+    const auth = s.authKind === "codex" ? "  auth=codex" : "";
     console.log(`  ${s.id}${mark}`);
     console.log(dim(`    ${s.baseURL}`));
     console.log(
       dim(
-        `    mode=${s.mode} → ${s.effectiveMode} (${s.modeSource})  model=${s.model}  ${key}`,
+        `    mode=${s.mode} → ${s.effectiveMode} (${s.modeSource})  model=${s.model}  ${key}${auth}`,
       ),
     );
   }
   console.log(dim(`\nConfig: ${GLOBAL_CONFIG_PATH}`));
   console.log(dim("auto = classic OpenAI unless a host rule or mode=openai-async applies."));
+  console.log(dim("auth=codex → OAuth via `codex login`, drives gpt-image-2 through /responses."));
 }
 
 /** repochan image probe */

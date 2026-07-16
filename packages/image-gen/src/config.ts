@@ -10,7 +10,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
-import type { EndpointConfig, EndpointStatus, ImageGenConfig } from "./types.js";
+import type { EndpointAuth, EndpointConfig, EndpointStatus, ImageGenConfig } from "./types.js";
 import { normalizeImageRequestMode, resolveEffectiveMode } from "./resolveMode.js";
 import { mergeConfigLayers } from "./config-merge.js";
 import { writeConfigFileAtomic } from "./config-file.js";
@@ -22,10 +22,25 @@ const SUPPORTED_MODES = ["auto", "openai", "openai-async"] as const;
 const CONFIG_FIELDS = ["version", "defaultEndpoint", "endpoints", "aspectRatio", "size", "outputFormat"] as const;
 const ENDPOINT_FIELDS = [
   "id", "baseURL", "apiKey", "model", "mode", "imageGenerationPath", "imageEditPath",
-  "asyncPollPathTemplate", "timeoutMs", "asyncMaxWaitMs",
+  "asyncPollPathTemplate", "timeoutMs", "asyncMaxWaitMs", "auth",
 ] as const;
 
 export { normalizeImageRequestMode };
+
+/** Normalize/validate an endpoint auth block; defaults to bearer. */
+export function normalizeEndpointAuth(raw: unknown): EndpointAuth {
+  if (raw === undefined || raw === null) return { kind: "bearer" };
+  if (typeof raw !== "object" || Array.isArray(raw)) {
+    throw new Error("endpoint auth must be an object (e.g. { \"kind\": \"bearer\" } or { \"kind\": \"codex\" }).");
+  }
+  const obj = raw as Record<string, unknown>;
+  const kind = obj.kind;
+  if (kind === "bearer") return { kind: "bearer" };
+  if (kind === "codex") return { kind: "codex" };
+  throw new Error(
+    `endpoint auth.kind must be "bearer" or "codex" (got ${JSON.stringify(kind)}).`,
+  );
+}
 
 /** Normalize one endpoint; missing mode → auto. */
 export function normalizeEndpoint(id: string, raw: Partial<EndpointConfig> | undefined): EndpointConfig {
@@ -43,6 +58,7 @@ export function normalizeEndpoint(id: string, raw: Partial<EndpointConfig> | und
     asyncPollPathTemplate: ep.asyncPollPathTemplate?.trim() || undefined,
     timeoutMs: typeof ep.timeoutMs === "number" ? ep.timeoutMs : undefined,
     asyncMaxWaitMs: typeof ep.asyncMaxWaitMs === "number" ? ep.asyncMaxWaitMs : undefined,
+    auth: ep.auth === undefined ? undefined : normalizeEndpointAuth(ep.auth),
   };
 }
 
@@ -113,11 +129,16 @@ function validateStoredConfig(value: unknown, file: string): ImageGenConfig {
     const endpoint = storedRecord(rawEndpoint, `Image config at ${file}.endpoints.${endpointId}`);
     rejectUnknownFields(endpoint, ENDPOINT_FIELDS, `Image config at ${file}.endpoints.${endpointId}`);
     if (endpoint.id !== endpointId) throw new Error(`Image config at ${file}.endpoints.${endpointId}.id must equal \"${endpointId}\".`);
+    const auth = endpoint.auth === undefined ? undefined : normalizeEndpointAuth(endpoint.auth);
     for (const field of ["baseURL", "apiKey", "model"] as const) {
       if (typeof endpoint[field] !== "string") throw new Error(`Image config at ${file}.endpoints.${endpointId}.${field} must be a string.`);
     }
     if (!(endpoint.baseURL as string).trim()) throw new Error(`Image config at ${file}.endpoints.${endpointId}.baseURL must not be empty.`);
     if (!(endpoint.model as string).trim()) throw new Error(`Image config at ${file}.endpoints.${endpointId}.model must not be empty.`);
+    // codex endpoints authenticate via OAuth, so apiKey may be empty.
+    if (auth?.kind !== "codex" && !((endpoint.apiKey as string) || "").trim()) {
+      throw new Error(`Image config at ${file}.endpoints.${endpointId}.apiKey must not be empty (or set auth.kind=codex to use OAuth).`);
+    }
     if (endpoint.mode !== undefined && !SUPPORTED_MODES.includes(endpoint.mode as typeof SUPPORTED_MODES[number])) {
       throw new Error(`Image config at ${file}.endpoints.${endpointId}.mode must be one of: ${SUPPORTED_MODES.join(", ")}.`);
     }
@@ -132,6 +153,7 @@ function validateStoredConfig(value: unknown, file: string): ImageGenConfig {
       asyncPollPathTemplate: optionalString(endpoint.asyncPollPathTemplate, `Image config at ${file}.endpoints.${endpointId}.asyncPollPathTemplate`),
       timeoutMs: positiveFiniteNumber(endpoint.timeoutMs, `Image config at ${file}.endpoints.${endpointId}.timeoutMs`),
       asyncMaxWaitMs: positiveFiniteNumber(endpoint.asyncMaxWaitMs, `Image config at ${file}.endpoints.${endpointId}.asyncMaxWaitMs`),
+      auth,
     };
   }
   const defaultEndpoint = optionalString(config.defaultEndpoint, `Image config at ${file}.defaultEndpoint`);
@@ -233,6 +255,7 @@ export function listEndpointStatuses(config: ImageGenConfig): EndpointStatus[] {
   return ids.map((id) => {
     const ep = normalizeEndpoint(id, config.endpoints?.[id]);
     const resolved = resolveEffectiveMode(ep);
+    const auth = ep.auth ?? { kind: "bearer" as const };
     return {
       id,
       baseURL: ep.baseURL,
@@ -240,8 +263,9 @@ export function listEndpointStatuses(config: ImageGenConfig): EndpointStatus[] {
       mode: resolved.configured,
       effectiveMode: resolved.effective,
       modeSource: resolved.source,
-      hasKey: Boolean(ep.apiKey && ep.apiKey.trim()),
+      hasKey: auth.kind === "codex" || Boolean(ep.apiKey && ep.apiKey.trim()),
       isDefault: id === defaultId,
+      authKind: auth.kind,
     };
   });
 }
