@@ -123,6 +123,36 @@ export const ALL_TARGETS: readonly AgentTarget[] = Object.freeze([
       exists(home(".gemini", "config")) ||
       exists(home(".gemini", "config", "mcp_config.json")),
   },
+  {
+    id: "grok",
+    displayName: "Grok CLI",
+    skillDir: ".grok/skills",
+    globalSkillDir: ".grok/skills",
+    // Shares AGENTS.md with codex/hermes/pi/opencode — markers are per-agent.
+    instructionFile: "AGENTS.md",
+    instructionMode: "marker",
+    detectInstalled: () => exists(home(".grok")),
+  },
+  {
+    id: "zcode",
+    displayName: "ZCode",
+    skillDir: ".zcode/skills",
+    globalSkillDir: ".zcode/skills",
+    instructionFile: "AGENTS.md",
+    instructionMode: "marker",
+    detectInstalled: () => exists(home(".zcode")),
+  },
+  {
+    id: "cline",
+    displayName: "Cline",
+    skillDir: ".cline/skills",
+    globalSkillDir: ".cline/skills",
+    // Cline natively symlinks ~/.cline/skills -> ~/.agents/skills, but for
+    // project scope it reads its own .cline/skills and the shared AGENTS.md.
+    instructionFile: "AGENTS.md",
+    instructionMode: "marker",
+    detectInstalled: () => exists(home(".cline")),
+  },
 ]);
 
 export function getTarget(id: string): AgentTarget | undefined {

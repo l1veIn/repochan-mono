@@ -108,3 +108,69 @@ describe("setup owned instruction files", () => {
     expect(await isConfigured(root, getTarget(agent)!)).toBe(false);
   });
 });
+
+describe("setup marker-mode agents (grok/zcode/cline)", () => {
+  // All three are marker agents sharing AGENTS.md — same contract as codex.
+  // skillDir is the only per-agent variable (the .{id}/skills container).
+  it.each([
+    ["grok", ".grok"],
+    ["zcode", ".zcode"],
+    ["cline", ".cline"],
+  ])("installs, is idempotent, and uninstalls cleanly for %s", async (agent, container) => {
+    const root = await mkdtemp(path.join(os.tmpdir(), `repochan-setup-${agent}-`));
+    const skillSrc = path.join(root, "bundled-skills");
+    await mkdir(path.join(skillSrc, "repochan"), { recursive: true });
+    await writeFile(path.join(skillSrc, "repochan", "SKILL.md"), "# RepoChan\n");
+    const target = getTarget(agent)!;
+
+    const first = await installTarget(root, target, skillSrc);
+    expect(first.instructionAction).toBe("created");
+    const agents = await readFile(path.join(root, "AGENTS.md"), "utf8");
+    expect(agents).toContain(`<!-- repochan:setup:${agent} begin -->`);
+    expect(agents).toContain(`<!-- repochan:setup:${agent} end -->`);
+    expect(await readFile(path.join(root, container, "skills", "repochan", "SKILL.md"), "utf8"))
+      .toBe("# RepoChan\n");
+    expect(await isConfigured(root, target)).toBe(true);
+
+    // Second install is a no-op.
+    expect((await installTarget(root, target, skillSrc)).instructionAction).toBe("unchanged");
+
+    // Custom user skill survives uninstall; AGENTS.md marker + skills removed.
+    const custom = path.join(root, container, "skills", "my-custom", "SKILL.md");
+    await mkdir(path.dirname(custom), { recursive: true });
+    await writeFile(custom, "# Mine\n");
+
+    expect((await uninstallTarget(root, target, "project", skillSrc)).instructionAction)
+      .toBe("removed");
+    expect(await readFile(custom, "utf8")).toBe("# Mine\n");
+    await expect(access(path.join(root, container, "skills", "repochan"))).rejects.toThrow();
+    await expect(access(path.join(root, container, "skills", ".repochan-version"))).rejects.toThrow();
+    await expect(access(path.join(root, "AGENTS.md"))).rejects.toThrow();
+    expect(await isConfigured(root, target)).toBe(false);
+  });
+
+  it("coexists with codex in the same AGENTS.md (shared instruction file)", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "repochan-setup-shared-agents-"));
+    const skillSrc = path.join(root, "bundled-skills");
+    await mkdir(path.join(skillSrc, "repochan"), { recursive: true });
+    await writeFile(path.join(skillSrc, "repochan", "SKILL.md"), "# RepoChan\n");
+
+    const codex = getTarget("codex")!;
+    const grok = getTarget("grok")!;
+    await installTarget(root, codex, skillSrc);
+    await installTarget(root, grok, skillSrc);
+
+    const agents = await readFile(path.join(root, "AGENTS.md"), "utf8");
+    expect(agents).toContain("repochan:setup:codex begin");
+    expect(agents).toContain("repochan:setup:grok begin");
+
+    // Removing one agent leaves the other's marker + skills intact.
+    await uninstallTarget(root, codex, "project", skillSrc);
+    const afterCodex = await readFile(path.join(root, "AGENTS.md"), "utf8");
+    expect(afterCodex).not.toContain("repochan:setup:codex begin");
+    expect(afterCodex).toContain("repochan:setup:grok begin");
+    expect(await readFile(path.join(root, ".grok", "skills", "repochan", "SKILL.md"), "utf8"))
+      .toBe("# RepoChan\n");
+    expect(await isConfigured(root, grok)).toBe(true);
+  });
+});

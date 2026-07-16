@@ -16,7 +16,10 @@ export type AgentId =
   | "gemini"
   | "kiro"
   | "hermes"
-  | "antigravity";
+  | "antigravity"
+  | "grok"
+  | "zcode"
+  | "cline";
 
 /** How instructions are written on disk. */
 export type InstructionMode =

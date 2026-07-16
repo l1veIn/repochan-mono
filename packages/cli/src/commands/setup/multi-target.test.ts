@@ -75,6 +75,28 @@ describe("multi-target project setup preflight", () => {
     await missing(instructions);
   });
 
+  it("installs grok/zcode/cline together and shares AGENTS.md with per-agent markers", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "repochan-setup-new-agents-"));
+    await runSetup(root, { project: true, yes: true, json: true, agent: "grok,zcode,cline" });
+
+    const agents = await readFile(path.join(root, "AGENTS.md"), "utf8");
+    for (const id of ["grok", "zcode", "cline"]) {
+      expect(agents).toContain(`repochan:setup:${id} begin`);
+      const skill = path.join(root, `.${id}`, "skills", "repochan", "SKILL.md");
+      expect(await readFile(skill, "utf8")).toContain("# RepoChan");
+    }
+
+    // Removing one leaves the others' markers + skills in place.
+    await runSetup(root, { project: true, remove: true, yes: true, json: true, agent: "grok" });
+    const afterGrok = await readFile(path.join(root, "AGENTS.md"), "utf8");
+    expect(afterGrok).not.toContain("repochan:setup:grok begin");
+    expect(afterGrok).toContain("repochan:setup:zcode begin");
+    expect(afterGrok).toContain("repochan:setup:cline begin");
+    await missing(path.join(root, ".grok", "skills", "repochan"));
+    expect(await readFile(path.join(root, ".zcode", "skills", "repochan", "SKILL.md"), "utf8"))
+      .toContain("# RepoChan");
+  });
+
   it("rejects an unowned same-named project skill before any setup write", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "repochan-setup-skill-collision-"));
     const userSkill = path.join(root, ".codex", "skills", "repochan", "SKILL.md");
