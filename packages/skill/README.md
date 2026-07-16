@@ -14,7 +14,7 @@ This is a pure-markdown package (no build step, no code). It is the C-position o
 - `repochan-painter` — Painter: execute image generation tasks.
 - `repochan-page-designer` — Starter Localizer/Assembler (optional): pull an existing starter, project repository data, localize content, apply slot assets, and validate the instance. It does not redesign the site.
 - `repochan-web-designer` — Web Designer (explicit branch): create and implement an original project website through Gate 1/2 when no starter fits or a new art direction is requested.
-- `repochan-starter-designer` — Starter Productization Engineer (maintainer): turn a Gate-2-approved implemented page into a reusable source starter. It is the only skill that writes `packages/starters/` and is not part of the normal project pipeline.
+- `repochan-starter-designer` — Starter Productization Engineer: preserve a Gate-2-approved site as a creator-owned Source Starter with a concentrated Transfer Kit. Official inclusion happens by pull request; it is not part of the normal project pipeline.
 
 ## Asset templates (not in this package)
 

@@ -49,7 +49,7 @@ describe("isEnabled", () => {
 
   it("is false when unset or non-truthy", () => {
     delete process.env[ENV_VAR];
-    expect(isEnabled()).toBe(false);
+    expect(isEnabled(tmpConfig)).toBe(false);
     process.env[ENV_VAR] = "0";
     expect(isEnabled()).toBe(false);
     process.env[ENV_VAR] = "false";
@@ -59,7 +59,7 @@ describe("isEnabled", () => {
 
 describe("recordError gate", () => {
   it("writes nothing when telemetry is disabled", async () => {
-    delete process.env[ENV_VAR];
+    process.env[ENV_VAR] = "0";
     recordError({ error: new Error("x"), argv: ["order", "get"], filePath: tmpFile });
     await expect(readFile(tmpFile, "utf8")).rejects.toThrow();
   });

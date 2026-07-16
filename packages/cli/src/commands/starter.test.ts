@@ -101,24 +101,10 @@ async function gridBundleFixture() {
       rows: 1, cols: 2, normalize: { canvasSize: 64 },
     } }],
   }];
-  manifest.capabilities = {
-    sections: [{
-      id: "states",
-      recipe: "web-state-grid",
-      provenance: { type: "html-first" },
-      bakedLayers: [],
-      liveLayers: ["L2", "L3", "L4"],
-      canonicalViewport: { width: 1280, height: 800 },
-      responsive: { mode: "reflow", notes: "Reflow state cards at narrow widths." },
-      assetSlots: ["web-states"],
-      motion: [],
-    }],
-    transitions: [],
-  };
   await writeFile(manifestPath, JSON.stringify(manifest));
   const assetsPath = path.join(siteDir, "repochan", "assets.json");
   await writeFile(assetsPath, JSON.stringify({ schemaVersion: "repochan.starter-assets.v1", assets: {
-    "web-states": { kind: "bundle", status: "pending", items: {} },
+    "web-states": { kind: "bundle", status: "source", items: {} },
   } }));
   const versionDir = path.join(root, ".repochan", "orders", "ord-grid-001", "versions", "v1");
   await mkdir(versionDir, { recursive: true });
@@ -138,63 +124,59 @@ describe("starter v1 commands", () => {
     const starter = await getStarter("minimal");
     expect(starter.schemaVersion).toBe("repochan.starter.v1");
     expect(starter.config.site).toBe("repochan/site.json");
-    expect(starter.capabilities.sections.map((section) => section.id)).toEqual(["hero"]);
+    expect(starter.assets.map((asset) => asset.slot)).toEqual(["hero-composite"]);
   });
 
-  it("surfaces section capabilities in starter list/get human and JSON output", async () => {
+  it("surfaces the operational asset contract in starter list/get output", async () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
 
     await runStarterList("", {});
-    expect(String(log.mock.calls.at(-1)?.[0])).toMatch(/sections: hero/);
+    expect(String(log.mock.calls.at(-1)?.[0])).toMatch(/minimal/);
 
     log.mockClear();
     await runStarterGet("", "minimal", {});
     const human = String(log.mock.calls.at(-1)?.[0]);
-    expect(human).toMatch(/sections \(1\)/);
-    expect(human).toMatch(/hero — hero-composite-live-copy/);
-    expect(human).toMatch(/baked=L1\+L2, live=L3\+L4/);
-    expect(human).toMatch(/transitions \(0\): none/);
+    expect(human).toMatch(/assets \(1\)/);
+    expect(human).toMatch(/hero-composite → compress \[order\]/);
 
     log.mockClear();
     await runStarterGet("", "minimal", { json: true });
     const json = JSON.parse(String(log.mock.calls.at(-1)?.[0]));
-    expect(json.capabilities.sections[0]).toMatchObject({
-      id: "hero",
-      recipe: "hero-composite-live-copy",
-      assetSlots: ["hero-composite"],
-    });
+    expect(json.assets[0]).toMatchObject({ slot: "hero-composite", kind: "scalar" });
   });
 
-  it("rejects any starter instance without the canonical capabilities contract", async () => {
+  it("pulls a trusted local starter without copying build caches", async () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const root = await projectFixture();
-    const siteDir = path.join(root, "invalid-site");
-    await runStarterPull(root, { outputDir: siteDir, json: true });
-    const manifestPath = path.join(siteDir, "repochan/starter.json");
-    const pulled = JSON.parse(await readFile(manifestPath, "utf8"));
-    delete pulled.capabilities;
-    await writeFile(manifestPath, JSON.stringify(pulled));
-    await expect(readStarterInstance(siteDir)).rejects.toThrow(/capabilities/);
-    await expect(runStarterValidate(root, undefined, { outputDir: siteDir, json: true })).rejects.toThrow(/capabilities/);
+    const sourceDir = path.join(root, "creator-owned-starter");
+    const siteDir = path.join(root, "localized-site");
+    await runStarterPull(root, { outputDir: sourceDir, json: true });
+    await mkdir(path.join(sourceDir, "dist"), { recursive: true });
+    await writeFile(path.join(sourceDir, "dist", "stale.html"), "stale");
+    await runStarterPull(root, { from: sourceDir, outputDir: siteDir, json: true });
+    expect((await readStarterInstance(siteDir)).id).toBe("minimal");
+    await expect(readFile(path.join(siteDir, "dist", "stale.html"))).rejects.toThrow();
+    expect(await readFile(path.join(siteDir, "repochan", "site.json"), "utf8"))
+      .toBe(await readFile(path.join(sourceDir, "repochan", "site.json"), "utf8"));
   });
 
-  it("rejects missing or non-file section design references during starter validation", async () => {
+  it("rejects missing or non-file declared previews during starter validation", async () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const root = await projectFixture();
     const siteDir = path.join(root, "site");
     await runStarterPull(root, { outputDir: siteDir, json: true });
     const manifestPath = path.join(siteDir, "repochan/starter.json");
     const pulled = JSON.parse(await readFile(manifestPath, "utf8"));
-    pulled.capabilities.sections[0].provenance.reference = "public/assets/missing-design-reference.webp";
+    pulled.previews = { desktop: "repochan/previews/missing.png", mobile: "repochan/previews/mobile.png" };
     await writeFile(manifestPath, JSON.stringify(pulled));
 
     await expect(runStarterValidate(root, undefined, { outputDir: siteDir, json: true }))
-      .rejects.toThrow(/hero: design reference must be a regular file: public\/assets\/missing-design-reference\.webp/);
+      .rejects.toThrow(/desktop preview must be a regular file: repochan\/previews\/missing\.png/);
 
-    pulled.capabilities.sections[0].provenance.reference = "public/assets";
+    pulled.previews.desktop = "public/assets";
     await writeFile(manifestPath, JSON.stringify(pulled));
     await expect(runStarterValidate(root, undefined, { outputDir: siteDir, json: true }))
-      .rejects.toThrow(/hero: design reference must be a regular file: public\/assets/);
+      .rejects.toThrow(/desktop preview must be a regular file: public\/assets/);
   });
 
   it("pulls, projects config, and validates an independent instance", async () => {
@@ -206,6 +188,8 @@ describe("starter v1 commands", () => {
     expect((await readStarterInstance(siteDir)).id).toBe("minimal");
     await runStarterConfigure(root, { outputDir: siteDir, json: true, repositoryUrl: "https://example.test/override" });
     await runStarterValidate(root, undefined, { outputDir: siteDir, json: true });
+    await expect(runStarterValidate(root, undefined, { outputDir: siteDir, json: true, localized: true }))
+      .rejects.toThrow(/required asset is still using the source asset/);
 
     const configured = JSON.parse(await readFile(path.join(siteDir, "repochan", "site.json"), "utf8"));
     expect(configured).toMatchObject({
@@ -215,37 +199,20 @@ describe("starter v1 commands", () => {
     });
   });
 
-  it("rejects pulled registry content with empty required objects or fixed-cardinality arrays", async () => {
+  it("rejects locale replacements whose complete structure differs from the source template", async () => {
     const root = await projectFixture();
-    const siteDir = path.join(root, "registry-site");
+    const siteDir = path.join(root, "site");
     vi.spyOn(console, "log").mockImplementation(() => undefined);
-    await runStarterPull(root, { starter: "registry-modular", outputDir: siteDir, json: true });
-    await expect(runStarterValidate(root, undefined, { outputDir: siteDir, json: true })).resolves.toBeUndefined();
+    await runStarterPull(root, { outputDir: siteDir, json: true });
 
     const localePath = path.join(siteDir, "repochan", "i18n", "en.json");
-    const fallback = JSON.parse(await readFile(localePath, "utf8"));
-    const cardinalityCases: Array<[(content: any) => void, RegExp]> = [
-      [(content) => { content.nav.links = content.nav.links.slice(0, 3); }, /content\.nav\.links\.3\.label/],
-      [(content) => { content.capabilities.items = content.capabilities.items.slice(0, 5); }, /content\.capabilities\.items\.5\.title/],
-      [(content) => { content.workflow.steps = content.workflow.steps.slice(0, 3); }, /content\.workflow\.steps\.3\.title/],
-      [(content) => { content.proof.items = content.proof.items.slice(0, 3); }, /content\.proof\.items\.3\.lead/],
-      [(content) => { content.cta.primary = {}; }, /content\.cta\.primary\.label/],
-      [(content) => { content.footer.groups = content.footer.groups.slice(0, 2); }, /content\.footer\.groups\.2\.title/],
-      [(content) => { content.footer.groups[1].links = content.footer.groups[1].links.slice(0, 1); }, /content\.footer\.groups\.1\.links\.1\.label/],
-    ];
-    for (const [mutate, expected] of cardinalityCases) {
-      const invalid = structuredClone(fallback);
-      mutate(invalid.content);
-      await writeFile(localePath, JSON.stringify(invalid));
-      await expect(runStarterValidate(root, undefined, { outputDir: siteDir, json: true }))
-        .rejects.toThrow(expected);
-    }
-
-    const emptyContent = structuredClone(fallback);
-    emptyContent.content = {};
-    await writeFile(localePath, JSON.stringify(emptyContent));
-    await expect(runStarterValidate(root, undefined, { outputDir: siteDir, json: true }))
-      .rejects.toThrow(/en: missing content\.nav\.ariaLabel/);
+    const invalid = JSON.parse(await readFile(localePath, "utf8"));
+    invalid.content.hero.tags = invalid.content.hero.tags.slice(0, 2);
+    delete invalid.content.hero.primaryCta.href;
+    const contentFile = path.join(root, "localized.json");
+    await writeFile(contentFile, JSON.stringify(invalid));
+    await expect(runStarterConfigure(root, { outputDir: siteDir, contentFile, overwrite: true, json: true }))
+      .rejects.toThrow(/missing key href.*expected 3 items/s);
   });
 
   it("atomically imports a local file into a scalar slot with portable provenance", async () => {
@@ -276,7 +243,7 @@ describe("starter v1 commands", () => {
     expect(assets.assets["hero-composite"]).toMatchObject({
       kind: "scalar",
       src: "/assets/hero-composite.webp",
-      status: "ready",
+      status: "customized",
       provenance: {
         kind: "local-file",
         sourcePath: "incoming/hero.webp",
@@ -382,7 +349,7 @@ describe("starter v1 commands", () => {
     expect(await readFile(path.join(siteDir, "public/assets/states/empty.png"), "utf8")).toBe("empty");
     const assets = JSON.parse(await readFile(assetsPath, "utf8"));
     expect(assets.assets["web-states"].items.empty).toMatchObject({
-      src: "/assets/states/empty.png", status: "ready", orderId: "ord-grid-001", versionId: "v1",
+      src: "/assets/states/empty.png", status: "customized", orderId: "ord-grid-001", versionId: "v1",
       qa: { foregroundRatio: 0.64 },
     });
   });
@@ -455,9 +422,9 @@ describe("starter v1 commands", () => {
     manifest.assets[0].publications = keys.map((key, cell) => ({ key, cell, output: `public/assets/states/${key}.png` }));
     manifest.assets[0].postprocess[0].args = { rows: 3, cols: 3, normalize: { canvasSize: 64 } };
     await writeFile(manifestPath, JSON.stringify(manifest));
-    const items = Object.fromEntries(keys.map((key) => [key, { src: `/assets/states/${key}.png`, status: "ready" }]));
+    const items = Object.fromEntries(keys.map((key) => [key, { src: `/assets/states/${key}.png`, status: "source" }]));
     await writeFile(assetsPath, JSON.stringify({ schemaVersion: "repochan.starter-assets.v1", assets: {
-      "web-states": { kind: "bundle", status: "ready", items },
+      "web-states": { kind: "bundle", status: "source", items },
     } }));
     for (const key of keys) {
       const output = path.join(siteDir, `public/assets/states/${key}.png`);

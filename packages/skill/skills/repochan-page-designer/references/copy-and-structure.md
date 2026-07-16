@@ -20,4 +20,4 @@ Starter 的结构是已选定的设计约束。填充时只做内容适配和 st
 - ❌ features/stats 写角色人设——这些 section 展示**项目**的功能和数据
 - ❌ hero headline 用角色口头禅——用项目的价值主张
 - ❌ 为了显得完整而给 hero-only starter 添加空泛 sections
-- ❌ 创建了订单但没等交付就把资产标为 ready——这会制造不可复现的坏页面
+- ❌ 把 Starter 的 `source` 角色资产直接当成当前项目定制，或手工伪造 `customized`——这会制造身份错配且不可复现

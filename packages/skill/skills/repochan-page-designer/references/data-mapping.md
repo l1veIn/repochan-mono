@@ -27,4 +27,4 @@ Locale content 的 headline、body、CTA、卖点排序、标签和翻译需要�
 - persona 提供视觉语气；`catchphrase` 只能做点缀，不能取代项目价值。
 - `characterFlaws`、`hobbies`、`backstory` 不进入项目功能文案。
 
-每份内容使用 `repochan.starter-content.v1` envelope，并满足实例 manifest 的 `content.requiredPaths`。通过 `starter configure --content-file ... --overwrite` 写入。
+每份内容使用 `repochan.starter-content.v1` envelope，并与对应 source locale 保持完整结构一致：键、值类型和数组长度都不能漂移。通过 `starter configure --content-file ... --overwrite` 写入。

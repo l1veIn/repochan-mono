@@ -92,88 +92,6 @@ export const StarterAssetSlotSchema = Type.Union([
   StarterBundleAssetSlotSchema,
 ]);
 
-const StarterLayerSchema = Type.Union([
-  Type.Literal("L1"),
-  Type.Literal("L1a"),
-  Type.Literal("L1b"),
-  Type.Literal("L1c"),
-  Type.Literal("L2"),
-  Type.Literal("L3"),
-  Type.Literal("L4"),
-]);
-
-const NormalizedPointSchema = Type.Object({
-  x: Type.Number({ minimum: 0, maximum: 1 }),
-  y: Type.Number({ minimum: 0, maximum: 1 }),
-}, { additionalProperties: false });
-
-const StarterSafeZoneSchema = Type.Object({
-  id: Type.String({ pattern: "^[a-z0-9][a-z0-9-]*$" }),
-  x: Type.Number({ minimum: 0, maximum: 1 }),
-  y: Type.Number({ minimum: 0, maximum: 1 }),
-  width: Type.Number({ exclusiveMinimum: 0, maximum: 1 }),
-  height: Type.Number({ exclusiveMinimum: 0, maximum: 1 }),
-}, { additionalProperties: false });
-
-const StarterSectionProvenanceSchema = Type.Union([
-  Type.Object({ type: Type.Literal("html-first") }, { additionalProperties: false }),
-  Type.Object({
-    type: Type.Literal("design-reference"),
-    reference: RelativePathSchema,
-  }, { additionalProperties: false }),
-]);
-
-export const StarterSectionCapabilitySchema = Type.Object({
-  id: Type.String({ pattern: "^[a-z0-9][a-z0-9-]*$" }),
-  recipe: Type.String({ minLength: 1 }),
-  provenance: StarterSectionProvenanceSchema,
-  bakedLayers: Type.Array(StarterLayerSchema),
-  liveLayers: Type.Array(StarterLayerSchema),
-  canonicalViewport: Type.Object({
-    width: Type.Integer({ minimum: 1 }),
-    height: Type.Integer({ minimum: 1 }),
-  }, { additionalProperties: false }),
-  safeZones: Type.Optional(Type.Array(StarterSafeZoneSchema, { minItems: 1 })),
-  responsive: Type.Object({
-    mode: Type.Union([
-      Type.Literal("reflow"),
-      Type.Literal("recompose"),
-      Type.Literal("alternate-asset"),
-      Type.Literal("hide-decoration"),
-    ]),
-    notes: Type.String({ minLength: 1 }),
-  }, { additionalProperties: false }),
-  assetSlots: Type.Optional(Type.Array(Type.String({ pattern: "^[a-z0-9][a-z0-9-]*$" }))),
-  motion: Type.Array(Type.Union([
-    Type.Literal("ambient"),
-    Type.Literal("scroll-linked"),
-    Type.Literal("interactive"),
-  ])),
-}, { additionalProperties: false });
-
-export const StarterTransitionCapabilitySchema = Type.Object({
-  from: Type.String({ pattern: "^[a-z0-9][a-z0-9-]*$" }),
-  to: Type.String({ pattern: "^[a-z0-9][a-z0-9-]*$" }),
-  kind: Type.Union([
-    Type.Literal("hard-cut"),
-    Type.Literal("continuous"),
-    Type.Literal("motif-handoff"),
-  ]),
-  motif: Type.Optional(Type.String({ minLength: 1 })),
-  direction: Type.Optional(Type.String({ minLength: 1 })),
-  anchors: Type.Optional(Type.Object({
-    from: NormalizedPointSchema,
-    to: NormalizedPointSchema,
-  }, { additionalProperties: false })),
-  patternPhase: Type.Optional(Type.String({ minLength: 1 })),
-  mobile: Type.String({ minLength: 1 }),
-}, { additionalProperties: false });
-
-export const StarterCapabilitiesSchema = Type.Object({
-  sections: Type.Array(StarterSectionCapabilitySchema, { minItems: 1 }),
-  transitions: Type.Array(StarterTransitionCapabilitySchema),
-}, { additionalProperties: false });
-
 export const StarterManifestSchema = Type.Object({
   schemaVersion: Type.Literal("repochan.starter.v1"),
   id: Type.String({ pattern: "^[a-z0-9][a-z0-9-]*$" }),
@@ -182,6 +100,10 @@ export const StarterManifestSchema = Type.Object({
   style: Type.Optional(Type.String()),
   tags: Type.Array(Type.String()),
   default: Type.Optional(Type.Boolean()),
+  previews: Type.Object({
+    desktop: RelativePathSchema,
+    mobile: RelativePathSchema,
+  }, { additionalProperties: false }),
   config: Type.Object({
     site: Type.Literal("repochan/site.json"),
     assets: Type.Literal("repochan/assets.json"),
@@ -190,9 +112,7 @@ export const StarterManifestSchema = Type.Object({
   content: Type.Object({
     defaultLocale: LocaleSchema,
     supportedLocales: Type.Array(LocaleSchema, { minItems: 1 }),
-    requiredPaths: Type.Array(Type.String({ minLength: 1 })),
   }, { additionalProperties: false }),
-  capabilities: StarterCapabilitiesSchema,
   assets: Type.Array(StarterAssetSlotSchema),
 }, { additionalProperties: false });
 
@@ -228,7 +148,7 @@ export const StarterAssetProvenanceSchema = Type.Object({
 const StarterScalarAssetStateSchema = Type.Object({
   kind: Type.Literal("scalar"),
   src: Type.String({ minLength: 1 }),
-  status: Type.Union([Type.Literal("pending"), Type.Literal("ready")]),
+  status: Type.Union([Type.Literal("source"), Type.Literal("customized")]),
   orderId: Type.Optional(OrderIdSchema),
   versionId: Type.Optional(VersionIdSchema),
   provenance: Type.Optional(StarterAssetProvenanceSchema),
@@ -237,13 +157,13 @@ const StarterScalarAssetStateSchema = Type.Object({
 
 const StarterBundleAssetStateSchema = Type.Object({
   kind: Type.Literal("bundle"),
-  status: Type.Union([Type.Literal("pending"), Type.Literal("ready")]),
+  status: Type.Union([Type.Literal("source"), Type.Literal("customized")]),
   orderId: Type.Optional(OrderIdSchema),
   versionId: Type.Optional(VersionIdSchema),
   qa: Type.Optional(Type.Record(Type.String(), Type.Any())),
   items: Type.Record(Type.String(), Type.Object({
     src: Type.String({ minLength: 1 }),
-    status: Type.Union([Type.Literal("pending"), Type.Literal("ready")]),
+    status: Type.Union([Type.Literal("source"), Type.Literal("customized")]),
     orderId: Type.Optional(OrderIdSchema),
     versionId: Type.Optional(VersionIdSchema),
     qa: Type.Optional(Type.Record(Type.String(), Type.Any())),
@@ -300,37 +220,6 @@ export type StarterAssetSlot = StarterAssetSlotBase & (
   | { kind: "bundle"; publications: Array<{ key: string; cell: number; output: string }>; postprocess: StarterPostprocessStep[] }
 );
 
-export type StarterLayer = "L1" | "L1a" | "L1b" | "L1c" | "L2" | "L3" | "L4";
-
-export type StarterSectionCapability = {
-  id: string;
-  recipe: string;
-  provenance: { type: "html-first" } | { type: "design-reference"; reference: string };
-  bakedLayers: StarterLayer[];
-  liveLayers: StarterLayer[];
-  canonicalViewport: { width: number; height: number };
-  safeZones?: Array<{ id: string; x: number; y: number; width: number; height: number }>;
-  responsive: { mode: "reflow" | "recompose" | "alternate-asset" | "hide-decoration"; notes: string };
-  assetSlots?: string[];
-  motion: Array<"ambient" | "scroll-linked" | "interactive">;
-};
-
-export type StarterTransitionCapability = {
-  from: string;
-  to: string;
-  kind: "hard-cut" | "continuous" | "motif-handoff";
-  motif?: string;
-  direction?: string;
-  anchors?: { from: { x: number; y: number }; to: { x: number; y: number } };
-  patternPhase?: string;
-  mobile: string;
-};
-
-export type StarterCapabilities = {
-  sections: StarterSectionCapability[];
-  transitions: StarterTransitionCapability[];
-};
-
 export type StarterManifest = {
   schemaVersion: "repochan.starter.v1";
   id: string;
@@ -339,9 +228,9 @@ export type StarterManifest = {
   style?: string;
   tags: string[];
   default?: boolean;
+  previews: { desktop: string; mobile: string };
   config: { site: "repochan/site.json"; assets: "repochan/assets.json"; i18nDir: "repochan/i18n" };
-  content: { defaultLocale: string; supportedLocales: string[]; requiredPaths: string[] };
-  capabilities: StarterCapabilities;
+  content: { defaultLocale: string; supportedLocales: string[] };
   assets: StarterAssetSlot[];
 };
 
@@ -359,7 +248,7 @@ export type StarterAssetsConfig = {
     | {
       kind: "scalar";
       src: string;
-      status: "pending" | "ready";
+      status: "source" | "customized";
       orderId?: string;
       versionId?: string;
       provenance?: StarterAssetProvenance;
@@ -367,13 +256,13 @@ export type StarterAssetsConfig = {
     }
     | {
       kind: "bundle";
-      status: "pending" | "ready";
+      status: "source" | "customized";
       orderId?: string;
       versionId?: string;
       qa?: Record<string, unknown>;
       items: Record<string, {
         src: string;
-        status: "pending" | "ready";
+        status: "source" | "customized";
         orderId?: string;
         versionId?: string;
         qa?: Record<string, unknown>;
@@ -410,12 +299,12 @@ export function validateStarterManifest(value: unknown): StarterManifest {
   validateInput("starter.manifest", StarterManifestSchema, value);
   const manifest = value as StarterManifest;
   assertUnique(manifest.content.supportedLocales, "content.supportedLocales");
-  assertUnique(manifest.content.requiredPaths, "content.requiredPaths");
   assertUnique(manifest.assets.map((asset) => asset.slot), "assets.slot");
   if (!manifest.content.supportedLocales.includes(manifest.content.defaultLocale)) {
     throw new Error("content.defaultLocale must be included in content.supportedLocales.");
   }
-  validateStarterCapabilities(manifest);
+  assertSafeRelativePath(manifest.previews.desktop, "previews.desktop");
+  assertSafeRelativePath(manifest.previews.mobile, "previews.mobile");
   for (const asset of manifest.assets) {
     if (asset.reference) assertSafeRelativePath(asset.reference, `assets.${asset.slot}.reference`);
     if (asset.kind === "scalar") assertSafeRelativePath(asset.output, `assets.${asset.slot}.output`);
@@ -450,77 +339,6 @@ export function validateStarterManifest(value: unknown): StarterManifest {
     }
   }
   return manifest;
-}
-
-function validateStarterCapabilities(manifest: StarterManifest): void {
-  const capabilities = manifest.capabilities;
-  const sectionIds = capabilities.sections.map((section) => section.id);
-  const assetSlots = new Set(manifest.assets.map((asset) => asset.slot));
-  assertUnique(sectionIds, "capabilities.sections.id");
-  for (const section of capabilities.sections) {
-    assertUnique(section.bakedLayers, `capabilities.sections.${section.id}.bakedLayers`);
-    assertUnique(section.liveLayers, `capabilities.sections.${section.id}.liveLayers`);
-    if (section.bakedLayers.includes("L1") && section.bakedLayers.some((layer) => /^L1[a-c]$/.test(layer))) {
-      throw new Error(`capabilities.sections.${section.id}.bakedLayers cannot combine L1 with an L1 sublayer.`);
-    }
-    if (section.liveLayers.includes("L1") && section.liveLayers.some((layer) => /^L1[a-c]$/.test(layer))) {
-      throw new Error(`capabilities.sections.${section.id}.liveLayers cannot combine L1 with an L1 sublayer.`);
-    }
-    const overlap = section.bakedLayers.find((baked) => section.liveLayers.some((current) => (
-      baked === current
-      || baked === "L1" && /^L1[a-c]$/.test(current)
-      || current === "L1" && /^L1[a-c]$/.test(baked)
-    )));
-    if (overlap) throw new Error(`capabilities.sections.${section.id}: layer '${overlap}' cannot be both baked and live.`);
-    if (section.bakedLayers.includes("L4")) {
-      throw new Error(`capabilities.sections.${section.id}: L4 interaction must remain live.`);
-    }
-    if (section.bakedLayers.length + section.liveLayers.length === 0) {
-      throw new Error(`capabilities.sections.${section.id}: at least one baked or live layer is required.`);
-    }
-    if (section.provenance.type === "design-reference") {
-      assertSafeRelativePath(section.provenance.reference, `capabilities.sections.${section.id}.provenance.reference`);
-    }
-    assertUnique(section.assetSlots ?? [], `capabilities.sections.${section.id}.assetSlots`);
-    for (const slot of section.assetSlots ?? []) {
-      if (!assetSlots.has(slot)) throw new Error(`capabilities.sections.${section.id}: unknown asset slot '${slot}'.`);
-    }
-    assertUnique(section.motion, `capabilities.sections.${section.id}.motion`);
-    assertUnique((section.safeZones ?? []).map((zone) => zone.id), `capabilities.sections.${section.id}.safeZones.id`);
-    for (const zone of section.safeZones ?? []) {
-      if (zone.x + zone.width > 1 || zone.y + zone.height > 1) {
-        throw new Error(`capabilities.sections.${section.id}.safeZones.${zone.id} must fit inside normalized bounds.`);
-      }
-    }
-  }
-
-  const expectedTransitions = sectionIds.slice(0, -1).map((from, index) => `${from}->${sectionIds[index + 1]}`);
-  const actualTransitions = capabilities.transitions.map((transition) => `${transition.from}->${transition.to}`);
-  assertUnique(actualTransitions, "capabilities.transitions");
-  const missing = expectedTransitions.find((pair) => !actualTransitions.includes(pair));
-  const unexpected = actualTransitions.find((pair) => !expectedTransitions.includes(pair));
-  if (missing || unexpected || actualTransitions.length !== expectedTransitions.length) {
-    throw new Error(
-      `capabilities.transitions must cover each adjacent section exactly once; expected ${expectedTransitions.join(", ") || "none"}.`,
-    );
-  }
-  for (const transition of capabilities.transitions) {
-    const label = `capabilities.transitions.${transition.from}->${transition.to}`;
-    if (transition.kind === "motif-handoff") {
-      if (!transition.motif) throw new Error(`${label}: motif-handoff requires motif.`);
-      if (!transition.direction && !transition.anchors) {
-        throw new Error(`${label}: motif-handoff requires direction or normalized anchors.`);
-      }
-    }
-    if (transition.kind === "continuous" && !transition.anchors) {
-      throw new Error(`${label}: continuous requires normalized anchors.`);
-    }
-    if (transition.kind === "hard-cut" && (
-      transition.motif || transition.direction || transition.anchors || transition.patternPhase
-    )) {
-      throw new Error(`${label}: hard-cut cannot declare motif, direction, anchors, or patternPhase.`);
-    }
-  }
 }
 
 function validateExtractGridArgs(
@@ -604,18 +422,70 @@ function valueAtPath(value: unknown, dottedPath: string): unknown {
   }, value);
 }
 
-export function validateStarterContentRequirements(manifest: StarterManifest, locales: StarterLocaleContent[]): string[] {
+function valueShape(value: unknown): "array" | "object" | "null" | "string" | "number" | "boolean" | "undefined" {
+  if (Array.isArray(value)) return "array";
+  if (value === null) return "null";
+  if (value === undefined) return "undefined";
+  if (typeof value === "object") return "object";
+  return typeof value as "string" | "number" | "boolean";
+}
+
+function compareContentShape(expected: unknown, actual: unknown, pathLabel: string, issues: string[]): void {
+  const expectedShape = valueShape(expected);
+  const actualShape = valueShape(actual);
+  if (expectedShape !== actualShape) {
+    issues.push(`${pathLabel}: expected ${expectedShape}, received ${actualShape}`);
+    return;
+  }
+  if (expectedShape === "array") {
+    const expectedItems = expected as unknown[];
+    const actualItems = actual as unknown[];
+    if (expectedItems.length !== actualItems.length) {
+      issues.push(`${pathLabel}: expected ${expectedItems.length} items, received ${actualItems.length}`);
+      return;
+    }
+    expectedItems.forEach((item, index) => compareContentShape(item, actualItems[index], `${pathLabel}.${index}`, issues));
+    return;
+  }
+  if (expectedShape === "object") {
+    const expectedObject = expected as Record<string, unknown>;
+    const actualObject = actual as Record<string, unknown>;
+    const expectedKeys = Object.keys(expectedObject).sort();
+    const actualKeys = Object.keys(actualObject).sort();
+    for (const key of expectedKeys) {
+      if (!(key in actualObject)) issues.push(`${pathLabel}: missing key ${key}`);
+    }
+    for (const key of actualKeys) {
+      if (!(key in expectedObject)) issues.push(`${pathLabel}: unexpected key ${key}`);
+    }
+    for (const key of expectedKeys) {
+      if (key in actualObject) compareContentShape(expectedObject[key], actualObject[key], `${pathLabel}.${key}`, issues);
+    }
+  }
+}
+
+export function validateStarterLocaleShape(
+  expected: StarterLocaleContent,
+  actual: StarterLocaleContent,
+): string[] {
+  const issues: string[] = [];
+  compareContentShape(expected.meta, actual.meta, "meta", issues);
+  compareContentShape(expected.content, actual.content, "content", issues);
+  return issues;
+}
+
+export function validateStarterLocaleStructures(manifest: StarterManifest, locales: StarterLocaleContent[]): string[] {
   const issues: string[] = [];
   const byLocale = new Map(locales.map((locale) => [locale.locale, locale]));
+  const defaultContent = byLocale.get(manifest.content.defaultLocale);
   for (const locale of manifest.content.supportedLocales) {
     const content = byLocale.get(locale);
     if (!content) {
       issues.push(`missing locale content: ${locale}`);
       continue;
     }
-    for (const requiredPath of manifest.content.requiredPaths) {
-      const value = valueAtPath(content, requiredPath);
-      if (value === undefined || value === null || value === "") issues.push(`${locale}: missing ${requiredPath}`);
+    if (defaultContent && locale !== manifest.content.defaultLocale) {
+      issues.push(...validateStarterLocaleShape(defaultContent, content).map((issue) => `${locale}: ${issue}`));
     }
   }
   return issues;
@@ -625,6 +495,7 @@ export function validateStarterAssetState(
   manifest: StarterManifest,
   assets: StarterAssetsConfig,
   existingSitePaths: Iterable<string>,
+  options: { requireCustomized?: boolean } = {},
 ): string[] {
   const issues: string[] = [];
   const existing = new Set(existingSitePaths);
@@ -640,23 +511,27 @@ export function validateStarterAssetState(
       issues.push(`${slot.slot}: asset state kind '${state.kind}' does not match slot kind '${slot.kind}'`);
       continue;
     }
-    if (slot.required && state.status !== "ready") issues.push(`${slot.slot}: required asset is not ready`);
+    if (slot.required && options.requireCustomized && state.status !== "customized") {
+      issues.push(`${slot.slot}: required asset is still using the source asset`);
+    }
     if (slot.kind === "bundle" && state.kind === "bundle") {
       const publicationKeys = new Set(slot.publications.map((item) => item.key));
       for (const key of Object.keys(state.items)) if (!publicationKeys.has(key)) issues.push(`${slot.slot}: unknown publication item: ${key}`);
       for (const publication of slot.publications) {
         const item = state.items[publication.key];
         if (!item) {
-          if (slot.required || state.status === "ready") issues.push(`${slot.slot}.${publication.key}: missing publication state`);
+          issues.push(`${slot.slot}.${publication.key}: missing publication state`);
           continue;
         }
-        if ((slot.required || state.status === "ready") && item.status !== "ready") issues.push(`${slot.slot}.${publication.key}: publication is not ready`);
-        if (item.status === "ready" && !existing.has(publication.output)) issues.push(`${slot.slot}.${publication.key}: ready output does not exist: ${publication.output}`);
+        if (options.requireCustomized && slot.required && item.status !== "customized") {
+          issues.push(`${slot.slot}.${publication.key}: required publication is still using the source asset`);
+        }
+        if (!existing.has(publication.output)) issues.push(`${slot.slot}.${publication.key}: output does not exist: ${publication.output}`);
         const expectedSrc = `/${publication.output.replace(/^public\//, "")}`;
         if (item.src !== expectedSrc) issues.push(`${slot.slot}.${publication.key}: src does not match output: ${item.src}`);
       }
     } else if (slot.kind === "scalar" && state.kind === "scalar") {
-      if (state.status === "ready" && !existing.has(slot.output)) issues.push(`${slot.slot}: ready output does not exist: ${slot.output}`);
+      if (!existing.has(slot.output)) issues.push(`${slot.slot}: output does not exist: ${slot.output}`);
       if (state.src !== `/${slot.output.replace(/^public\//, "")}`) issues.push(`${slot.slot}: src does not match output: ${state.src}`);
     }
   }

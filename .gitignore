@@ -21,3 +21,4 @@ test-results/
 test-repos-archive-*/
 chibi-review/
 .spike/
+.zcode/
