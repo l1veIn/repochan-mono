@@ -29,7 +29,7 @@ export type CodexAuthLoadResult =
 /**
  * Read + parse ~/.codex/auth.json. Accepts both shapes the Codex CLI has used:
  *   - modern: { tokens: { access_token, refresh_token, id_token, account_id } }
- *   - legacy / flat: { access_token, id_token, refresh_token }
+ *   - flat: { access_token, id_token, refresh_token }
  *
  * Never throws on missing/invalid files — returns a discriminated result so
  * callers can surface a friendly "run codex login" message.
