@@ -16,10 +16,12 @@ export function buildCssVars(): string {
   const tokens = {
     "c-primary": site.theme.primary,
     "c-base": site.theme.base,
+    "c-ink": site.theme.ink,
     "c-accent-1": accent1,
     "c-accent-2": accent2,
     "c-primary-rgb": hexToRgb(site.theme.primary),
     "c-base-rgb": hexToRgb(site.theme.base),
+    "c-ink-rgb": hexToRgb(site.theme.ink),
     "c-accent-1-rgb": hexToRgb(accent1),
     "c-accent-2-rgb": hexToRgb(accent2),
   };

@@ -126,6 +126,7 @@ export const StarterSiteConfigSchema = Type.Object({
   theme: Type.Object({
     primary: ThemeColorSchema,
     base: ThemeColorSchema,
+    ink: ThemeColorSchema,
     accents: Type.Array(ThemeColorSchema),
   }, { additionalProperties: false }),
   brand: Type.Object({
@@ -237,7 +238,7 @@ export type StarterManifest = {
 export type StarterSiteConfig = {
   schemaVersion: "repochan.starter-site.v1";
   project: { name: string; description?: string; repositoryUrl?: string };
-  theme: { primary: string; base: string; accents: string[] };
+  theme: { primary: string; base: string; ink: string; accents: string[] };
   brand: { artStyle?: string; motifs: string[]; patterns: string[] };
   locales: { default: string; supported: string[] };
 };
@@ -585,6 +586,30 @@ function getStringArray(value: unknown, dottedPath: string): string[] | undefine
   return Array.isArray(found) ? found.filter((item): item is string => typeof item === "string") : undefined;
 }
 
+function relativeLuminance(color: string): number | undefined {
+  const compact = color.replace(/^#/, "");
+  const hex = compact.length === 3 ? [...compact].map((part) => `${part}${part}`).join("") : compact;
+  if (!/^[\da-f]{6}$/i.test(hex)) return undefined;
+  const [red, green, blue] = [0, 2, 4].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16) / 255)
+    .map((value) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+}
+
+function contrastRatio(left: string, right: string): number {
+  const leftLuminance = relativeLuminance(left);
+  const rightLuminance = relativeLuminance(right);
+  if (leftLuminance === undefined || rightLuminance === undefined) return 0;
+  return (Math.max(leftLuminance, rightLuminance) + 0.05) / (Math.min(leftLuminance, rightLuminance) + 0.05);
+}
+
+function readableInk(base: string, candidates: string[], fallback: string): string {
+  const usable = candidates.filter((candidate) => relativeLuminance(candidate) !== undefined);
+  if (!usable.length) return fallback;
+  return usable.slice(1).reduce((best, candidate) => (
+    contrastRatio(candidate, base) > contrastRatio(best, base) ? candidate : best
+  ), usable[0]);
+}
+
 export function projectStarterSiteConfig(input: {
   analysis?: unknown;
   persona?: unknown;
@@ -595,6 +620,7 @@ export function projectStarterSiteConfig(input: {
   const primary = getNestedString(persona, ["mainColor"]) ?? defaults.theme.primary;
   const base = getNestedString(persona, ["secondaryColor"]) ?? defaults.theme.base;
   const accents = getStringArray(persona, "accentColors") ?? defaults.theme.accents;
+  const ink = readableInk(base, [primary, ...accents], defaults.theme.ink);
   const repositoryUrl = getNestedString(input, ["repositoryUrl"])
     ?? getNestedString(analysis, ["context.basic.repository_url", "context.basic.repositoryUrl", "repositoryUrl"])
     ?? repositoryUrlFromGitProfile(analysis)
@@ -606,7 +632,7 @@ export function projectStarterSiteConfig(input: {
       description: getNestedString(analysis, ["preAnalysis.summary", "abstract.overall_impression"]) ?? defaults.project.description,
       repositoryUrl,
     },
-    theme: { primary, base, accents: [...accents] },
+    theme: { primary, base, ink, accents: [...accents] },
     brand: {
       artStyle: getNestedString(persona, ["artStyle"]) ?? defaults.brand.artStyle,
       motifs: getStringArray(persona, "keyMotifs") ?? defaults.brand.motifs,

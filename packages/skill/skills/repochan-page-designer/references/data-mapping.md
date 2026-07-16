@@ -12,11 +12,12 @@
 | `persona.mainColor` | `theme.primary` |
 | `persona.secondaryColor` | `theme.base` |
 | `persona.accentColors[]` | `theme.accents[]` |
+| persona palette 中与 `theme.base` 对比度最高的颜色 | `theme.ink` |
 | `persona.artStyle` | `brand.artStyle` |
 | `persona.keyMotifs` | `brand.motifs` |
 | `persona.signaturePatterns` | `brand.patterns` |
 
-不要手工复制这些字段，也不要修改 `src/lib/site.ts`。
+`theme.ink` 是 CLI/Core 自动派生的可读前景色，Starter 用它承载正文、深色 section 和按钮文字；不要让 Page Designer 手工重排色板。不要手工复制这些字段，也不要修改 `src/lib/site.ts`。
 
 ## Agent 创作字段
 
