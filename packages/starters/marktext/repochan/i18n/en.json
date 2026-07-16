@@ -1,0 +1,153 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "MarkText — Simple and elegant Markdown editor",
+    "description": "A fast, open-source Markdown editor with real-time preview, focus modes, themes, diagrams, and flexible exports."
+  },
+  "content": {
+    "nav": {
+      "features": "Features",
+      "workflow": "Workflow",
+      "gallery": "Gallery",
+      "download": "Download",
+      "github": "GitHub",
+      "language": "中文",
+      "menu": "Menu",
+      "primaryLabel": "Primary navigation",
+      "sectionsLabel": "Site sections",
+      "mobileSectionsLabel": "Mobile site sections",
+      "brandLabel": "MarkText home"
+    },
+    "hero": {
+      "ariaLabel": "MarkText introduction",
+      "headline": "Write in the quiet. Publish with clarity.",
+      "body": "A simple and elegant open-source Markdown editor focused on speed and usability.",
+      "primaryCta": {
+        "label": "Download MarkText",
+        "href": "https://github.com/marktext/marktext/releases"
+      },
+      "secondaryCta": {
+        "label": "View on GitHub",
+        "href": "https://github.com/marktext/marktext"
+      },
+      "platforms": "macOS · Windows · Linux"
+    },
+    "capabilities": {
+      "title": "Everything your words need.",
+      "body": "Powerful features. Beautifully simple.",
+      "items": [
+        {
+          "title": "Live preview & CommonMark",
+          "body": "Real-time rendering with CommonMark and GitHub Flavored Markdown support."
+        },
+        {
+          "title": "Focus, typewriter & source modes",
+          "body": "Choose a distraction-free view or work directly with the Markdown source."
+        },
+        {
+          "title": "Themes, math & diagrams",
+          "body": "Write with 40+ themes, LaTeX math, Mermaid, and PlantUML diagrams."
+        },
+        {
+          "title": "HTML, PDF & image export",
+          "body": "Turn a finished document into the format you need in a few clicks."
+        }
+      ]
+    },
+    "workflow": {
+      "title": "Plain text becomes a finished page.",
+      "body": "Focused writing. Instant rendering. One-click export.",
+      "steps": [
+        {
+          "title": "Write",
+          "body": "Start with readable Markdown."
+        },
+        {
+          "title": "See it render",
+          "body": "Preview changes without switching contexts."
+        },
+        {
+          "title": "Export",
+          "body": "Publish to HTML, PDF, or an image."
+        }
+      ],
+      "sourceLabel": "Markdown source",
+      "previewLabel": "Live preview",
+      "exportLabel": "Export options"
+    },
+    "gallery": {
+      "eyebrow": "Proof & Gallery",
+      "title": "See every document in its best light.",
+      "body": "Real MarkText screens: editor, settings, and themes shipped with the project.",
+      "filters": [
+        "Editor",
+        "Settings",
+        "Themes"
+      ],
+      "tabsLabel": "Gallery categories",
+      "themeScrollerLabel": "MarkText theme screenshots",
+      "previous": "Previous screenshots",
+      "next": "Next screenshots",
+      "items": [
+        {
+          "asset": "gallery-editor",
+          "label": "Default editor",
+          "body": "A clean workspace for writing and previewing Markdown."
+        },
+        {
+          "asset": "gallery-settings",
+          "label": "Settings",
+          "body": "Tune the editor without leaving the application."
+        },
+        {
+          "asset": "theme-dracula",
+          "label": "Dracula",
+          "body": "A focused dark theme."
+        },
+        {
+          "asset": "theme-rose-pine",
+          "label": "Rose Pine",
+          "body": "Soft contrast for long sessions."
+        },
+        {
+          "asset": "theme-nord",
+          "label": "Nord",
+          "body": "Cool, restrained color."
+        },
+        {
+          "asset": "theme-light",
+          "label": "Light",
+          "body": "Bright and quiet for daytime writing."
+        }
+      ]
+    },
+    "cta": {
+      "title": "Your next document starts here.",
+      "body": "Simple, elegant, and open source.",
+      "primaryCta": {
+        "label": "Download for free",
+        "href": "https://github.com/marktext/marktext/releases"
+      },
+      "secondaryCta": {
+        "label": "Star on GitHub",
+        "href": "https://github.com/marktext/marktext"
+      },
+      "platforms": "macOS · Windows · Linux"
+    },
+    "footer": {
+      "tagline": "Open-source Markdown editor. Simple. Elegant. Powerful.",
+      "openSource": "Open source",
+      "license": "MIT License",
+      "platforms": "Native & cross-platform",
+      "documentation": "Documentation",
+      "documentationBody": "Guides & API",
+      "documentationHref": "https://www.marktext.cc/docs/",
+      "community": "Community",
+      "communityBody": "Discussions & help",
+      "communityHref": "https://github.com/marktext/marktext/discussions",
+      "copyrightYears": "2017–2026",
+      "copyright": "MarkText contributors"
+    }
+  }
+}

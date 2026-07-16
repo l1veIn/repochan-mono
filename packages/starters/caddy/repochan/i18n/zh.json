@@ -1,0 +1,194 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "zh",
+  "meta": {
+    "title": "Caddy — 让每个站点都运行在 HTTPS 上",
+    "description": "Caddy 是一个默认使用 TLS 的可扩展服务器平台，提供自动 HTTPS、简洁配置与模块化架构。"
+  },
+  "content": {
+    "nav": {
+      "ariaLabel": "主导航",
+      "brand": "Caddy",
+      "menuLabel": "菜单",
+      "links": [
+        {
+          "label": "功能",
+          "href": "https://caddyserver.com/features"
+        },
+        {
+          "label": "文档",
+          "href": "https://caddyserver.com/docs/"
+        },
+        {
+          "label": "社区",
+          "href": "https://caddy.community/"
+        },
+        {
+          "label": "GitHub",
+          "href": "https://github.com/caddyserver/caddy"
+        }
+      ],
+      "localeLabel": "EN",
+      "localeHref": "/"
+    },
+    "hero": {
+      "ariaLabel": "Caddy 项目介绍",
+      "eyebrow": "自动 HTTPS",
+      "headline": "让每个站点都运行在 HTTPS 上。",
+      "body": "Caddy 是一个默认使用 TLS 的可扩展服务器平台。",
+      "primaryCta": {
+        "label": "获取 Caddy",
+        "href": "https://github.com/caddyserver/caddy/releases"
+      },
+      "secondaryCta": {
+        "label": "阅读文档",
+        "href": "https://caddyserver.com/docs/"
+      }
+    },
+    "capabilities": {
+      "eyebrow": "为现代 Web 而生",
+      "title": "安全默认值，也有足够的扩展空间。",
+      "items": [
+        {
+          "title": "自动 HTTPS",
+          "body": "公共域名可使用 ZeroSSL 或 Let’s Encrypt，内部名称与 IP 可使用完全托管的本地 CA。",
+          "icon": "lock"
+        },
+        {
+          "title": "简洁的 Caddyfile",
+          "body": "用面向人类的配置快速完成常见服务器任务，再按需要逐步深入。",
+          "icon": "file"
+        },
+        {
+          "title": "动态 JSON API",
+          "body": "使用原生 JSON 配置和 API，在线动态调整服务器配置。",
+          "icon": "code"
+        },
+        {
+          "title": "HTTP/1.1 · HTTP/2 · HTTP/3",
+          "body": "在一个可扩展的服务器平台中默认支持现代 HTTP 协议。",
+          "icon": "globe"
+        },
+        {
+          "title": "模块化架构",
+          "body": "应用、处理器、配置适配器、存储、日志与 TLS 均可通过模块扩展。",
+          "icon": "modules"
+        },
+        {
+          "title": "无外部依赖",
+          "body": "Caddy 是一个自包含的 Go 程序，不需要外部运行时依赖，甚至不依赖 libc。",
+          "icon": "binary"
+        }
+      ]
+    },
+    "workflow": {
+      "eyebrow": "Caddy 如何工作",
+      "title": "流程简单，架构强大。",
+      "steps": [
+        {
+          "title": "Caddyfile 或 JSON",
+          "body": "声明你的意图。"
+        },
+        {
+          "title": "配置适配器与管理 API",
+          "body": "标准化并管理配置。"
+        },
+        {
+          "title": "应用与模块",
+          "body": "组合并扩展行为。"
+        },
+        {
+          "title": "HTTPS 与 HTTP 服务",
+          "body": "安全地承载流量。"
+        }
+      ],
+      "aside": "还包括可观测性、日志、指标等能力。"
+    },
+    "proof": {
+      "eyebrow": "经受互联网规模验证",
+      "items": [
+        {
+          "lead": "已处理",
+          "emphasis": "万亿级",
+          "tail": "请求。"
+        },
+        {
+          "lead": "管理着",
+          "emphasis": "数百万",
+          "tail": "TLS 证书。"
+        },
+        {
+          "lead": "可扩展至",
+          "emphasis": "数十万",
+          "tail": "站点。"
+        },
+        {
+          "lead": "已经",
+          "emphasis": "生产就绪",
+          "tail": "。"
+        }
+      ]
+    },
+    "cta": {
+      "headline": "默认安全，需要时依然灵活。",
+      "body": "从 Caddyfile 开始，需要更强控制时使用原生 JSON，并通过模块扩展整个平台。",
+      "primary": {
+        "label": "获取 Caddy",
+        "href": "https://github.com/caddyserver/caddy/releases"
+      },
+      "secondary": {
+        "label": "开始使用",
+        "href": "https://caddyserver.com/docs/getting-started"
+      }
+    },
+    "footer": {
+      "summary": "让站点更安全、让运维更简单的开源 Web 服务器。",
+      "groups": [
+        {
+          "title": "Caddy",
+          "links": [
+            {
+              "label": "功能",
+              "href": "https://caddyserver.com/features"
+            },
+            {
+              "label": "版本发布",
+              "href": "https://github.com/caddyserver/caddy/releases"
+            }
+          ]
+        },
+        {
+          "title": "文档",
+          "links": [
+            {
+              "label": "入门指南",
+              "href": "https://caddyserver.com/docs/getting-started"
+            },
+            {
+              "label": "Caddyfile",
+              "href": "https://caddyserver.com/docs/caddyfile"
+            },
+            {
+              "label": "JSON API",
+              "href": "https://caddyserver.com/docs/api"
+            }
+          ]
+        },
+        {
+          "title": "社区",
+          "links": [
+            {
+              "label": "论坛",
+              "href": "https://caddy.community/"
+            },
+            {
+              "label": "GitHub",
+              "href": "https://github.com/caddyserver/caddy"
+            }
+          ]
+        }
+      ],
+      "legal": "Caddy 是 Stack Holdings GmbH 的注册商标。"
+    }
+  }
+}

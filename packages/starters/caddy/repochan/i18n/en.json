@@ -1,0 +1,194 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "Caddy — Every site on HTTPS",
+    "description": "Caddy is an extensible server platform that uses TLS by default, with automatic HTTPS, simple configuration, and a modular architecture."
+  },
+  "content": {
+    "nav": {
+      "ariaLabel": "Primary navigation",
+      "brand": "Caddy",
+      "menuLabel": "Menu",
+      "links": [
+        {
+          "label": "Features",
+          "href": "https://caddyserver.com/features"
+        },
+        {
+          "label": "Docs",
+          "href": "https://caddyserver.com/docs/"
+        },
+        {
+          "label": "Community",
+          "href": "https://caddy.community/"
+        },
+        {
+          "label": "GitHub",
+          "href": "https://github.com/caddyserver/caddy"
+        }
+      ],
+      "localeLabel": "中文",
+      "localeHref": "/zh/"
+    },
+    "hero": {
+      "ariaLabel": "Caddy introduction",
+      "eyebrow": "Automatic HTTPS",
+      "headline": "Every site on HTTPS.",
+      "body": "Caddy is an extensible server platform that uses TLS by default.",
+      "primaryCta": {
+        "label": "Get Caddy",
+        "href": "https://github.com/caddyserver/caddy/releases"
+      },
+      "secondaryCta": {
+        "label": "Read the docs",
+        "href": "https://caddyserver.com/docs/"
+      }
+    },
+    "capabilities": {
+      "eyebrow": "Built for the modern web",
+      "title": "Secure defaults. Serious range.",
+      "items": [
+        {
+          "title": "Automatic HTTPS",
+          "body": "Public names can use ZeroSSL or Let’s Encrypt, while internal names and IPs can use a fully managed local CA.",
+          "icon": "lock"
+        },
+        {
+          "title": "Easy Caddyfile",
+          "body": "Start with a human-friendly configuration designed to make common server tasks straightforward.",
+          "icon": "file"
+        },
+        {
+          "title": "Dynamic JSON API",
+          "body": "Use Caddy’s native JSON configuration and API for dynamic, online configuration changes.",
+          "icon": "code"
+        },
+        {
+          "title": "HTTP/1.1 · HTTP/2 · HTTP/3",
+          "body": "Support modern HTTP protocols by default from one extensible server platform.",
+          "icon": "globe"
+        },
+        {
+          "title": "Modular architecture",
+          "body": "Apps, handlers, config adapters, storage, logging, TLS, and more can be extended through modules.",
+          "icon": "modules"
+        },
+        {
+          "title": "No external dependencies",
+          "body": "Run Caddy as a self-contained Go program without external runtime dependencies, not even libc.",
+          "icon": "binary"
+        }
+      ]
+    },
+    "workflow": {
+      "eyebrow": "How Caddy works",
+      "title": "Simple workflow. Powerful by design.",
+      "steps": [
+        {
+          "title": "Caddyfile or JSON",
+          "body": "Declare intent."
+        },
+        {
+          "title": "Config adapters and admin API",
+          "body": "Normalize and manage configuration."
+        },
+        {
+          "title": "Apps and modules",
+          "body": "Extend and compose behavior."
+        },
+        {
+          "title": "HTTPS and HTTP serving",
+          "body": "Serve traffic securely."
+        }
+      ],
+      "aside": "Observability, logging, metrics, and more."
+    },
+    "proof": {
+      "eyebrow": "Trusted at internet scale",
+      "items": [
+        {
+          "lead": "Served",
+          "emphasis": "trillions",
+          "tail": "of requests."
+        },
+        {
+          "lead": "Managing",
+          "emphasis": "millions",
+          "tail": "of TLS certificates."
+        },
+        {
+          "lead": "Scales to",
+          "emphasis": "hundreds",
+          "tail": "of thousands of sites."
+        },
+        {
+          "lead": "Production-",
+          "emphasis": "ready",
+          "tail": "by design."
+        }
+      ]
+    },
+    "cta": {
+      "headline": "Secure by default. Flexible when you need it.",
+      "body": "Start with the Caddyfile, use native JSON when you need more control, and extend the platform through modules.",
+      "primary": {
+        "label": "Get Caddy",
+        "href": "https://github.com/caddyserver/caddy/releases"
+      },
+      "secondary": {
+        "label": "Getting Started",
+        "href": "https://caddyserver.com/docs/getting-started"
+      }
+    },
+    "footer": {
+      "summary": "The open source web server that makes your sites more secure and your operations simpler.",
+      "groups": [
+        {
+          "title": "Caddy",
+          "links": [
+            {
+              "label": "Features",
+              "href": "https://caddyserver.com/features"
+            },
+            {
+              "label": "Releases",
+              "href": "https://github.com/caddyserver/caddy/releases"
+            }
+          ]
+        },
+        {
+          "title": "Documentation",
+          "links": [
+            {
+              "label": "Getting Started",
+              "href": "https://caddyserver.com/docs/getting-started"
+            },
+            {
+              "label": "Caddyfile",
+              "href": "https://caddyserver.com/docs/caddyfile"
+            },
+            {
+              "label": "JSON API",
+              "href": "https://caddyserver.com/docs/api"
+            }
+          ]
+        },
+        {
+          "title": "Community",
+          "links": [
+            {
+              "label": "Forum",
+              "href": "https://caddy.community/"
+            },
+            {
+              "label": "GitHub",
+              "href": "https://github.com/caddyserver/caddy"
+            }
+          ]
+        }
+      ],
+      "legal": "Caddy is a registered trademark of Stack Holdings GmbH."
+    }
+  }
+}

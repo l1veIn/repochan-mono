@@ -1,0 +1,18 @@
+---
+type Props = { name: string; size?: number };
+const { name, size = 36 } = Astro.props;
+const paths: Record<string, string[]> = {
+  lock: ["M7 11V8a5 5 0 0 1 10 0v3", "M5 11h14v10H5z", "M12 15v3"],
+  file: ["M6 3h8l4 4v14H6z", "M14 3v5h5", "M9 12h6M9 16h6"],
+  code: ["m9 8-4 4 4 4", "m15 8 4 4-4 4", "m13 6-2 12"],
+  globe: ["M3 12h18", "M12 3a15 15 0 0 1 0 18", "M12 3a15 15 0 0 0 0 18", "M3 12a9 9 0 1 0 18 0 9 9 0 1 0-18 0"],
+  modules: ["M12 3 7 6v6l5 3 5-3V6z", "m7 12-4 2.5v5L7 22l5-3v-4", "m17 12 4 2.5v5L17 22l-5-3"],
+  binary: ["M5 5h14v14H5z", "M9 9h2v2H9zM13 13h2v2h-2z"],
+  shield: ["M12 3 5 6v5c0 5 3 8 7 10 4-2 7-5 7-10V6z", "m9 12 2 2 4-5"],
+};
+const iconPaths = paths[name] ?? paths.shield;
+---
+
+<svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  {iconPaths.map((path) => <path d={path} stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" />)}
+</svg>

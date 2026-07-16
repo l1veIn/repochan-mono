@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "marktext",
+    "description": "MarkText is a real-time WYSIWYG markdown editor for desktop — a simple, elegant, open-source alternative to Typora, focused on speed and usability.",
+    "repositoryUrl": "https://github.com/marktext/marktext"
+  },
+  "theme": {
+    "primary": "#409EFF",
+    "base": "#F5F0E8",
+    "accents": [
+      "#c4a7e7",
+      "#1e1e2e"
+    ]
+  },
+  "brand": {
+    "artStyle": "赛璐璐 + 装饰艺术（Cel-shading + Art Deco）——干净利落的平涂色块与轮廓线，融合 Art Deco 的几何边框、扇形放射装饰线和排版纹样。选择理由：MarkText 本身是「简约优雅」的编辑器，赛璐璐的干净线条呼应这一气质；Art Deco 的排版装饰传统则直接致敬了文字排印的黄金时代，与 MarkText「让文字变美」的核心使命天然契合。",
+    "motifs": [
+      "排版装饰线（Art Deco filigree & rule lines）——象征「文字骨骼」的结构之美",
+      "墨滴扩散的瞬间凝固形态——象征 plain text → rendered 的转换魔法",
+      "markdown 标记符号的几何化变体（#、*、>）——微妙的身份密码"
+    ],
+    "patterns": [
+      "几何化 markdown 标记（#、*、>、`）与 Art Deco 装饰线交织的四方连续纹样，墨蓝色底 + 暗金色线条，用于页面 section 背景和社交媒体卡片底纹",
+      "墨滴扩散的同心圆 + 排字铅字块的剪影交错图案，保留纸白与墨蓝的低对比度，用于边框分割线和周边商品底纹",
+      "Art Deco 扇形放射线与横线格（manuscript guidelines）的复合纹理，暖灰 + 藤紫双色，用于品牌页 hero 区背景"
+    ]
+  },
+  "locales": {
+    "default": "en",
+    "supported": [
+      "en",
+      "zh"
+    ]
+  }
+}

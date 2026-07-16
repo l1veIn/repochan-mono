@@ -61,7 +61,7 @@ const canonicalTemplateIds = Object.freeze([
   "official/three-view",
   "official/web-state-grid-3x3",
 ]);
-const canonicalStarterIds = Object.freeze(["minimal"]);
+const canonicalStarterIds = Object.freeze(["caddy", "marktext", "minimal", "redis"]);
 const canonicalDefaultStarter = "minimal";
 const temporaryRoot = mkdtempSync(path.join(os.tmpdir(), "repochan-release-preflight-"));
 const sourceRoot = path.join(temporaryRoot, "source");

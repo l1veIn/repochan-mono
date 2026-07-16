@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "repochan.starter-assets.v1",
+  "assets": {
+    "hero-composite": {
+      "kind": "scalar",
+      "src": "/assets/hero-composite.webp",
+      "status": "source"
+    },
+    "pattern-ink": {
+      "kind": "scalar",
+      "src": "/assets/pattern-ink.webp",
+      "status": "source"
+    },
+    "pattern-deco": {
+      "kind": "scalar",
+      "src": "/assets/pattern-deco.webp",
+      "status": "source"
+    },
+    "gallery-editor": {
+      "kind": "scalar",
+      "src": "/assets/gallery/editor-default.png",
+      "status": "source"
+    },
+    "gallery-settings": {
+      "kind": "scalar",
+      "src": "/assets/gallery/settings.png",
+      "status": "source"
+    },
+    "theme-dracula": {
+      "kind": "scalar",
+      "src": "/assets/gallery/theme-dracula.png",
+      "status": "source"
+    },
+    "theme-rose-pine": {
+      "kind": "scalar",
+      "src": "/assets/gallery/theme-rose-pine.png",
+      "status": "source"
+    },
+    "theme-nord": {
+      "kind": "scalar",
+      "src": "/assets/gallery/theme-nord.png",
+      "status": "source"
+    },
+    "theme-light": {
+      "kind": "scalar",
+      "src": "/assets/gallery/theme-light.png",
+      "status": "source"
+    }
+  }
+}

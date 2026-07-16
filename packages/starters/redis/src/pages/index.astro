@@ -1,0 +1,10 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import LandingPage from "../components/LandingPage.astro";
+import locale from "../../repochan/i18n/en.json";
+import { assets } from "../lib/site";
+---
+
+<SiteLayout title={locale.meta.title} description={locale.meta.description} lang="en">
+  <LandingPage content={locale.content} heroSrc={assets["hero-composite"].src} patternSrc={assets["pattern-tile"].src} />
+</SiteLayout>

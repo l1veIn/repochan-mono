@@ -1,0 +1,235 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "Redis — Real-time data. Real simple.",
+    "description": "Redis is the in-memory data platform for caching, native data structures, search, streams, vectors, and real-time applications."
+  },
+  "content": {
+    "nav": {
+      "brandLabel": "Redis",
+      "ariaLabel": "Primary navigation",
+      "links": [
+        {
+          "label": "Use cases",
+          "href": "#capabilities"
+        },
+        {
+          "label": "Architecture",
+          "href": "#workflow"
+        },
+        {
+          "label": "Data types",
+          "href": "#proof"
+        },
+        {
+          "label": "Docs",
+          "href": "https://redis.io/docs/latest/"
+        }
+      ],
+      "repositoryLabel": "View Redis on GitHub",
+      "repositoryHref": "https://github.com/redis/redis",
+      "languageLabel": "中文",
+      "languageHref": "/zh/"
+    },
+    "hero": {
+      "ariaLabel": "Redis real-time data platform introduction",
+      "eyebrow": "THE REAL-TIME DATA PLATFORM",
+      "headline": "Real-time data. Real simple.",
+      "body": "Build fast, responsive applications with the fastest, most feature-rich cache, data structure server, and document and vector query engine.",
+      "primaryCta": {
+        "label": "Get started",
+        "href": "https://redis.io/docs/latest/get-started/"
+      },
+      "secondaryCta": {
+        "label": "Explore Redis",
+        "href": "https://redis.io/docs/latest/"
+      },
+      "proofs": [
+        {
+          "label": "Sub-millisecond",
+          "detail": "latency"
+        },
+        {
+          "label": "In-memory",
+          "detail": "speed"
+        },
+        {
+          "label": "Open source",
+          "detail": "core"
+        }
+      ],
+      "proofsAriaLabel": "Highlights"
+    },
+    "capabilities": {
+      "eyebrow": "ONE ENGINE",
+      "headline": "Many real-time workloads.",
+      "body": "Use native data structures and processing engines without turning a simple application into a distributed systems project.",
+      "items": [
+        {
+          "key": "cache",
+          "title": "Cache & Sessions",
+          "body": "Keep hot data close with flexible expiration, eviction policies, counters, queues, and session models.",
+          "action": {
+            "label": "Explore caching",
+            "href": "https://redis.io/docs/latest/develop/use/cases/caching/"
+          }
+        },
+        {
+          "key": "search",
+          "title": "JSON & Search",
+          "body": "Store documents, run full-text and geospatial queries, filter fields, and search vectors.",
+          "action": {
+            "label": "Explore search",
+            "href": "https://redis.io/docs/latest/develop/ai/search-and-query/"
+          }
+        },
+        {
+          "key": "streams",
+          "title": "Streams & Pub/Sub",
+          "body": "Move events with queues, append-only streams, consumer groups, and messaging.",
+          "action": {
+            "label": "Explore streams",
+            "href": "https://redis.io/docs/latest/develop/data-types/streams/"
+          }
+        },
+        {
+          "key": "vector",
+          "title": "Vector & AI",
+          "body": "Power memory, semantic cache, retrieval, routing, and similarity search for AI applications.",
+          "action": {
+            "label": "Redis for AI",
+            "href": "https://redis.io/docs/latest/develop/ai/"
+          }
+        }
+      ],
+      "relayLabel": "CLIENT"
+    },
+    "workflow": {
+      "eyebrow": "REQUEST TO RESPONSE",
+      "headline": "In a flash.",
+      "body": "A readable protocol meets an event-driven in-memory core, then returns the result without unnecessary layers.",
+      "steps": [
+        {
+          "key": "client",
+          "title": "Client",
+          "body": "Send a command from your application."
+        },
+        {
+          "key": "resp",
+          "title": "RESP",
+          "body": "Parse a simple, readable protocol."
+        },
+        {
+          "key": "core",
+          "title": "In-memory core",
+          "body": "Execute against data held close to the CPU."
+        },
+        {
+          "key": "modules",
+          "title": "Structures & modules",
+          "body": "Use native models and focused extensions."
+        },
+        {
+          "key": "response",
+          "title": "Instant response",
+          "body": "Return results with sub-millisecond latency."
+        }
+      ]
+    },
+    "proof": {
+      "eyebrow": "FLEXIBILITY WITHOUT FRICTION",
+      "headline": "Data structures are the API.",
+      "body": "Choose the model that fits the job, from simple values to search, streams, time series, and vectors.",
+      "dataTypes": [
+        "Strings",
+        "Hashes",
+        "JSON",
+        "Streams",
+        "Sorted Sets",
+        "Time Series",
+        "Search",
+        "Vector Sets"
+      ],
+      "proofCards": [
+        {
+          "title": "Battle-tested at massive scale",
+          "body": "Redis is used across production workloads where responsiveness and operational simplicity matter."
+        },
+        {
+          "title": "Repository snapshot: 555 test files",
+          "body": "Inventory captured from this checkout; unit, integration, cluster, sentinel, vector, and module scenarios protect the core.",
+          "badge": "555"
+        }
+      ],
+      "action": {
+        "label": "Explore all data types",
+        "href": "https://redis.io/docs/latest/develop/data-types/"
+      }
+    },
+    "cta": {
+      "eyebrow": "READY WHEN YOU ARE",
+      "headline": "Start in seconds.",
+      "body": "Run Redis locally, explore the commands, and build your first real-time application.",
+      "command": "docker run -d -p 6379:6379 redis:latest",
+      "copyLabel": "Copy command",
+      "copiedLabel": "Copied",
+      "primaryCta": {
+        "label": "Get started",
+        "href": "https://redis.io/docs/latest/get-started/"
+      },
+      "secondaryCta": {
+        "label": "Read the docs",
+        "href": "https://redis.io/docs/latest/"
+      }
+    },
+    "footer": {
+      "tagline": "The real-time data platform.",
+      "groups": [
+        {
+          "title": "Product",
+          "links": [
+            {
+              "label": "Data types",
+              "href": "https://redis.io/docs/latest/develop/data-types/"
+            },
+            {
+              "label": "Use cases",
+              "href": "https://redis.io/solutions/use-cases/"
+            }
+          ]
+        },
+        {
+          "title": "Resources",
+          "links": [
+            {
+              "label": "Documentation",
+              "href": "https://redis.io/docs/latest/"
+            },
+            {
+              "label": "Commands",
+              "href": "https://redis.io/commands/"
+            }
+          ]
+        },
+        {
+          "title": "Community",
+          "links": [
+            {
+              "label": "GitHub",
+              "href": "https://github.com/redis/redis"
+            },
+            {
+              "label": "Contribute",
+              "href": "https://github.com/redis/redis/blob/unstable/CONTRIBUTING.md"
+            }
+          ]
+        }
+      ],
+      "legal": "Redis Open Source"
+    },
+    "ui": {
+      "skipLinkLabel": "Skip to content"
+    }
+  }
+}

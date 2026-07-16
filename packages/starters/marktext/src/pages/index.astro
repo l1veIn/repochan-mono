@@ -1,0 +1,9 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import MarkTextPage from "../components/MarkTextPage.astro";
+import locale from "../../repochan/i18n/en.json";
+---
+
+<SiteLayout title={locale.meta.title} description={locale.meta.description} lang="en">
+  <MarkTextPage content={locale.content} lang="en" languageHref="/zh" />
+</SiteLayout>

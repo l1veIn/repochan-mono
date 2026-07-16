@@ -1,0 +1,235 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "zh",
+  "meta": {
+    "title": "Redis — 实时数据，简单直接",
+    "description": "Redis 是面向缓存、原生数据结构、搜索、流、向量工作负载与实时应用的内存数据平台。"
+  },
+  "content": {
+    "nav": {
+      "brandLabel": "Redis",
+      "ariaLabel": "主导航",
+      "links": [
+        {
+          "label": "使用场景",
+          "href": "#capabilities"
+        },
+        {
+          "label": "架构",
+          "href": "#workflow"
+        },
+        {
+          "label": "数据类型",
+          "href": "#proof"
+        },
+        {
+          "label": "文档",
+          "href": "https://redis.io/docs/latest/"
+        }
+      ],
+      "repositoryLabel": "在 GitHub 查看 Redis",
+      "repositoryHref": "https://github.com/redis/redis",
+      "languageLabel": "EN",
+      "languageHref": "/"
+    },
+    "hero": {
+      "ariaLabel": "Redis 实时数据平台介绍",
+      "eyebrow": "实时数据平台",
+      "headline": "实时数据，简单直接。",
+      "body": "用速度极快、功能丰富的缓存、数据结构服务器、文档查询与向量查询引擎，构建响应迅速的实时应用。",
+      "primaryCta": {
+        "label": "快速开始",
+        "href": "https://redis.io/docs/latest/get-started/"
+      },
+      "secondaryCta": {
+        "label": "探索 Redis",
+        "href": "https://redis.io/docs/latest/"
+      },
+      "proofs": [
+        {
+          "label": "亚毫秒级",
+          "detail": "低延迟"
+        },
+        {
+          "label": "内存优先",
+          "detail": "高速执行"
+        },
+        {
+          "label": "开源核心",
+          "detail": "自由构建"
+        }
+      ],
+      "proofsAriaLabel": "核心亮点"
+    },
+    "capabilities": {
+      "eyebrow": "一个引擎",
+      "headline": "承载多种实时工作负载。",
+      "body": "直接使用原生数据结构和处理引擎，不必为了一个简单应用先搭建一整套分布式系统。",
+      "items": [
+        {
+          "key": "cache",
+          "title": "缓存与会话",
+          "body": "通过灵活的过期、淘汰策略、计数器、队列与会话模型，让热数据始终触手可及。",
+          "action": {
+            "label": "了解缓存",
+            "href": "https://redis.io/docs/latest/develop/use/cases/caching/"
+          }
+        },
+        {
+          "key": "search",
+          "title": "JSON 与搜索",
+          "body": "存储文档，执行全文、地理空间和向量查询，并按字段过滤需要的数据。",
+          "action": {
+            "label": "了解搜索",
+            "href": "https://redis.io/docs/latest/develop/ai/search-and-query/"
+          }
+        },
+        {
+          "key": "streams",
+          "title": "流与发布订阅",
+          "body": "使用队列、追加式流、消费者组与消息机制，让事件在发生时立即流动。",
+          "action": {
+            "label": "了解 Streams",
+            "href": "https://redis.io/docs/latest/develop/data-types/streams/"
+          }
+        },
+        {
+          "key": "vector",
+          "title": "向量与 AI",
+          "body": "为 AI 应用提供长期记忆、语义缓存、内容检索、语义路由与相似度搜索。",
+          "action": {
+            "label": "Redis 与 AI",
+            "href": "https://redis.io/docs/latest/develop/ai/"
+          }
+        }
+      ],
+      "relayLabel": "客户端"
+    },
+    "workflow": {
+      "eyebrow": "从请求到响应",
+      "headline": "转瞬即达。",
+      "body": "清晰可读的协议进入事件驱动的内存核心，无需多余层级，就能迅速返回结果。",
+      "steps": [
+        {
+          "key": "client",
+          "title": "客户端",
+          "body": "从应用发送一条命令。"
+        },
+        {
+          "key": "resp",
+          "title": "RESP",
+          "body": "解析简单且可读的协议。"
+        },
+        {
+          "key": "core",
+          "title": "内存核心",
+          "body": "在靠近 CPU 的内存数据上执行。"
+        },
+        {
+          "key": "modules",
+          "title": "数据结构与模块",
+          "body": "组合原生模型与专注的扩展能力。"
+        },
+        {
+          "key": "response",
+          "title": "即时响应",
+          "body": "以亚毫秒级延迟返回结果。"
+        }
+      ]
+    },
+    "proof": {
+      "eyebrow": "灵活，但不增加摩擦",
+      "headline": "数据结构就是 API。",
+      "body": "从简单值到搜索、流、时序与向量，选择真正适合任务的数据模型。",
+      "dataTypes": [
+        "字符串",
+        "哈希",
+        "JSON",
+        "Streams",
+        "有序集合",
+        "时序",
+        "搜索",
+        "向量集合"
+      ],
+      "proofCards": [
+        {
+          "title": "久经大规模生产检验",
+          "body": "Redis 服务于重视响应速度与运维简洁性的生产工作负载。"
+        },
+        {
+          "title": "仓库快照：555 个测试文件",
+          "body": "该数量来自当前检出版本的文件清单；单元、集成、集群、哨兵、向量与模块场景共同保护核心。",
+          "badge": "555"
+        }
+      ],
+      "action": {
+        "label": "浏览全部数据类型",
+        "href": "https://redis.io/docs/latest/develop/data-types/"
+      }
+    },
+    "cta": {
+      "eyebrow": "准备好了吗",
+      "headline": "几秒钟即可开始。",
+      "body": "在本地运行 Redis，探索命令，然后构建你的第一个实时应用。",
+      "command": "docker run -d -p 6379:6379 redis:latest",
+      "copyLabel": "复制命令",
+      "copiedLabel": "已复制",
+      "primaryCta": {
+        "label": "快速开始",
+        "href": "https://redis.io/docs/latest/get-started/"
+      },
+      "secondaryCta": {
+        "label": "阅读文档",
+        "href": "https://redis.io/docs/latest/"
+      }
+    },
+    "footer": {
+      "tagline": "为实时世界准备的数据平台。",
+      "groups": [
+        {
+          "title": "产品",
+          "links": [
+            {
+              "label": "数据类型",
+              "href": "https://redis.io/docs/latest/develop/data-types/"
+            },
+            {
+              "label": "使用场景",
+              "href": "https://redis.io/solutions/use-cases/"
+            }
+          ]
+        },
+        {
+          "title": "资源",
+          "links": [
+            {
+              "label": "文档",
+              "href": "https://redis.io/docs/latest/"
+            },
+            {
+              "label": "命令",
+              "href": "https://redis.io/commands/"
+            }
+          ]
+        },
+        {
+          "title": "社区",
+          "links": [
+            {
+              "label": "GitHub",
+              "href": "https://github.com/redis/redis"
+            },
+            {
+              "label": "参与贡献",
+              "href": "https://github.com/redis/redis/blob/unstable/CONTRIBUTING.md"
+            }
+          ]
+        }
+      ],
+      "legal": "Redis Open Source"
+    },
+    "ui": {
+      "skipLinkLabel": "跳到主要内容"
+    }
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "repochan.starter.v1",
+  "id": "redis",
+  "name": "Redis Signal Relay",
+  "description": "A complete multi-section Redis landing page built around high-speed data relay imagery.",
+  "style": "cel-shaded-signal-relay",
+  "tags": ["landing", "multi-section", "kinetic", "cel-shaded"],
+  "previews": {
+    "desktop": "repochan/previews/desktop.png",
+    "mobile": "repochan/previews/mobile.png"
+  },
+  "config": {
+    "site": "repochan/site.json",
+    "assets": "repochan/assets.json",
+    "i18nDir": "repochan/i18n"
+  },
+  "content": {
+    "defaultLocale": "en",
+    "supportedLocales": ["en", "zh"]
+  },
+  "assets": [
+    {
+      "kind": "scalar",
+      "slot": "hero-composite",
+      "required": true,
+      "reference": "public/assets/hero-pose-lineart.webp",
+      "output": "public/assets/hero-composite.webp",
+      "description": "A 16:9 character composition with the character on the right and quiet negative space on the left for live HTML copy.",
+      "order": {
+        "assetType": "hero_composite",
+        "templateId": "official/hero-character-migrate",
+        "brief": {
+          "mustInclude": [
+            "keep the left half quiet enough for live HTML typography",
+            "preserve the reference composition while using the project's foundation character"
+          ],
+          "avoid": ["rendered text", "logos", "UI baked into the image"],
+          "creativeFreedom": ["lighting", "background details that support the project identity"]
+        },
+        "deliverables": [
+          {
+            "name": "hero-composite",
+            "format": "png",
+            "width": 2560,
+            "height": 1440,
+            "aspectRatio": "16:9"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": { "format": "webp", "quality": 82, "maxWidth": 2560 },
+          "out": "public/assets/hero-composite.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "pattern-tile",
+      "required": true,
+      "output": "public/assets/pattern-tile.webp",
+      "description": "The canonical seamless Pattern B comet-filament tile used once in page-level coordinates behind multiple sections.",
+      "order": {
+        "assetType": "visual_pattern",
+        "templateId": "official/pattern-tile",
+        "brief": {
+          "mustInclude": [
+            "one full-bleed seamless square tile",
+            "low-contrast comet filaments and relay nodes"
+          ],
+          "avoid": ["text", "numbers", "characters", "frames"],
+          "creativeFreedom": ["filament density"]
+        },
+        "deliverables": [
+          {
+            "name": "pattern-tile",
+            "format": "png",
+            "width": 768,
+            "height": 768,
+            "aspectRatio": "1:1"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": { "format": "webp", "quality": 86, "maxWidth": 1024 },
+          "out": "public/assets/pattern-tile.webp"
+        }
+      ]
+    }
+  ]
+}
