@@ -1,0 +1,33 @@
+---
+import "@/styles/global.css";
+import { buildCssVars, site } from "@/lib/site";
+
+interface Props {
+  title: string;
+  description: string;
+  lang: string;
+  alternatePath: string;
+}
+
+const { title, description, lang, alternatePath } = Astro.props;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content={site.theme.base} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate" hreflang={lang.startsWith("zh") ? "en" : "zh-CN"} href={alternatePath} />
+    <title>{title}</title>
+    <style is:inline set:html={buildCssVars()}></style>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

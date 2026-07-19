@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "repochan.starter.v1",
+  "id": "repochan-harbor",
+  "name": "RepoChan Continuous Harbor",
+  "description": "A complete bilingual multi-section RepoChan landing page with editorial harbor imagery, visible artifact handoffs, and foundation-first brand evidence.",
+  "style": "editorial-continuous-harbor",
+  "tags": ["landing", "multi-section", "bilingual", "editorial", "character-led", "continuous"],
+  "previews": {
+    "desktop": "repochan/previews/desktop.png",
+    "mobile": "repochan/previews/mobile.png"
+  },
+  "config": {
+    "site": "repochan/site.json",
+    "assets": "repochan/assets.json",
+    "i18nDir": "repochan/i18n"
+  },
+  "content": {
+    "defaultLocale": "en",
+    "supportedLocales": ["en", "zh"]
+  },
+  "assets": [
+    {
+      "kind": "scalar",
+      "slot": "hero-composite",
+      "required": true,
+      "reference": "public/assets/hero-composition-guide.png",
+      "output": "public/assets/hero-composite.webp",
+      "description": "A 16:9 environment-and-character composite. The abstract reference preserves only left-side live-content safety and broad visual density; it carries no character pose information.",
+      "order": {
+        "assetType": "hero_composite",
+        "templateId": "official/hero-character-migrate-localize",
+        "brief": {
+          "mustInclude": [
+            "keep the abstract guide's left live-content safe zone visually quiet",
+            "use the composition guide only for density, architectural axes, and transition rhythm",
+            "choose a new character pose freely from the target foundation identity"
+          ],
+          "avoid": [
+            "copying or inferring any original character pose",
+            "baked interface controls or typography"
+          ],
+          "creativeFreedom": [
+            "character gesture, crop, camera angle, lighting, and project-specific environment"
+          ]
+        },
+        "deliverables": [
+          { "name": "hero-composite", "format": "png", "width": 2560, "height": 1440, "aspectRatio": "16:9" }
+        ]
+      },
+      "postprocess": [
+        { "op": "compress", "args": { "format": "webp", "quality": 84, "maxWidth": 2560 }, "out": "public/assets/hero-composite.webp" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "cta-composite",
+      "required": true,
+      "reference": "public/assets/cta-composition-guide.png",
+      "output": "public/assets/cta-composite.webp",
+      "description": "A 3:2 closing-section composite. The abstract reference preserves the left-to-center CTA safe zone and right-side visual density without retaining a character silhouette or pose.",
+      "order": {
+        "assetType": "section_composite",
+        "templateId": "official/section-character-migrate-localize",
+        "brief": {
+          "mustInclude": [
+            "keep the abstract guide's left and center live-content safe zone visually quiet",
+            "use the composition guide only for density, architectural axes, and transition rhythm",
+            "choose a new character pose freely from the target foundation identity"
+          ],
+          "avoid": [
+            "copying or inferring any original character pose",
+            "baked interface controls or typography"
+          ],
+          "creativeFreedom": [
+            "character action, crop, camera angle, lighting, and project-specific closing environment"
+          ]
+        },
+        "deliverables": [
+          { "name": "cta-composite", "format": "png", "width": 1536, "height": 1024, "aspectRatio": "3:2" }
+        ]
+      },
+      "postprocess": [
+        { "op": "compress", "args": { "format": "webp", "quality": 84, "maxWidth": 1536 }, "out": "public/assets/cta-composite.webp" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "pattern-tile",
+      "required": true,
+      "output": "public/assets/pattern.webp",
+      "description": "The canonical low-contrast seamless page pattern shared by the capabilities and evidence beats.",
+      "order": {
+        "assetType": "visual_pattern",
+        "templateId": "official/pattern-tile",
+        "brief": {
+          "mustInclude": ["one seamless square tile", "low-contrast project motifs suitable behind live content"],
+          "avoid": ["characters", "frames", "dense focal illustrations"],
+          "creativeFreedom": ["motif geometry and density"]
+        },
+        "deliverables": [
+          { "name": "pattern-tile", "format": "png", "width": 768, "height": 768, "aspectRatio": "1:1" }
+        ]
+      },
+      "postprocess": [
+        { "op": "compress", "args": { "format": "webp", "quality": 86, "maxWidth": 1024 }, "out": "public/assets/pattern.webp" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "foundation-art",
+      "required": true,
+      "output": "public/assets/foundation.webp",
+      "description": "The project's approved foundation sheet shown as the first item in the versioned-evidence gallery.",
+      "order": {
+        "assetType": "foundation_sheet",
+        "templateId": "official/foundation-sheet",
+        "brief": {
+          "mustInclude": ["a complete project character foundation sheet"],
+          "avoid": ["unrelated secondary characters"],
+          "creativeFreedom": ["project-specific visual identity"]
+        },
+        "deliverables": [
+          { "name": "foundation", "format": "png", "width": 1024, "height": 1024, "aspectRatio": "1:1" }
+        ]
+      },
+      "postprocess": [
+        { "op": "compress", "args": { "format": "webp", "quality": 88, "maxWidth": 1400 }, "out": "public/assets/foundation.webp" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "design-hero-evidence",
+      "required": true,
+      "output": "public/assets/design-hero.webp",
+      "description": "A localized visual-design artifact used as real evidence in the gallery, not as a production page background.",
+      "order": {
+        "assetType": "section_design",
+        "templateId": "official/section-design",
+        "brief": {
+          "mustInclude": ["a project-specific hero and capability design artifact", "readable project-specific live-page content hierarchy"],
+          "avoid": ["generic stock dashboard layouts"],
+          "creativeFreedom": ["section composition and character integration"]
+        },
+        "deliverables": [
+          { "name": "design-hero", "format": "png", "width": 1536, "height": 1024, "aspectRatio": "3:2" }
+        ]
+      },
+      "postprocess": [
+        { "op": "compress", "args": { "format": "webp", "quality": 84, "maxWidth": 1536 }, "out": "public/assets/design-hero.webp" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "design-workflow-evidence",
+      "required": true,
+      "output": "public/assets/design-workflow.webp",
+      "description": "A localized workflow/proof visual-design artifact used as versioned evidence in the gallery.",
+      "order": {
+        "assetType": "section_design",
+        "templateId": "official/section-design",
+        "brief": {
+          "mustInclude": ["a project-specific workflow and proof design artifact", "clear sequential handoff structure"],
+          "avoid": ["generic stock dashboard layouts"],
+          "creativeFreedom": ["section composition and project-specific evidence"]
+        },
+        "deliverables": [
+          { "name": "design-workflow", "format": "png", "width": 1536, "height": 1024, "aspectRatio": "3:2" }
+        ]
+      },
+      "postprocess": [
+        { "op": "compress", "args": { "format": "webp", "quality": 84, "maxWidth": 1536 }, "out": "public/assets/design-workflow.webp" }
+      ]
+    }
+  ]
+}

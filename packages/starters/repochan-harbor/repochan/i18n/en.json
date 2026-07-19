@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "RepoChan — Turn any repository into a living visual brand",
+    "description": "A local-first, agent-agnostic creative production protocol for mascot personas, consistent brand assets, and project websites."
+  },
+  "content": {
+    "routing": {
+      "lang": "en",
+      "path": "/",
+      "alternatePath": "/zh/",
+      "alternateHreflang": "zh-CN"
+    },
+    "a11y": {
+      "skip": "Skip to content",
+      "openMenu": "Open navigation",
+      "closeMenu": "Close navigation",
+      "brandHome": "RepoChan home",
+      "productQualities": "RepoChan product qualities"
+    },
+    "nav": {
+      "ariaLabel": "Primary navigation",
+      "repositoryLabel": "GitHub",
+      "alternateLabel": "中文",
+      "links": [
+        { "label": "Why RepoChan", "href": "#why" },
+        { "label": "Workflow", "href": "#workflow" },
+        { "label": "Architecture", "href": "#architecture" },
+        { "label": "Gallery", "href": "#gallery" }
+      ]
+    },
+    "hero": {
+      "imageAlt": "Repona holding a translucent mother-pattern board in a bright harbor workshop",
+      "eyebrow": "Local-first creative production",
+      "titleStart": "Turn any repository into a",
+      "titleAccent": "living visual brand.",
+      "body": "RepoChan guides your coding agent through analysis, persona design, foundation art, consistent assets, and an original project site — all as versioned local artifacts.",
+      "primary": "Start with RepoChan",
+      "secondary": "View on GitHub",
+      "trust": ["Agent-agnostic", "Foundation-first", "Versioned artifacts"]
+    },
+    "capabilities": {
+      "eyebrow": "Why RepoChan",
+      "title": "Creative freedom, reliable handoffs.",
+      "body": "The protocol keeps the rails dependable while your own agent makes the creative calls.",
+      "items": [
+        {
+          "icon": "artifact",
+          "title": "Artifact-centric",
+          "body": "Every stage leaves a schema-validated, versioned artifact you can inspect and recover.",
+          "note": ".repochan/ is the source of truth"
+        },
+        {
+          "icon": "foundation",
+          "title": "Foundation-first",
+          "body": "One approved visual anchor keeps characters, scenes, patterns, and pages recognizably consistent.",
+          "note": "Identity before production"
+        },
+        {
+          "icon": "agent",
+          "title": "Your agent, your judgment",
+          "body": "RepoChan supplies deterministic commands and creative skills — never an embedded model loop.",
+          "note": "Bring Codex, Claude, Pi, or any agent"
+        }
+      ]
+    },
+    "workflow": {
+      "eyebrow": "One sentence. Six specialized teams.",
+      "title": "From repository signal to a brand you can ship.",
+      "body": "Each team owns one clear handoff. The work stays creative because the boundaries stay explicit.",
+      "steps": [
+        { "icon": "search", "title": "Analyze", "body": "Read structure, intent, and project weight." },
+        { "icon": "persona", "title": "Persona", "body": "Give the repository a voice and a world." },
+        { "icon": "foundation", "title": "Foundation", "body": "Lock the character and visual anchor." },
+        { "icon": "assets", "title": "Assets", "body": "Paint a consistent brand system." },
+        { "icon": "website", "title": "Website", "body": "Design for the real project and content." },
+        { "icon": "ship", "title": "Ship", "body": "Build, review, and prepare deployment." }
+      ]
+    },
+    "architecture": {
+      "eyebrow": "Architecture / proof",
+      "titleStart": "Strict where it matters.",
+      "titleAccent": "Open where it counts.",
+      "principles": [
+        { "title": "core + skill at the center", "body": "Deterministic rules and creative judgment stay separate." },
+        { "title": "CLI is the sole binding surface", "body": "Stable, scriptable, and environment-agnostic." },
+        { "title": "agent is yours", "body": "Bring your own model, tools, and working style." },
+        { "title": ".repochan/ keeps versions", "body": "Artifacts remain local, diff-friendly, and recoverable." }
+      ],
+      "graphTitle": "Acyclic by design",
+      "graphAriaLabel": "CLI depends on core, skill, image generation, image editing, templates, and starters",
+      "graphLead": "cli",
+      "graphNodes": ["core", "skill", "image-gen", "image-edit", "templates", "starters"],
+      "artifactsTitle": "The handoff stays visible",
+      "artifacts": ["analysis/current.json", "persona/current.json", "orders/<id>/versions/<vid>/"]
+    },
+    "gallery": {
+      "eyebrow": "Versioned evidence",
+      "title": "Every beat leaves something real.",
+      "body": "These are actual artifacts from this repository’s RepoChan run — not invented product metrics or stock examples.",
+      "items": [
+        { "assetSlot": "foundation-art", "title": "Repona foundation", "type": "Visual anchor", "ratio": "square" },
+        { "assetSlot": "pattern-tile", "title": "Nested-arch pattern", "type": "Shared L1 texture", "ratio": "square" },
+        { "assetSlot": "design-hero-evidence", "title": "Harbor direction", "type": "Gate 1B · Hero", "ratio": "wide" },
+        { "assetSlot": "design-workflow-evidence", "title": "Handoff sequence", "type": "Gate 1B · Workflow", "ratio": "wide" }
+      ],
+      "open": "Open artifact"
+    },
+    "cta": {
+      "eyebrow": "Ready when you are",
+      "titleStart": "Keep the origin.",
+      "titleAccent": "Pass the next beat.",
+      "body": "Bring the coding agent you already use. RepoChan gives it a dependable creative production protocol.",
+      "installCommand": "npm install -g repochan",
+      "primary": "Read the docs",
+      "secondary": "View on GitHub",
+      "copy": "Copy install command",
+      "copied": "Copied"
+    },
+    "footer": {
+      "line": "Core keeps the rules · Skill supplies the ideas · Your agent does the work.",
+      "source": "Source on GitHub"
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "RepoChan",
+    "description": "A local-first, agent-agnostic creative production protocol that turns repositories into living visual brands.",
+    "repositoryUrl": "https://github.com/l1veIn/repochan-mono"
+  },
+  "theme": {
+    "primary": "#2D50C8",
+    "base": "#F3E9D2",
+    "ink": "#16324F",
+    "accents": [
+      "#123474",
+      "#DFE8FF",
+      "#FFFAF0",
+      "#FFFDF8",
+      "#FF6B5D",
+      "#FFE3DB",
+      "#27B3A2",
+      "#087F7D",
+      "#D9F2ED",
+      "#082653",
+      "#586878",
+      "#FFFFFF",
+      "#081421",
+      "#BE8F4C",
+      "#AB7630"
+    ]
+  },
+  "brand": {
+    "artStyle": "Editorial cel shading with warm paper grain, modern harbor architecture, continuous tide lines, and precise geometric handoff motifs.",
+    "motifs": [
+      "nested harbor arches",
+      "translucent mother-pattern boards",
+      "continuous tide lines",
+      "three-part handoff mark"
+    ],
+    "patterns": [
+      "low-contrast nested arch tile",
+      "cobalt and sea-glass tide line",
+      "coral missing-cell marker"
+    ]
+  },
+  "locales": {
+    "default": "en",
+    "supported": ["en", "zh"]
+  }
+}
