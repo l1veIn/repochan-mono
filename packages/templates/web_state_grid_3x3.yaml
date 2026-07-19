@@ -43,6 +43,7 @@ prompt_template: |
 constraints:
   - "strict 3-row × 3-column grid with exactly 9 stickers in the declared fixed semantic order"
   - "perfectly flat uniform matte background using a color absent from the character, costume, props, outlines, and effects"
+  - "matte_color must NOT be white (#FFFFFF) or near-white — most characters contain white in their outfit/highlights/eyes, and a white matte would be punched out together with those whites during chroma-key extraction, destroying the silhouette"
   - "the matte is not a character color and must remain identical in every pixel outside the stickers"
   - "every sticker has generous clear matte margin and must not touch or cross any cell edge"
   - "no sticker, prop, effect, shadow, or decoration spans multiple cells"

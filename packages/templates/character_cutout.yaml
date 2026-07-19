@@ -30,4 +30,5 @@ constraints:
   - "NO props, furniture, scenery, or background elements — character only"
   - "NO text, watermark, or signature"
   - "clean self-contained silhouette suitable for chroma-key extraction"
-  - "pick a matte_color that does NOT appear in the character's palette"
+  - "matte_color must be a color absent from the character, costume, props, outlines, and effects"
+  - "matte_color must NOT be white (#FFFFFF) or near-white — most characters contain white in their outfit/highlights/eyes, and a white matte would be punched out together with those whites during chroma-key extraction, destroying the silhouette"

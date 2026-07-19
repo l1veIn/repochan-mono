@@ -25,6 +25,7 @@ constraints:
   - "generous margin around every sticker; stickers must not touch cell edges or each other"
   - "stickers must not overlap or merge; every sticker must form one isolated foreground silhouette"
   - "perfectly flat uniform matte background of pure {{matte_color}} — no off-color, grey, gradient, or texture"
-  - "pick a matte_color that does NOT appear in the character's palette"
+  - "matte_color must be a color absent from the character, costume, props, outlines, and effects"
+  - "matte_color must NOT be white (#FFFFFF) or near-white — most characters contain white in their outfit/highlights/eyes, and a white matte would be punched out together with those whites during chroma-key extraction, destroying the silhouette"
   - "each sticker must be simple and minimal — no background props, no text labels, no complex scenery inside any cell"
   - "no borders, frames, dividing lines, grid lines, or cell boxes"
