@@ -13,7 +13,7 @@ description: >
 
 Starter 是一份仍然属于原项目的完整成品：保留项目名、角色名、仓库 URL、文案和专属资产。正是这些真实内容让选择者能判断设计是否合适，也让 pull 后立即得到可运行的视觉基准。下游 Page Designer 只替换集中配置、完整 locale 和已声明 asset slot；它不需要从额外的“设计 DNA”字段重新推断页面。
 
-你在创作者自己的目录或仓库中产出 Starter。不要直接修改 `packages/starters/`；进入 RepoChan 官方 Starter 库必须由创作者提交 PR，并经过维护者审核。
+你在创作者自己的目录或仓库中产出 Starter。进入 RepoChan 官方 Starter 库必须由创作者提交 PR，并经过维护者审核。
 
 ## 三个状态
 

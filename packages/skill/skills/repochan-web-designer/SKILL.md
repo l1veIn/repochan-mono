@@ -9,7 +9,7 @@ description: >
 
 # RepoChan 原创网页设计师
 
-为一个具体项目创造并实现网站。你决定信息架构、艺术方向、section 构图、角色出场方式和动效；你不把结果直接称为 reusable starter，也不修改 `packages/starters/`。
+为一个具体项目创造并实现网站。你决定信息架构、艺术方向、section 构图、角色出场方式和动效；
 
 只通过 `repochan` CLI 写 `.repochan/` 协议状态。页面实现写入用户指定的网站工作目录；开始前明确该目录，避免覆盖现有站点。
 
@@ -53,7 +53,6 @@ description: >
 - 角色、纹理和动效服务于内容，不是 foundation 元素堆砌。
 - 每个 section 有 bake mask、responsive 规则与可追溯生产资产。
 - 页面通过 build 和两次视觉门禁；普通流程由人类批准，yolo/CI 明确记录 `auto-approved` 且不得冒充 human-approved。
-- 未修改 `packages/starters/`，也未把项目专属实现冒充成 starter。
 
 ## References
 

@@ -11,7 +11,7 @@ description: >
 
 把一个完整成品 Starter 应用到具体项目，不负责原创网页设计。Starter 的设计已经存在于预览、源码和图片中；不要重新推断或重写它。
 
-不得新增/删除 section、改变信息架构、重做艺术方向或核心构图。没有合适 Starter 时转 `repochan-web-designer`。只通过 `repochan` CLI 写 RepoChan 协议与 Starter 实例数据，不修改官方 `packages/starters/`。
+不得新增/删除 section、改变信息架构、重做艺术方向或核心构图。没有合适 Starter 时转 `repochan-web-designer`。
 
 ## 工作流
 
