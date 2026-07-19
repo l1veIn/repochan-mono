@@ -1,0 +1,30 @@
+---
+// cta — baked L1+L2 morning composite (ord-web-cta-composite-001), live L3/L4.
+// Safe zone: headline x:0.25–0.75 y:0.25–0.60, buttons x:0.32–0.68 y:0.62–0.78.
+import type { Copy } from '../lib/copy';
+const { c } = Astro.props as { c: Copy };
+---
+
+<section class="band cta" id="get-started" aria-label={c.cta.mediaLabel}>
+  <div class="cta-media" role="img" aria-label={c.cta.mediaLabel}></div>
+  <div class="cta-inner">
+    <h2>{c.cta.title}</h2>
+    <p class="lede">{c.cta.lede}</p>
+    <p class="chip">
+      <code>{c.cta.install}</code>
+      <button class="copy-btn" data-copy={c.cta.install} data-copied-label={c.cta.copied}>{c.cta.copy}</button>
+    </p>
+    <div class="actions">
+      <a class="btn btn-solid" href={c.getStartedUrl} rel="noopener">{c.cta.getStarted}</a>
+      <a class="btn btn-ghost" href={c.docsUrl} rel="noopener">{c.cta.docs}</a>
+    </div>
+  </div>
+  <!-- mirrored half-seal closing the scroll (x:0.15, y:1.0 — pairs with hero) -->
+  <svg class="seal-motif seal-cta" viewBox="0 0 100 100" aria-hidden="true">
+    <g style="fill:none;stroke:var(--amber-deep)" stroke-width="3">
+      <path d="M50 6 a44 44 0 1 1 -0.01 0" opacity="0.9" />
+      <circle cx="50" cy="50" r="30" opacity="0.55" />
+      <path d="M50 30 l5.5 14.5 14.5 5.5 -14.5 5.5 -5.5 14.5 -5.5 -14.5 -14.5 -5.5 14.5 -5.5 z" style="fill:var(--amber-deep);stroke:none" opacity="0.85" />
+    </g>
+  </svg>
+</section>

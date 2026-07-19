@@ -1,0 +1,202 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "zh",
+  "meta": {
+    "title": "RepoChan —— 把任意 git 仓库变成有生命力的品牌",
+    "description": "RepoChan 是 LLM-native、local-first、agent-agnostic 的创意生产协议：由你自己的 coding agent 把 git 仓库变成吉祥物人设与一致的视觉品牌。"
+  },
+  "content": {
+    "ogImage": "/assets/gallery-banner.webp",
+    "a11y": {
+      "skipLink": "跳到主要内容"
+    },
+    "nav": {
+      "ariaLabel": "主导航",
+      "brand": "RepoChan",
+      "brandIconAlt": "RepoChan 火漆印图标",
+      "links": [
+        { "href": "#paradigm", "label": "范式" },
+        { "href": "#pipeline", "label": "管线" },
+        { "href": "#architecture", "label": "架构" },
+        { "href": "#brand-kit", "label": "品牌资产" },
+        { "href": "#starters", "label": "Starters" },
+        { "href": "#principles", "label": "设计原则" }
+      ],
+      "github": "GitHub",
+      "menuToggle": "菜单",
+      "switchLocale": "English"
+    },
+    "hero": {
+      "mediaLabel": "深夜工房场景：纸白长发的吉祥物仓库酱穿着深苔绿围裙，在台灯下把黄铜火漆印盖在一份契约上。",
+      "title1": "把任意 git 仓库变成",
+      "titleEm": "有生命力的吉祥物人⁠设",
+      "title2": "与一致的视觉品牌",
+      "lede": "LLM-native、local-first、agent-agnostic 的创意生产协议。无内嵌 agent runtime——带上你自己的 Claude Code、Codex、Pi、Cursor、Hermes 或任何能跑 shell 的 agent。",
+      "install": "npm install -g repochan",
+      "copy": "复制",
+      "copied": "已复制",
+      "getStarted": "快速上手",
+      "github": "GitHub"
+    },
+    "paradigm": {
+      "eyebrow": "范式",
+      "title": "不信对话历史，只信落盘产物",
+      "lede": "聊天记录是天气，artifact 才是气候。RepoChan 把硬约束写进代码、把创意判断留在 prompt——唯一事实来源是磁盘上版本化的协议树。",
+      "compareNo": {
+        "title": "在对话里自由发挥",
+        "body": "agent 记忆、滚动历史与良好意愿。无版本、不可验证、不可恢复。"
+      },
+      "compareYes": {
+        "title": "Artifact-centric 管线",
+        "body": "每个角色都在 .repochan/ 下产出 schema 校验过的版本化 artifact——原子写入、拒绝覆盖。"
+      },
+      "treeLabel": ".repochan/ 协议树",
+      "tree": ".repochan/\n  analysis/current.json          # Analyst（分析师）\n  interview/current.json         # Interviewer（可选）\n  persona/current.json           # Creative team（创意团队）\n  orders/<id>/order.json         # Art director 的约稿单\n  orders/<id>/versions/<vid>/    # Painter 的交付（meta + 图像）",
+      "quote": "Constraints in code, judgment in prompts.",
+      "quoteNote": "RepoChan 设计原则第一条",
+      "cameoAlt": "Q 版仓库酱举着放大镜检视协议树"
+    },
+    "pipeline": {
+      "eyebrow": "管线",
+      "title": "一句话进，完整品牌出——中间三道检查点",
+      "lede": "你对自己的 agent 说话，wizard skill 负责调度六个角色。每一次暂停都是人类检查点，不是形式主义。",
+      "steps": [
+        { "tag": "v1", "title": "Analyst", "body": "确定性扫描加 LLM 增强，产出分析报告。" },
+        { "tag": "v2", "title": "Interviewer", "body": "可选。结构化提问，把你的审美蒸馏成访谈报告。" },
+        { "tag": "v3", "title": "Creative team", "body": "世界架构师 + 角色设计师 + 一致性守护者，产出 persona。", "gate": "检查点：确认 persona" },
+        { "tag": "v4", "title": "Art director", "body": "先下 foundation 设定集，再下全部下游资产订单。" },
+        { "tag": "v5", "title": "Painter", "body": "以 foundation 为锚出图，下游资产引用设定集。", "gate": "检查点：确认设定集画风" },
+        { "tag": "v6", "title": "Page designer", "body": "落地页与部署准备——就像你正在看的这个站点。", "gate": "检查点：部署之前" }
+      ],
+      "cameoStartAlt": "Q 版仓库酱指向管线第一步",
+      "cameoEndAlt": "Q 版仓库酱在管线终点庆祝",
+      "modesCaption": "运行模式",
+      "modesHead": ["模式", "时机", "行为"],
+      "modes": [
+        ["Wizard（默认）", "「给我做个吉祥物和网站」", "全流程，停在每个检查点"],
+        ["yolo", "你明确说 yolo", "已授权范围内采用默认创意决策；外部写入仍需明确授权"],
+        ["Non-interactive", "CI / 无 TTY", "自动选择本地可逆决策；在未授权的外部写入前停止"],
+        ["Per-team（高级）", "「只跑分析」", "运行单个团队 skill"]
+      ]
+    },
+    "architecture": {
+      "eyebrow": "架构",
+      "title": "四层约束栈，唯一的薄绑定面",
+      "lede": "这套栈把必须确定的部分与必须保持创意的部分分开。CLI 是唯一的门。",
+      "layers": [
+        { "name": "schema", "mono": "形状契约", "body": "Zod schema 把守 artifact 的形状——是门禁，不是审美的镜子。" },
+        { "name": "protocol", "mono": "current.json + versions/", "body": "双轨持久化、safeProtocolPath、EEXIST 拒绝覆盖的原子写入。" },
+        { "name": "entities", "mono": "state machine", "body": "OrderStatus 六态机、依赖门、审批门。" },
+        { "name": "skill", "mono": "软约束", "body": "纯 markdown 的判断力：如何运行管线，由你的 agent 执行。" }
+      ],
+      "cliBar": "repochan —— 唯一的绑定面",
+      "pkgCaption": "七个包，单向依赖：cli → 叶子包",
+      "pkgHead": ["包", "职责"],
+      "pkgs": [
+        ["core", ".repochan/ 读写、schema 门禁、state machine、分析引擎——零凭证、零像素"],
+        ["skill", "wizard + 团队 skills，纯 markdown"],
+        ["cli", "唯一 bin：确定性子命令 + skill 安装"],
+        ["image-gen", "prompt → PNG；唯一存放凭证的地方"],
+        ["image-edit", "本地像素处理：slice / bg-remove / GIF"],
+        ["templates", "内置资产 YAML 模板"],
+        ["starters", "落地页 starter 脚手架"]
+      ],
+      "note": "图像库从不写 .repochan/；协议写入永远经过 core。core 在构造上就是零凭证、零 agent、零像素。"
+    },
+    "brandKit": {
+      "eyebrow": "自证",
+      "title": "本页面本身就是管线产出",
+      "lede": "这个站点上的每一张图都由它所描述的管线生产——persona、foundation、贴纸、海报、横幅、pattern、icon。每张卡片都标注可验证的 orderId。",
+      "cards": [
+        { "img": "/assets/gallery-foundation.webp", "square": true, "title": "Foundation 设定集", "body": "所有下游资产共同引用的唯一视觉锚点。", "orderId": "ord-foundation-001", "alt": "仓库酱 foundation 角色设定集" },
+        { "img": "/assets/gallery-poster.webp", "title": "海报", "body": "深夜工房 signature scene，后续美术的风格参照。", "orderId": "ord-poster-001", "alt": "仓库酱海报，深夜工房场景" },
+        { "img": "/assets/gallery-sticker.webp", "square": true, "title": "3×3 贴纸", "body": "uniform-matte 语义网格——本页的 cameo 都从它切片而来。", "orderId": "ord-sticker-001", "alt": "仓库酱 3×3 Q 版贴纸网格" },
+        { "img": "/assets/icon.webp", "square": true, "title": "Icon", "body": "品牌标识、favicon 来源、导航火漆印。", "orderId": "ord-icon-001", "alt": "RepoChan 火漆印图标" },
+        { "img": "/assets/gallery-banner.webp", "title": "README 横幅", "body": "社交分享 / og:image 预览横幅。", "orderId": "ord-readme-banner-001", "alt": "RepoChan README 横幅" },
+        { "img": "/assets/pattern-tile.webp", "square": true, "title": "Pattern tile", "body": "canonical L1b：一张无缝火漆戳 tile，全站 CSS 参数化复用。", "orderId": "ord-pattern-001", "alt": "无缝火漆戳 pattern tile" }
+      ],
+      "self": {
+        "title": "……以及本页面",
+        "body": "hero 与 cta 合成图、cameo 切片、配色与字体——全部经由你刚读到的同一条订单管线交付。",
+        "orderId": "ord-web-hero-composite-001 · ord-web-cta-composite-001"
+      },
+      "lightboxClose": "关闭"
+    },
+    "starters": {
+      "eyebrow": "Starters",
+      "title": "今天就能 pull 的成品脚手架",
+      "lede": "monorepo 自带四套完整 Astro 落地页 starter——可检视、可拉取、可本地化。",
+      "items": [
+        { "id": "caddy", "img": "/assets/starters/caddy.webp", "name": "Caddy Gatehouse", "body": "自动 HTTPS 叙事，网关母题与有序的段落转场。" },
+        { "id": "marktext", "img": "/assets/starters/marktext.webp", "name": "MarkText Midnight Editorial", "body": "午夜 Art Deco hero、纸质段落与真实编辑器画廊。" },
+        { "id": "minimal", "img": "/assets/starters/minimal.webp", "name": "Minimal Hero", "body": "默认的纯 Hero starter：一个构图、一个视觉 slot。" },
+        { "id": "redis", "img": "/assets/starters/redis.webp", "name": "Redis Signal Relay", "body": "动感赛璐璐角色美术，共享无缝 relay pattern。" }
+      ],
+      "previewAltPrefix": "starter 预览截图：",
+      "cmdPrefix": "repochan starter pull --starter "
+    },
+    "principles": {
+      "eyebrow": "契约条款",
+      "title": "六条设计原则，像条款一样写下来",
+      "lede": "简短、编号、有约束力——就像协议对待其他每一个承诺一样。",
+      "clauses": [
+        { "title": "Constraints in code, judgment in prompts", "body": "确定性门禁优先于 skill 散文。" },
+        { "title": "CLI is the only binding surface", "body": "agent 通过 shell 调用；MCP（如果有）只是 CLI 的薄封装。" },
+        { "title": "No embedded runtime", "body": "没有会「思考」的 repochan run；wizard skill 加你的 agent 才是大脑。" },
+        { "title": "Image libs do not write .repochan/", "body": "字节只出不进；协议写入只经过 core。" },
+        { "title": "Credentials stay in image-gen", "body": "~/.repochan/image.json 加环境变量；core 与 cli 永远看不到密钥。" },
+        { "title": "Foundation-first consistency", "body": "先立一个视觉锚点，下游美术全部引用驱动。" }
+      ],
+      "limitsTitle": "诚实边界",
+      "limits": [
+        "仓库不带 CI 配置，也不带 lint 配置。",
+        "无失效传播：改 persona 不会自动把依赖它的 order 标为 stale。",
+        "schema 保证「合法」，不保证「好看」——质量住在 skill 与 review 里。",
+        "state machine 刻意保持刚性；恢复路径是显式的，不靠魔法。"
+      ],
+      "archLink": "完整论证见 ARCHITECTURE.md →",
+      "archUrl": "https://github.com/l1veIn/repochan-mono/blob/main/ARCHITECTURE.md",
+      "catchphrase": "「说得再好——写下来才算数哦。」",
+      "catchphraseNote": "契印工房看守人，仓库酱"
+    },
+    "cta": {
+      "mediaLabel": "清晨场景：工房长桌上一排刚封存、挂了编号签的契约，仓库酱抱着完成的档案站在一旁。",
+      "title": "写下来，才算数。把品牌封存交付。",
+      "lede": "Node ≥ 20、你自己的 agent、一次全局安装。下一份封存的契约，可以是你的。",
+      "install": "npm install -g repochan",
+      "copy": "复制",
+      "copied": "已复制",
+      "getStarted": "快速上手",
+      "docs": "阅读文档"
+    },
+    "footer": {
+      "docsTitle": "文档地图",
+      "docs": [
+        { "href": "https://github.com/l1veIn/repochan-mono/blob/main/ARCHITECTURE.md", "label": "ARCHITECTURE.md —— 分层、包、绑定模型" },
+        { "href": "https://github.com/l1veIn/repochan-mono/tree/main/packages/skill", "label": "packages/skill —— skill 清单" },
+        { "href": "https://github.com/l1veIn/repochan-mono/tree/main/packages/core", "label": "packages/core —— core API" },
+        { "href": "https://github.com/l1veIn/repochan-mono/tree/main/packages/image-gen", "label": "packages/image-gen —— 生成配置" },
+        { "href": "https://github.com/l1veIn/repochan-mono/tree/main/packages/starters", "label": "packages/starters —— starter 脚手架" }
+      ],
+      "metaTitle": "项目",
+      "repo": "GitHub 仓库",
+      "license": "许可证",
+      "licenseUrl": "https://github.com/l1veIn/repochan-mono/blob/main/LICENSE",
+      "sealLine": "封存于 .repochan/",
+      "fine": "RepoChan —— LLM-native 创意生产协议。人设与美术：仓库酱（契印工房）。",
+      "finePrint": ["© 2026 RepoChan contributors", "MIT License", "repochan-mono"],
+      "switchLocale": "English version"
+    },
+    "notFound": {
+      "pageTitle": "404 —— 这一页没有落纸 · RepoChan",
+      "pageDescription": "这页承诺从未被写下来。",
+      "heading": "404 —— 这页承诺没有落纸。",
+      "lede": "这页承诺没有落纸，天亮前消散了。",
+      "backLabel": "回到契约长卷",
+      "cameoAlt": "仓库酱举着放大镜检视失踪的页面"
+    },
+    "githubUrl": "https://github.com/l1veIn/repochan-mono",
+    "getStartedUrl": "https://github.com/l1veIn/repochan-mono#getting-started",
+    "docsUrl": "https://github.com/l1veIn/repochan-mono#readme"
+  }
+}

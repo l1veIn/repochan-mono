@@ -1,0 +1,46 @@
+---
+// pipeline — HTML-first (§6.4): six roles, live SVG/CSS connectors,
+// CELL7 cameo at the start, CELL5 at the end, run-mode table.
+import type { Copy } from '../lib/copy';
+import { assets } from '../lib/site';
+const { c } = Astro.props as { c: Copy };
+---
+
+<section class="band pipeline with-pattern" id="pipeline" aria-labelledby="pipeline-title">
+  <div class="wrap">
+    <div class="band-head">
+      <p class="eyebrow">{c.pipeline.eyebrow}</p>
+      <h2 id="pipeline-title">{c.pipeline.title}</h2>
+      <p class="lede">{c.pipeline.lede}</p>
+    </div>
+    <div class="pipeline-stage">
+      <img class="cameo cameo-pipeline-start" src={assets["sticker-cells"].items.cta.src} alt={c.pipeline.cameoStartAlt} width="150" height="150" loading="lazy" />
+      <ol class="steps">
+        {c.pipeline.steps.map((s) => (
+          <li class="step">
+            <span class="tag">{s.tag}</span>
+            <h3>{s.title}</h3>
+            <p>{s.body}</p>
+            {s.gate && <span class="gate">⏸ {s.gate}</span>}
+          </li>
+        ))}
+      </ol>
+      <img class="cameo cameo-pipeline-end" src={assets["sticker-cells"].items.success.src} alt={c.pipeline.cameoEndAlt} width="150" height="150" loading="lazy" />
+    </div>
+    <div class="modes">
+      <table>
+        <caption>{c.pipeline.modesCaption}</caption>
+        <thead>
+          <tr>{c.pipeline.modesHead.map((h) => <th scope="col">{h}</th>)}</tr>
+        </thead>
+        <tbody>
+          {c.pipeline.modes.map((row) => (
+            <tr>{row.map((cell) => <td>{cell}</td>)}</tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+<!-- transition out: dawn cools into steel noon (pipeline→architecture) -->
+<div class="cool-seam" aria-hidden="true"></div>

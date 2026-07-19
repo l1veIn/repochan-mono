@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "repochan.starter-assets.v1",
+  "assets": {
+    "hero-composite": {
+      "kind": "scalar",
+      "src": "/assets/hero-composite.webp",
+      "status": "source",
+      "orderId": "ord-web-hero-composite-001"
+    },
+    "cta-composite": {
+      "kind": "scalar",
+      "src": "/assets/cta-composite.webp",
+      "status": "source",
+      "orderId": "ord-web-cta-composite-001"
+    },
+    "pattern-tile": {
+      "kind": "scalar",
+      "src": "/assets/pattern-tile.webp",
+      "status": "source",
+      "orderId": "ord-pattern-001"
+    },
+    "icon": {
+      "kind": "scalar",
+      "src": "/assets/icon.webp",
+      "status": "source",
+      "orderId": "ord-icon-001"
+    },
+    "sticker-cells": {
+      "kind": "bundle",
+      "status": "source",
+      "orderId": "ord-sticker-001",
+      "items": {
+        "welcome": { "src": "/assets/cameos/welcome.png", "status": "source" },
+        "searching": { "src": "/assets/cameos/searching.png", "status": "source" },
+        "loading": { "src": "/assets/cameos/loading.png", "status": "source" },
+        "empty": { "src": "/assets/cameos/empty.png", "status": "source" },
+        "error": { "src": "/assets/cameos/error.png", "status": "source" },
+        "success": { "src": "/assets/cameos/success.png", "status": "source" },
+        "not-found": { "src": "/assets/cameos/not-found.png", "status": "source" },
+        "cta": { "src": "/assets/cameos/cta.png", "status": "source" },
+        "cozy": { "src": "/assets/cameos/cozy.png", "status": "source" }
+      }
+    }
+  }
+}

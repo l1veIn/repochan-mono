@@ -1,0 +1,42 @@
+---
+// paradigm — HTML-first (§6.3): compare cards, live protocol tree, pull quote.
+// L2 = CELL1 chibi cameo (live cutout from ord-sticker-001).
+import type { Copy } from '../lib/copy';
+import { assets } from '../lib/site';
+const { c } = Astro.props as { c: Copy };
+---
+
+<section class="band paradigm with-pattern" id="paradigm" aria-labelledby="paradigm-title">
+  <div class="wrap">
+    <div class="band-head">
+      <p class="eyebrow">{c.paradigm.eyebrow}</p>
+      <h2 id="paradigm-title">{c.paradigm.title}</h2>
+      <p class="lede">{c.paradigm.lede}</p>
+    </div>
+    <div class="paradigm-grid">
+      <div>
+        <div class="compare">
+          <div class="no">
+            <h3>{c.paradigm.compareNo.title}</h3>
+            <p>{c.paradigm.compareNo.body}</p>
+          </div>
+          <div class="yes">
+            <h3>{c.paradigm.compareYes.title}</h3>
+            <p>{c.paradigm.compareYes.body}</p>
+          </div>
+        </div>
+        <blockquote class="pull-quote">
+          {c.paradigm.quote}
+          <footer>{c.paradigm.quoteNote}</footer>
+        </blockquote>
+      </div>
+      <figure class="protocol-card" aria-label={c.paradigm.treeLabel}>
+        <img class="cameo cameo-paradigm" src={assets["sticker-cells"].items.searching.src} alt={c.paradigm.cameoAlt} width="150" height="150" loading="lazy" />
+        <pre><code>{c.paradigm.tree}</code></pre>
+        <button class="copy-btn" data-copy={c.paradigm.tree} data-copied-label={c.hero.copied}>{c.hero.copy}</button>
+      </figure>
+    </div>
+  </div>
+</section>
+<!-- transition out: hard cut + contract ink line (paradigm→pipeline) -->
+<div class="contract-line" aria-hidden="true"></div>

@@ -1,0 +1,30 @@
+---
+// starters — HTML-first (§6.7): four starter cards with previews copied
+// read-only from packages/starters/*\/repochan/previews/ at asset-derivation time.
+import type { Copy } from '../lib/copy';
+const { c } = Astro.props as { c: Copy };
+---
+
+<section class="band starters with-pattern" id="starters" aria-labelledby="starters-title">
+  <div class="wrap">
+    <div class="band-head">
+      <p class="eyebrow">{c.starters.eyebrow}</p>
+      <h2 id="starters-title">{c.starters.title}</h2>
+      <p class="lede">{c.starters.lede}</p>
+    </div>
+    <ul class="starter-grid">
+      {c.starters.items.map((s) => (
+        <li class="card">
+          <span class="frame">
+            <img src={s.img} alt={`${c.starters.previewAltPrefix}${s.name}`} width="600" height="450" loading="lazy" />
+          </span>
+          <div class="meta">
+            <h3>{s.name}</h3>
+            <p>{s.body}</p>
+            <code>{c.starters.cmdPrefix}{s.id}</code>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>

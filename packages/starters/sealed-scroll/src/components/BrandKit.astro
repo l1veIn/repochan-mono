@@ -1,0 +1,44 @@
+---
+// brand-kit — proof gallery (§6.6): the real delivered assets, each card
+// annotated with its orderId, plus the self-referential "this page" card.
+import type { Copy } from '../lib/copy';
+const { c } = Astro.props as { c: Copy };
+---
+
+<section class="band brand-kit with-pattern" id="brand-kit" aria-labelledby="brand-kit-title">
+  <div class="wrap">
+    <div class="band-head">
+      <p class="eyebrow">{c.brandKit.eyebrow}</p>
+      <h2 id="brand-kit-title">{c.brandKit.title}</h2>
+      <p class="lede">{c.brandKit.lede}</p>
+    </div>
+    <ul class="gallery">
+      {c.brandKit.cards.map((card) => (
+        <li class="card">
+          <button class="frame" data-lightbox data-caption={`${card.title} — ${card.orderId}`}>
+            <img src={card.img} alt={card.alt} class={card.square ? 'square' : ''} width="600" height={card.square ? 600 : 400} loading="lazy" />
+          </button>
+          <div class="meta">
+            <h3>{card.title}</h3>
+            <p>{card.body}</p>
+            <span class="order-id">{card.orderId}</span>
+          </div>
+        </li>
+      ))}
+      <li class="card self">
+        <div class="meta">
+          <h3>{c.brandKit.self.title}</h3>
+          <p>{c.brandKit.self.body}</p>
+          <span class="order-id">{c.brandKit.self.orderId}</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <dialog class="lightbox" aria-label={c.brandKit.lightboxClose}>
+    <button class="close">{c.brandKit.lightboxClose}</button>
+    <figure>
+      <img src="/assets/gallery-foundation.webp" alt="" />
+      <figcaption></figcaption>
+    </figure>
+  </dialog>
+</section>

@@ -1,0 +1,43 @@
+---
+// architecture — HTML-first (§6.5): four-layer constraint stack + package
+// table, steel glow via CSS only, no character cameo.
+import type { Copy } from '../lib/copy';
+const { c } = Astro.props as { c: Copy };
+---
+
+<section class="band architecture with-pattern" id="architecture" aria-labelledby="architecture-title">
+  <div class="wrap">
+    <div class="band-head">
+      <p class="eyebrow">{c.architecture.eyebrow}</p>
+      <h2 id="architecture-title">{c.architecture.title}</h2>
+      <p class="lede">{c.architecture.lede}</p>
+    </div>
+    <div class="arch-grid">
+      <div>
+        <div class="stack">
+          {c.architecture.layers.map((l) => (
+            <div class="layer-card">
+              <h3>{l.name} <span class="mono">{l.mono}</span></h3>
+              <p>{l.body}</p>
+            </div>
+          ))}
+        </div>
+        <p class="cli-bar">{c.architecture.cliBar}</p>
+        <p class="arch-note">{c.architecture.note}</p>
+      </div>
+      <table class="pkg-table">
+        <caption class="eyebrow">{c.architecture.pkgCaption}</caption>
+        <thead>
+          <tr>{c.architecture.pkgHead.map((h) => <th scope="col">{h}</th>)}</tr>
+        </thead>
+        <tbody>
+          {c.architecture.pkgs.map((row) => (
+            <tr>{row.map((cell) => <td>{cell}</td>)}</tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+<!-- transition out: hard cut + contract ink line (architecture→brand-kit) -->
+<div class="contract-line" aria-hidden="true"></div>

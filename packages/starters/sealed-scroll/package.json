@@ -1,0 +1,15 @@
+{
+  "name": "repochan-starter-sealed-scroll",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The Sealed Scroll — RepoChan's own project site as a creator-owned source starter (Astro 5 static, en+zh).",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5.13.0"
+  }
+}

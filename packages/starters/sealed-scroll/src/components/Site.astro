@@ -1,0 +1,33 @@
+---
+// Site assembler — renders the full one-pager for a given locale.
+// Sections follow the IA in DESIGN.md §3; transitions per §6 contract.
+import Base from '../layouts/Base.astro';
+import Nav from './Nav.astro';
+import Hero from './Hero.astro';
+import Paradigm from './Paradigm.astro';
+import Pipeline from './Pipeline.astro';
+import Architecture from './Architecture.astro';
+import BrandKit from './BrandKit.astro';
+import Starters from './Starters.astro';
+import Principles from './Principles.astro';
+import Cta from './Cta.astro';
+import Footer from './Footer.astro';
+import type { Copy } from '../lib/copy';
+
+const { c } = Astro.props as { c: Copy };
+---
+
+<Base c={c}>
+  <Nav c={c} />
+  <main id="main">
+    <Hero c={c} />
+    <Paradigm c={c} />
+    <Pipeline c={c} />
+    <Architecture c={c} />
+    <BrandKit c={c} />
+    <Starters c={c} />
+    <Principles c={c} />
+    <Cta c={c} />
+  </main>
+  <Footer c={c} />
+</Base>

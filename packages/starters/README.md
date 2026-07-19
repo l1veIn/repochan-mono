@@ -68,3 +68,4 @@ Starter Designer works in a creator-owned directory or repository. Official incl
 | `minimal` | RepoChan single-screen editorial Hero | yes |
 | `repochan-harbor` | RepoChan bilingual continuous-harbor landing page | no |
 | `redis` | Redis kinetic real-time signal-relay landing page | no |
+| `sealed-scroll` | RepoChan continuous risograph seal-workshop landing page | no |
