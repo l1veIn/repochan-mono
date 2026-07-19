@@ -6,8 +6,8 @@
   "style": "cel-shaded-constructivist",
   "tags": ["landing", "multi-section", "constructivist", "architectural"],
   "previews": {
-    "desktop": "repochan/previews/desktop.png",
-    "mobile": "repochan/previews/mobile.png"
+    "desktop": "repochan/previews/desktop.webp",
+    "mobile": "repochan/previews/mobile.webp"
   },
   "config": {
     "site": "repochan/site.json",

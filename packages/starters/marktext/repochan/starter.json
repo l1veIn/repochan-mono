@@ -6,8 +6,8 @@
   "style": "art-deco-editorial",
   "tags": ["landing", "multi-section", "editorial", "art-deco"],
   "previews": {
-    "desktop": "repochan/previews/desktop.png",
-    "mobile": "repochan/previews/mobile.png"
+    "desktop": "repochan/previews/desktop.webp",
+    "mobile": "repochan/previews/mobile.webp"
   },
   "config": {
     "site": "repochan/site.json",
@@ -87,42 +87,42 @@
       "kind": "scalar",
       "slot": "gallery-editor",
       "required": true,
-      "output": "public/assets/gallery/editor-default.png",
+      "output": "public/assets/gallery/editor-default.webp",
       "description": "Real MarkText default editor screenshot from packages/website/public/docs/assets."
     },
     {
       "kind": "scalar",
       "slot": "gallery-settings",
       "required": true,
-      "output": "public/assets/gallery/settings.png",
+      "output": "public/assets/gallery/settings.webp",
       "description": "Real MarkText settings screenshot from packages/website/public/docs/assets."
     },
     {
       "kind": "scalar",
       "slot": "theme-dracula",
       "required": true,
-      "output": "public/assets/gallery/theme-dracula.png",
+      "output": "public/assets/gallery/theme-dracula.webp",
       "description": "Real bundled Dracula theme screenshot."
     },
     {
       "kind": "scalar",
       "slot": "theme-rose-pine",
       "required": true,
-      "output": "public/assets/gallery/theme-rose-pine.png",
+      "output": "public/assets/gallery/theme-rose-pine.webp",
       "description": "Real bundled Rose Pine theme screenshot."
     },
     {
       "kind": "scalar",
       "slot": "theme-nord",
       "required": true,
-      "output": "public/assets/gallery/theme-nord.png",
+      "output": "public/assets/gallery/theme-nord.webp",
       "description": "Real bundled Nord theme screenshot."
     },
     {
       "kind": "scalar",
       "slot": "theme-light",
       "required": true,
-      "output": "public/assets/gallery/theme-light.png",
+      "output": "public/assets/gallery/theme-light.webp",
       "description": "Real bundled Light theme screenshot."
     }
   ]

@@ -6,8 +6,8 @@
   "style": "cel-shaded-risograph-continuous-scroll",
   "tags": ["landing", "multi-section", "continuous", "cel-shaded", "risograph", "bilingual"],
   "previews": {
-    "desktop": "repochan/previews/desktop.png",
-    "mobile": "repochan/previews/mobile.png"
+    "desktop": "repochan/previews/desktop.webp",
+    "mobile": "repochan/previews/mobile.webp"
   },
   "config": {
     "site": "repochan/site.json",
@@ -143,15 +143,15 @@
       "slot": "sticker-cells",
       "required": true,
       "publications": [
-        { "key": "welcome", "cell": 0, "output": "public/assets/cameos/welcome.png" },
-        { "key": "searching", "cell": 1, "output": "public/assets/cameos/searching.png" },
-        { "key": "loading", "cell": 2, "output": "public/assets/cameos/loading.png" },
-        { "key": "empty", "cell": 3, "output": "public/assets/cameos/empty.png" },
-        { "key": "error", "cell": 4, "output": "public/assets/cameos/error.png" },
-        { "key": "success", "cell": 5, "output": "public/assets/cameos/success.png" },
-        { "key": "not-found", "cell": 6, "output": "public/assets/cameos/not-found.png" },
-        { "key": "cta", "cell": 7, "output": "public/assets/cameos/cta.png" },
-        { "key": "cozy", "cell": 8, "output": "public/assets/cameos/cozy.png" }
+        { "key": "welcome", "cell": 0, "output": "public/assets/cameos/welcome.webp" },
+        { "key": "searching", "cell": 1, "output": "public/assets/cameos/searching.webp" },
+        { "key": "loading", "cell": 2, "output": "public/assets/cameos/loading.webp" },
+        { "key": "empty", "cell": 3, "output": "public/assets/cameos/empty.webp" },
+        { "key": "error", "cell": 4, "output": "public/assets/cameos/error.webp" },
+        { "key": "success", "cell": 5, "output": "public/assets/cameos/success.webp" },
+        { "key": "not-found", "cell": 6, "output": "public/assets/cameos/not-found.webp" },
+        { "key": "cta", "cell": 7, "output": "public/assets/cameos/cta.webp" },
+        { "key": "cozy", "cell": 8, "output": "public/assets/cameos/cozy.webp" }
       ],
       "description": "3×3 chibi web-state sticker sheet sliced into named transparent cameos. The page displays searching (paradigm + 404), cta (pipeline start) and success (pipeline end); the remaining cells are published for downstream states.",
       "order": {
@@ -178,7 +178,9 @@
             "mapping": { "welcome": 0, "searching": 1, "loading": 2, "empty": 3, "error": 4, "success": 5, "not-found": 6, "cta": 7, "cozy": 8 },
             "normalize": { "canvasSize": 320, "padding": 10 },
             "chroma": { "matteColor": "auto" },
-            "qa": { "alphaThreshold": 32, "minForegroundRatio": 0.05, "maxForegroundRatio": 0.9, "maxEdgeTouchRatio": 0.05 }
+            "qa": { "alphaThreshold": 32, "minForegroundRatio": 0.05, "maxForegroundRatio": 0.9, "maxEdgeTouchRatio": 0.05 },
+            "format": "webp",
+            "quality": 80
           },
           "out": "public/assets/cameos"
         }

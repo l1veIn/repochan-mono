@@ -30,15 +30,15 @@
       "status": "source",
       "orderId": "ord-sticker-001",
       "items": {
-        "welcome": { "src": "/assets/cameos/welcome.png", "status": "source" },
-        "searching": { "src": "/assets/cameos/searching.png", "status": "source" },
-        "loading": { "src": "/assets/cameos/loading.png", "status": "source" },
-        "empty": { "src": "/assets/cameos/empty.png", "status": "source" },
-        "error": { "src": "/assets/cameos/error.png", "status": "source" },
-        "success": { "src": "/assets/cameos/success.png", "status": "source" },
-        "not-found": { "src": "/assets/cameos/not-found.png", "status": "source" },
-        "cta": { "src": "/assets/cameos/cta.png", "status": "source" },
-        "cozy": { "src": "/assets/cameos/cozy.png", "status": "source" }
+        "welcome": { "src": "/assets/cameos/welcome.webp", "status": "source" },
+        "searching": { "src": "/assets/cameos/searching.webp", "status": "source" },
+        "loading": { "src": "/assets/cameos/loading.webp", "status": "source" },
+        "empty": { "src": "/assets/cameos/empty.webp", "status": "source" },
+        "error": { "src": "/assets/cameos/error.webp", "status": "source" },
+        "success": { "src": "/assets/cameos/success.webp", "status": "source" },
+        "not-found": { "src": "/assets/cameos/not-found.webp", "status": "source" },
+        "cta": { "src": "/assets/cameos/cta.webp", "status": "source" },
+        "cozy": { "src": "/assets/cameos/cozy.webp", "status": "source" }
       }
     }
   }

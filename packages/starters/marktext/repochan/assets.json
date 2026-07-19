@@ -18,32 +18,32 @@
     },
     "gallery-editor": {
       "kind": "scalar",
-      "src": "/assets/gallery/editor-default.png",
+      "src": "/assets/gallery/editor-default.webp",
       "status": "source"
     },
     "gallery-settings": {
       "kind": "scalar",
-      "src": "/assets/gallery/settings.png",
+      "src": "/assets/gallery/settings.webp",
       "status": "source"
     },
     "theme-dracula": {
       "kind": "scalar",
-      "src": "/assets/gallery/theme-dracula.png",
+      "src": "/assets/gallery/theme-dracula.webp",
       "status": "source"
     },
     "theme-rose-pine": {
       "kind": "scalar",
-      "src": "/assets/gallery/theme-rose-pine.png",
+      "src": "/assets/gallery/theme-rose-pine.webp",
       "status": "source"
     },
     "theme-nord": {
       "kind": "scalar",
-      "src": "/assets/gallery/theme-nord.png",
+      "src": "/assets/gallery/theme-nord.webp",
       "status": "source"
     },
     "theme-light": {
       "kind": "scalar",
-      "src": "/assets/gallery/theme-light.png",
+      "src": "/assets/gallery/theme-light.webp",
       "status": "source"
     }
   }

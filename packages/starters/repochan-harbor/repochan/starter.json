@@ -6,8 +6,8 @@
   "style": "editorial-continuous-harbor",
   "tags": ["landing", "multi-section", "bilingual", "editorial", "character-led", "continuous"],
   "previews": {
-    "desktop": "repochan/previews/desktop.png",
-    "mobile": "repochan/previews/mobile.png"
+    "desktop": "repochan/previews/desktop.webp",
+    "mobile": "repochan/previews/mobile.webp"
   },
   "config": {
     "site": "repochan/site.json",
@@ -23,7 +23,7 @@
       "kind": "scalar",
       "slot": "hero-composite",
       "required": true,
-      "reference": "public/assets/hero-composition-guide.png",
+      "reference": "public/assets/hero-composition-guide.webp",
       "output": "public/assets/hero-composite.webp",
       "description": "A 16:9 environment-and-character composite. The abstract reference preserves only left-side live-content safety and broad visual density; it carries no character pose information.",
       "order": {
@@ -55,7 +55,7 @@
       "kind": "scalar",
       "slot": "cta-composite",
       "required": true,
-      "reference": "public/assets/cta-composition-guide.png",
+      "reference": "public/assets/cta-composition-guide.webp",
       "output": "public/assets/cta-composite.webp",
       "description": "A 3:2 closing-section composite. The abstract reference preserves the left-to-center CTA safe zone and right-side visual density without retaining a character silhouette or pose.",
       "order": {
