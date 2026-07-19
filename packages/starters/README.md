@@ -36,6 +36,8 @@ Each slot is either:
 
 For a complex baked composition, the original full asset remains in the Starter. A slot may additionally reference a low-information migration guide, such as a pose line drawing produced by `official/hero-pose-lineart-extract`. The guide preserves composition and safe zones while reducing character or background identity; it never replaces the original artwork.
 
+When character pose is not part of the transferable design, the migration guide should omit the silhouette entirely and preserve only safe zones, broad density, and architectural axes. `repochan-harbor` uses this pose-free form for both Hero and CTA.
+
 All supported locale files must have the same complete recursive shape as the default locale, including keys, value types, and array lengths. Presentation colors live only in `repochan/site.json`; source files consume derived CSS variables.
 
 ## Commands
@@ -64,4 +66,5 @@ Starter Designer works in a creator-owned directory or repository. Official incl
 | `caddy` | Caddy architectural automatic-HTTPS landing page | no |
 | `marktext` | MarkText midnight Art Deco editorial landing page | no |
 | `minimal` | RepoChan single-screen editorial Hero | yes |
+| `repochan-harbor` | RepoChan bilingual continuous-harbor landing page | no |
 | `redis` | Redis kinetic real-time signal-relay landing page | no |

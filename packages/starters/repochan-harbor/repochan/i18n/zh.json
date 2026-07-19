@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "zh",
+  "meta": {
+    "title": "RepoChan — 把任何仓库变成有生命力的视觉品牌",
+    "description": "本地优先、智能体无关的创意生产协议：从仓库分析、人设、品牌资产到原创项目网站。"
+  },
+  "content": {
+    "routing": {
+      "lang": "zh-CN",
+      "path": "/zh/",
+      "alternatePath": "/",
+      "alternateHreflang": "en"
+    },
+    "a11y": {
+      "skip": "跳到正文",
+      "openMenu": "打开导航",
+      "closeMenu": "关闭导航",
+      "brandHome": "RepoChan 首页",
+      "productQualities": "RepoChan 产品特性"
+    },
+    "nav": {
+      "ariaLabel": "主导航",
+      "repositoryLabel": "GitHub",
+      "alternateLabel": "EN",
+      "links": [
+        { "label": "为什么是 RepoChan", "href": "#why" },
+        { "label": "工作流", "href": "#workflow" },
+        { "label": "架构", "href": "#architecture" },
+        { "label": "作品", "href": "#gallery" }
+      ]
+    },
+    "hero": {
+      "imageAlt": "芮谱娜在明亮港口门廊中托起透明母纹板",
+      "eyebrow": "本地优先的创意生产",
+      "titleStart": "把任何代码仓库变成",
+      "titleAccent": "有生命力的视觉品牌。",
+      "body": "RepoChan 引导你自己的编程智能体完成分析、人设、视觉设定、统一品牌资产与原创项目网站；每一步都留下可检查、可恢复的本地版本产物。",
+      "primary": "开始使用 RepoChan",
+      "secondary": "在 GitHub 查看",
+      "trust": ["智能体无关", "设定集优先", "产物全程版本化"]
+    },
+    "capabilities": {
+      "eyebrow": "为什么是 RepoChan",
+      "title": "创作保持自由，交接始终可靠。",
+      "body": "协议把边界守稳，真正的创意判断仍然留给你和你选择的智能体。",
+      "items": [
+        {
+          "icon": "artifact",
+          "title": "以产物为中心",
+          "body": "每个阶段都留下通过 schema 验证的版本化产物，可以检查、对比，也可以恢复。",
+          "note": ".repochan/ 是唯一事实来源"
+        },
+        {
+          "icon": "foundation",
+          "title": "设定集优先",
+          "body": "先确认一张视觉锚点，再让角色、场景、纹理和网页沿着同一身份持续生长。",
+          "note": "先锁身份，再进入生产"
+        },
+        {
+          "icon": "agent",
+          "title": "你的智能体，你的判断",
+          "body": "RepoChan 提供确定性命令和创意技能，但绝不内嵌模型循环或接管你的工作方式。",
+          "note": "Codex、Claude、Pi 或任何智能体"
+        }
+      ]
+    },
+    "workflow": {
+      "eyebrow": "一句话，六个专业团队",
+      "title": "从仓库信号，到真正可以交付的品牌。",
+      "body": "每个团队只负责一次清晰交接。边界越明确，创意越能放心展开。",
+      "steps": [
+        { "icon": "search", "title": "分析", "body": "读懂结构、意图与项目分量。" },
+        { "icon": "persona", "title": "人设", "body": "让仓库拥有自己的声音和世界。" },
+        { "icon": "foundation", "title": "设定", "body": "锁定角色身份与视觉锚点。" },
+        { "icon": "assets", "title": "资产", "body": "绘制统一而完整的品牌系统。" },
+        { "icon": "website", "title": "网页", "body": "围绕真实项目内容原创设计。" },
+        { "icon": "ship", "title": "交付", "body": "构建、验收并准备部署。" }
+      ]
+    },
+    "architecture": {
+      "eyebrow": "架构 / 证据",
+      "titleStart": "该严格的地方足够严格，",
+      "titleAccent": "该开放的地方始终开放。",
+      "principles": [
+        { "title": "core + skill 位于中心", "body": "确定性规则和创意判断保持分离。" },
+        { "title": "CLI 是唯一绑定面", "body": "稳定、可脚本化，而且不依赖特定环境。" },
+        { "title": "智能体由你选择", "body": "模型、工具和工作方式全部属于你。" },
+        { "title": ".repochan/ 保存版本", "body": "产物留在本地，可比较、可恢复、可交接。" }
+      ],
+      "graphTitle": "依赖方向天然无环",
+      "graphAriaLabel": "CLI 依赖 core、skill、图像生成、图像编辑、模板和 Starter",
+      "graphLead": "cli",
+      "graphNodes": ["core", "skill", "image-gen", "image-edit", "templates", "starters"],
+      "artifactsTitle": "每次交接都有迹可循",
+      "artifacts": ["analysis/current.json", "persona/current.json", "orders/<id>/versions/<vid>/"]
+    },
+    "gallery": {
+      "eyebrow": "真实版本证据",
+      "title": "每一拍，都会留下真正的产物。",
+      "body": "这里展示的都是本仓库本次 RepoChan 流程生成的实际产物，而不是虚构指标或库存示例。",
+      "items": [
+        { "assetSlot": "foundation-art", "title": "芮谱娜设定集", "type": "视觉锚点", "ratio": "square" },
+        { "assetSlot": "pattern-tile", "title": "嵌套门廊纹理", "type": "共享 L1 背景", "ratio": "square" },
+        { "assetSlot": "design-hero-evidence", "title": "港口首屏方向", "type": "Gate 1B · Hero", "ratio": "wide" },
+        { "assetSlot": "design-workflow-evidence", "title": "连续交接工作流", "type": "Gate 1B · Workflow", "ratio": "wide" }
+      ],
+      "open": "打开产物"
+    },
+    "cta": {
+      "eyebrow": "准备好了就开始",
+      "titleStart": "把来路留住，",
+      "titleAccent": "把下一拍交出去。",
+      "body": "继续使用你已经熟悉的编程智能体；RepoChan 为它补上一条可靠、透明、可版本化的创意生产协议。",
+      "installCommand": "npm install -g repochan",
+      "primary": "阅读文档",
+      "secondary": "在 GitHub 查看",
+      "copy": "复制安装命令",
+      "copied": "已复制"
+    },
+    "footer": {
+      "line": "Core 守住规则 · Skill 提供创意方法 · 你的智能体完成工作。",
+      "source": "在 GitHub 查看源码"
+    }
+  }
+}

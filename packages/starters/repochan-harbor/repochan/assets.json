@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "repochan.starter-assets.v1",
+  "assets": {
+    "hero-composite": {
+      "kind": "scalar",
+      "src": "/assets/hero-composite.webp",
+      "status": "source",
+      "orderId": "ord-web-hero-composite-001",
+      "versionId": "v2026-07-18T15-35-45-775Z"
+    },
+    "cta-composite": {
+      "kind": "scalar",
+      "src": "/assets/cta-composite.webp",
+      "status": "source",
+      "orderId": "ord-web-cta-composite-001",
+      "versionId": "v2026-07-18T15-35-46-098Z"
+    },
+    "pattern-tile": {
+      "kind": "scalar",
+      "src": "/assets/pattern.webp",
+      "status": "source",
+      "orderId": "ord-pattern-001",
+      "versionId": "v2026-07-18T14-21-29-939Z",
+      "qa": {
+        "seamMetric": 0.014087,
+        "maximum": 0.02
+      }
+    },
+    "foundation-art": {
+      "kind": "scalar",
+      "src": "/assets/foundation.webp",
+      "status": "source",
+      "orderId": "ord-foundation-001",
+      "versionId": "v2026-07-18T15-06-19-995Z"
+    },
+    "design-hero-evidence": {
+      "kind": "scalar",
+      "src": "/assets/design-hero.webp",
+      "status": "source",
+      "orderId": "ord-web-section-hero-capabilities-001",
+      "versionId": "v2026-07-18T15-20-10-633Z"
+    },
+    "design-workflow-evidence": {
+      "kind": "scalar",
+      "src": "/assets/design-workflow.webp",
+      "status": "source",
+      "orderId": "ord-web-section-workflow-proof-cta-001",
+      "versionId": "v2026-07-18T15-20-10-958Z"
+    }
+  }
+}

@@ -1,0 +1,222 @@
+---
+import Icon from "@/components/Icon.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { scalarAsset, site, type LocaleBundle } from "@/lib/site";
+
+interface Props { bundle: LocaleBundle; }
+const { bundle } = Astro.props;
+const t = bundle.content;
+const repositoryUrl = site.project.repositoryUrl ?? "#";
+const docsUrl = `${repositoryUrl}#readme`;
+---
+
+<BaseLayout title={bundle.meta.title} description={bundle.meta.description} lang={t.routing.lang} alternatePath={t.routing.alternatePath}>
+  <a class="skip-link" href="#main">{t.a11y.skip}</a>
+
+  <header class="site-header" data-header>
+    <div class="shell header-inner">
+      <a class="brand" href={t.routing.path} aria-label={t.a11y.brandHome}>
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span>{site.project.name}</span>
+      </a>
+
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-button aria-label={t.a11y.openMenu}>
+        <Icon name="menu" size={22} />
+      </button>
+
+      <nav id="site-nav" class="site-nav" aria-label={t.nav.ariaLabel} data-nav>
+        {t.nav.links.map((item) => <a href={item.href}>{item.label}</a>)}
+        <a class="nav-github" href={repositoryUrl} target="_blank" rel="noreferrer">
+          {t.nav.repositoryLabel} <Icon name="external" size={14} />
+        </a>
+        <a class="locale-link" href={t.routing.alternatePath} hreflang={t.routing.alternateHreflang}>{t.nav.alternateLabel}</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <img class="hero-art" src={scalarAsset("hero-composite")} alt={t.hero.imageAlt} width="2560" height="1440" fetchpriority="high" />
+      <div class="hero-wash" aria-hidden="true"></div>
+      <div class="shell hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow"><span></span>{t.hero.eyebrow}</p>
+          <h1 id="hero-title">{t.hero.titleStart} <em>{t.hero.titleAccent}</em></h1>
+          <p class="hero-body">{t.hero.body}</p>
+          <div class="button-row">
+            <a class="button button-primary" href="#get-started">{t.hero.primary}<Icon name="arrow" size={19} /></a>
+            <a class="button button-secondary" href={repositoryUrl} target="_blank" rel="noreferrer"><Icon name="github" size={20} />{t.hero.secondary}</a>
+          </div>
+          <ul class="trust-row" aria-label={t.a11y.productQualities}>
+            {t.hero.trust.map((item, index) => <li><span class:list={["trust-dot", `trust-dot-${index + 1}`]}></span>{item}</li>)}
+          </ul>
+        </div>
+      </div>
+      <div class="hero-tide" aria-hidden="true">
+        <svg viewBox="0 0 1440 120" preserveAspectRatio="none"><path d="M0 74C168 120 298 14 496 62c189 46 307-7 475 18 175 26 291 20 469-27v67H0Z"/><path d="M0 70c156 44 300-42 493-7 206 38 301-6 480 17 166 21 300 14 467-36"/></svg>
+      </div>
+    </section>
+
+    <section id="why" class="section capabilities" aria-labelledby="capabilities-title">
+      <div class="shell">
+        <div class="section-heading centered">
+          <p class="eyebrow centered-eyebrow"><span></span>{t.capabilities.eyebrow}<span></span></p>
+          <h2 id="capabilities-title">{t.capabilities.title}</h2>
+          <p>{t.capabilities.body}</p>
+        </div>
+        <div class="capability-grid">
+          {t.capabilities.items.map((item, index) => (
+            <article class="capability-card">
+              <div class:list={["icon-medallion", `medallion-${index + 1}`]}><Icon name={item.icon} size={31} /></div>
+              <p class="card-index">0{index + 1}</p>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+              <p class="card-note"><Icon name="check" size={15} />{item.note}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section id="workflow" class="section workflow" aria-labelledby="workflow-title">
+      <div class="arch-corner arch-corner-left" aria-hidden="true"></div>
+      <div class="arch-corner arch-corner-right" aria-hidden="true"></div>
+      <div class="shell">
+        <div class="section-heading workflow-heading">
+          <p class="eyebrow"><span></span>{t.workflow.eyebrow}</p>
+          <h2 id="workflow-title">{t.workflow.title}</h2>
+          <p>{t.workflow.body}</p>
+        </div>
+        <ol class="timeline">
+          {t.workflow.steps.map((step, index) => (
+            <li>
+              <div class="step-top">
+                <span class="step-number">0{index + 1}</span>
+                <span class:list={["step-icon", `step-icon-${(index % 3) + 1}`]}><Icon name={step.icon} size={27} /></span>
+              </div>
+              <div class="step-copy"><h3>{step.title}</h3><p>{step.body}</p></div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <section id="architecture" class="section architecture" aria-labelledby="architecture-title">
+      <div class="shell architecture-grid">
+        <div class="architecture-copy">
+          <p class="eyebrow"><span></span>{t.architecture.eyebrow}</p>
+          <h2 id="architecture-title">{t.architecture.titleStart}<br/><em>{t.architecture.titleAccent}</em></h2>
+          <ul class="principle-list">
+            {t.architecture.principles.map((item) => <li><span class="principle-icon"><Icon name="file" size={20}/></span><div><h3>{item.title}</h3><p>{item.body}</p></div></li>)}
+          </ul>
+        </div>
+
+        <div class="architecture-proof">
+          <div class="graph-card">
+            <p class="mini-title">{t.architecture.graphTitle}</p>
+            <div class="dependency-graph" role="img" aria-label={t.architecture.graphAriaLabel}>
+              <span class="graph-lead">{t.architecture.graphLead}</span>
+              <span class="graph-arrow" aria-hidden="true">→</span>
+              <div class="graph-nodes">{t.architecture.graphNodes.map((node) => <span>{node}</span>)}</div>
+            </div>
+          </div>
+          <div class="artifact-card">
+            <p class="mini-title">{t.architecture.artifactsTitle}</p>
+            <div class="artifact-list">
+              {t.architecture.artifacts.map((item, index) => <div><span class:list={["file-dot", `file-dot-${index + 1}`]}><Icon name="file" size={18}/></span><code>{item}</code></div>)}
+            </div>
+            <div class="version-stack" aria-hidden="true"><span></span><span></span><span></span><i></i></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="gallery" class="section gallery" aria-labelledby="gallery-title">
+      <div class="shell">
+        <div class="gallery-heading">
+          <div class="section-heading">
+            <p class="eyebrow"><span></span>{t.gallery.eyebrow}</p>
+            <h2 id="gallery-title">{t.gallery.title}</h2>
+          </div>
+          <p>{t.gallery.body}</p>
+        </div>
+        <div class="gallery-grid">
+          {t.gallery.items.map((item, index) => (
+            <a class:list={["gallery-card", item.ratio, index === 0 && "featured"]} href={scalarAsset(item.assetSlot as Parameters<typeof scalarAsset>[0])} target="_blank" rel="noreferrer" aria-label={`${t.gallery.open}: ${item.title}`}>
+              <img src={scalarAsset(item.assetSlot as Parameters<typeof scalarAsset>[0])} alt={item.title} loading="lazy" decoding="async" />
+              <span class="gallery-overlay"><span><small>{item.type}</small><strong>{item.title}</strong></span><Icon name="external" size={20}/></span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section id="get-started" class="cta" aria-labelledby="cta-title">
+      <img class="cta-art" src={scalarAsset("cta-composite")} alt="" width="1536" height="1024" loading="lazy" decoding="async" />
+      <div class="cta-wash" aria-hidden="true"></div>
+      <div class="shell cta-inner">
+        <div class="cta-copy">
+          <p class="eyebrow coral"><span></span>{t.cta.eyebrow}</p>
+          <h2 id="cta-title">{t.cta.titleStart}<br/><em>{t.cta.titleAccent}</em></h2>
+          <p>{t.cta.body}</p>
+          <div class="install-command">
+            <span aria-hidden="true">$</span><code>{t.cta.installCommand}</code>
+            <button type="button" data-copy={t.cta.installCommand} data-copy-label={t.cta.copy} data-copied-label={t.cta.copied} aria-label={t.cta.copy}>
+              <Icon name="copy" size={19}/><span class="visually-hidden" data-copy-status>{t.cta.copy}</span>
+            </button>
+          </div>
+          <div class="button-row">
+            <a class="button button-primary" href={docsUrl} target="_blank" rel="noreferrer">{t.cta.primary}<Icon name="arrow" size={19}/></a>
+            <a class="button button-secondary" href={repositoryUrl} target="_blank" rel="noreferrer"><Icon name="github" size={20}/>{t.cta.secondary}</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-inner">
+      <a class="brand footer-brand" href={t.routing.path}><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>{site.project.name}</span></a>
+      <p>{t.footer.line}</p>
+      <a href={repositoryUrl} target="_blank" rel="noreferrer">{t.footer.source}<Icon name="external" size={14}/></a>
+    </div>
+  </footer>
+
+  <script>
+    const menuButton = document.querySelector("[data-menu-button]");
+    const nav = document.querySelector("[data-nav]");
+    const closeMenu = () => {
+      if (!(menuButton instanceof HTMLButtonElement) || !(nav instanceof HTMLElement)) return;
+      menuButton.setAttribute("aria-expanded", "false");
+      nav.removeAttribute("data-open");
+    };
+    if (menuButton instanceof HTMLButtonElement && nav instanceof HTMLElement) {
+      menuButton.addEventListener("click", () => {
+        const next = menuButton.getAttribute("aria-expanded") !== "true";
+        menuButton.setAttribute("aria-expanded", String(next));
+        nav.toggleAttribute("data-open", next);
+      });
+      nav.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeMenu));
+      document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeMenu(); });
+    }
+
+    document.querySelectorAll("[data-copy]").forEach((node) => {
+      if (!(node instanceof HTMLButtonElement)) return;
+      node.addEventListener("click", async () => {
+        const command = node.dataset.copy ?? "";
+        try {
+          await navigator.clipboard.writeText(command);
+          const status = node.querySelector("[data-copy-status]");
+          if (status) status.textContent = node.dataset.copiedLabel ?? "Copied";
+          node.dataset.copied = "true";
+          window.setTimeout(() => {
+            if (status) status.textContent = node.dataset.copyLabel ?? "Copy";
+            delete node.dataset.copied;
+          }, 1800);
+        } catch {
+          window.prompt(node.dataset.copyLabel ?? "Copy", command);
+        }
+      });
+    });
+  </script>
+</BaseLayout>

@@ -1,0 +1,32 @@
+id: "official/section-character-migrate-localize"
+asset_type: "section_composite"
+label: "Section 角色合成本地化"
+description: >
+  以低信息构图引导图约束 section 的视觉密度与 live-content 安全留白，
+  再用 foundation 角色重绘完整环境合成图。构图参考不包含也不锁定原角色姿势；
+  下游角色的动作、镜头和身体朝向可依项目身份自由重构。
+tags: ["section", "migrate", "localize", "web", "landing"]
+size: "1536x1024"
+quality: "high"
+
+prompt_template: |
+  Production background composite for a landing-page section, 3:2 landscape.
+  Two reference images are provided. The FIRST is an abstract composition guide:
+  preserve only its quiet live-content safe zone, broad density distribution,
+  architectural axes, and transition rhythm. It contains no character pose
+  information and must not be interpreted as a silhouette or body-placement lock.
+  The SECOND is the character identity reference: localize that character into a
+  newly designed environment that matches the foundation palette and personality.
+
+  Choose a fresh, natural character pose, gesture, crop, and camera angle that fit
+  the target project. Keep the guide's quiet zone clear enough for live HTML copy,
+  commands, and controls. Render environment and character only; typography,
+  navigation, buttons, cards, and interface controls remain live HTML.
+  Seamless edge-to-edge composite with coherent lighting and no cutout edges.
+
+constraints:
+  - "Preserve only the composition guide's safe zone, density balance, architectural axes, and transition rhythm"
+  - "Do not copy or infer a character pose, silhouette, outfit, anatomy, or body placement from the composition guide"
+  - "Character identity comes only from the foundation reference"
+  - "The declared live-content safe zone stays visually quiet"
+  - "The output contains environment and character art only; interface and typography remain live HTML"
