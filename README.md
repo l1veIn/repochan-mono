@@ -44,6 +44,7 @@ Every role produces a schema-validated, versioned artifact under `.repochan/`. N
 ```bash
 npm install -g repochan
 repochan setup                 # installs skills into your agent
+# repochan image configure       # image endpoint credentials configuration
 ```
 
 Then open your coding agent in the project and input `/repochan` to run the RepoChan workflow. Try:
