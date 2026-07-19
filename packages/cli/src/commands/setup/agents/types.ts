@@ -19,7 +19,8 @@ export type AgentId =
   | "antigravity"
   | "grok"
   | "zcode"
-  | "cline";
+  | "cline"
+  | "kimi";
 
 /** How instructions are written on disk. */
 export type InstructionMode =
