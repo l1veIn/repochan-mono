@@ -46,6 +46,7 @@ cli.command("analysis <sub>", "Manage the analysis report")
   .option("--json", "Machine-readable JSON output")
   .option("--overwrite", "Overwrite existing artifact")
   .option("--data-file <path>", "JSON payload from file, - for stdin, or omit when piping")
+  .option("--full", "Output the complete analysis JSON without summarization (analysis get only)")
   .action(async (_p: any, opts: any) => {
     const [sub] = cli.args;
     switch (sub) {
