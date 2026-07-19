@@ -7,6 +7,7 @@ import {
 } from "@repochan/core";
 import { asArray, bullet, dim, heading, printJson, type OutputOptions, yesNo } from "../lib/output.js";
 import { recordProjectInit, recordProjectSeen, getStaleSkillRecords, cliVersion } from "../lib/register.js";
+import { getTarget } from "./setup/agents/registry.js";
 
 // ---------------------------------------------------------------------------
 // repochan init — initialize the .repochan/ protocol directory
@@ -56,12 +57,18 @@ export async function runStatus(cwd: string, options: OutputOptions = {}) {
   }
 
   if (stale.length) {
-    console.log("\nSkill version drift:");
+    console.log("\nSkill version drift (some installed skills are older than this CLI):");
     for (const e of stale) {
+      const name = getTarget(e.agentId)?.displayName ?? e.agentId;
       const scope = `${e.scope} ${e.path}`;
-      console.log(`  - ${e.agentId}: ${e.installedVersion} → CLI ${e.currentVersion} ${dim(`(${scope})`)}`);
+      console.log(`  - ${name}: ${e.installedVersion} → CLI ${e.currentVersion} ${dim(`(${scope})`)}`);
     }
-    console.log(dim("Run `repochan setup` to refresh stale skills."));
+    console.log(dim(
+      "\nThis lists every agent you have ever run `repochan setup` for, including ones\n" +
+      "you may no longer use. If you still use an agent above, refresh it with\n" +
+      "`repochan setup --agent <id>`. If you have switched away from an agent, either\n" +
+      "ignore the warning or clean up its record with `repochan setup --remove --agent <id>`.",
+    ));
   }
 
   if (!protocol.exists) console.log(dim("\nNext: run `repochan init` to create the protocol directory."));
