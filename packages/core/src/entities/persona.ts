@@ -6,20 +6,49 @@ import { validateInput } from "../validate.js";
 import { PersonaArtifactSchema, PersonaCandidateCreateParamsSchema, PersonaCandidatePromoteParamsSchema, PersonaCreateParamsSchema, PersonaUpdateParamsSchema } from "../schemas/index.js";
 import { isPlainObject } from "../utils/index.js";
 
+/**
+ * Artifact-metadata fields that exist on `persona get` output but NOT on
+ * `PersonaDataSchema` (the create/update input). These are injected by this
+ * module during write (see `stampArtifact` below), so if a caller pipes
+ * `persona get` output straight back into `persona update` — a natural agent
+ * workflow — the closed schema would reject them as "additional properties".
+ *
+ * We silently strip them from `params.persona` before validation. This is a
+ * UX affordance for the get → update round-trip, not a security boundary:
+ * the source of truth for these fields is the injection below, never caller
+ * input.
+ */
+const ARTIFACT_METADATA_FIELDS = ["schemaVersion", "generatedAt"] as const;
+
+function stripArtifactMetadata(persona: JsonObject): JsonObject {
+  const cleaned: JsonObject = { ...persona };
+  for (const field of ARTIFACT_METADATA_FIELDS) {
+    delete cleaned[field];
+  }
+  return cleaned;
+}
+
 export async function createOrUpdatePersona(projectRoot: string, params: JsonObject, mode: "create" | "update") {
+  if (!isPlainObject(params)) throw new Error("params must be an object.");
+  // Allow `persona get` output to be piped straight back in: strip artifact-
+  // metadata fields the caller has no business setting. `provenance` is NOT
+  // stripped here — it's pulled out below and re-merged, so callers may
+  // override it via either params.persona.provenance or params.provenance.
+  const cleanedPersona: JsonObject = isPlainObject(params.persona) ? stripArtifactMetadata(params.persona as JsonObject) : params.persona;
+  const cleanedParams: JsonObject = { ...params, persona: cleanedPersona };
   const schemaName = mode === "create" ? "persona.create" : "persona.update";
-  validateInput(schemaName, mode === "create" ? PersonaCreateParamsSchema : PersonaUpdateParamsSchema, params);
+  validateInput(schemaName, mode === "create" ? PersonaCreateParamsSchema : PersonaUpdateParamsSchema, cleanedParams);
   await initProtocol(projectRoot);
   await requireAnalysis(projectRoot);
-  if (!isPlainObject(params.persona)) throw new Error("params.persona is required and must be an object.");
+  if (!isPlainObject(cleanedParams.persona)) throw new Error("params.persona is required and must be an object.");
   const current = path.join(protocolRoot(projectRoot), "persona", "current.json");
-  const overwrite = params.overwrite === true;
-  const versionPrevious = params.versionPrevious !== false;
+  const overwrite = cleanedParams.overwrite === true;
+  const versionPrevious = cleanedParams.versionPrevious !== false;
   const ts = stampForPath();
-  const provenance = params.persona.provenance ?? params.provenance ?? { tool: "repochan", action: `persona.${mode}` };
-  const data = { ...params.persona, schemaVersion: "repochan.persona.v2", generatedAt: stamp(), provenance };
+  const provenance = cleanedPersona.provenance ?? cleanedParams.provenance ?? { tool: "repochan", action: `persona.${mode}` };
+  const data = { ...cleanedPersona, schemaVersion: "repochan.persona.v2", generatedAt: stamp(), provenance };
   validateInput("persona.artifact", PersonaArtifactSchema, data);
-  const slug = typeof params.slug === "string" ? params.slug : "persona";
+  const slug = typeof cleanedParams.slug === "string" ? cleanedParams.slug : "persona";
   if (!/^[a-z0-9-]+$/.test(slug)) throw new Error("slug must match ^[a-z0-9-]+$.");
   const versionName = `${ts}-${slug}.json`;
   await withProtocolRollback([current, path.join(protocolRoot(projectRoot), "persona", "versions")], async () => {
@@ -49,18 +78,23 @@ export async function createOrUpdatePersona(projectRoot: string, params: JsonObj
  * (living in candidates/ makes it a candidate).
  */
 export async function createPersonaCandidate(projectRoot: string, params: JsonObject) {
-  validateInput("persona.create_candidate", PersonaCandidateCreateParamsSchema, params);
+  if (!isPlainObject(params)) throw new Error("params must be an object.");
+  // Same get→update round-trip affordance as createOrUpdatePersona: strip
+  // artifact metadata so `persona get` output can be piped straight in.
+  const cleanedPersona: JsonObject = isPlainObject(params.persona) ? stripArtifactMetadata(params.persona as JsonObject) : params.persona;
+  const cleanedParams: JsonObject = { ...params, persona: cleanedPersona };
+  validateInput("persona.create_candidate", PersonaCandidateCreateParamsSchema, cleanedParams);
   await initProtocol(projectRoot);
   await requireAnalysis(projectRoot);
-  if (!isPlainObject(params.persona)) throw new Error("params.persona is required and must be an object.");
-  const slug = String(params.slug ?? "");
+  if (!isPlainObject(cleanedParams.persona)) throw new Error("params.persona is required and must be an object.");
+  const slug = String(cleanedParams.slug ?? "");
   if (!/^[a-z0-9-]+$/.test(slug)) throw new Error("params.slug is required and must match ^[a-z0-9-]+$.");
 
   const candidateFile = personaCandidatePath(projectRoot, slug);
-  const overwrite = params.overwrite === true;
+  const overwrite = cleanedParams.overwrite === true;
 
-  const provenance = params.persona.provenance ?? params.provenance ?? { tool: "repochan", action: "persona.create_candidate" };
-  const data = { ...params.persona, schemaVersion: "repochan.persona.v2", generatedAt: stamp(), provenance };
+  const provenance = cleanedPersona.provenance ?? cleanedParams.provenance ?? { tool: "repochan", action: "persona.create_candidate" };
+  const data = { ...cleanedPersona, schemaVersion: "repochan.persona.v2", generatedAt: stamp(), provenance };
   validateInput("persona.artifact", PersonaArtifactSchema, data);
   await withProtocolRollback([candidateFile], async () => {
     if ((await exists(candidateFile)) && !overwrite) {

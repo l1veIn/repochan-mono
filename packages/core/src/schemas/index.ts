@@ -67,6 +67,12 @@ export const PersonaDataSchema = Type.Object({
   characterFlaws: Type.Optional(Type.Array(Type.String())),
   catchphrase: Type.Optional(Type.String()),
   backstory: Type.Optional(Type.String()),
+  motto: Type.Optional(Type.String({ description: "Creed / value statement — what she believes, NOT a situational catchphrase. Complements catchphrase (situational) and backstory (why she is this way)." })),
+  funFacts: Type.Optional(Type.Array(Type.String(), { description: "2-4 small quirks / anecdotes. For realistic/daily-world personas especially, this is the natural carrier for atmosphere-level 'subtle unease' details (e.g. 'odd orders always come in on weekends'). Must stay atmospheric, NOT world-law-level — law-level crosses into high concept." })),
+  favoriteFood: Type.Optional(Type.Array(Type.String(), { description: "Food preferences. MUST derive from repo emotional signals, NOT literal mapping (a coffee-named framework does not oblige her to love coffee)." })),
+  favoriteDrink: Type.Optional(Type.Array(Type.String(), { description: "Drink preferences. Same anti-mechanical-mapping rule as favoriteFood." })),
+  specialSkill: Type.Optional(Type.String({ description: "One contrasting everyday talent (e.g. 'can recite the dep tree from memory in 30s'). Distinct from abilities (ACG-named powers)." })),
+  height: Type.Optional(Type.String({ description: "Literary height description (e.g. 'about 165cm, slight frame'), NOT a bare number. Helps painters with body proportion." })),
 
   // ── Optional visual — colors ──
   mainColor: Type.Optional(Type.String()),

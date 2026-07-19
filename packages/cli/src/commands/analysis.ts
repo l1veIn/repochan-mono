@@ -6,6 +6,7 @@ import {
   writeAnalysisArtifact,
   updateAnalysisArtifact,
   enrichAnalysisArtifact,
+  summarizeAnalysisArtifact,
 } from "@repochan/core";
 import { emitResult, type OutputOptions, UsageError } from "../lib/output.js";
 import { readDataFile } from "../lib/data-file.js";
@@ -22,12 +23,18 @@ export async function runAnalysisRun(cwd: string, options: OutputOptions & { ove
 
 // ---------------------------------------------------------------------------
 // repochan analysis get — read analysis/current.json
+//
+// By default emits a context-friendly SUMMARY view: long file/dir lists are
+// collapsed to a sample and per-snippet source is truncated. The on-disk
+// artifact is unchanged. Pass --full to get the complete, unsummarized JSON
+// (e.g. when a downstream role needs the full snippets for deeper analysis).
 // ---------------------------------------------------------------------------
-export async function runAnalysisGet(cwd: string, options: OutputOptions) {
+export async function runAnalysisGet(cwd: string, options: OutputOptions & { full?: boolean }) {
   const file = path.join(root(cwd), "analysis", "current.json");
   if (!(await exists(file))) throw new UsageError("No analysis found. Run `repochan analysis run` first.");
   const data = await readAnalysisArtifact(cwd);
-  emitResult(options, JSON.stringify(data, null, 2), data);
+  const view = options.full === true ? data : summarizeAnalysisArtifact(data);
+  emitResult(options, JSON.stringify(view, null, 2), view);
 }
 
 // ---------------------------------------------------------------------------
