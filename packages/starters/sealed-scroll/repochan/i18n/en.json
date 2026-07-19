@@ -1,0 +1,202 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "RepoChan — Turn any git repository into a living brand",
+    "description": "RepoChan is an LLM-native, local-first, agent-agnostic creative production protocol: your coding agent turns a git repository into a mascot persona and a consistent visual brand."
+  },
+  "content": {
+    "ogImage": "/assets/gallery-banner.webp",
+    "a11y": {
+      "skipLink": "Skip to content"
+    },
+    "nav": {
+      "ariaLabel": "Main",
+      "brand": "RepoChan",
+      "brandIconAlt": "RepoChan seal icon",
+      "links": [
+        { "href": "#paradigm", "label": "Paradigm" },
+        { "href": "#pipeline", "label": "Pipeline" },
+        { "href": "#architecture", "label": "Architecture" },
+        { "href": "#brand-kit", "label": "Brand kit" },
+        { "href": "#starters", "label": "Starters" },
+        { "href": "#principles", "label": "Principles" }
+      ],
+      "github": "GitHub",
+      "menuToggle": "Menu",
+      "switchLocale": "中文"
+    },
+    "hero": {
+      "mediaLabel": "Night workshop scene: Repo-chan, a white-haired mascot in a moss-green apron, presses a brass wax seal onto a contract under lamplight.",
+      "title1": "Turn any git repository into a ",
+      "titleEm": "living mascot persona",
+      "title2": " and a consistent visual brand",
+      "lede": "An LLM-native, local-first, agent-agnostic creative production protocol. No embedded agent runtime — bring Claude Code, Codex, Pi, Cursor, Hermes, or any shell-capable agent.",
+      "install": "npm install -g repochan",
+      "copy": "Copy",
+      "copied": "Copied",
+      "getStarted": "Get started",
+      "github": "GitHub"
+    },
+    "paradigm": {
+      "eyebrow": "The paradigm",
+      "title": "Don’t trust the conversation. Trust what landed on disk.",
+      "lede": "Chat history is weather; artifacts are climate. RepoChan keeps hard constraints in code and creative judgment in prompts — the source of truth is a versioned protocol tree on disk.",
+      "compareNo": {
+        "title": "Freestyling into chat",
+        "body": "Agent memory, scrollback and good intentions. Unversioned, unverifiable, unrecoverable."
+      },
+      "compareYes": {
+        "title": "Artifact-centric pipeline",
+        "body": "Every role emits a schema-validated, versioned artifact under .repochan/ — atomic writes, no overwrites."
+      },
+      "treeLabel": "The .repochan/ protocol tree",
+      "tree": ".repochan/\n  analysis/current.json          # Analyst\n  interview/current.json         # Interviewer (optional)\n  persona/current.json           # Creative team\n  orders/<id>/order.json         # Art director briefs\n  orders/<id>/versions/<vid>/    # Painter results (meta + images)",
+      "quote": "Constraints in code, judgment in prompts.",
+      "quoteNote": "RepoChan design principle No.1",
+      "cameoAlt": "Repo-chan chibi inspecting the protocol tree with a magnifying glass"
+    },
+    "pipeline": {
+      "eyebrow": "The pipeline",
+      "title": "One sentence in, a full brand out — with three checkpoints",
+      "lede": "You talk to your agent; the wizard skill schedules six roles. Each pause is a human checkpoint, not a formality.",
+      "steps": [
+        { "tag": "v1", "title": "Analyst", "body": "Deterministic scan plus LLM enrichment → analysis report." },
+        { "tag": "v2", "title": "Interviewer", "body": "Optional. Structured questions distill taste into an interview report." },
+        { "tag": "v3", "title": "Creative team", "body": "Worldbuilder + character designer + consistency guardian → persona.", "gate": "checkpoint: confirm persona" },
+        { "tag": "v4", "title": "Art director", "body": "Foundation sheet first, then every downstream asset order." },
+        { "tag": "v5", "title": "Painter", "body": "Foundation-anchored rendering; downstream art references the foundation.", "gate": "checkpoint: confirm foundation art" },
+        { "tag": "v6", "title": "Page designer", "body": "Landing page and deploy prep — like this very site.", "gate": "checkpoint: before deploy" }
+      ],
+      "cameoStartAlt": "Repo-chan chibi pointing at the first pipeline step",
+      "cameoEndAlt": "Repo-chan chibi celebrating at the end of the pipeline",
+      "modesCaption": "Run modes",
+      "modesHead": ["Mode", "When", "Behavior"],
+      "modes": [
+        ["Wizard (default)", "“Make me a mascot and site”", "Full pipeline, stops at checkpoints"],
+        ["yolo", "You explicitly say yolo", "Default creative decisions inside the authorized scope; external writes still need explicit authorization"],
+        ["Non-interactive", "CI / no TTY", "Auto-selects local reversible decisions; stops before unauthorized external writes"],
+        ["Per-team (advanced)", "“Only run analysis”", "Runs a single team skill"]
+      ]
+    },
+    "architecture": {
+      "eyebrow": "The architecture",
+      "title": "Four layers of constraints, one thin binding surface",
+      "lede": "The stack separates what must be deterministic from what must stay creative. The CLI is the only door.",
+      "layers": [
+        { "name": "schema", "mono": "shape contracts", "body": "Zod schemas gate artifact shape — a gate, not a mirror of taste." },
+        { "name": "protocol", "mono": "current.json + versions/", "body": "Dual-track persistence, safeProtocolPath, atomic writes with EEXIST refusal." },
+        { "name": "entities", "mono": "state machines", "body": "OrderStatus six-state machine, dependency gates, approval gates." },
+        { "name": "skill", "mono": "soft constraints", "body": "Pure markdown judgment: how to run the pipeline, enforced by your agent." }
+      ],
+      "cliBar": "repochan — the only binding surface",
+      "pkgCaption": "Seven packages, one dependency direction: cli → leaves",
+      "pkgHead": ["Package", "Role"],
+      "pkgs": [
+        ["core", ".repochan/ R/W, schema gates, state machine, analysis engine — zero credentials, zero pixels"],
+        ["skill", "Wizard + team skills, pure markdown"],
+        ["cli", "Sole bin: deterministic subcommands + skill install"],
+        ["image-gen", "prompt → PNG; the only place credentials live"],
+        ["image-edit", "Local pixel ops: slice / bg-remove / GIF"],
+        ["templates", "Built-in asset YAML templates"],
+        ["starters", "Landing-page starter scaffolds"]
+      ],
+      "note": "Image libraries never write .repochan/; protocol writes always go through core. Core is zero-credential, zero-agent, zero-pixel by construction."
+    },
+    "brandKit": {
+      "eyebrow": "The proof",
+      "title": "This page is its own pipeline output",
+      "lede": "Every visual on this site was produced by the pipeline it describes — persona, foundation, stickers, poster, banner, pattern, icon. Each card carries its verifiable order id.",
+      "cards": [
+        { "img": "/assets/gallery-foundation.webp", "square": true, "title": "Foundation sheet", "body": "The single visual anchor every downstream asset references.", "orderId": "ord-foundation-001", "alt": "Repo-chan foundation character sheet" },
+        { "img": "/assets/gallery-poster.webp", "title": "Poster", "body": "Night-workshop signature scene; style reference for later art.", "orderId": "ord-poster-001", "alt": "Repo-chan poster, night workshop scene" },
+        { "img": "/assets/gallery-sticker.webp", "square": true, "title": "Sticker sheet 3×3", "body": "Uniform-matte semantic grid — the cameos on this page are sliced from it.", "orderId": "ord-sticker-001", "alt": "Repo-chan 3 by 3 chibi sticker sheet" },
+        { "img": "/assets/icon.webp", "square": true, "title": "Icon", "body": "Brand mark, favicon source, nav seal.", "orderId": "ord-icon-001", "alt": "RepoChan wax-seal icon" },
+        { "img": "/assets/gallery-banner.webp", "title": "README banner", "body": "Social / og:image preview banner.", "orderId": "ord-readme-banner-001", "alt": "RepoChan README banner" },
+        { "img": "/assets/pattern-tile.webp", "square": true, "title": "Pattern tile", "body": "The canonical L1b: one seamless wax-seal tile, CSS-parameterized sitewide.", "orderId": "ord-pattern-001", "alt": "Seamless wax-seal pattern tile" }
+      ],
+      "self": {
+        "title": "…and this page",
+        "body": "Hero and CTA composites, cameo slices, palette and type — all delivered through the same orders pipeline you just read about.",
+        "orderId": "ord-web-hero-composite-001 · ord-web-cta-composite-001"
+      },
+      "lightboxClose": "Close"
+    },
+    "starters": {
+      "eyebrow": "The starters",
+      "title": "Shipped scaffolds you can pull today",
+      "lede": "Four complete Astro landing starters ship with the monorepo — inspect, pull, localize.",
+      "items": [
+        { "id": "caddy", "img": "/assets/starters/caddy.webp", "name": "Caddy Gatehouse", "body": "Automatic HTTPS story with gateway motifs and ordered transitions." },
+        { "id": "marktext", "img": "/assets/starters/marktext.webp", "name": "MarkText Midnight Editorial", "body": "Midnight Art Deco hero, paper sections, real editor gallery." },
+        { "id": "minimal", "img": "/assets/starters/minimal.webp", "name": "Minimal Hero", "body": "The default Hero-only starter: one composition, one visual slot." },
+        { "id": "redis", "img": "/assets/starters/redis.webp", "name": "Redis Signal Relay", "body": "Kinetic cel-shaded art with a shared seamless relay pattern." }
+      ],
+      "previewAltPrefix": "Preview screenshot of the ",
+      "cmdPrefix": "repochan starter pull --starter "
+    },
+    "principles": {
+      "eyebrow": "The contract clauses",
+      "title": "Six design principles, written down like terms",
+      "lede": "Short, numbered, and binding — the same way the protocol treats every other promise.",
+      "clauses": [
+        { "title": "Constraints in code, judgment in prompts", "body": "Prefer deterministic gates over skill prose." },
+        { "title": "CLI is the only binding surface", "body": "Agents shell out; MCP, if ever, is a thin wrapper over the CLI." },
+        { "title": "No embedded runtime", "body": "There is no repochan run that “thinks”; the wizard skill plus your agent does." },
+        { "title": "Image libs do not write .repochan/", "body": "Bytes out; protocol in only via core." },
+        { "title": "Credentials stay in image-gen", "body": "~/.repochan/image.json plus env; core and cli never see keys." },
+        { "title": "Foundation-first consistency", "body": "One visual anchor, then reference-driven downstream art." }
+      ],
+      "limitsTitle": "Honest limits",
+      "limits": [
+        "No CI configuration, no lint configuration ships with the repo.",
+        "No stale propagation: editing a persona does not auto-flag dependent orders.",
+        "Schemas guarantee “legal”, never “beautiful” — quality lives in skills and review.",
+        "The state machine is intentionally rigid; recovery paths are explicit, not magical."
+      ],
+      "archLink": "Full rationale in ARCHITECTURE.md →",
+      "archUrl": "https://github.com/l1veIn/repochan-mono/blob/main/ARCHITECTURE.md",
+      "catchphrase": "“Say it nicely all you want — it only counts once it’s written down.”",
+      "catchphraseNote": "Repo-chan, keeper of the Seal Workshop"
+    },
+    "cta": {
+      "mediaLabel": "Morning scene: a row of freshly sealed and numbered contracts on the workshop desk, Repo-chan standing by with the finished archive.",
+      "title": "Write it down. Ship the brand.",
+      "lede": "Node ≥ 20, your own agent, one global install. The next sealed contract can be yours.",
+      "install": "npm install -g repochan",
+      "copy": "Copy",
+      "copied": "Copied",
+      "getStarted": "Get started",
+      "docs": "Read the docs"
+    },
+    "footer": {
+      "docsTitle": "Docs map",
+      "docs": [
+        { "href": "https://github.com/l1veIn/repochan-mono/blob/main/ARCHITECTURE.md", "label": "ARCHITECTURE.md — layers, packages, binding model" },
+        { "href": "https://github.com/l1veIn/repochan-mono/tree/main/packages/skill", "label": "packages/skill — skill inventory" },
+        { "href": "https://github.com/l1veIn/repochan-mono/tree/main/packages/core", "label": "packages/core — core API surface" },
+        { "href": "https://github.com/l1veIn/repochan-mono/tree/main/packages/image-gen", "label": "packages/image-gen — generation config" },
+        { "href": "https://github.com/l1veIn/repochan-mono/tree/main/packages/starters", "label": "packages/starters — starter scaffolds" }
+      ],
+      "metaTitle": "Project",
+      "repo": "GitHub repository",
+      "license": "License",
+      "licenseUrl": "https://github.com/l1veIn/repochan-mono/blob/main/LICENSE",
+      "sealLine": "Sealed in .repochan/",
+      "fine": "RepoChan — an LLM-native creative production protocol. Persona & art: Repo-chan (契印工房).",
+      "finePrint": ["© 2026 RepoChan contributors", "MIT License", "repochan-mono"],
+      "switchLocale": "中文版本"
+    },
+    "notFound": {
+      "pageTitle": "404 — Page not sealed · RepoChan",
+      "pageDescription": "This page was never written down.",
+      "heading": "404 — This promise never made it to paper.",
+      "lede": "It dissolved before dawn — but the archive is intact.",
+      "backLabel": "Back to the sealed scroll",
+      "cameoAlt": "Repo-chan chibi inspecting the missing page with a magnifying glass"
+    },
+    "githubUrl": "https://github.com/l1veIn/repochan-mono",
+    "getStartedUrl": "https://github.com/l1veIn/repochan-mono#getting-started",
+    "docsUrl": "https://github.com/l1veIn/repochan-mono#readme"
+  }
+}

@@ -1,0 +1,104 @@
+---
+// Base layout — semantic shell, meta, favicons, global CSS, sitewide JS.
+// Theme tokens + slot asset urls come from repochan/site.json + assets.json
+// via buildCssVars(), injected inline so the CSS stays free of literals.
+import '../styles/tokens.css';
+import '../styles/global.css';
+import type { Copy } from '../lib/copy';
+import { buildCssVars } from '../lib/site';
+
+interface Props {
+  c: Copy;
+  title?: string;
+  description?: string;
+}
+
+const { c, title = c.meta.title, description = c.meta.description } = Astro.props;
+const cssVars = buildCssVars();
+---
+
+<!doctype html>
+<html lang={c.lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content={c.meta.ogImage} />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="alternate" hreflang="en" href="/" />
+    <link rel="alternate" hreflang="zh" href="/zh/" />
+    <style is:inline set:html={cssVars} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{c.a11y.skipLink}</a>
+    <slot />
+    <script is:inline>
+      // Nav toggle (mobile). No motion dependency; state is aria-visible.
+      (function () {
+        var toggle = document.querySelector('.nav-toggle');
+        var links = document.querySelector('.nav-links');
+        if (toggle && links) {
+          toggle.addEventListener('click', function () {
+            var open = links.getAttribute('data-open') === 'true';
+            links.setAttribute('data-open', String(!open));
+            toggle.setAttribute('aria-expanded', String(!open));
+          });
+          links.addEventListener('click', function (e) {
+            if (e.target.closest('a')) {
+              links.setAttribute('data-open', 'false');
+              toggle.setAttribute('aria-expanded', 'false');
+            }
+          });
+        }
+      })();
+
+      // Copy-to-clipboard chips. Status change is text (live region), not animation.
+      (function () {
+        var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        document.querySelectorAll('[data-copy]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var text = btn.getAttribute('data-copy');
+            var done = btn.getAttribute('data-copied-label') || 'Copied';
+            var orig = btn.textContent;
+            function ok() {
+              btn.textContent = done;
+              btn.setAttribute('aria-live', 'polite');
+              setTimeout(function () { btn.textContent = orig; }, reduce ? 2500 : 1600);
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(ok, function () {});
+            }
+          });
+        });
+      })();
+
+      // Gallery lightbox on a native <dialog>: Esc closes, focus returns to trigger.
+      (function () {
+        var dlg = document.querySelector('.lightbox');
+        if (!dlg) return;
+        var img = dlg.querySelector('img');
+        var cap = dlg.querySelector('figcaption');
+        var last = null;
+        document.querySelectorAll('[data-lightbox]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var full = btn.querySelector('img');
+            if (!full) return;
+            last = btn;
+            img.src = full.getAttribute('src');
+            img.alt = full.alt;
+            cap.textContent = btn.getAttribute('data-caption') || full.alt;
+            dlg.showModal();
+          });
+        });
+        dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+        dlg.querySelector('.close').addEventListener('click', function () { dlg.close(); });
+        dlg.addEventListener('close', function () { if (last) last.focus(); });
+      })();
+    </script>
+  </body>
+</html>

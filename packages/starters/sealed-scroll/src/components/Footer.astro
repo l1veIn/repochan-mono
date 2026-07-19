@@ -1,0 +1,40 @@
+---
+// footer — night roll-close (§6.10): docs map, license, locale switch,
+// seal motif sign-off. All live text.
+import type { Copy } from '../lib/copy';
+import { assets } from '../lib/site';
+const { c } = Astro.props as { c: Copy };
+---
+
+<footer class="footer" aria-labelledby="footer-docs">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <p class="seal-line">
+          <img src={assets.icon.src} alt="" width="40" height="40" loading="lazy" />
+          <span>{c.footer.sealLine}</span>
+        </p>
+        <p style="margin-top: 1rem; font-size: var(--step--1); max-width: 38ch;">{c.footer.fine}</p>
+      </div>
+      <div>
+        <h2 id="footer-docs">{c.footer.docsTitle}</h2>
+        <ul>
+          {c.footer.docs.map((d) => (
+            <li><a href={d.href} rel="noopener">{d.label}</a></li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h2>{c.footer.metaTitle}</h2>
+        <ul>
+          <li><a href={c.githubUrl} rel="noopener">{c.footer.repo}</a></li>
+          <li><a href={c.footer.licenseUrl} rel="noopener">{c.footer.license} (MIT)</a></li>
+          <li><a href={c.altRoute}>{c.footer.switchLocale}</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="fine">
+      {c.footer.finePrint.map((item) => <span>{item}</span>)}
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,23 @@
+---
+// nav — HTML-first band over hero (DESIGN §6.1). All text/links live.
+import type { Copy } from '../lib/copy';
+import { assets } from '../lib/site';
+const { c } = Astro.props as { c: Copy };
+---
+
+<header class="nav">
+  <nav class="nav-bar wrap" aria-label={c.nav.ariaLabel}>
+    <a class="nav-brand" href={c.route}>
+      <img src={assets.icon.src} alt={c.nav.brandIconAlt} width="34" height="34" />
+      <span>{c.nav.brand}</span>
+    </a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="nav-links">{c.nav.menuToggle}</button>
+    <ul class="nav-links" id="nav-links" data-open="false">
+      {c.nav.links.map((l) => (
+        <li><a href={l.href}>{l.label}</a></li>
+      ))}
+      <li><a href={c.githubUrl} rel="noopener">{c.nav.github}</a></li>
+      <li><a class="nav-locale" href={c.altRoute} hreflang={c.locale === 'en' ? 'zh' : 'en'}>{c.nav.switchLocale}</a></li>
+    </ul>
+  </nav>
+</header>

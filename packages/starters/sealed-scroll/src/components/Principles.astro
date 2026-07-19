@@ -1,0 +1,39 @@
+---
+// principles — quiet band, no pattern (§6.8): six clauses, honest limits,
+// persona catchphrase. The breathing space after the dense gallery.
+import type { Copy } from '../lib/copy';
+const { c } = Astro.props as { c: Copy };
+---
+
+<section class="band principles" id="principles" aria-labelledby="principles-title">
+  <div class="wrap">
+    <div class="band-head">
+      <p class="eyebrow">{c.principles.eyebrow}</p>
+      <h2 id="principles-title">{c.principles.title}</h2>
+      <p class="lede">{c.principles.lede}</p>
+    </div>
+    <ol class="clauses">
+      {c.principles.clauses.map((cl) => (
+        <li>
+          <h3>{cl.title}</h3>
+          <p>{cl.body}</p>
+        </li>
+      ))}
+    </ol>
+    <div class="limits">
+      <h3>{c.principles.limitsTitle}</h3>
+      <ul>
+        {c.principles.limits.map((l) => <li>{l}</li>)}
+      </ul>
+      <p style="margin: 0.9rem 0 0; font-size: var(--step--1);">
+        <a href={c.principles.archUrl} rel="noopener">{c.principles.archLink}</a>
+      </p>
+    </div>
+    <blockquote class="catchphrase">
+      {c.principles.catchphrase}
+      <footer>{c.principles.catchphraseNote}</footer>
+    </blockquote>
+  </div>
+</section>
+<!-- transition out: paper dyes into amber morning light (principles→cta) -->
+<div class="warm-seam" aria-hidden="true"></div>

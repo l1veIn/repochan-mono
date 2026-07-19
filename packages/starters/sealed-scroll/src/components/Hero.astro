@@ -1,0 +1,31 @@
+---
+// hero — baked L1+L2 composite (ord-web-hero-composite-001), live L3/L4.
+// Safe zone: copy x:0.04–0.52 y:0.18–0.72, CTA x:0.04–0.40 y:0.74–0.88.
+import type { Copy } from '../lib/copy';
+const { c } = Astro.props as { c: Copy };
+---
+
+<section class="band hero" id="top" aria-label={c.hero.mediaLabel}>
+  <div class="hero-media" role="img" aria-label={c.hero.mediaLabel}></div>
+  <div class="hero-inner">
+    <h1>{c.hero.title1}<em>{c.hero.titleEm}</em>{c.hero.title2}</h1>
+    <p class="lede">{c.hero.lede}</p>
+    <p class="chip">
+      <code>{c.hero.install}</code>
+      <button class="copy-btn" data-copy={c.hero.install} data-copied-label={c.hero.copied}>{c.hero.copy}</button>
+    </p>
+    <div class="actions">
+      <a class="btn btn-solid" href={c.getStartedUrl} rel="noopener">{c.hero.getStarted}</a>
+      <a class="btn btn-ghost" href={c.githubUrl} rel="noopener">{c.hero.github}</a>
+    </div>
+  </div>
+  <!-- transition out: amber half-seal straddling the seam (x:0.85, y:1.0) -->
+  <svg class="seal-motif seal-hero" viewBox="0 0 100 100" aria-hidden="true">
+    <g style="fill:none;stroke:var(--amber)" stroke-width="3">
+      <path d="M50 6 a44 44 0 1 1 -0.01 0" opacity="0.9" />
+      <circle cx="50" cy="50" r="30" opacity="0.55" />
+      <path d="M50 30 l5.5 14.5 14.5 5.5 -14.5 5.5 -5.5 14.5 -5.5 -14.5 -14.5 -5.5 14.5 -5.5 z" style="fill:var(--amber);stroke:none" opacity="0.85" />
+    </g>
+  </svg>
+</section>
+<div class="seam-line" aria-hidden="true"></div>

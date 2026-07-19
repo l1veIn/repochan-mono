@@ -65,3 +65,4 @@ Starter Designer works in a creator-owned directory or repository. Official incl
 | `marktext` | MarkText midnight Art Deco editorial landing page | no |
 | `minimal` | RepoChan single-screen editorial Hero | yes |
 | `redis` | Redis kinetic real-time signal-relay landing page | no |
+| `sealed-scroll` | RepoChan continuous risograph seal-workshop landing page | no |

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "RepoChan",
+    "description": "Turn any git repository into a living mascot persona and a consistent visual brand — driven by your coding agent.",
+    "repositoryUrl": "https://github.com/l1veIn/repochan-mono"
+  },
+  "theme": {
+    "primary": "#3ECF8E",
+    "base": "#F5F0E8",
+    "ink": "#1F2A24",
+    "accents": ["#F0B429", "#C8D0E0"]
+  },
+  "brand": {
+    "artStyle": "Cel-shading with Risograph Pop print texture (misregistration, overprint grain)",
+    "motifs": ["wax seal stamp", "numbered paper version tag", "hand-inked contract line"],
+    "patterns": [
+      "wax-seal circle + half-stamp four-way continuous tile",
+      "contract ink line with numbered tag border",
+      "paper fiber with page-number dot grid"
+    ]
+  },
+  "locales": {
+    "default": "en",
+    "supported": ["en", "zh"]
+  }
+}

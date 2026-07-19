@@ -1,0 +1,24 @@
+---
+// 404 — searching cameo + live text (DESIGN §3). Bilingual: a static 404 page
+// cannot detect locale, so both languages are presented, en first.
+import Base from '../layouts/Base.astro';
+import { getCopy } from '../lib/copy';
+import { assets } from '../lib/site';
+
+const en = getCopy('en');
+const zh = getCopy('zh');
+---
+
+<Base c={en} title={en.notFound.pageTitle} description={en.notFound.pageDescription}>
+  <main id="main" class="notfound with-pattern">
+    <div>
+      <img src={assets["sticker-cells"].items.searching.src} alt={`${en.notFound.cameoAlt} / ${zh.notFound.cameoAlt}`} width="220" height="220" />
+      <h1>{en.notFound.heading}</h1>
+      <p class="zh">{zh.notFound.lede}</p>
+      <p>
+        {en.notFound.lede}
+        <a href={en.route}>{en.notFound.backLabel}</a> · <a href={zh.route}>{zh.notFound.backLabel}</a>
+      </p>
+    </div>
+  </main>
+</Base>

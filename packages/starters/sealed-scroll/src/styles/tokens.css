@@ -1,0 +1,28 @@
+/* ============================================================
+   RepoChan site — design tokens (type & layout only)
+   Colors are NOT declared here: the canonical five live in
+   repochan/site.json and are expanded into --paper/--emerald/
+   --amber/--steel/--ink plus derived shades by
+   src/lib/site.ts buildCssVars() (injected inline by Base.astro).
+   ============================================================ */
+:root {
+  /* type */
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
+    "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", Georgia, serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+
+  /* fluid scale */
+  --step--1: clamp(0.82rem, 0.78rem + 0.2vw, 0.94rem);
+  --step-0: clamp(0.98rem, 0.92rem + 0.3vw, 1.13rem);
+  --step-1: clamp(1.2rem, 1.05rem + 0.7vw, 1.5rem);
+  --step-2: clamp(1.45rem, 1.2rem + 1.2vw, 2rem);
+  --step-3: clamp(1.8rem, 1.4rem + 2vw, 2.9rem);
+  --step-4: clamp(2.2rem, 1.5rem + 2.8vw, 3.5rem);
+
+  --gutter: clamp(1.1rem, 4vw, 4rem);
+  --measure: 68ch;
+  --radius: 10px;
+}
