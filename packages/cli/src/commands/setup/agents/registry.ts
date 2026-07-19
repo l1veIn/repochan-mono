@@ -156,16 +156,17 @@ export const ALL_TARGETS: readonly AgentTarget[] = Object.freeze([
   {
     id: "kimi",
     displayName: "Kimi Code / Kimi Work",
-    skillDir: ".kimi/skills",
-    globalSkillDir: ".kimi/skills",
-    // Kimi Code CLI and Kimi Work share the Kimi Code kernel and the same
-    // skill layout (.kimi/skills). Kimi also merges .claude/ and .codex/
-    // skill dirs by default, but we install into its native .kimi/ path.
+    skillDir: ".kimi-code/skills",
+    globalSkillDir: ".kimi-code/skills",
+    // Kimi Code CLI and Kimi Work share the Kimi Code kernel. User-level
+    // skills scan ~/.kimi-code/skills (the default $KIMI_CODE_HOME) and
+    // ~/.agents/skills; project-level skills scan ./.kimi-code/skills.
+    // We install into the native .kimi-code/ path so Kimi picks them up.
     // Shares AGENTS.md with codex/claude/hermes/pi/opencode/grok/zcode/cline
     // — markers are per-agent so all can coexist in the same file.
     instructionFile: "AGENTS.md",
     instructionMode: "marker",
-    detectInstalled: () => exists(home(".kimi")),
+    detectInstalled: () => exists(home(".kimi-code")),
   },
 ]);
 
