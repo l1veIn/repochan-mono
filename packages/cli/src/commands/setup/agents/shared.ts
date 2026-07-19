@@ -32,10 +32,10 @@ export function referenceBlock(agentId: AgentId, skillPath: string): string {
     "This project uses the RepoChan creative pipeline. Artifacts live in `.repochan/`.",
     "Before starting, read the bundled skills:",
     "",
-    `- [RepoChan wizard](${skillPath}/repochan/SKILL.md) — default one-shot full pipeline with checkpoints`,
+    `- [RepoChan wizard](${skillPath}/repochan/SKILL.md) — guided full pipeline by default; stops at 3 checkpoints for user confirmation. Only runs end-to-end without stopping when the user explicitly says "yolo".`,
     `- [Team skills](${skillPath}/) — analysis, persona, painter, ... (advanced, per-step)`,
     "",
-    "Want the full thing? Just say: \"generate all assets and deploy\".",
+    "Run `/repochan` to start in guided mode, or say \"generate all assets and deploy\" for the full pipeline (still guided unless you add \"yolo\").",
     "",
     end,
   ].join("\n");
