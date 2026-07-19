@@ -27,7 +27,7 @@ prompt_template: |
   perfectly flat uniform non-character matte background of pure {{matte_color}}, no gradient, texture, shadow, or off-color,
   generous empty margin on all four sides of every cell, no sticker may touch a cell edge or enter another cell,
   no words, letters, numbers, punctuation, labels, captions, speech bubbles, interface text, watermarks, borders, frames, or grid lines,
-  no element crosses a cell boundary, square 1:1 canvas, evenly aligned rows and columns, production-ready chroma-key sheet
+  no element crosses a cell boundary, square 1:1 canvas, evenly aligned rows and columns, production-ready chroma-key sheet, white die-cut sticker look
 
   Fixed cell semantics, left-to-right and top-to-bottom:
   CELL 0: welcome — friendly wave and inviting open posture

@@ -17,7 +17,7 @@ prompt_template: |
   perfectly flat uniform matte background of pure {{matte_color}}, no off-color, no gradient or texture,
   generous spacing between stickers with large margins, stickers must not touch cell edges or each other,
   each sticker is simple and minimal — no background props, no text labels, no complex scenery inside any cell,
-  square 1:1 aspect ratio, evenly spaced isolated stickers, masterpiece, best quality
+  square 1:1 aspect ratio, evenly spaced isolated stickers, white die-cut sticker look, masterpiece, best quality
 
   The nine expressions in fixed positions (left-to-right, top-to-bottom):
 

@@ -11,7 +11,7 @@ prompt_template: |
   clean cel-shaded style consistent with {{art_style}},
   using {{color_palette}},
 
-  Extraction setup: render exactly one isolated asset, centered with a clear margin,
+  Extraction setup: render exactly one isolated asset, centered with a clear margin, white die-cut sticker look,
   on a perfectly flat uniform matte background of pure {{matte_color}}.
   Do not use gradients, texture, vignette, shadows, reflections, contact shadows, scenery, props, labels, frames, or background-colored details.
   Keep the full subject visible and separated from the matte.
