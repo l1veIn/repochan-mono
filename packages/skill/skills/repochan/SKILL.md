@@ -105,7 +105,7 @@ description: >
 ## 执行前检查
 
 收到总指令后，先做：
-1. 检查项目是否已初始化、现有哪些产物（`repochan status`）。**若 status 提示 "Skill version drift"（skill 版本与当前 CLI 不一致），先让用户运行 `repochan setup` 刷新 skill**——版本不匹配时你可能用到过时的流程指引。
+1. 检查项目是否已初始化、现有哪些产物（`repochan status`）。若 status 报告 "Skill version drift"，**只关心用户当前实际在用的那个 agent**——drift 列表里会列出历史上 setup 过的所有 agent，多数与本次会话无关。只有用户当前用的 agent 出现在列表里、且版本旧于 CLI 时，才提示用户运行 `repochan setup --agent <那个 agent>` 刷新；其他的（用户已经不用的）一律忽略，不必让用户去刷新它们。
 2. 如果已有产物，总结现有进度，判断从哪一步续跑。
 3. 通过 `repochan foundation find` 检查视觉锚点是否已存在——已存在则跳到下游任务。
 4. 确认用户要的终点（全套资产？到图为止？要部署吗？）。
