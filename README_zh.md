@@ -44,7 +44,7 @@
 ```bash
 npm install -g repochan
 repochan setup                 # 把 skill 装进你的 agent
-repochan image configure       # 一次性配置：图像 endpoint 凭证
+#repochan image configure       # 单独配置图像 endpoint 凭证
 ```
 
 随后在项目中打开 coding agent，输入 `/repochan` 启动 RepoChan 流程。试试：
