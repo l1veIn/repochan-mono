@@ -318,15 +318,31 @@ export interface SkillDriftEntry {
 }
 
 /**
+ * Strip the git build suffix (everything after '+') so that two builds of the
+ * same semver are treated as equal for drift purposes. The suffix encodes the
+ * source commit / dirty state — useful for display, but per semver it is build
+ * metadata and must not affect version comparison. Without this, every new
+ * commit would make every installed skill look stale.
+ */
+function semverCore(version: string): string {
+  const plus = version.indexOf("+");
+  return plus >= 0 ? version.slice(0, plus) : version;
+}
+
+/**
  * Return agent records whose installed skill cliVersion differs from the
  * current CLI version — i.e. "skills may be stale, run `repochan setup`".
  * Carries version/path context so callers (e.g. `repochan status`) can show it.
+ *
+ * Comparison uses the semver core only (build/git suffix ignored): two builds
+ * of 0.3.0 from different commits are NOT considered drifted.
  */
 export async function getStaleSkillRecords(): Promise<SkillDriftEntry[]> {
   const reg = await loadRegister();
   const current = cliVersion();
+  const currentCore = semverCore(current);
   return Object.entries(reg.skills)
-    .filter(([, rec]) => rec.cliVersion !== current)
+    .filter(([, rec]) => semverCore(rec.cliVersion) !== currentCore)
     .map(([id, rec]) => ({
       agentId: id,
       installedVersion: rec.cliVersion,
