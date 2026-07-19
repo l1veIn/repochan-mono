@@ -315,9 +315,6 @@ export function validateStarterManifest(value: unknown): StarterManifest {
     assertUnique(publications.map((item) => item.output), `assets.${asset.slot}.publications.output`);
     for (const publication of publications) {
       assertSafeRelativePath(publication.output, `assets.${asset.slot}.publications.${publication.key}.output`);
-      if (path.extname(publication.output).toLowerCase() !== ".png") {
-        throw new Error(`assets.${asset.slot}.publications.${publication.key}.output must be a .png path.`);
-      }
     }
     for (const [index, step] of (asset.postprocess ?? []).entries()) {
       assertSafeRelativePath(step.out, `assets.${asset.slot}.postprocess.out`);
@@ -332,7 +329,13 @@ export function validateStarterManifest(value: unknown): StarterManifest {
     }
     if (asset.kind === "bundle") {
       if (extractGridSteps.length !== 1) throw new Error(`assets.${asset.slot}: bundle assets require an extract-grid postprocess step.`);
-      validateExtractGridArgs(asset.slot, extractGridSteps[0].args, publications);
+      const format = validateExtractGridArgs(asset.slot, extractGridSteps[0].args, publications);
+      const expectedExt = format === "webp" ? ".webp" : ".png";
+      for (const publication of publications) {
+        if (path.extname(publication.output).toLowerCase() !== expectedExt) {
+          throw new Error(`assets.${asset.slot}.publications.${publication.key}.output must be a ${expectedExt} path (matches extract-grid args.format='${format}').`);
+        }
+      }
     } else if (extractGridSteps.length) {
       throw new Error(`assets.${asset.slot}: extract-grid is only valid for bundle assets.`);
     } else if (finalOut && finalOut !== asset.output) {
@@ -346,7 +349,7 @@ function validateExtractGridArgs(
   slot: string,
   args: Record<string, unknown> | undefined,
   publications: Array<{ key: string; cell: number; output: string }>,
-): void {
+): "png" | "webp" {
   const label = `assets.${slot}.extract-grid.args`;
   if (!args || !Number.isInteger(args.rows) || Number(args.rows) < 1 || !Number.isInteger(args.cols) || Number(args.cols) < 1) {
     throw new Error(`${label}.rows and .cols must be positive integers.`);
@@ -394,6 +397,14 @@ function validateExtractGridArgs(
   if (args.chroma !== undefined && (!args.chroma || typeof args.chroma !== "object" || Array.isArray(args.chroma))) {
     throw new Error(`${label}.chroma must be an object.`);
   }
+  const format = args.format ?? "png";
+  if (format !== "png" && format !== "webp") {
+    throw new Error(`${label}.format must be 'png' or 'webp' (got ${JSON.stringify(format)}).`);
+  }
+  if (args.quality !== undefined && (!Number.isInteger(args.quality) || Number(args.quality) < 1 || Number(args.quality) > 100)) {
+    throw new Error(`${label}.quality must be an integer from 1 to 100.`);
+  }
+  return format;
 }
 
 export function validateStarterSiteConfig(value: unknown): StarterSiteConfig {

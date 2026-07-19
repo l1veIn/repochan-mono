@@ -357,6 +357,8 @@ async function stageGridBundle(
     chroma: chroma as any,
     normalize: args.normalize as any,
     qa: args.qa as any,
+    format: args.format as "png" | "webp" | undefined,
+    quality: args.quality !== undefined ? Number(args.quality) : undefined,
     overwrite: true,
   });
   const byKey = new Map(result.items.map((item) => [item.key, item]));

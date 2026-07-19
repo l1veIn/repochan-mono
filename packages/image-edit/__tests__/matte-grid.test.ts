@@ -82,6 +82,23 @@ describe("extractMatteGrid", () => {
     await fs.rm(dir, { recursive: true, force: true });
   });
 
+  it("emits webp cells with the .webp extension when format: 'webp'", async () => {
+    const { dir, image, out } = await fixture();
+    const result = await extractMatteGrid(image, out, options({ format: "webp", quality: 80 }));
+
+    expect(result.items.map((item) => item.file)).toEqual(KEYS.map((key) => `${key}.webp`));
+    for (const item of result.items) {
+      const buf = await fs.readFile(item.path);
+      // WebP RIFF signature: "RIFF"...."WEBP"
+      expect(buf.subarray(0, 4).toString("ascii")).toBe("RIFF");
+      expect(buf.subarray(8, 12).toString("ascii")).toBe("WEBP");
+      // VP8X chunk (extended) indicates an alpha-capable container; webp with alpha is "VP8X" + alpha flag.
+      // At minimum, the file must decode as webp and not be PNG.
+      expect(buf.subarray(0, 8).toString("hex")).not.toMatch(/^89504e47/);
+    }
+    await fs.rm(dir, { recursive: true, force: true });
+  });
+
   it("supports semantic subsets and preserves requested order", async () => {
     const { dir, image, out } = await fixture();
     const result = await extractMatteGrid(image, out, options({

@@ -43,6 +43,10 @@ export type ExtractMatteGridOptions = {
     padding?: number;
   };
   qa?: MatteGridQaOptions;
+  /** Output format. Default: "png" (lossless alpha). "webp" yields lossy-but-smaller transparent cells. */
+  format?: "png" | "webp";
+  /** Quality 1-100 when format is "webp". Default: 80. Ignored for "png". */
+  quality?: number;
   /** Replace an existing output directory. Default false. */
   overwrite?: boolean;
 };
@@ -81,7 +85,8 @@ type PreparedItem = { meta: MatteGridItem; png: Buffer };
 
 /**
  * Deterministically extract named transparent assets from a uniform-matte grid.
- * Pipeline: equal cells → chroma key → alpha QA → trim → normalized canvas → PNG.
+ * Pipeline: equal cells → chroma key → alpha QA → trim → normalized canvas → PNG/WebP.
+ * Output format defaults to PNG (lossless alpha); pass `format: "webp"` for smaller lossy cells.
  * This function has no network, ML, starter, or `.repochan/` knowledge.
  */
 export async function extractMatteGrid(
@@ -152,10 +157,13 @@ export async function extractMatteGrid(
     }).resize(innerW, innerH, { fit: "inside", withoutEnlargement: false }).raw().toBuffer({ resolveWithObject: true });
     const x = Math.floor((canvas.width - resized.info.width) / 2);
     const y = Math.floor((canvas.height - resized.info.height) / 2);
-    const png = await sharp({
-      create: { width: canvas.width, height: canvas.height, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
-    }).composite([{ input: resized.data, raw: { width: resized.info.width, height: resized.info.height, channels: 4 }, left: x, top: y }]).png().toBuffer();
-    const file = `${semantic.key}.png`;
+    const format = options.format ?? "png";
+    const canvasOpts = { create: { width: canvas.width, height: canvas.height, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } };
+    const compositeOps = [{ input: resized.data, raw: { width: resized.info.width, height: resized.info.height, channels: 4 }, left: x, top: y }];
+    const png = format === "webp"
+      ? await sharp(canvasOpts).composite(compositeOps).webp({ quality: options.quality ?? 80 }).toBuffer()
+      : await sharp(canvasOpts).composite(compositeOps).png().toBuffer();
+    const file = `${semantic.key}.${format}`;
     prepared.push({
       png,
       meta: {

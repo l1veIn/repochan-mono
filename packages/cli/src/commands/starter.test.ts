@@ -354,6 +354,44 @@ describe("starter v1 commands", () => {
     });
   });
 
+  it("forwards extract-grid args.format/quality to extractMatteGrid and lands webp outputs", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const { root, siteDir, assetsPath } = await gridBundleFixture();
+    // Rewrite the bundle to declare webp output.
+    const manifestPath = path.join(siteDir, "repochan", "starter.json");
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    manifest.assets[0].publications = [
+      { key: "welcome", cell: 0, output: "public/assets/states/welcome.webp" },
+      { key: "empty", cell: 1, output: "public/assets/states/empty.webp" },
+    ];
+    manifest.assets[0].postprocess[0].args.format = "webp";
+    manifest.assets[0].postprocess[0].args.quality = 80;
+    await writeFile(manifestPath, JSON.stringify(manifest));
+
+    const seenOptions: Array<{ format?: string; quality?: number }> = [];
+    vi.mocked(extractMatteGrid).mockImplementation(async (_source, outDir, options) => {
+      seenOptions.push({ format: options.format, quality: options.quality });
+      await mkdir(outDir, { recursive: true });
+      const ext = options.format === "webp" ? "webp" : "png";
+      const items = Object.entries(options.mapping as Record<string, number>).map(([key, index]) => ({
+        key, index, file: `${key}.${ext}`, path: path.join(outDir, `${key}.${ext}`),
+        geometry: { cell: { row: 0, col: index, x: index * 10, y: 0, w: 10, h: 10 }, foreground: { x: 1, y: 1, w: 8, h: 8 }, normalized: { x: 2, y: 2, w: 60, h: 60, canvasWidth: 64, canvasHeight: 64, padding: 0 } },
+        qa: { foregroundPixels: 64, foregroundRatio: 0.64, edgeTouchPixels: 0, edgeTouchRatio: 0, alphaThreshold: 16 },
+      }));
+      for (const item of items) await writeFile(item.path, item.key);
+      return { sourceFile: "source.png", rows: 1, cols: 2, matteColor: [0, 255, 0], matteColorSource: "auto-sampled", items };
+    });
+
+    await runStarterAssetApply(root, "web-states", { outputDir: siteDir, order: "ord-grid-001", json: true });
+    expect(seenOptions).toEqual([{ format: "webp", quality: 80 }]);
+    expect(await readFile(path.join(siteDir, "public/assets/states/welcome.webp"), "utf8")).toBe("welcome");
+    expect(await readFile(path.join(siteDir, "public/assets/states/empty.webp"), "utf8")).toBe("empty");
+    const assets = JSON.parse(await readFile(assetsPath, "utf8"));
+    expect(assets.assets["web-states"].items.empty).toMatchObject({
+      src: "/assets/states/empty.webp", status: "customized", orderId: "ord-grid-001", versionId: "v1",
+    });
+  });
+
   it("chains each scalar postprocess output into the next step", async () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const root = await projectFixture();
