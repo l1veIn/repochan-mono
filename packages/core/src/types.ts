@@ -91,6 +91,32 @@ export type PersonaData = {
   catchphrase?: string;
   /** Backstory tied to repository history/emotional arc (not mechanical tech timeline). */
   backstory?: string;
+  /**
+   * Creed / value statement — what she believes.
+   * Distinct from `catchphrase` (a situational tagline) and `backstory` (why she
+   * is this way). motto is her stance, e.g. "code runs first, elegance later".
+   */
+  motto?: string;
+  /**
+   * 2-4 small quirks / anecdotes. For realistic/daily-world personas this is the
+   * natural carrier for atmosphere-level 'subtle unease'. Must stay atmospheric,
+   * NOT world-law-level — law-level crosses into high concept.
+   */
+  funFacts?: string[];
+  /**
+   * Food preferences. MUST derive from repo emotional signals, NOT literal
+   * mapping (a coffee-named framework does not oblige her to love coffee).
+   */
+  favoriteFood?: string[];
+  /** Drink preferences. Same anti-mechanical-mapping rule as favoriteFood. */
+  favoriteDrink?: string[];
+  /**
+   * One contrasting everyday talent (e.g. 'can recite the dep tree from memory
+   * in 30s'). Distinct from `abilities` (ACG-named powers).
+   */
+  specialSkill?: string;
+  /** Literary height (e.g. 'about 165cm, slight frame'), NOT a bare number. */
+  height?: string;
 
   // ── Visual — colors ───────────────────────────────────────
   mainColor?: string;
