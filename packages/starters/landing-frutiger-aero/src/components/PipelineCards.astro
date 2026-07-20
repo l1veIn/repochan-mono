@@ -1,0 +1,44 @@
+---
+import type { LocaleContent } from "../lib/types";
+
+type Props = { content: LocaleContent };
+const { content } = Astro.props;
+const { pipeline } = content;
+
+// Per-step gradient tokens (c1/c2) — references into the palette injected
+// from repochan/site.json by SiteLayout; step order matches locale steps[].
+const STEP_COLORS: Array<[string, string]> = [
+  ["var(--sky-300)", "var(--sky-600)"],
+  ["var(--pink-200)", "var(--pink-600)"],
+  ["var(--violet-200)", "var(--violet-600)"],
+  ["var(--mint-200)", "var(--emerald-600)"],
+  ["var(--amber-200)", "var(--amber-600)"],
+  ["var(--sky-200)", "var(--cyan-600)"],
+];
+---
+
+<section id="pipeline" aria-labelledby="pipeline-heading">
+  <div class="sec-head reveal">
+    <span class="kicker">{pipeline.kicker}</span>
+    <h2 id="pipeline-heading">{pipeline.headingPre}<em>{pipeline.headingEm}</em>{pipeline.headingPost}</h2>
+    <p>{pipeline.lead}</p>
+  </div>
+  <div class="pipe-grid">
+    {
+      pipeline.steps.map((step, index) => {
+        const [c1, c2] = STEP_COLORS[index % STEP_COLORS.length];
+        return (
+          <div class="pipe-card glass sheen reveal" style={`--c1:${c1};--c2:${c2}`}>
+            <span class="num">{step.num}</span>
+            <h3>
+              <span class="en">{step.en}</span>
+              {step.title}
+            </h3>
+            <p>{step.desc}</p>
+            <span class="cmd">{step.cmd}</span>
+          </div>
+        );
+      })
+    }
+  </div>
+</section>

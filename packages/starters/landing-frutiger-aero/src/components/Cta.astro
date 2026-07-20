@@ -1,0 +1,30 @@
+---
+import { site } from "../lib/site";
+import type { LocaleContent } from "../lib/types";
+
+type Props = { content: LocaleContent };
+const { content } = Astro.props;
+const { cta } = content;
+---
+
+<section id="cta" aria-labelledby="cta-heading">
+  <div class="cta-panel glass sheen reveal">
+    <h2 id="cta-heading">{cta.headingLine1}<br /><span class="grad">{cta.headingGrad}</span></h2>
+    <p>{cta.lead}</p>
+    <div>
+      <span class="install">
+        <span class="cmd-text"><span class="prompt">$</span> {cta.installCmd}</span>
+        <button
+          id="copyBtn"
+          type="button"
+          data-cmd={cta.installCmd}
+          data-copy-label={cta.copy}
+          data-copied-label={cta.copied}
+        >{cta.copy}</button>
+      </span>
+    </div>
+    <div class="btn-row">
+      <a class="btn-gloss pink" href={site.project.repositoryUrl} target="_blank" rel="noopener">{cta.github}</a>
+    </div>
+  </div>
+</section>

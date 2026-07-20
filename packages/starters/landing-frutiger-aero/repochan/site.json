@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "RepoChan",
+    "description": "Turn a git repository into a full brand kit: mascot persona, foundation sheets, stickers, patterns, posters, and a website that breathes.",
+    "repositoryUrl": "https://github.com/l1veIn/repochan-mono"
+  },
+  "theme": {
+    "primary": "#38BDF8",
+    "base": "#E0F2FE",
+    "ink": "#0B3550",
+    "accents": [
+      "#F9A8D4",
+      "#A78BFA",
+      "#34D399",
+      "#FACC15",
+      "#111827",
+      "#7DD3FC",
+      "#BAE6FD",
+      "#075985",
+      "#0369A1",
+      "#0284C7",
+      "#155E75",
+      "#0E7490",
+      "#0891B2",
+      "#D1FAE5",
+      "#A7F3D0",
+      "#059669",
+      "#FBCFE8",
+      "#DB2777",
+      "#BE185D",
+      "#F472B6",
+      "#DDD6FE",
+      "#7C3AED",
+      "#FDE68A",
+      "#D97706",
+      "#FFFFFF"
+    ]
+  },
+  "brand": {
+    "artStyle": "Frutiger Aero / Y2K: glossy glassmorphism, underwater light, layered bubble fields, aurora gradients",
+    "motifs": ["rising bubbles", "floating glass orbs", "watery specular highlights"],
+    "patterns": ["three-layer parallax bubble field", "aurora gradient wash"]
+  },
+  "locales": {
+    "default": "zh",
+    "supported": ["zh", "en"]
+  }
+}

@@ -1,0 +1,24 @@
+---
+import type { LocaleContent } from "../lib/types";
+
+type Props = { content: LocaleContent };
+const { content } = Astro.props;
+const { hero } = content;
+---
+
+<header id="hero">
+  <div class="hero-photo" data-parallax="0.25" aria-hidden="true"></div>
+  <div class="hero-card glass">
+    <span class="eyebrow">{hero.eyebrow}</span>
+    <h1>
+      {hero.title.line1}<br />{hero.title.line2Pre}<span class="grad">{hero.title.line2Grad}</span>{hero.title.line2Post}
+    </h1>
+    <p>{hero.lead}</p>
+    <div class="btn-row">
+      <a class="btn-gloss" href="#cta" data-scroll>{hero.primaryCta}</a>
+      <a class="btn-ghost" href="#assets" data-scroll>{hero.secondaryCta}</a>
+    </div>
+    <div class="dogfood"><span class="dot" aria-hidden="true"></span>{hero.dogfood}</div>
+  </div>
+  <div class="scroll-hint" aria-hidden="true">{hero.scrollHint}</div>
+</header>
