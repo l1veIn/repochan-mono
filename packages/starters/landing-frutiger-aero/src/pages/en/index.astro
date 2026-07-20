@@ -1,0 +1,25 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import Nav from "../../components/Nav.astro";
+import Hero from "../../components/Hero.astro";
+import PipelineCards from "../../components/PipelineCards.astro";
+import AssetOrbs from "../../components/AssetOrbs.astro";
+import PersonaGrid from "../../components/PersonaGrid.astro";
+import Cta from "../../components/Cta.astro";
+import Footer from "../../components/Footer.astro";
+import locale from "../../../repochan/i18n/en.json";
+
+const content = locale.content;
+---
+
+<SiteLayout locale="en" meta={locale.meta} a11y={content.a11y}>
+  <Nav content={content} />
+  <main id="main">
+    <Hero content={content} />
+    <PipelineCards content={content} />
+    <AssetOrbs content={content} />
+    <PersonaGrid content={content} />
+    <Cta content={content} />
+  </main>
+  <Footer content={content} />
+</SiteLayout>

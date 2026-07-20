@@ -1,0 +1,17 @@
+---
+import { site } from "../lib/site";
+import type { LocaleContent } from "../lib/types";
+
+type Props = { content: LocaleContent };
+const { content } = Astro.props;
+const { footer } = content;
+---
+
+<footer>
+  <div class="f-inner">
+    <span>{footer.copyright}</span>
+    <span>
+      {footer.notePre}<a href={site.project.repositoryUrl} target="_blank" rel="noopener">{footer.noteLink}</a>{footer.notePost}
+    </span>
+  </div>
+</footer>

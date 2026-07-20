@@ -1,0 +1,18 @@
+---
+import { site, scalarAsset } from "../lib/site";
+import type { LocaleContent } from "../lib/types";
+
+type Props = { content: LocaleContent };
+const { content } = Astro.props;
+const { nav, a11y } = content;
+---
+
+<nav class="nav-shell glass" aria-label={a11y.navLabel}>
+  <a class="brand" href="#hero" data-scroll>
+    <img src={scalarAsset("icon")} alt="" width="34" height="34" />{site.project.name}
+  </a>
+  <div class="links">
+    {nav.links.map((link) => <a href={link.href} data-scroll>{link.label}</a>)}
+    <a class="lang" href={nav.langSwitch.href} aria-label={a11y.langSwitchLabel}>{nav.langSwitch.label}</a>
+  </div>
+</nav>

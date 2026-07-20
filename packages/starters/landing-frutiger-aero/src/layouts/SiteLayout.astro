@@ -1,0 +1,52 @@
+---
+import "../styles/global.css";
+import { site, scalarAsset, buildCssVars, type Locale } from "../lib/site";
+import type { A11yContent, LocaleMeta } from "../lib/types";
+
+type Props = {
+  locale: Locale;
+  meta: LocaleMeta;
+  a11y: A11yContent;
+};
+
+const { locale, meta, a11y } = Astro.props;
+const cssVars = buildCssVars();
+---
+
+<!doctype html>
+<html lang={locale === "zh" ? "zh-CN" : "en"}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{meta.title}</title>
+    <meta name="description" content={meta.description} />
+    <meta name="theme-color" content={site.theme.primary} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={meta.title} />
+    <meta property="og:description" content={meta.description} />
+    <meta property="og:image" content={scalarAsset("hero-master")} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Zen+Maru+Gothic:wght@500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style is:inline set:html={cssVars} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{a11y.skipToContent}</a>
+    <div id="aurora" aria-hidden="true"></div>
+    <canvas id="bubbles" aria-hidden="true"></canvas>
+    <div id="grain-light" aria-hidden="true"></div>
+    <slot />
+    <script>
+      import { initMotion } from "../scripts/motion";
+      import { initBubbles } from "../scripts/bubbles";
+      initMotion();
+      initBubbles();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+---
+import { assets, scalarAsset } from "../lib/site";
+import type { LocaleContent } from "../lib/types";
+
+type Props = { content: LocaleContent };
+const { content } = Astro.props;
+const { persona } = content;
+
+const webstates = assets.webstates;
+if (webstates.kind !== "bundle") throw new Error("Asset slot 'webstates' must be a bundle.");
+// Items are authored in tile display order (tile-0..tile-8).
+const tiles = Object.values(webstates.items).map((item) => item.src);
+---
+
+<section id="persona" aria-labelledby="persona-heading">
+  <div class="states-zone">
+    <img class="cutout-float" id="cutout" src={scalarAsset("cutout")} alt={persona.cutoutAlt} width="460" height="690" />
+    <div class="states-wrap">
+      <div class="states-grid reveal" id="statesGrid">
+        {
+          tiles.map((src, i) => (
+            <div class="cell">
+              <img src={src} alt={persona.stateAltTemplate.replace("{n}", String(i + 1))} loading="lazy" width="300" height="300" />
+            </div>
+          ))
+        }
+      </div>
+      <div class="states-copy reveal">
+        <span class="kicker" id="persona-heading">{persona.kicker}</span>
+        <p class="quote">
+          {persona.quoteLine1}<br />{persona.quoteLine2Pre}<em>{persona.quoteLine2Em}</em>{persona.quoteLine2Post}
+        </p>
+        <p>{persona.body}</p>
+        <span class="mood">{persona.mood}</span>
+      </div>
+    </div>
+  </div>
+</section>

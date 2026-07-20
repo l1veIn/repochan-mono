@@ -1,0 +1,35 @@
+---
+import { assets } from "../lib/site";
+import type { LocaleContent } from "../lib/types";
+
+type Props = { content: LocaleContent };
+const { content } = Astro.props;
+const { assets: assetsContent } = content;
+
+function orbSrc(slot: string): string {
+  const asset = assets[slot as keyof typeof assets];
+  if (!asset || asset.kind !== "scalar") throw new Error(`Orb references unknown scalar asset slot: ${slot}`);
+  return asset.src;
+}
+---
+
+<section id="assets" aria-labelledby="assets-heading">
+  <div class="sec-head reveal">
+    <span class="kicker">{assetsContent.kicker}</span>
+    <h2 id="assets-heading">{assetsContent.heading}</h2>
+    <p>{assetsContent.lead}</p>
+  </div>
+  <div class="orbit">
+    {
+      assetsContent.orbs.map((orb) => (
+        <div class:list={["orb reveal", orb.size !== "default" && orb.size]} data-float={orb.float} data-drift={orb.drift}>
+          <div class="sphere">
+            <img src={orbSrc(orb.slot)} alt={orb.alt} loading="lazy" width="600" height="600" />
+          </div>
+          <span class="tag">{orb.tag}</span>
+        </div>
+      ))
+    }
+  </div>
+  <p class="assets-note reveal">{assetsContent.notePre}<code>{assetsContent.noteCode}</code></p>
+</section>

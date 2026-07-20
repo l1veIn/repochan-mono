@@ -1,0 +1,285 @@
+{
+  "schemaVersion": "repochan.starter.v1",
+  "id": "landing-frutiger-aero",
+  "name": "Frutiger Aero Landing",
+  "description": "A six-section Frutiger Aero / Y2K landing page: glassmorphism hero over a generated underwater master visual, pipeline cards, floating asset orbs, persona web-state grid with a floating cutout, and a glossy CTA. Canvas bubbles, GSAP/ScrollTrigger, Lenis smooth scroll, zh/en i18n.",
+  "style": "frutiger-aero-y2k",
+  "tags": ["landing", "frutiger-aero", "y2k", "glassmorphism", "bilingual", "animated"],
+  "previews": {
+    "desktop": "repochan/previews/desktop.webp",
+    "mobile": "repochan/previews/mobile.webp"
+  },
+  "config": {
+    "site": "repochan/site.json",
+    "assets": "repochan/assets.json",
+    "i18nDir": "repochan/i18n"
+  },
+  "content": {
+    "defaultLocale": "zh",
+    "supportedLocales": ["zh", "en"]
+  },
+  "assets": [
+    {
+      "kind": "scalar",
+      "slot": "hero-master",
+      "required": true,
+      "reference": "public/assets/hero-pose-lineart.webp",
+      "output": "public/assets/hero-frutiger.webp",
+      "description": "Full-bleed hero master visual (underwater scene, character floating among layered bubble fields); also used as og:image. The lineart reference keeps composition, bubble hierarchy and blank zones while dropping character identity and render style.",
+      "order": {
+        "assetType": "web_hero_composite",
+        "templateId": "official/poster-scene",
+        "brief": {
+          "intent": "Repaint the underwater hero scene for the downstream project's own character, keeping the reference lineart's pose, composition, bubble layering and blank zones exactly.",
+          "mustInclude": [
+            "character floats in the reference pose at the same framing (head upper right, legs lower left); upper-left stays quiet for the centered glass copy card",
+            "layered bubble fields with clear size hierarchy rising through the frame; bright underwater Frutiger Aero mood",
+            "landscape 3:2, edge-to-edge scene, no text, letters, numbers, watermarks or UI controls anywhere in the image"
+          ],
+          "avoid": ["rendered text", "logos", "UI baked into the image", "composition drift from the reference lineart"],
+          "creativeFreedom": ["lighting and caustics", "aquatic props and background details that support the project identity", "bubble density and glow"]
+        },
+        "deliverables": [
+          { "name": "hero-master", "format": "png", "width": 1536, "height": 1024, "aspectRatio": "3:2" }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": { "format": "webp", "quality": 82, "maxWidth": 1536 },
+          "out": "public/assets/hero-frutiger.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "cutout",
+      "required": true,
+      "output": "public/assets/cutout.webp",
+      "description": "Background-removed mascot cutout floating over the persona section.",
+      "order": {
+        "assetType": "character_cutout",
+        "templateId": "official/character-cutout",
+        "brief": {
+          "mustInclude": ["full-body character in a relaxed floating pose, clean alpha silhouette", "transparent background"],
+          "avoid": ["text", "scenery", "shadows"],
+          "creativeFreedom": ["gesture details inside the floating pose"]
+        },
+        "deliverables": [
+          { "name": "cutout", "format": "png", "width": 1024, "height": 1024, "aspectRatio": "1:1" }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": { "format": "webp", "quality": 90, "maxWidth": 920 },
+          "out": "public/assets/cutout.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "foundation",
+      "required": true,
+      "output": "public/assets/foundation.webp",
+      "description": "Foundation character sheet shown in the largest asset orb.",
+      "order": {
+        "assetType": "foundation_sheet",
+        "templateId": "official/foundation-sheet",
+        "brief": {
+          "mustInclude": ["the project's canonical foundation character sheet"],
+          "avoid": ["rendered text baked outside the sheet layout"],
+          "creativeFreedom": ["sheet layout details"]
+        },
+        "deliverables": [
+          { "name": "foundation", "format": "png", "width": 1024, "height": 1024, "aspectRatio": "1:1" }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": { "format": "webp", "quality": 86, "maxWidth": 1024 },
+          "out": "public/assets/foundation.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "banner",
+      "required": false,
+      "output": "public/assets/banner.webp",
+      "description": "Brand banner, kept for secondary/OG use.",
+      "order": {
+        "assetType": "banner",
+        "templateId": "official/readme-banner-21x9",
+        "brief": {
+          "mustInclude": ["brand banner in the project palette"],
+          "avoid": ["watermarks"],
+          "creativeFreedom": ["composition"]
+        },
+        "deliverables": [
+          { "name": "banner", "format": "png", "width": 1536, "height": 1024, "aspectRatio": "3:2" }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": { "format": "webp", "quality": 86, "maxWidth": 1536 },
+          "out": "public/assets/banner.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "pattern",
+      "required": true,
+      "output": "public/assets/pattern.webp",
+      "description": "Seamless pattern shown in a small asset orb.",
+      "order": {
+        "assetType": "visual_pattern",
+        "templateId": "official/pattern-tile",
+        "brief": {
+          "mustInclude": ["one full-bleed seamless square tile in the project palette"],
+          "avoid": ["text", "characters", "frames"],
+          "creativeFreedom": ["motif density and rotation"]
+        },
+        "deliverables": [
+          { "name": "pattern", "format": "png", "width": 768, "height": 768, "aspectRatio": "1:1" }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": { "format": "webp", "quality": 86, "maxWidth": 1024 },
+          "out": "public/assets/pattern.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "poster",
+      "required": true,
+      "output": "public/assets/poster.webp",
+      "description": "Poster shown in an asset orb.",
+      "order": {
+        "assetType": "poster",
+        "templateId": "official/poster",
+        "brief": {
+          "mustInclude": ["character key visual poster in the project palette"],
+          "avoid": ["watermarks"],
+          "creativeFreedom": ["composition and background"]
+        },
+        "deliverables": [
+          { "name": "poster", "format": "png", "width": 1536, "height": 1024, "aspectRatio": "3:2" }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": { "format": "webp", "quality": 86, "maxWidth": 1536 },
+          "out": "public/assets/poster.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "stickers",
+      "required": true,
+      "output": "public/assets/stickers.webp",
+      "description": "Sticker set sheet shown in an asset orb.",
+      "order": {
+        "assetType": "sticker_sheet",
+        "templateId": "official/chibi-grid-3x3",
+        "brief": {
+          "mustInclude": ["3x3 chibi sticker sheet of the project character"],
+          "avoid": ["text", "grid lines"],
+          "creativeFreedom": ["expressions and props"]
+        },
+        "deliverables": [
+          { "name": "stickers", "format": "png", "width": 1024, "height": 1024, "aspectRatio": "1:1" }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": { "format": "webp", "quality": 86, "maxWidth": 1024 },
+          "out": "public/assets/stickers.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "icon",
+      "required": true,
+      "output": "public/assets/icon.webp",
+      "description": "App icon: nav brand mark, small orb, and favicon source (public/favicon.ico, apple-touch-icon.png, icon-512.png).",
+      "order": {
+        "assetType": "icon",
+        "templateId": "official/icon-single",
+        "brief": {
+          "mustInclude": ["one scalable brand mark reading cleanly at 34px", "project motif without any letterforms"],
+          "avoid": ["text", "letters", "watermarks"],
+          "creativeFreedom": ["mark geometry and accent colors from the project palette"]
+        },
+        "deliverables": [
+          { "name": "icon", "format": "png", "width": 512, "height": 512, "aspectRatio": "1:1" }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": { "format": "webp", "quality": 90, "maxWidth": 512 },
+          "out": "public/assets/icon.webp"
+        }
+      ]
+    },
+    {
+      "kind": "bundle",
+      "slot": "webstates",
+      "required": true,
+      "publications": [
+        { "key": "welcome", "cell": 0, "output": "public/assets/webstates/tile-5.webp" },
+        { "key": "searching", "cell": 1, "output": "public/assets/webstates/tile-6.webp" },
+        { "key": "loading", "cell": 2, "output": "public/assets/webstates/tile-0.webp" },
+        { "key": "empty", "cell": 3, "output": "public/assets/webstates/tile-1.webp" },
+        { "key": "error", "cell": 4, "output": "public/assets/webstates/tile-4.webp" },
+        { "key": "success", "cell": 5, "output": "public/assets/webstates/tile-2.webp" },
+        { "key": "not-found", "cell": 6, "output": "public/assets/webstates/tile-3.webp" },
+        { "key": "cta", "cell": 7, "output": "public/assets/webstates/tile-7.webp" },
+        { "key": "cozy", "cell": 8, "output": "public/assets/webstates/tile-8.webp" }
+      ],
+      "description": "Nine web-state tiles (tile-0..tile-8) in the persona grid, displayed in tile order. The source sheet was delivered in a custom cell order (loading/empty/success/not-found/error/welcome/searching/maintenance/cozy): each publication points at the source tile matching its semantic, and tile-7 currently holds a one-off maintenance pose where the template's cta cell will land on the next apply.",
+      "order": {
+        "assetType": "web_state_stickers",
+        "templateId": "official/web-state-grid-3x3",
+        "brief": {
+          "mustInclude": [
+            "strict 3x3 grid of the project character in the nine fixed web-state poses (template cell semantics)",
+            "perfectly flat uniform matte background in a color absent from the character, identical in every pixel outside the stickers"
+          ],
+          "avoid": ["text", "letters", "numbers", "borders", "grid lines", "scenery", "shadows on the matte"],
+          "creativeFreedom": ["pose details inside each fixed semantic", "matte color choice"]
+        },
+        "deliverables": [
+          { "name": "webstates-grid", "format": "png", "width": 1024, "height": 1024, "aspectRatio": "1:1" }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "extract-grid",
+          "args": {
+            "rows": 3,
+            "cols": 3,
+            "mapping": { "welcome": 0, "searching": 1, "loading": 2, "empty": 3, "error": 4, "success": 5, "not-found": 6, "cta": 7, "cozy": 8 },
+            "normalize": { "canvasSize": 320, "padding": 10 },
+            "chroma": { "matteColor": "auto" },
+            "qa": { "alphaThreshold": 32, "minForegroundRatio": 0.05, "maxForegroundRatio": 0.9, "maxEdgeTouchRatio": 0.05 },
+            "format": "webp",
+            "quality": 80
+          },
+          "out": "public/assets/webstates"
+        }
+      ]
+    }
+  ]
+}
