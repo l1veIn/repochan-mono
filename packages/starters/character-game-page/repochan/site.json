@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "RepoChan",
+    "description": "仓库酱（RepoChan）的角色档案页：16 岁自由插画师、Sugar Riff 主理人。档案、设定索引、双面生活、世界日→夜、台词与图鉴——本页由 RepoChan 人设流水线产出。",
+    "repositoryUrl": "https://github.com/l1veIn/repochan-mono"
+  },
+  "theme": {
+    "primary": "#38BDF8",
+    "base": "#F4F6FB",
+    "ink": "#0B0F1A",
+    "accents": ["#F9A8D4", "#A78BFA", "#34D399", "#FACC15"]
+  },
+  "brand": {
+    "artStyle": "Cel-shaded anime character art with die-cut sticker look, presented as a game character file (HUD, boot sequence, stat panels)",
+    "motifs": ["cat-ear hair clip", "star cursor earring", "stylus pendant", "over-ear headphones"],
+    "patterns": [
+      "seamless motif tile at low opacity behind the hero",
+      "scanline-like HUD grid with radial mask",
+      "sky-to-pink gradient underline and stat topline"
+    ]
+  },
+  "locales": {
+    "default": "zh",
+    "supported": ["zh", "en"]
+  }
+}

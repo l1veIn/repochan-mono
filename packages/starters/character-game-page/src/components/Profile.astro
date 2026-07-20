@@ -1,0 +1,64 @@
+---
+import type { Content } from "../lib/content";
+
+type Props = { profile: Content["profile"] };
+const { profile } = Astro.props;
+---
+
+<section id="profile" aria-labelledby="profile-title">
+  <div class="sec-head" data-reveal>
+    <span class="sec-num">{profile.num}</span>
+    <h2 class="sec-title" id="profile-title">{profile.title}<small>{profile.subtitle}</small></h2>
+    <span class="sec-line"></span>
+  </div>
+
+  <div class="stat-row" data-reveal>
+    {profile.stats.map((s) => (
+      <div class="stat" data-hover>
+        <span class="k">{s.k}</span>
+        <div class="v">{s.v}<small>{s.small}</small></div>
+      </div>
+    ))}
+  </div>
+
+  <div class="profile-grid">
+    <div class="profile-text">
+      <h3 data-reveal>
+        {profile.heading.lead}<em>{profile.heading.em}</em>{profile.heading.trail}<br />{profile.heading.line2}
+      </h3>
+      {profile.paragraphs.map((para) => (
+        <p data-reveal>
+          {para.map((seg) =>
+            seg.m === "b" ? <b>{seg.t}</b> : seg.m === "i" ? <i>{seg.t}</i> : <>{seg.t}</>
+          )}
+        </p>
+      ))}
+      <div class="profile-quote" data-reveal>
+        {profile.quote.text}
+        <small>{profile.quote.caption}</small>
+      </div>
+    </div>
+    <div class="profile-visual" data-reveal>
+      <div class="frame" data-hover>
+        <img src={profile.visual.img} alt={profile.visual.alt} loading="lazy" />
+      </div>
+      <div class="cap"><span>{profile.visual.capLeft}</span><span>{profile.visual.capRight}</span></div>
+    </div>
+  </div>
+
+  <div class="sub-label" data-reveal>{profile.dual.label}</div>
+  <div class="dual" data-reveal>
+    {profile.dual.panels.map((p) => (
+      <div class="dual-panel" data-hover>
+        <img src={p.img} alt={p.alt} loading="lazy" />
+        <div class="dual-shade"></div>
+        <span class="dual-vs">{p.vs}</span>
+        <div class="dual-meta">
+          <div class="t1">{p.t1}</div>
+          <div class="t2">{p.t2}</div>
+          <p class="t3">{p.t3}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+</section>

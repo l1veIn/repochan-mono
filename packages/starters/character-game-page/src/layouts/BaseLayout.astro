@@ -1,0 +1,58 @@
+---
+import "../styles/global.css";
+import { buildCssVars, site, slotSrc } from "../lib/site";
+
+type Props = {
+  title: string;
+  description: string;
+  htmlLang: string;
+  ogLocale: string;
+};
+
+const { title, description, htmlLang, ogLocale } = Astro.props;
+const ogImage = new URL(slotSrc.sceneDay, Astro.site ?? Astro.url.origin).href;
+const cssVars = buildCssVars();
+---
+
+<!doctype html>
+<html lang={htmlLang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content={site.theme.accents[1] ?? site.theme.primary} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content={ogLocale} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" href="/icon-192.png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Noto+Sans+SC:wght@300;400;500;700;900&family=Zen+Kaku+Gothic+New:wght@500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style is:inline set:html={cssVars} />
+    <script is:inline>
+      // Flag JS availability + reduced-motion before first paint so no animation ever runs for RM users.
+      document.documentElement.classList.add("js");
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        document.documentElement.classList.add("rm");
+      }
+    </script>
+  </head>
+  <body>
+    <slot />
+    <script>
+      import "../scripts/main";
+    </script>
+  </body>
+</html>

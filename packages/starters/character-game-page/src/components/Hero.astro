@@ -1,0 +1,37 @@
+---
+import type { Content } from "../lib/content";
+import { slotSrc } from "../lib/site";
+
+type Props = { hero: Content["hero"] };
+const { hero } = Astro.props;
+---
+
+<section id="hero" aria-label={hero.nameEn}>
+  <div class="hero-bg"></div>
+  <div class="hero-pattern" data-depth="0.03"></div>
+  <div class="hero-grid" data-depth="0.05"></div>
+  <div class="hero-ghost" data-depth="0.08" aria-hidden="true">{hero.ghost.stroke}<b>{hero.ghost.solid}</b></div>
+  <div class="hero-ring" data-depth="0.12" aria-hidden="true"></div>
+
+  <div class="hero-char" id="heroChar" data-depth="0.2">
+    <img class="hero-char-img" src={slotSrc.heroCutout} alt={hero.charAlt} fetchpriority="high" />
+  </div>
+
+  <div class="hero-info" data-depth="0.32">
+    <div class="hero-kicker" data-reveal>{hero.kicker}</div>
+    <h1 class="hero-name-cn" data-reveal>{hero.nameCn}</h1>
+    <div class="hero-name-en" data-reveal>{hero.nameEn}</div>
+    <p class="hero-catch" data-reveal><b>{hero.catch.quote}</b><br />{hero.catch.text}</p>
+    <div class="hero-chips" data-reveal>
+      {hero.chips.map((chip) => <span class="chip"><i>◆</i>{chip}</span>)}
+    </div>
+  </div>
+
+  <div class="hero-side" aria-hidden="true">{hero.side.text}<b>{hero.side.em}</b></div>
+
+  <div class="sticker-float sf1" aria-hidden="true"><img src={slotSrc.heroStickers[0]} alt="" /></div>
+  <div class="sticker-float sf2" aria-hidden="true"><img src={slotSrc.heroStickers[1]} alt="" /></div>
+  <div class="sticker-float sf3" aria-hidden="true"><img src={slotSrc.heroStickers[2]} alt="" /></div>
+
+  <div class="scroll-cue" aria-hidden="true">{hero.scrollCue}</div>
+</section>

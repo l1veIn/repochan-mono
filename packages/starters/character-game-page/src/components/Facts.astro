@@ -1,0 +1,34 @@
+---
+import type { Content } from "../lib/content";
+
+type Props = { facts: Content["facts"] };
+const { facts } = Astro.props;
+---
+
+<section id="facts" aria-labelledby="facts-title">
+  <div class="sec-head" data-reveal>
+    <span class="sec-num">{facts.num}</span>
+    <h2 class="sec-title" id="facts-title">{facts.title}<small>{facts.subtitle}</small></h2>
+    <span class="sec-line"></span>
+  </div>
+
+  <div class="facts-grid">
+    {facts.cards.map((c) => (
+      <div class="fact-card tilt" data-reveal data-hover>
+        <span class="no">{c.no}</span>
+        <div class="ft">{c.title}</div>
+        <p class="fd">{c.desc}</p>
+        <span class="shine" aria-hidden="true"></span>
+      </div>
+    ))}
+    <div class="fact-card tilt wide special" data-reveal data-hover>
+      <img src={facts.special.img} alt={facts.special.alt} loading="lazy" />
+      <div>
+        <span class="no">{facts.special.no}</span>
+        <div class="ft">{facts.special.title}</div>
+        <p class="fd">{facts.special.desc}</p>
+      </div>
+      <span class="shine" aria-hidden="true"></span>
+    </div>
+  </div>
+</section>

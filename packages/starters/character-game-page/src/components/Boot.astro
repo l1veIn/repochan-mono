@@ -1,0 +1,12 @@
+---
+import type { Content } from "../lib/content";
+
+type Props = { boot: Content["boot"] };
+const { boot } = Astro.props;
+---
+
+<div id="boot" data-status-loaded={boot.statusLoaded} aria-hidden="true">
+  <div class="boot-logo">REPO<em>CHAN</em></div>
+  <div class="boot-bar"><i></i></div>
+  <div class="boot-status">{boot.statusLoading}</div>
+</div>

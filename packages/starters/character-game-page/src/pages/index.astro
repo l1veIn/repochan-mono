@@ -1,0 +1,41 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Boot from "../components/Boot.astro";
+import Cursor from "../components/Cursor.astro";
+import Hud from "../components/Hud.astro";
+import Rail from "../components/Rail.astro";
+import Hero from "../components/Hero.astro";
+import Profile from "../components/Profile.astro";
+import SpecIndex from "../components/SpecIndex.astro";
+import World from "../components/World.astro";
+import Voice from "../components/Voice.astro";
+import Facts from "../components/Facts.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import Toast from "../components/Toast.astro";
+import { getContent } from "../lib/content";
+
+const t = getContent("zh");
+---
+
+<BaseLayout
+  title={t.meta.title}
+  description={t.meta.description}
+  htmlLang={t.meta.htmlLang}
+  ogLocale={t.meta.ogLocale}
+>
+  <Cursor />
+  <Boot boot={t.boot} />
+  <a class="skip-link" href="#profile">{t.a11y.skipToContent}</a>
+  <Hud hud={t.hud} navLabel={t.a11y.mainNav} />
+  <Rail items={t.rail} navLabel={t.a11y.railNav} />
+  <main>
+    <Hero hero={t.hero} />
+    <Profile profile={t.profile} />
+    <SpecIndex index={t.index} copyLabel={t.a11y.copyHex} />
+    <World world={t.world} toggleLabel={t.a11y.worldToggle} />
+    <Voice voice={t.voice} />
+    <Facts facts={t.facts} />
+  </main>
+  <SiteFooter footer={t.footer} palette={t.index.palette.items} />
+  <Toast template={t.toast.copied} />
+</BaseLayout>

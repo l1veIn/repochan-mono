@@ -1,0 +1,344 @@
+{
+  "schemaVersion": "repochan.starter.v1",
+  "id": "character-game-page",
+  "name": "Character Game Page",
+  "description": "RepoChan's mascot character file as a game-style scrollable page: boot sequence, hero cutout, profile with dual-life panels, design index (expressions / states / palette / motifs), pinned day-to-night world, kinetic voice line and fun-facts archive. zh default + en locale, GSAP + ScrollTrigger + Lenis, full prefers-reduced-motion fallback.",
+  "style": "game-character-file",
+  "tags": ["character", "persona", "game-page", "scroll-story", "i18n", "gsap"],
+  "previews": {
+    "desktop": "repochan/previews/desktop.webp",
+    "mobile": "repochan/previews/mobile.webp"
+  },
+  "config": {
+    "site": "repochan/site.json",
+    "assets": "repochan/assets.json",
+    "i18nDir": "repochan/i18n"
+  },
+  "content": {
+    "defaultLocale": "zh",
+    "supportedLocales": ["zh", "en"]
+  },
+  "assets": [
+    {
+      "kind": "scalar",
+      "slot": "hero-cutout",
+      "required": true,
+      "output": "public/assets/hero-cutout.webp",
+      "description": "Full-body character cutout with alpha, centered in the hero; 2:3 portrait works best.",
+      "order": {
+        "assetType": "character_cutout",
+        "templateId": "official/character-cutout",
+        "brief": {
+          "intent": "Repaint the full-body hero cutout for the downstream project's own character on a flat matte for chroma-key extraction.",
+          "mustInclude": [
+            "one full-body character, centered, facing the viewer with a confident idle stance",
+            "2:3 portrait framing with the full silhouette visible and generous matte margin",
+            "perfectly flat uniform matte background in a color absent from the character"
+          ],
+          "avoid": ["rendered text", "logos", "props or scenery", "character touching any canvas edge"],
+          "creativeFreedom": ["pose details", "lighting inside the character", "outfit details from the project foundation"]
+        },
+        "deliverables": [
+          { "name": "hero-cutout", "format": "png", "width": 1024, "height": 1536, "aspectRatio": "2:3" }
+        ]
+      },
+      "postprocess": [
+        { "op": "chroma-key", "args": { "matte": "auto" }, "out": "public/assets/hero-cutout-alpha.png" },
+        { "op": "compress", "args": { "format": "webp", "quality": 88 }, "out": "public/assets/hero-cutout.webp" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "scene-day",
+      "required": true,
+      "reference": "public/assets/scene-day-lineart.webp",
+      "output": "public/assets/scene-day.webp",
+      "description": "Signature scene: after-school afternoon at the Sugar Riff studio. Used in the World pinned day layer, the after-school dual-life panel and as og:image. The lineart reference keeps only the composition (window / desk / chair layout and blank zones) — character identity, text and rendering style are intentionally removed.",
+      "order": {
+        "assetType": "poster",
+        "templateId": "official/poster-scene",
+        "brief": {
+          "intent": "Repaint the afternoon studio scene for the downstream project's own character and signature place, keeping the reference lineart's composition exactly.",
+          "mustInclude": [
+            "keep the window / desk / chair layout and the blank zones of the reference composition",
+            "warm after-school afternoon light",
+            "landscape 3:2, edge-to-edge scene, no text, letters, numbers, watermarks or UI anywhere in the image"
+          ],
+          "avoid": ["rendered text", "logos", "composition drift from the reference lineart"],
+          "creativeFreedom": ["lighting", "studio props that support the project identity", "the downstream character's pose and placement"]
+        },
+        "deliverables": [
+          { "name": "scene-day", "format": "png", "width": 1536, "height": 1024, "aspectRatio": "3:2" }
+        ]
+      },
+      "postprocess": [
+        { "op": "compress", "args": { "format": "webp", "quality": 82, "maxWidth": 1536 }, "out": "public/assets/scene-day.webp" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "scene-night",
+      "required": true,
+      "reference": "public/assets/scene-night-lineart.webp",
+      "output": "public/assets/scene-night.webp",
+      "description": "Same studio at deadline night; wipes over scene-day in the World section, so the composition must echo scene-day (the night lineart reference was generated against the day lineart).",
+      "order": {
+        "assetType": "poster",
+        "templateId": "official/poster-scene",
+        "brief": {
+          "intent": "Repaint the same studio at deadline night for the downstream project, keeping the reference lineart's composition exactly so it can wipe over the day scene.",
+          "mustInclude": [
+            "same camera and layout as the day scene reference — identical window / desk / chair positions",
+            "single warm lamp over the desk in an otherwise dark room",
+            "landscape 3:2, edge-to-edge scene, no text, letters, numbers, watermarks or UI anywhere in the image"
+          ],
+          "avoid": ["rendered text", "logos", "composition drift from the reference lineart"],
+          "creativeFreedom": ["night lighting details", "deadline clutter that supports the project identity"]
+        },
+        "deliverables": [
+          { "name": "scene-night", "format": "png", "width": 1536, "height": 1024, "aspectRatio": "3:2" }
+        ]
+      },
+      "postprocess": [
+        { "op": "compress", "args": { "format": "webp", "quality": 82, "maxWidth": 1536 }, "out": "public/assets/scene-night.webp" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "scene-school",
+      "required": true,
+      "reference": "public/assets/scene-school-lineart.webp",
+      "output": "public/assets/scene-school.webp",
+      "description": "Day-side panel of the dual-life split: classroom by day, character by the window. The lineart reference keeps only the composition (window / desks / chair layout and blank zones).",
+      "order": {
+        "assetType": "poster",
+        "templateId": "official/poster-scene",
+        "brief": {
+          "intent": "Repaint the daytime classroom scene for the downstream project's own character, keeping the reference lineart's composition exactly.",
+          "mustInclude": [
+            "keep the window / desks / chair layout and the blank zones of the reference composition",
+            "quiet daytime classroom mood",
+            "landscape 3:2, edge-to-edge scene, no text, letters, numbers, watermarks or UI anywhere in the image"
+          ],
+          "avoid": ["rendered text", "logos", "composition drift from the reference lineart"],
+          "creativeFreedom": ["lighting", "classroom details that support the project identity"]
+        },
+        "deliverables": [
+          { "name": "scene-school", "format": "png", "width": 1536, "height": 1024, "aspectRatio": "3:2" }
+        ]
+      },
+      "postprocess": [
+        { "op": "compress", "args": { "format": "webp", "quality": 82, "maxWidth": 1536 }, "out": "public/assets/scene-school.webp" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "pattern",
+      "required": true,
+      "output": "public/assets/pattern.webp",
+      "description": "Seamless motif pattern tiled at low opacity in the hero background (CSS-parameterized size/opacity).",
+      "order": {
+        "assetType": "visual_pattern",
+        "templateId": "official/pattern-tile",
+        "brief": {
+          "mustInclude": [
+            "one full-bleed seamless square tile",
+            "low-contrast project motifs suited to sit behind content at ~5% opacity on a dark ground"
+          ],
+          "avoid": ["text", "numbers", "frames", "dense focal illustration"],
+          "creativeFreedom": ["motif geometry and density"]
+        },
+        "deliverables": [
+          { "name": "pattern", "format": "png", "width": 768, "height": 768, "aspectRatio": "1:1" }
+        ]
+      },
+      "postprocess": [
+        { "op": "compress", "args": { "format": "webp", "quality": 86, "maxWidth": 1024 }, "out": "public/assets/pattern.webp" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "icon",
+      "required": true,
+      "output": "public/favicon.ico",
+      "description": "Site icon; the shipped apple-touch-icon.png and icon-192/512.png are derived from the same source via `repochan image edit resize`.",
+      "order": {
+        "assetType": "icon",
+        "templateId": "official/icon-single",
+        "brief": {
+          "mustInclude": ["one scalable brand mark reading cleanly at 30px", "project motif without any letterforms"],
+          "avoid": ["text", "letters", "watermarks"],
+          "creativeFreedom": ["mark geometry and accent colors from the project palette"]
+        },
+        "deliverables": [
+          { "name": "icon", "format": "png", "width": 512, "height": 512, "aspectRatio": "1:1" }
+        ]
+      },
+      "postprocess": [
+        { "op": "favicon", "args": { "sizes": [16, 32, 48] }, "out": "public/favicon.ico" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "seated-main",
+      "required": true,
+      "output": "public/assets/crops/seated-main.webp",
+      "description": "Foundation-sheet crop: character at the desk, used as the profile figure. Downstream replaces it with a crop of its own foundation sheet (no dedicated template).",
+      "postprocess": [
+        { "op": "compress", "args": { "format": "webp", "quality": 88 }, "out": "public/assets/crops/seated-main.webp" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "expr-excited",
+      "required": true,
+      "output": "public/assets/crops/expr-excited.png",
+      "description": "Expression crop (excited) for the Index expression cards; from the foundation sheet."
+    },
+    {
+      "kind": "scalar",
+      "slot": "expr-focused",
+      "required": true,
+      "output": "public/assets/crops/expr-focused.png",
+      "description": "Expression crop (focused) for the Index expression cards; from the foundation sheet."
+    },
+    {
+      "kind": "scalar",
+      "slot": "expr-deadpan",
+      "required": true,
+      "output": "public/assets/crops/expr-deadpan.png",
+      "description": "Expression crop (deadpan) for the Index expression cards; from the foundation sheet."
+    },
+    {
+      "kind": "scalar",
+      "slot": "motif-clip",
+      "required": true,
+      "output": "public/assets/crops/motif-clip-alpha.png",
+      "description": "Alpha-cut motif prop: cat-ear hair clip, shown in the Index motif cards."
+    },
+    {
+      "kind": "scalar",
+      "slot": "motif-earring",
+      "required": true,
+      "output": "public/assets/crops/motif-earring-alpha.png",
+      "description": "Alpha-cut motif prop: star cursor earring, shown in the Index motif cards."
+    },
+    {
+      "kind": "scalar",
+      "slot": "motif-pendant",
+      "required": true,
+      "output": "public/assets/crops/motif-pendant-alpha.png",
+      "description": "Alpha-cut motif prop: stylus pendant, shown in the Index motif cards."
+    },
+    {
+      "kind": "scalar",
+      "slot": "motif-headphones",
+      "required": true,
+      "output": "public/assets/crops/motif-headphones-alpha.png",
+      "description": "Alpha-cut motif prop: over-ear headphones, shown in the Index motif cards."
+    },
+    {
+      "kind": "scalar",
+      "slot": "chibi",
+      "required": false,
+      "output": "public/assets/crops/chibi-full.png",
+      "description": "Chibi variant used in the special-skill archive card; from the sticker sheet family."
+    },
+    {
+      "kind": "bundle",
+      "slot": "webstates",
+      "required": true,
+      "reference": "repochan/references/webstates-grid.png",
+      "publications": [
+        { "key": "welcome", "cell": 0, "output": "public/assets/webstates/tile-5.png" },
+        { "key": "searching", "cell": 1, "output": "public/assets/webstates/tile-6.png" },
+        { "key": "loading", "cell": 2, "output": "public/assets/webstates/tile-0.png" },
+        { "key": "empty", "cell": 3, "output": "public/assets/webstates/tile-1.png" },
+        { "key": "error", "cell": 4, "output": "public/assets/webstates/tile-4.png" },
+        { "key": "success", "cell": 5, "output": "public/assets/webstates/tile-2.png" },
+        { "key": "not-found", "cell": 6, "output": "public/assets/webstates/tile-3.png" },
+        { "key": "cta", "cell": 7, "output": "public/assets/webstates/tile-7.png" },
+        { "key": "cozy", "cell": 8, "output": "public/assets/webstates/tile-8.png" }
+      ],
+      "description": "3×3 web-state sticker sheet sliced into named tiles. The source sheet (kept read-only at repochan/references/webstates-grid.png) was generated with custom cell semantics, so source tiles were mapped to the nearest template key by content (source cell 7 is a maintenance pose published under 'cta'); the page displays tiles positionally without semantic labels. Publications follow the template cell order so a regenerated official/web-state-grid-3x3 sheet extracts correctly. The states grid shows loading / success / not-found / error / searching / cta.",
+      "order": {
+        "assetType": "web_state_stickers",
+        "templateId": "official/web-state-grid-3x3",
+        "brief": {
+          "mustInclude": [
+            "strict 3×3 grid of the project character in the nine fixed web-state poses (template cell semantics)",
+            "perfectly flat uniform matte background in a color absent from the character, identical in every pixel outside the stickers"
+          ],
+          "avoid": ["text", "letters", "numbers", "borders", "grid lines", "scenery", "shadows on the matte"],
+          "creativeFreedom": ["pose details inside each fixed semantic", "matte color choice"]
+        },
+        "deliverables": [
+          { "name": "webstates-grid", "format": "png", "width": 1024, "height": 1024, "aspectRatio": "1:1" }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "extract-grid",
+          "args": {
+            "rows": 3,
+            "cols": 3,
+            "mapping": { "welcome": 0, "searching": 1, "loading": 2, "empty": 3, "error": 4, "success": 5, "not-found": 6, "cta": 7, "cozy": 8 },
+            "normalize": { "canvasSize": 320, "padding": 10 },
+            "chroma": { "matteColor": "auto" },
+            "qa": { "alphaThreshold": 32, "minForegroundRatio": 0.05, "maxForegroundRatio": 0.9, "maxEdgeTouchRatio": 0.05 },
+            "format": "png"
+          },
+          "out": "public/assets/webstates"
+        }
+      ]
+    },
+    {
+      "kind": "bundle",
+      "slot": "stickers",
+      "required": true,
+      "reference": "repochan/references/stickers-grid.png",
+      "publications": [
+        { "key": "welcome", "cell": 0, "output": "public/assets/stickers/tile-0.png" },
+        { "key": "searching", "cell": 1, "output": "public/assets/stickers/tile-1.png" },
+        { "key": "loading", "cell": 2, "output": "public/assets/sticker-2.png" },
+        { "key": "empty", "cell": 3, "output": "public/assets/stickers/tile-3.png" },
+        { "key": "error", "cell": 4, "output": "public/assets/stickers/tile-4.png" },
+        { "key": "success", "cell": 5, "output": "public/assets/sticker-5.png" },
+        { "key": "not-found", "cell": 6, "output": "public/assets/stickers/tile-6.png" },
+        { "key": "cta", "cell": 7, "output": "public/assets/stickers/tile-7.png" },
+        { "key": "cozy", "cell": 8, "output": "public/assets/sticker-8.png" }
+      ],
+      "description": "3×3 chibi expression sheet sliced into named tiles. The source sheet (kept read-only at repochan/references/stickers-grid.png) follows official/chibi-grid-3x3 expression semantics; bundles require a cell-keyed template, so publications reuse the official/web-state-grid-3x3 keys with source tiles mapped to the nearest key by content (wave→welcome, curious→searching, celebrating→success, pointing→cta, cozy→cozy; loading/empty/error/not-found hold the remaining expression cells). Cells 2/5/8 are published as background-removed floats (sticker-2/5/8.png) because the hero floats them over the dark scene; the states grid shows searching / not-found / cozy. A regenerated web-state sheet extracts through the same mapping; downstream wanting expression semantics can slice its own chibi sheet to the same outputs.",
+      "order": {
+        "assetType": "web_state_stickers",
+        "templateId": "official/web-state-grid-3x3",
+        "brief": {
+          "mustInclude": [
+            "strict 3×3 grid of the project character in the nine fixed web-state poses (template cell semantics)",
+            "perfectly flat uniform matte background in a color absent from the character, identical in every pixel outside the stickers"
+          ],
+          "avoid": ["text", "letters", "numbers", "borders", "grid lines", "scenery", "shadows on the matte"],
+          "creativeFreedom": ["pose details inside each fixed semantic", "matte color choice"]
+        },
+        "deliverables": [
+          { "name": "stickers-grid", "format": "png", "width": 1024, "height": 1024, "aspectRatio": "1:1" }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "extract-grid",
+          "args": {
+            "rows": 3,
+            "cols": 3,
+            "mapping": { "welcome": 0, "searching": 1, "loading": 2, "empty": 3, "error": 4, "success": 5, "not-found": 6, "cta": 7, "cozy": 8 },
+            "normalize": { "canvasSize": 320, "padding": 10 },
+            "chroma": { "matteColor": "auto" },
+            "qa": { "alphaThreshold": 32, "minForegroundRatio": 0.05, "maxForegroundRatio": 0.9, "maxEdgeTouchRatio": 0.05 },
+            "format": "png"
+          },
+          "out": "public/assets/stickers"
+        }
+      ]
+    }
+  ]
+}

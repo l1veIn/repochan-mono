@@ -1,0 +1,49 @@
+---
+import type { Content } from "../lib/content";
+import { slotSrc } from "../lib/site";
+
+type Props = { world: Content["world"]; toggleLabel: string };
+const { world, toggleLabel } = Astro.props;
+---
+
+<section id="world" aria-labelledby="world-title">
+  <div class="world-head">
+    <div class="sec-head" style="padding:0" data-reveal>
+      <span class="sec-num">{world.num}</span>
+      <h2 class="sec-title" id="world-title">{world.title}<small>{world.subtitle}</small></h2>
+      <span class="sec-line"></span>
+    </div>
+    <p class="world-intro" data-reveal>{world.intro}</p>
+  </div>
+
+  <div
+    class="world-stage"
+    id="worldStage"
+    data-label-day={world.labelDay}
+    data-label-night={world.labelNight}
+  >
+    <div class="world-layer day"><img src={slotSrc.sceneDay} alt={world.imgDayAlt} /></div>
+    <div class="world-layer night" id="nightLayer"><img src={slotSrc.sceneNight} alt={world.imgNightAlt} loading="lazy" /></div>
+    <div class="world-sweep" id="worldSweep" aria-hidden="true"></div>
+
+    <div class="world-hud" aria-live="polite">
+      <div class="wt" id="worldTime">15:32</div>
+      <div class="wl" id="worldLabel">{world.labelDay}</div>
+    </div>
+
+    <div class="world-cap" id="capDay">
+      <div class="c1">{world.capDay.kicker}</div>
+      <p class="c2">{world.capDay.text}</p>
+    </div>
+    <div class="world-cap" id="capNight" style="opacity:0;visibility:hidden">
+      <div class="c1">{world.capNight.kicker}</div>
+      <p class="c2">{world.capNight.text}</p>
+    </div>
+
+    <div class="world-toggle" role="group" aria-label={toggleLabel}>
+      <button type="button" id="btnDay" class="on" data-hover aria-pressed="true">{world.toggleDay}</button>
+      <button type="button" id="btnNight" data-hover aria-pressed="false">{world.toggleNight}</button>
+    </div>
+    <div class="world-progress" aria-hidden="true"><i id="worldBar"></i></div>
+  </div>
+</section>

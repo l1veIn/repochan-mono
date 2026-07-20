@@ -1,0 +1,69 @@
+---
+import type { Content } from "../lib/content";
+
+type Props = { index: Content["index"]; copyLabel: string };
+const { index, copyLabel } = Astro.props;
+---
+
+<section id="index" aria-labelledby="index-title">
+  <div class="sec-head" data-reveal>
+    <span class="sec-num">{index.num}</span>
+    <h2 class="sec-title" id="index-title">{index.title}<small>{index.subtitle}</small></h2>
+    <span class="sec-line"></span>
+  </div>
+
+  <div class="sub-label" data-reveal>{index.expressions.label}</div>
+  <div class="expr-row">
+    {index.expressions.items.map((e) => (
+      <div class="expr-card tilt" data-reveal data-hover>
+        <img src={e.img} alt={e.alt} loading="lazy" />
+        <div class="meta">
+          <div class="n">{e.name}<small>{e.nameEn}</small></div>
+          <div class="q">{e.quote}</div>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <div class="sub-label" data-reveal>{index.states.label}</div>
+  <div class="states-grid" data-reveal>
+    {index.states.items.map((s, i) => (
+      <div class="state-tile" data-hover>
+        <span class="idx">{String(i + 1).padStart(2, "0")}</span>
+        <img src={s.img} alt={s.alt} loading="lazy" />
+      </div>
+    ))}
+  </div>
+
+  <div class="sub-label" data-reveal>{index.palette.label}</div>
+  <div class="swatch-row" data-reveal>
+    {index.palette.items.map((c) => (
+      <button
+        type="button"
+        class="swatch"
+        data-hex={c.hex}
+        data-hover
+        aria-label={copyLabel.replace("{hex}", c.hex)}
+      >
+        <span class="c" style={`background:${c.hex}`}></span>
+        <span class="m">
+          <span class="hex">{c.hex}</span>
+          <span class="nm" style="display:block">{c.name}</span>
+        </span>
+        <span class="cp" aria-hidden="true">{index.palette.copyTag}</span>
+      </button>
+    ))}
+  </div>
+
+  <div class="sub-label" data-reveal>{index.motifs.label}</div>
+  <div class="motif-row">
+    {index.motifs.items.map((m) => (
+      <div class="motif-card" data-reveal data-hover>
+        <span class="no" aria-hidden="true">{m.no}</span>
+        <div class="imgbox"><img src={m.img} alt={m.alt} loading="lazy" /></div>
+        <div class="mn">{m.name}<small>{m.nameEn}</small></div>
+        <p class="md">{m.desc}</p>
+      </div>
+    ))}
+  </div>
+</section>

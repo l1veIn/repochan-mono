@@ -1,0 +1,455 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "RepoChan — CHARACTER FILE",
+    "description": "The character file of RepoChan: a 16-year-old freelance illustrator and owner of studio Sugar Riff. Profile, design index, double life, a day-to-night world, voice lines and fun facts — produced by the RepoChan persona pipeline."
+  },
+  "content": {
+    "htmlLang": "en",
+    "ogLocale": "en_US",
+    "boot": {
+      "statusLoading": "LOADING CHARACTER DATA …",
+      "statusLoaded": "CHARACTER DATA LOADED — 倉庫ちゃん"
+    },
+    "a11y": {
+      "skipToContent": "Skip to main content",
+      "mainNav": "Section navigation",
+      "railNav": "Page position navigation",
+      "worldToggle": "Toggle Sugar Riff between day and night",
+      "copyHex": "Copy color {hex}"
+    },
+    "hud": {
+      "brandSub": "CHARACTER FILE No.001",
+      "tag": "SUGAR RIFF · CHARACTER FILE",
+      "nav": [
+        {
+          "id": "profile",
+          "num": "01",
+          "label": "PROFILE"
+        },
+        {
+          "id": "index",
+          "num": "02",
+          "label": "INDEX"
+        },
+        {
+          "id": "world",
+          "num": "03",
+          "label": "WORLD"
+        },
+        {
+          "id": "voice",
+          "num": "04",
+          "label": "VOICE"
+        },
+        {
+          "id": "facts",
+          "num": "05",
+          "label": "ARCHIVE"
+        }
+      ]
+    },
+    "rail": [
+      {
+        "id": "hero",
+        "label": "TOP"
+      },
+      {
+        "id": "profile",
+        "label": "PROFILE"
+      },
+      {
+        "id": "index",
+        "label": "INDEX"
+      },
+      {
+        "id": "world",
+        "label": "WORLD"
+      },
+      {
+        "id": "voice",
+        "label": "VOICE"
+      },
+      {
+        "id": "facts",
+        "label": "ARCHIVE"
+      }
+    ],
+    "hero": {
+      "kicker": "16-YEAR-OLD DIGITAL ARTIST · OWNER OF SUGAR RIFF",
+      "nameCn": "仓库酱",
+      "nameEn": "R E P O C H A N",
+      "catch": {
+        "quote": "\"No feeling, no drawing.\"",
+        "text": "A quiet first-year high schooler by the window all day — until the last bell rings, and she becomes an illustrator followed by hundreds of thousands."
+      },
+      "chips": [
+        "AGE 16",
+        "158 CM",
+        "06.13",
+        "HETEROCHROMIA · CIRCLE LENSES",
+        "CODES TO PUNK"
+      ],
+      "side": {
+        "text": "放課後のイラストレーター — ",
+        "em": "倉庫ちゃん"
+      },
+      "ghost": {
+        "stroke": "Repo",
+        "solid": "Chan"
+      },
+      "charAlt": "Full-body portrait of RepoChan: silver hair, heterochromia, cat-ear hair clip, oversized band hoodie, big headphones around her neck",
+      "scrollCue": "SCROLL"
+    },
+    "profile": {
+      "num": "01",
+      "title": "Profile",
+      "subtitle": "PROFILE — CHARACTER DATA",
+      "stats": [
+        {
+          "k": "NAME / PEN NAME",
+          "v": "RepoChan",
+          "small": "仓库酱"
+        },
+        {
+          "k": "ROLE",
+          "v": "Illustrator",
+          "small": "High-school freshman"
+        },
+        {
+          "k": "BASE",
+          "v": "Sugar Riff",
+          "small": "Creative district"
+        },
+        {
+          "k": "SKILL",
+          "v": "Soul Sketch",
+          "small": "3-chord song ID"
+        }
+      ],
+      "heading": {
+        "lead": "Her eyes always sparkle with",
+        "em": "\"found it\" —",
+        "trail": "",
+        "line2": "like a detective who just cracked the case."
+      },
+      "paragraphs": [
+        [
+          {
+            "t": "RepoChan is the kind of girl who pulls you into her creative excitement the moment she opens her mouth. With a detective's curiosity, she pieces together a "
+          },
+          {
+            "t": "\"soul portrait\"",
+            "m": "b"
+          },
+          {
+            "t": " from scattered clues: the first three chords of a band's demo, the tone of a repo's README, a VTuber's catchphrase — noise to everyone else, a whole person to her."
+          }
+        ],
+        [
+          {
+            "t": "At school she's a bona fide prodigy — half-listens in class and still ranks top three, homework finished before the last bell, because "
+          },
+          {
+            "t": "every minute after school belongs to Sugar Riff",
+            "m": "i"
+          },
+          {
+            "t": ". Her classmates only know a quiet girl with good grades and a slightly odd cat-ear hair clip; none of them know that the girl by the window is \"RepoChan\", followed online by hundreds of thousands."
+          }
+        ],
+        [
+          {
+            "t": "But she has the honest flaws of a 16-year-old: the moment inspiration hits, her desk becomes a battlefield; overexcited, she once sent a client an unfinished draft and withdrew it blushing — "
+          },
+          {
+            "t": "\"THAT ONE DOESN'T COUNT!!\"",
+            "m": "b"
+          },
+          {
+            "t": " And her sense of direction is roughly zero: she can take three wrong turns walking from the subway to her own studio."
+          }
+        ]
+      ],
+      "quote": {
+        "text": "\"Drawing and rock 'n' roll are the same thing — you smash whatever's inside you straight out.\"",
+        "caption": "MOTTO — REPOCHAN'S CREED"
+      },
+      "visual": {
+        "img": "/assets/crops/seated-main.webp",
+        "alt": "RepoChan at her desk: stylus in hand, big headphones on",
+        "capLeft": "FIG.01 — AT THE DESK",
+        "capRight": "FOUNDATION SHEET"
+      },
+      "dual": {
+        "label": "DUAL LIFE — 双面生活",
+        "panels": [
+          {
+            "img": "/assets/scene-school.webp",
+            "alt": "A classroom by day: RepoChan in uniform by the window",
+            "vs": "DAY · 昼",
+            "t1": "08:00 — 15:30 · SCHOOL",
+            "t2": "The quiet honor student by the window",
+            "t3": "Uniform tidy, homework done at school, top three without trying. Nobody knows where she goes after class — \"Sugar Riff? What's that?\" She smiles: a friend's place."
+          },
+          {
+            "img": "/assets/scene-day.webp",
+            "alt": "Sugar Riff studio after school",
+            "vs": "AFTER SCHOOL · 放课后",
+            "t1": "16:00 — LATE · SUGAR RIFF",
+            "t2": "The free \"RepoChan\"",
+            "t3": "Blazer tossed onto the guitar amp, hoodie on, headphones on, volume up — the world shrinks to pen and rock. A secret identity is, after all, pretty rock 'n' roll."
+          }
+        ]
+      }
+    },
+    "index": {
+      "num": "02",
+      "title": "Index",
+      "subtitle": "INDEX — EXPRESSIONS / PALETTE / MOTIFS",
+      "expressions": {
+        "label": "EXPRESSIONS — 表情差分",
+        "items": [
+          {
+            "img": "/assets/crops/expr-excited.png",
+            "alt": "RepoChan expression: excited",
+            "name": "Excited",
+            "nameEn": "EXCITED",
+            "quote": "\"Found its soul!\""
+          },
+          {
+            "img": "/assets/crops/expr-focused.png",
+            "alt": "RepoChan expression: focused",
+            "name": "Focused",
+            "nameEn": "FOCUSED",
+            "quote": "\"Listening to rock. Do not disturb.\""
+          },
+          {
+            "img": "/assets/crops/expr-deadpan.png",
+            "alt": "RepoChan expression: deadpan",
+            "name": "Deadpan",
+            "nameEn": "DEADPAN",
+            "quote": "\"No feeling, no drawing.\""
+          }
+        ]
+      },
+      "states": {
+        "label": "STATES — 状态图鉴 3×3",
+        "items": [
+          {
+            "img": "/assets/webstates/tile-0.png",
+            "alt": "RepoChan web-state sticker 01"
+          },
+          {
+            "img": "/assets/webstates/tile-2.png",
+            "alt": "RepoChan web-state sticker 02"
+          },
+          {
+            "img": "/assets/webstates/tile-3.png",
+            "alt": "RepoChan web-state sticker 03"
+          },
+          {
+            "img": "/assets/webstates/tile-4.png",
+            "alt": "RepoChan web-state sticker 04"
+          },
+          {
+            "img": "/assets/webstates/tile-6.png",
+            "alt": "RepoChan web-state sticker 05"
+          },
+          {
+            "img": "/assets/webstates/tile-7.png",
+            "alt": "RepoChan web-state sticker 06"
+          },
+          {
+            "img": "/assets/stickers/tile-1.png",
+            "alt": "RepoChan reaction sticker 07"
+          },
+          {
+            "img": "/assets/stickers/tile-6.png",
+            "alt": "RepoChan reaction sticker 08"
+          },
+          {
+            "img": "/assets/sticker-8.png",
+            "alt": "RepoChan reaction sticker 09"
+          }
+        ]
+      },
+      "palette": {
+        "label": "PALETTE — 六色系统 · CLICK TO COPY HEX",
+        "copyTag": "COPY",
+        "items": [
+          {
+            "hex": "#38BDF8",
+            "name": "Sky Blue · Primary"
+          },
+          {
+            "hex": "#F9A8D4",
+            "name": "Pink · Hair-tip sakura"
+          },
+          {
+            "hex": "#A78BFA",
+            "name": "Violet · Right eye"
+          },
+          {
+            "hex": "#34D399",
+            "name": "Mint · Hair-tip mint"
+          },
+          {
+            "hex": "#FACC15",
+            "name": "Amber · Iced-cola fizz"
+          },
+          {
+            "hex": "#111827",
+            "name": "Ink · Hoodie & night"
+          }
+        ]
+      },
+      "motifs": {
+        "label": "MOTIFS — 关键母题",
+        "items": [
+          {
+            "no": "01",
+            "img": "/assets/crops/motif-clip-alpha.png",
+            "alt": "Cat-ear hair clip",
+            "name": "Cat-Ear Hair Clip",
+            "nameEn": "CAT-EAR HAIR CLIP",
+            "desc": "Spotted at a corner store in middle school, bought simply because it was cute, worn for years since. Her visual signature — \"no reason, I just like it.\""
+          },
+          {
+            "no": "02",
+            "img": "/assets/crops/motif-earring-alpha.png",
+            "alt": "Star cursor earring",
+            "name": "Star Cursor Earring",
+            "nameEn": "STAR CURSOR EARRING",
+            "desc": "A gift she bought herself after her first open-source commission at 14, worn on the left ear. \"First paycheck had to buy something cool.\""
+          },
+          {
+            "no": "03",
+            "img": "/assets/crops/motif-pendant-alpha.png",
+            "alt": "Glowing stylus pendant",
+            "name": "Stylus Pendant",
+            "nameEn": "STYLUS PENDANT",
+            "desc": "A mini stylus pendant from a fan. When the drawing won't come, she grips it without noticing — an artist's lucky charm."
+          },
+          {
+            "no": "04",
+            "img": "/assets/crops/motif-headphones-alpha.png",
+            "alt": "Over-ear headphones",
+            "name": "Over-Ear Headphones",
+            "nameEn": "OVER-EAR HEADPHONES",
+            "desc": "Her barrier field. Hundreds of songs in the library, a dedicated BGM playlist for every commission. Deadline mode: punk."
+          }
+        ]
+      }
+    },
+    "world": {
+      "num": "03",
+      "title": "World",
+      "subtitle": "WORLD — SUGAR RIFF, DAY & NIGHT",
+      "intro": "A tiny studio on the corner of a creative district, a crooked fluorescent-pink marker sticker on the door reading \"Sugar Riff\" — she refuses to rewrite it. Scroll to stay from an after-school afternoon all the way into deadline night.",
+      "labelDay": "AFTER SCHOOL — Sugar Riff, 3:32 PM",
+      "labelNight": "DEADLINE NIGHT — Sugar Riff after dark",
+      "imgDayAlt": "Sugar Riff in the afternoon: sunlight slanting across the desk",
+      "imgNightAlt": "Sugar Riff late at night: one warm lamp above the desk",
+      "capDay": {
+        "kicker": "SCENE 01 — 15:32",
+        "text": "Afternoon sun slants across the desk — stylus in one hand, a half-eaten sandwich in the other. Her school blazer rests on the guitar amp in the corner; outside, someone walks a dog and a tram hums by. Quiet, warm, and all hers."
+      },
+      "capNight": {
+        "kicker": "SCENE 02 — 01:47",
+        "text": "Only one warm lamp burns above the desk. A few empty cola cans have piled up, the turntable spins an old record, the cat-ear clip sits slightly crooked — she hasn't noticed, because \"this solo is insane, ten more minutes.\""
+      },
+      "toggleDay": "DAY",
+      "toggleNight": "NIGHT"
+    },
+    "voice": {
+      "kicker": "04 · VOICE — HER LINES",
+      "line": [
+        {
+          "t": "\"No feeling, "
+        },
+        {
+          "t": "no drawing.",
+          "accent": true
+        },
+        {
+          "t": "\""
+        }
+      ],
+      "sub": [
+        {
+          "t": "One iron rule for commissions: if she doesn't feel it, she won't take it. Any quote, any client — one off-key brief and it's a straight pass. "
+        },
+        {
+          "t": "\"Draw something you don't feel, and the lines die.\"",
+          "m": "b"
+        }
+      ],
+      "jp": "ノット・フィーリング、ノット・ドローイング",
+      "marquee": [
+        "UNDO!! UNDOOOO!",
+        "Got your soul, loud and clear",
+        "Stop rushing me, I'm drawing",
+        "Listening to rock. DND.",
+        "Found its soul!",
+        "Look — this one just talked to me"
+      ]
+    },
+    "facts": {
+      "num": "05",
+      "title": "Archive",
+      "subtitle": "ARCHIVE — FUN FACTS COLLECTION",
+      "cards": [
+        {
+          "no": "FACT No.01",
+          "title": "The heterochromia is circle lenses",
+          "desc": "A whole drawer of lenses in different colors; blue + violet-pink is the daily signature combo — \"but on Halloween I go full black.\""
+        },
+        {
+          "no": "FACT No.02",
+          "title": "Her styluses are named after rockers",
+          "desc": "The daily driver is called Freddie; the inking pen is Kurt. Every pen has its own band and its own job."
+        },
+        {
+          "no": "FACT No.03",
+          "title": "The door sign stays crooked",
+          "desc": "The fluorescent-pink marker lettering on Sugar Riff's door is slightly crooked, but she refuses to rewrite it — \"the first take has the most soul.\""
+        },
+        {
+          "no": "FACT No.04",
+          "title": "Wrong song, meaner drawing",
+          "desc": "Switching bands to match the art style is muscle memory. Once, mid-cover for a gentle light novel, she accidentally queued Metallica — \"the whole piece came out ready to fight.\""
+        },
+        {
+          "no": "FACT No.05",
+          "title": "Mini zines of behind-the-scenes brain storms",
+          "desc": "She binds favorite recent commissions and behind-the-scenes ideas into mini zines. The fridge never runs out of iced cola — \"sugar and fizz are the twin engines of a deadline.\""
+        }
+      ],
+      "special": {
+        "no": "SPECIAL SKILL",
+        "title": "\"Soul Sketch\" & \"BGM Match\"",
+        "desc": "She can name the song and band within the first three chords of anything, and sketch a character impression from someone's social profile in three minutes. She calls it — \"the ability to have a conversation with it.\"",
+        "img": "/assets/crops/chibi-full.png",
+        "alt": "Chibi RepoChan"
+      }
+    },
+    "footer": {
+      "tagline": "Sugar is sweet. Riff is loud. So am I.",
+      "noteLines": [
+        "CHARACTER FILE No.001 — REPOCHAN PERSONA SHOWCASE",
+        "ART: FOUNDATION SHEET + ORIGINAL SCENES",
+        "MOTION: GSAP + SCROLLTRIGGER + LENIS"
+      ],
+      "credit": {
+        "text": "This page was produced by the RepoChan persona pipeline",
+        "linkLabel": "GitHub · repochan",
+        "url": "https://github.com/l1veIn/repochan-mono"
+      }
+    },
+    "toast": {
+      "copied": "Copied {hex} — {name}"
+    }
+  }
+}
