@@ -1,0 +1,64 @@
+---
+import type { IssueBriefContent } from "../lib/i18n/types";
+import { assets } from "../lib/site";
+
+type Props = { content: IssueBriefContent };
+const { content } = Astro.props;
+---
+
+<section class="section about" id="about" aria-labelledby="about-title">
+  <div class="section-head">
+    <h2 class="section-title st-blue" id="about-title" data-reveal>{content.title}</h2>
+    <p class="handnote hn-section" data-reveal>{content.handnote}</p>
+  </div>
+
+  <div class="collage">
+    <article class="paper-card pc-main" data-reveal>
+      <h3 set:html={content.mainCard.title} />
+      {content.mainCard.paragraphs.map((p) => <p set:html={p} />)}
+      <p class="scribble" set:html={content.mainCard.scribble} />
+    </article>
+
+    <article class="paper-card pc-facts" data-reveal>
+      <h3>{content.factsCard.title}</h3>
+      <ul class="fact-list">
+        {content.factsCard.facts.map((fact) => <li set:html={fact} />)}
+      </ul>
+      <img
+        src={assets.icon.src}
+        width={assets.icon.width}
+        height={assets.icon.height}
+        alt={content.factsCard.iconAlt}
+        class="fact-icon"
+        loading="lazy"
+        decoding="async"
+      />
+    </article>
+
+    <figure class="collage-img ci-poster" data-reveal>
+      <div class="tape tape-yellow" aria-hidden="true"></div>
+      <img
+        src={assets.poster.src}
+        width={assets.poster.width}
+        height={assets.poster.height}
+        alt={content.poster.alt}
+        loading="lazy"
+        decoding="async"
+      />
+      <figcaption class="handnote">{content.poster.caption}</figcaption>
+    </figure>
+
+    <figure class="collage-img ci-banner" data-reveal>
+      <div class="tape tape-pink" aria-hidden="true"></div>
+      <img
+        src={assets.banner.src}
+        width={assets.banner.width}
+        height={assets.banner.height}
+        alt={content.banner.alt}
+        loading="lazy"
+        decoding="async"
+      />
+      <figcaption class="handnote">{content.banner.caption}</figcaption>
+    </figure>
+  </div>
+</section>

@@ -1,0 +1,17 @@
+---
+import type { RansomQuoteContent } from "../lib/i18n/types";
+
+type Props = { content: RansomQuoteContent };
+const { content } = Astro.props;
+---
+
+<section class="section ransom" id="quote" aria-label={content.lines.join("")}>
+  <div class="ransom-paper" data-reveal>
+    <div class="tape tape-mint tape-ransom" aria-hidden="true"></div>
+    <blockquote>
+      <p class="ransom-line" data-ransom>{content.lines[0]}</p>
+      <p class="ransom-line" data-ransom>{content.lines[1]}</p>
+    </blockquote>
+    <p class="ransom-sig handnote">{content.sig}</p>
+  </div>
+</section>

@@ -1,0 +1,49 @@
+---
+import type { StampCtaContent } from "../lib/i18n/types";
+
+type Props = { content: StampCtaContent };
+const { content } = Astro.props;
+---
+
+<section class="section cta" id="cta" aria-labelledby="cta-title">
+  <h2 id="cta-title" class="sr-only">{content.coupon.title}</h2>
+  <div class="cta-grid">
+    <div class="stamp-zone" id="stampZone">
+      <div class="stamp" id="stamp" role="img" aria-label={`${content.stamp.top} · ${content.stamp.mainLines.join("")}`}>
+        <div class="stamp-inner">
+          <span class="stamp-top">{content.stamp.top}</span>
+          <span class="stamp-main">{content.stamp.mainLines[0]}<br />{content.stamp.mainLines[1]}</span>
+          <span class="stamp-bottom">{content.stamp.bottom}</span>
+        </div>
+      </div>
+      <p class="handnote hn-stamp">{content.handnote}</p>
+    </div>
+
+    <div class="coupon" data-reveal>
+      <div class="coupon-head">
+        <span class="scissors" aria-hidden="true">✂</span>
+        <span class="coupon-title">{content.coupon.title}</span>
+      </div>
+      <div class="coupon-body">
+        <p class="coupon-step">{content.coupon.steps.install}</p>
+        <div class="cmd-box">
+          <code id="installCmd">{content.coupon.installCmd}</code>
+          <button
+            class="copy-btn"
+            id="copyBtn"
+            type="button"
+            data-label={content.coupon.copyLabel}
+            data-copied-label={content.coupon.copiedLabel}
+          >
+            {content.coupon.copyLabel}
+          </button>
+        </div>
+        <p class="coupon-step">{content.coupon.steps.init}</p>
+        <div class="cmd-box">
+          <code>{content.coupon.initCmd}</code>
+        </div>
+        <p class="coupon-fine" set:html={content.coupon.fine} />
+      </div>
+    </div>
+  </div>
+</section>

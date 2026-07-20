@@ -1,0 +1,35 @@
+---
+import type { PipelineContent } from "../lib/i18n/types";
+import { webstateSrc } from "../lib/site";
+
+type Props = { content: PipelineContent };
+const { content } = Astro.props;
+---
+
+<section class="section pipeline" id="pipeline" aria-labelledby="pipeline-title">
+  <div class="section-head">
+    <h2 class="section-title st-yellow" id="pipeline-title" data-reveal>{content.title}</h2>
+    <p class="handnote hn-section" data-reveal>{content.handnote}</p>
+  </div>
+
+  <ol class="comic-strip">
+    {
+      content.panels.map((panel) => (
+        <li class="comic-panel" data-panel>
+          <span class="panel-no">{panel.no}</span>
+          <img
+            src={webstateSrc(panel.state)}
+            alt={panel.alt}
+            width="317"
+            height="317"
+            loading="lazy"
+            decoding="async"
+          />
+          <h3>{panel.name}</h3>
+          <p class="panel-cap">{panel.caption}</p>
+          <code class="panel-cmd">{panel.cmd}</code>
+        </li>
+      ))
+    }
+  </ol>
+</section>

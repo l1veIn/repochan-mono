@@ -1,0 +1,27 @@
+---
+import type { ColophonContent } from "../lib/i18n/types";
+import type { Locale } from "../lib/i18n/types";
+import { assets, alternatePath } from "../lib/site";
+
+type Props = { content: ColophonContent; locale: Locale };
+const { content, locale } = Astro.props;
+---
+
+<footer class="colophon">
+  <img
+    src={assets.pattern.src}
+    width={assets.pattern.width}
+    height={assets.pattern.height}
+    alt=""
+    class="colophon-pattern"
+    aria-hidden="true"
+    loading="lazy"
+    decoding="async"
+  />
+  {content.lines.map((line) => <p set:html={line} />)}
+  <p>
+    <a class="locale-switch" href={alternatePath(locale)} hreflang={locale === "zh" ? "en" : "zh-CN"}>
+      {content.localeSwitchLabel}
+    </a>
+  </p>
+</footer>
