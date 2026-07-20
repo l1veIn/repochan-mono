@@ -1,0 +1,14 @@
+---
+type Props = {
+  text: string;
+  variant: "top" | "mid" | "bottom";
+};
+
+const { text, variant } = Astro.props;
+---
+
+<div class={`marquee marquee-${variant}`} aria-hidden="true">
+  <div class:list={["marquee-track", { reverse: variant === "mid" }]} data-marquee>
+    <span>{text} </span>
+  </div>
+</div>

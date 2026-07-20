@@ -1,0 +1,32 @@
+---
+import type { StickerWallContent } from "../lib/i18n/types";
+import { stickerSrc } from "../lib/site";
+
+type Props = { content: StickerWallContent };
+const { content } = Astro.props;
+---
+
+<section class="section sticker-wall" id="stickers" aria-labelledby="stickers-title">
+  <div class="section-head">
+    <h2 class="section-title st-pink" id="stickers-title" data-reveal>{content.title}</h2>
+    <p class="handnote hn-section" data-reveal>{content.handnote}</p>
+  </div>
+
+  <div class="wall" id="wall">
+    {
+      content.stickers.map((s) => (
+        <img
+          src={stickerSrc(s.n)}
+          alt={s.alt}
+          class="wall-sticker"
+          data-drop
+          width="321"
+          height="321"
+          loading="lazy"
+          decoding="async"
+        />
+      ))
+    }
+  </div>
+  <p class="wall-note handnote" data-reveal>{content.note}</p>
+</section>

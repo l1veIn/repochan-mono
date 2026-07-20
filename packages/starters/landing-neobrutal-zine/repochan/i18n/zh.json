@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "zh",
+  "meta": {
+    "title": "REPO酱特刊 · REPOCHAN ZINE — 一本把仓库变成品牌资产的摇滚 zine",
+    "description": "RepoChan 是一套 CLI + agent 流水线：把一个 git 仓库变成看板娘人设、设定集、贴纸、海报和落地页。本刊全部视觉均为流水线真实产物。"
+  },
+  "content": {
+    "htmlLang": "zh-CN",
+    "marquee": {
+      "top": "REPO酱特刊 ★ 第 001 期 ★ SUGAR RIFF 编辑部出品 ★ 一个 git 仓库 → 全套品牌资产 ★ 没感觉，画不了 ★ 本期全部视觉均为流水线真实产物 ★",
+      "mid": "画画和摇滚是一回事 ★ 都是把心里的东西砸出来 ★ ANALYSIS → PERSONA → FOUNDATION → PAINTER → PAGE ★",
+      "bottom": "感谢翻阅 ★ 没感觉，画不了 ★ 有感觉？那就开工 ★ npm install -g repochan ★"
+    },
+    "cover": {
+      "badges": ["VOL.001", "2026.07", "免费 FREE"],
+      "titleBlocks": ["REPO酱", "特刊", "ZINE!"],
+      "sub": "把你的 <code>git</code> 仓库往桌上一摔——<br>人设、设定集、贴纸、海报、落地页，<strong>全给你砸出来。</strong>",
+      "handnote": "← 主编本人，亲自带你翻刊！",
+      "ctaPrimary": { "label": "翻到封底 ★ 拿走命令", "href": "#cta" },
+      "ctaSecondary": { "label": "先看本期委托", "href": "#about" },
+      "cutoutAlt": "仓库酱——本刊主编，跳跃比着摇滚手势",
+      "stripStickers": [
+        { "n": 2, "alt": "贴纸：兴奋" },
+        { "n": 5, "alt": "贴纸：撒花" },
+        { "n": 7, "alt": "贴纸：介绍" },
+        { "n": 8, "alt": "贴纸：冰可乐" }
+      ]
+    },
+    "issueBrief": {
+      "title": "本期委托",
+      "handnote": "什么是 RepoChan？看完这页你就懂了",
+      "mainCard": {
+        "title": "一句话：<br>给仓库做一次「全套约稿」",
+        "paragraphs": [
+          "RepoChan 是一套 <strong>CLI + agent skills</strong> 流水线。你给它一个 git 仓库，它像一支迷你创意团队一样开工：先读仓库写分析，再像访谈一样问你几个问题，然后产出看板娘人设、foundation 设定集、贴纸、纹理、海报——最后装配成落地页。",
+          "步骤全是原子的 <code>repochan</code> 子命令，创意判断交给你自己的 agent。<strong>没有黑箱，没有嵌入式运行时。</strong>"
+        ],
+        "scribble": "本刊也是这么生出来的 → 页面上的每张图都是订单真实产物，这就是 dogfooding。"
+      },
+      "factsCard": {
+        "title": "主编档案",
+        "facts": [
+          "<strong>仓库酱</strong>，16 岁，自由插画师",
+          "工作室「<strong>Sugar Riff</strong>」主理人",
+          "赶稿 BGM：punk，音量拧到底",
+          "铁律：没感觉的委托，不接"
+        ],
+        "iconAlt": "RepoChan 图标"
+      },
+      "poster": {
+        "alt": "RepoChan 海报：仓库酱在 Sugar Riff 工作台前",
+        "caption": "海报订单 ord-poster-001 ★"
+      },
+      "banner": {
+        "alt": "RepoChan README banner",
+        "caption": "README banner，直接用 ↑"
+      }
+    },
+    "pipeline": {
+      "title": "流水线",
+      "handnote": "画成五格漫画了，照着跑一遍就会",
+      "panels": [
+        {
+          "no": "01",
+          "state": 3,
+          "alt": "第 1 格：拿放大镜读仓库",
+          "name": "analysis",
+          "caption": "扫描仓库，读出它的「灵魂画像」——语气、结构、气质。",
+          "cmd": "repochan analysis"
+        },
+        {
+          "no": "02",
+          "state": 0,
+          "alt": "第 2 格：思考人设",
+          "name": "persona",
+          "caption": "访谈 + 三智能体协作，捏出有生命力的看板娘。",
+          "cmd": "repochan persona create"
+        },
+        {
+          "no": "03",
+          "state": 1,
+          "alt": "第 3 格：画设定集",
+          "name": "foundation",
+          "caption": "美术总监先下设定集订单——一切视觉一致性的锚点。",
+          "cmd": "repochan order create"
+        },
+        {
+          "no": "04",
+          "state": 2,
+          "alt": "第 4 格：画师交稿",
+          "name": "painter",
+          "caption": "画师按订单出图：贴纸、纹理、海报，逐版留档。",
+          "cmd": "repochan image gen"
+        },
+        {
+          "no": "05",
+          "state": 7,
+          "alt": "第 5 格：装配上线",
+          "name": "page",
+          "caption": "资产装配成页面，网站落地。收工，开冰可乐。",
+          "cmd": "repochan starter pull"
+        }
+      ]
+    },
+    "stickerWall": {
+      "title": "贴纸墙",
+      "handnote": "可以拖！拖乱了主编不负责 ←",
+      "stickers": [
+        { "n": 0, "alt": "贴纸：挥手" },
+        { "n": 1, "alt": "贴纸：放大镜" },
+        { "n": 2, "alt": "贴纸：惊喜" },
+        { "n": 3, "alt": "贴纸：灵光一闪" },
+        { "n": 4, "alt": "贴纸：自信抱臂" },
+        { "n": 5, "alt": "贴纸：欢呼" },
+        { "n": 6, "alt": "贴纸：趴桌装死" },
+        { "n": 7, "alt": "贴纸：这个灵魂我收到了" },
+        { "n": 8, "alt": "贴纸：喝可乐" }
+      ],
+      "note": "全部来自贴纸订单 ord-sticker-001，一套九枚，白边模切。"
+    },
+    "ransom": {
+      "lines": ["画画和摇滚是一回事：", "都是把心里的东西砸出来。"],
+      "sig": "—— 仓库酱座右铭，摘自本刊第 3 页"
+    },
+    "cta": {
+      "stamp": {
+        "top": "REPOCHAN 认证",
+        "mainLines": ["没感觉", "画不了"],
+        "bottom": "★ SUGAR RIFF ★"
+      },
+      "handnote": "↑ 主编盖章，才算数",
+      "coupon": {
+        "title": "封底订购信息 · 沿虚线剪下",
+        "steps": {
+          "install": "① 把这行命令贴进终端：",
+          "init": "② 进你的仓库，开机："
+        },
+        "installCmd": "npm install -g repochan",
+        "initCmd": "repochan init",
+        "copyLabel": "复制",
+        "copiedLabel": "已复制 ★",
+        "fine": "※ 免费开源。agent 自带，创意归你，黑箱没有。<br>※ 本刊所有视觉由该流水线真实产出，所见即所得。"
+      }
+    },
+    "colophon": {
+      "lines": [
+        "<strong>REPO酱特刊</strong> · 第 001 期 · Sugar Riff 编辑部 · 主编 / 插画 / 排版：仓库酱",
+        "印刷于 <code>web-design/sites/landing-neobrutal-zine</code> · Neo-brutal Zine 方向 · 生产构建版"
+      ],
+      "localeSwitchLabel": "English Edition"
+    }
+  }
+}

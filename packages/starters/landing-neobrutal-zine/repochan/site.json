@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "RepoChan",
+    "description": "Turn a git repository into a full brand kit: mascot persona, foundation sheet, stickers, posters and a landing page — via a CLI + agent pipeline.",
+    "repositoryUrl": "https://github.com/l1veIn/repochan-mono"
+  },
+  "theme": {
+    "primary": "#F9A8D4",
+    "base": "#FFF7E6",
+    "ink": "#111827",
+    "accents": ["#38BDF8", "#A78BFA", "#34D399", "#FACC15", "#E11D48", "#FF2D78", "#FFFFFF"]
+  },
+  "brand": {
+    "artStyle": "Neo-brutalist rock zine — thick black borders, hard offset shadows, flat color blocks, washi tape and paper grain.",
+    "motifs": ["cat-ear hair clip", "star cursor earring", "large headphones", "stylus pendant"],
+    "patterns": ["paper grain", "washi tape", "halftone dots"]
+  },
+  "locales": {
+    "default": "zh",
+    "supported": ["zh", "en"]
+  }
+}

@@ -1,0 +1,29 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import Marquee from "../components/Marquee.astro";
+import Cover from "../components/Cover.astro";
+import IssueBrief from "../components/IssueBrief.astro";
+import PipelineComic from "../components/PipelineComic.astro";
+import StickerWall from "../components/StickerWall.astro";
+import RansomQuote from "../components/RansomQuote.astro";
+import StampCta from "../components/StampCta.astro";
+import Colophon from "../components/Colophon.astro";
+import { getContent } from "../lib/site";
+
+const t = getContent("zh");
+---
+
+<SiteLayout title={t.meta.title} description={t.meta.description} locale="zh">
+  <Marquee text={t.marquee.top} variant="top" />
+  <Cover content={t.cover} />
+  <main>
+    <IssueBrief content={t.issueBrief} />
+    <Marquee text={t.marquee.mid} variant="mid" />
+    <PipelineComic content={t.pipeline} />
+    <StickerWall content={t.stickerWall} />
+    <RansomQuote content={t.ransom} />
+    <StampCta content={t.cta} />
+  </main>
+  <Colophon content={t.colophon} locale="zh" />
+  <Marquee text={t.marquee.bottom} variant="bottom" />
+</SiteLayout>

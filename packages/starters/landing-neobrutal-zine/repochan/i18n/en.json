@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "REPO-CHAN SPECIAL · REPOCHAN ZINE — a rock zine that turns repos into brand assets",
+    "description": "RepoChan is a CLI + agent pipeline that turns a git repository into a mascot persona, foundation sheet, stickers, posters, and a landing page. Every visual in this issue is real pipeline output."
+  },
+  "content": {
+    "htmlLang": "en",
+    "marquee": {
+      "top": "REPO-CHAN SPECIAL ★ ISSUE 001 ★ BY THE SUGAR RIFF DESK ★ one git repo → a full brand kit ★ no vibe, no drawing ★ every visual in this issue is real pipeline output ★",
+      "mid": "drawing and rock are the same thing ★ both smash out what's inside ★ ANALYSIS → PERSONA → FOUNDATION → PAINTER → PAGE ★",
+      "bottom": "thanks for reading ★ no vibe, no drawing ★ got the vibe? then let's roll ★ npm install -g repochan ★"
+    },
+    "cover": {
+      "badges": ["VOL.001", "2026.07", "FREE"],
+      "titleBlocks": ["REPO-CHAN", "SPECIAL", "ZINE!"],
+      "sub": "Slam your <code>git</code> repo on the desk —<br>persona, foundation sheet, stickers, poster, landing page. <strong>We smash them all out.</strong>",
+      "handnote": "← the editor-in-chief herself, guiding your flip-through!",
+      "ctaPrimary": { "label": "Flip to the back ★ grab the command", "href": "#cta" },
+      "ctaSecondary": { "label": "Read the brief first", "href": "#about" },
+      "cutoutAlt": "Repo-chan — editor-in-chief, mid-jump with a rock-horn gesture",
+      "stripStickers": [
+        { "n": 2, "alt": "Sticker: thrilled" },
+        { "n": 5, "alt": "Sticker: confetti" },
+        { "n": 7, "alt": "Sticker: introducing" },
+        { "n": 8, "alt": "Sticker: iced cola" }
+      ]
+    },
+    "issueBrief": {
+      "title": "This Issue's Brief",
+      "handnote": "What is RepoChan? One page and you'll get it",
+      "mainCard": {
+        "title": "In one line:<br>a full commission for your repo",
+        "paragraphs": [
+          "RepoChan is a <strong>CLI + agent skills</strong> pipeline. Hand it a git repo and it works like a mini creative team: it reads the repo and writes an analysis, asks you a few interview-style questions, then produces a mascot persona, a foundation sheet, stickers, textures, posters — and finally assembles a landing page.",
+          "Every step is an atomic <code>repochan</code> subcommand; creative judgment stays with your own agent. <strong>No black box, no embedded runtime.</strong>"
+        ],
+        "scribble": "This very issue was born the same way → every image on the page is real order output. That's dogfooding."
+      },
+      "factsCard": {
+        "title": "Editor's File",
+        "facts": [
+          "<strong>Repo-chan</strong>, 16, freelance illustrator",
+          "Runs the <strong>Sugar Riff</strong> studio",
+          "Deadline BGM: punk, volume maxed",
+          "Iron rule: no vibe, no commission"
+        ],
+        "iconAlt": "RepoChan icon"
+      },
+      "poster": {
+        "alt": "RepoChan poster: Repo-chan at the Sugar Riff workbench",
+        "caption": "poster order ord-poster-001 ★"
+      },
+      "banner": {
+        "alt": "RepoChan README banner",
+        "caption": "README banner, used as-is ↑"
+      }
+    },
+    "pipeline": {
+      "title": "The Pipeline",
+      "handnote": "drawn as a five-panel comic — run it once and you've got it",
+      "panels": [
+        {
+          "no": "01",
+          "state": 3,
+          "alt": "Panel 1: reading the repo with a magnifier",
+          "name": "analysis",
+          "caption": "Scan the repo, read its soul portrait — tone, structure, temperament.",
+          "cmd": "repochan analysis"
+        },
+        {
+          "no": "02",
+          "state": 0,
+          "alt": "Panel 2: thinking up a persona",
+          "name": "persona",
+          "caption": "An interview plus three-agent collaboration sculpts a living mascot.",
+          "cmd": "repochan persona create"
+        },
+        {
+          "no": "03",
+          "state": 1,
+          "alt": "Panel 3: drawing the foundation sheet",
+          "name": "foundation",
+          "caption": "The art director files the foundation order first — the anchor of all visual consistency.",
+          "cmd": "repochan order create"
+        },
+        {
+          "no": "04",
+          "state": 2,
+          "alt": "Panel 4: the painter delivers",
+          "name": "painter",
+          "caption": "The painter draws to order: stickers, textures, posters, versioned one by one.",
+          "cmd": "repochan image gen"
+        },
+        {
+          "no": "05",
+          "state": 7,
+          "alt": "Panel 5: assembled and shipped",
+          "name": "page",
+          "caption": "Assets assemble into a page, the site lands. Clock out, crack a cola.",
+          "cmd": "repochan starter pull"
+        }
+      ]
+    },
+    "stickerWall": {
+      "title": "Sticker Wall",
+      "handnote": "Draggable! Make a mess and the editor takes no responsibility ←",
+      "stickers": [
+        { "n": 0, "alt": "Sticker: waving" },
+        { "n": 1, "alt": "Sticker: magnifier" },
+        { "n": 2, "alt": "Sticker: surprised" },
+        { "n": 3, "alt": "Sticker: idea sparks" },
+        { "n": 4, "alt": "Sticker: confident, arms crossed" },
+        { "n": 5, "alt": "Sticker: cheering" },
+        { "n": 6, "alt": "Sticker: playing dead on the desk" },
+        { "n": 7, "alt": "Sticker: soul received" },
+        { "n": 8, "alt": "Sticker: drinking cola" }
+      ],
+      "note": "All from sticker order ord-sticker-001 — a set of nine, white-edge die-cut."
+    },
+    "ransom": {
+      "lines": ["Drawing and rock are the same thing:", "both smash out what's in your heart."],
+      "sig": "— Repo-chan's motto, from page 3 of this issue"
+    },
+    "cta": {
+      "stamp": {
+        "top": "REPOCHAN CERTIFIED",
+        "mainLines": ["NO VIBE,", "NO ART."],
+        "bottom": "★ SUGAR RIFF ★"
+      },
+      "handnote": "↑ only counts once the editor stamps it",
+      "coupon": {
+        "title": "Back-cover order form · cut along the dotted line",
+        "steps": {
+          "install": "① Paste this into your terminal:",
+          "init": "② Enter your repo, power on:"
+        },
+        "installCmd": "npm install -g repochan",
+        "initCmd": "repochan init",
+        "copyLabel": "Copy",
+        "copiedLabel": "Copied ★",
+        "fine": "※ Free and open source. Bring your own agent; the creativity is yours; no black box.<br>※ Every visual in this issue was truly produced by this pipeline — what you see is what you get."
+      }
+    },
+    "colophon": {
+      "lines": [
+        "<strong>REPO-CHAN SPECIAL</strong> · Issue 001 · Sugar Riff Desk · editor / illustrator / layout: Repo-chan",
+        "Printed at <code>web-design/sites/landing-neobrutal-zine</code> · Neo-brutal Zine direction · production build"
+      ],
+      "localeSwitchLabel": "中文版"
+    }
+  }
+}

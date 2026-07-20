@@ -1,0 +1,72 @@
+---
+import type { CoverContent } from "../lib/i18n/types";
+import { assets, stickerSrc } from "../lib/site";
+
+type Props = { content: CoverContent };
+const { content } = Astro.props;
+---
+
+<header class="cover" id="cover">
+  <div class="tape tape-pink tape-tl" aria-hidden="true"></div>
+  <div class="tape tape-mint tape-tr" aria-hidden="true"></div>
+
+  <div class="cover-grid">
+    <div class="cover-left">
+      <div class="issue-row">
+        {
+          content.badges.map((badge, i) => (
+            <span class:list={["issue-badge", { "badge-alt": i === 1, "badge-price": i === 2 }]} data-reveal>
+              {badge}
+            </span>
+          ))
+        }
+      </div>
+      <h1 class="cover-title">
+        <span class="title-block tb-blue" data-title>{content.titleBlocks[0]}</span>
+        <span class="title-block tb-yellow" data-title>{content.titleBlocks[1]}</span>
+        <span class="title-block tb-pink" data-title>{content.titleBlocks[2]}</span>
+      </h1>
+      <p class="cover-sub" data-reveal set:html={content.sub} />
+      <p class="handnote hn-cover" data-reveal>{content.handnote}</p>
+      <div class="cover-cta-row" data-reveal>
+        <a class="btn btn-punk" href={content.ctaPrimary.href}>{content.ctaPrimary.label}</a>
+        <a class="btn btn-ghost" href={content.ctaSecondary.href}>{content.ctaSecondary.label}</a>
+      </div>
+    </div>
+
+    <div class="cover-right">
+      <div class="cutout-wrap" id="coverCutout">
+        <img
+          src={assets.cutout.src}
+          width={assets.cutout.width}
+          height={assets.cutout.height}
+          alt={content.cutoutAlt}
+          class="cutout-img"
+          fetchpriority="high"
+          decoding="async"
+        />
+        <span class="starburst" aria-hidden="true">ROCK<br />ON!</span>
+      </div>
+      <div class="barcode" aria-hidden="true">
+        {Array.from({ length: 12 }).map(() => <span />)}
+      </div>
+    </div>
+  </div>
+
+  <div class="cover-strip">
+    {
+      content.stripStickers.map((s) => (
+        <img
+          src={stickerSrc(s.n)}
+          alt={s.alt}
+          class="mini-sticker"
+          data-drop
+          width="321"
+          height="321"
+          loading="lazy"
+          decoding="async"
+        />
+      ))
+    }
+  </div>
+</header>
