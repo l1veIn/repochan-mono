@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "zh",
+  "meta": {
+    "title": "RepoChan — 给仓库，画一个灵魂。",
+    "description": "RepoChan 把 git 仓库变成一整套品牌角色资产：看板娘人设、设定集、贴纸、海报、落地页。这个页面上每一张图，都是这条流水线真实跑出来的。"
+  },
+  "content": {
+    "og": {
+      "title": "RepoChan — 给仓库，画一个灵魂。",
+      "description": "analysis → interview → persona → art-director → painter → 页面装配。这个页面就是流水线的最后一件产物。"
+    },
+    "chrome": {
+      "dotsLabel": "幕导航",
+      "dots": [
+        { "id": "s-hero", "color": "#38BDF8", "label": "00 HERO" },
+        { "id": "s-analysis", "color": "#34D399", "label": "01 ANALYSIS" },
+        { "id": "s-persona", "color": "#F9A8D4", "label": "02 PERSONA" },
+        { "id": "s-foundation", "color": "#38BDF8", "label": "03 FOUNDATION" },
+        { "id": "s-painter", "color": "#A78BFA", "label": "04 PAINTER" },
+        { "id": "s-page", "color": "#FACC15", "label": "05 PAGE" },
+        { "id": "s-cta", "color": "#38BDF8", "label": "06 TRY IT" }
+      ]
+    },
+    "hero": {
+      "ariaLabel": "RepoChan 介绍",
+      "tag": "<b>REPOCHAN</b> · CLI + AGENT SKILLS · DOGFOODED",
+      "titleHtml": "给仓库，<br>画一个<span class=\"accent\">灵魂</span>。",
+      "subHtml": "一个 git 仓库进去，一整套品牌角色资产出来——看板娘人设、设定集、贴纸、海报、落地页。<b>这个页面上你看到的每一张图，都是这条流水线真实跑出来的。</b>",
+      "cola": "powered by 冰可乐 & 摇滚 ★",
+      "bubble": "你好呀，我是仓库酱！跟我往下看 ↓",
+      "girlAlt": "仓库酱——银发异色瞳少女，挥手打招呼",
+      "scrollHint": "SCROLL = PIPELINE PROGRESS"
+    },
+    "analysis": {
+      "ariaLabel": "第一幕：仓库分析",
+      "tag": "<b>[stage 01]</b> repochan analysis — 确定性扫描 + LLM 增强",
+      "titleHtml": "先读懂仓库，<br>再谈<span class=\"accent\">灵魂</span>。",
+      "noteHtml": "流水线的第一棒不是画笔，是扫描器。<b>434 个文件、44388 行代码、目录结构、README 语气、第一次 commit 的日期</b>——全部变成后面角色的线索。她的生日 <b>06-13</b>，就是这个仓库的第一次 commit。",
+      "termBar": "repochan — analysis — zsh",
+      "lines": [
+        { "cls": "cmd", "html": "$ repochan analysis" },
+        { "cls": "dim", "html": "⠋ 扫描仓库… docs/ packages/ scripts/ test-repos/" },
+        { "cls": "ok", "html": "✔ analysis report → .repochan/analysis/current.json" },
+        { "cls": "", "html": "{" },
+        { "cls": "", "html": "&nbsp;&nbsp;<span class=\"key\">\"schemaVersion\"</span>: <span class=\"str\">\"repochan.analysis.v1\"</span>," },
+        { "cls": "", "html": "&nbsp;&nbsp;<span class=\"key\">\"project_name\"</span>: <span class=\"str\">\"repochan-mono\"</span>," },
+        { "cls": "", "html": "&nbsp;&nbsp;<span class=\"key\">\"total_files\"</span>: <span class=\"num\">434</span>," },
+        { "cls": "", "html": "&nbsp;&nbsp;<span class=\"key\">\"total_dirs\"</span>: <span class=\"num\">138</span>," },
+        { "cls": "", "html": "&nbsp;&nbsp;<span class=\"key\">\"total_lines\"</span>: <span class=\"num\">44388</span>," },
+        { "cls": "", "html": "&nbsp;&nbsp;<span class=\"key\">\"first_commit\"</span>: <span class=\"str\">\"2026-06-13\"</span>" },
+        { "cls": "", "html": "}" },
+        { "cls": "ok", "html": "→ 命名种子: \"RepoChan\" · \"Chan\" · \"Turn any git repository into a living mascot\"" },
+        { "cls": "dim", "html": "→ 下一步: repochan interview — 8 个维度, 7-14 个问题" }
+      ],
+      "cameoAlt": "仓库酱指向终端"
+    },
+    "persona": {
+      "ariaLabel": "第二幕：人设生成",
+      "tag": "<b>[stage 02]</b> repochan persona create — 世界架构师 × 角色设计师 × 一致性守护者",
+      "titleHtml": "碎片落位，<br><span class=\"accent\">她</span>就活了。",
+      "subHtml": "人设不是拍脑袋的人设稿。三个 agent 角色协作——世界架构师先搭 Sugar Riff 这间工作室，角色设计师再把分析报告的线索拼成她，一致性守护者负责拦住一切“不像她”的东西。<em>weight matching、防过拟合、防语言泄漏</em>，全部写进 skill 里。",
+      "dossier": {
+        "bday": "birthday: 06-13 ← first commit",
+        "avatarAlt": "仓库酱 Q 版，举着自己的画",
+        "name": "仓库酱",
+        "nameAccent": "RepoChan",
+        "role": "16 · 高中生 × 自由插画师 · 工作室「Sugar Riff」主理人",
+        "frags": [
+          { "color": "blue", "text": "异色瞳 · 左湖蓝 #38BDF8" },
+          { "color": "purple", "text": "右紫粉 #A78BFA" },
+          { "color": "pink", "text": "猫耳发夹" },
+          { "color": "yellow", "text": "星形光标耳坠" },
+          { "color": "green", "text": "发光 stylus 吊坠" },
+          { "color": "blue", "text": "oversized 乐队卫衣" },
+          { "color": "pink", "text": "大耳机 = 结界" },
+          { "color": "yellow", "text": "冰可乐续命" },
+          { "color": "purple", "text": "摇滚是创作燃料" },
+          { "color": "green", "text": "侦探般的好奇心" }
+        ],
+        "mottoLead": "口头禅「没感觉，画不了。」",
+        "mottoQuote": "「画画和摇滚是一回事：都是把心里的东西砸出来。」"
+      }
+    },
+    "foundation": {
+      "ariaLabel": "第三幕：设定集",
+      "tag": "<b>[stage 03]</b> art-director 下单 → ord-foundation-001",
+      "titleHtml": "设定集先行。<br>它是所有下游的<span class=\"accent\">视觉锚</span>。",
+      "subHtml": "配色六色、表情差分、key motifs、icon 雏形——全部在这一张里定死。之后画家每出一笔，都必须以它为 <em>--reference</em>。Foundation first，才有一致性。你现在看到的这张，就是 <em>ord-foundation-001</em> 的真实产物，不是示意图。",
+      "meta": ["order: ord-foundation-001", "type: character_sheet", "1024×1024", "painter: gpt-image-2"],
+      "minis": [
+        { "src": "icon", "alt": "icon 雏形" },
+        { "src": "pattern", "alt": "四方连续纹理雏形" },
+        { "src": "tile0", "alt": "Q 版状态雏形" }
+      ],
+      "stamp": "Foundation First!",
+      "sheetAlt": "RepoChan 设定集——主视觉、表情差分、配色、key motifs"
+    },
+    "painter": {
+      "ariaLabel": "第四幕：画师出图",
+      "tag": "<b>[stage 04]</b> repochan image gen × 6 张订单 — 全部以设定集为 reference",
+      "titleHtml": "画师开工，<br>资产<span class=\"accent\">涌现</span>。",
+      "subHtml": "贴纸、纹理、海报、web 状态图、banner、icon——每一张都引用 foundation 出图，所以每一笔都是“她”。往下滚，订单一张张落地。",
+      "items": [
+        { "id": "p-stickers", "src": "stickers", "alt": "贴纸集——9 款 Q 版仓库酱", "capHtml": "<b>ord-sticker-001</b> · 表情包贴纸 × 9", "sticker": false, "speed": 0.6 },
+        { "id": "p-poster", "src": "poster", "alt": "海报——放学后的 Sugar Riff", "capHtml": "<b>ord-poster-001</b> · 放学后的 Sugar Riff", "sticker": false, "speed": 1.1 },
+        { "id": "p-banner", "src": "banner", "alt": "README banner——Rock Spirit RepoChan", "capHtml": "<b>ord-banner-001</b> · README banner · Rock Spirit", "sticker": false, "speed": 0.4 },
+        { "id": "p-t1", "src": "tile5", "alt": "状态图：Sugar Riff 挥手", "capHtml": "<b>ord-webstates-001</b> · 3×3 状态网格", "sticker": true, "speed": 1.5 },
+        { "id": "p-t2", "src": "tile3", "alt": "状态图：放大镜排查", "capHtml": "<b>image edit slice</b> · rows=3 cols=3", "sticker": true, "speed": 0.9 },
+        { "id": "p-t3", "src": "tile4", "alt": "状态图：被线缠住", "capHtml": "tile-4 · debug 中", "sticker": true, "speed": 1.3 },
+        { "id": "p-t4", "src": "tile8", "alt": "状态图：喝可乐休息", "capHtml": "tile-8 · REPO FUEL 补给", "sticker": true, "speed": 0.7 },
+        { "id": "p-t5", "src": "tile7", "alt": "状态图：施工模式", "capHtml": "tile-7 · 施工模式", "sticker": true, "speed": 1.7 }
+      ]
+    },
+    "page": {
+      "ariaLabel": "第五幕：页面装配",
+      "tag": "<b>[stage 05]</b> 页面装配 — web-designer / page-designer 接单",
+      "titleHtml": "最后一棒——<br>就是<span class=\"accent\">这个页面</span>。",
+      "subHtml": "你正在滚动的这个页面，就是流水线的最后一件产物。上面的设定集、贴纸、海报、纹理、角色抠图——<em>没有一张图库素材</em>，全部来自前面四棒。",
+      "echoHtml": "左边这个迷你浏览器里，是这条流水线本身：<b>analysis → persona → foundation → painter → page</b>。滚到这里，六个格子就全部点亮了。<b>This website was built by the pipeline it describes.</b>",
+      "browserBar": "localhost — 你在这里",
+      "cells": ["01<br>分析", "02<br>人设", "03<br>设定集", "04<br>出图", "05<br>页面", "06<br>★"],
+      "cameoAlt": "仓库酱指向迷你浏览器"
+    },
+    "cta": {
+      "ariaLabel": "第六幕：开始使用",
+      "tag": "<b>[stage 06]</b> 轮到你的仓库了",
+      "titleHtml": "你的仓库，<br>也值得一个<span class=\"accent\">灵魂</span>。",
+      "termBar": "your-repo — zsh",
+      "lines": [
+        { "cls": "cmd", "html": "$ npm install -g repochan" },
+        { "cls": "cmd", "html": "$ cd your-repo &amp;&amp; repochan init" },
+        { "cls": "ok", "html": "✔ .repochan/ 协议目录就绪 — 剩下的交给 agent skills" },
+        { "cls": "str", "html": "→ analysis → interview → persona → orders → painter → page" },
+        { "cls": "dim", "html": "# 没感觉，画不了。有感觉，挡不住。" }
+      ],
+      "btnLabel": "GitHub → l1veIn/repochan-mono",
+      "note": "MIT License · CLI: repochan v0.3.0 · agent BYO — 不内嵌运行时"
+    },
+    "footer": {
+      "left": "REPOCHAN · 仓库酱 @ Sugar Riff · 本页全部视觉由 repochan 流水线生成",
+      "hand": "「画画和摇滚是一回事：都是把心里的东西砸出来。」",
+      "localeLabel": "切换语言"
+    }
+  }
+}

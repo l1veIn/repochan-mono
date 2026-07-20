@@ -1,0 +1,21 @@
+---
+import { assetPath } from "../lib/site";
+
+type Props = { content: any };
+const { content: c } = Astro.props;
+---
+
+<section class="stage" id="s-painter" aria-label={c.ariaLabel}>
+  <p class="stage-tag" set:html={c.tag} />
+  <h2 class="kinetic" set:html={c.titleHtml} />
+  <p class="stage-sub">{c.subHtml}</p>
+  <div id="painter-field">
+    <div id="painter-pattern" aria-hidden="true"></div>
+    {c.items.map((item: any) => (
+      <figure class:list={["p-item", { "p-sticker": item.sticker }]} id={item.id} data-speed={item.speed}>
+        <img src={assetPath(item.src)} alt={item.alt} loading="lazy" />
+        <figcaption class="cap" set:html={item.capHtml} />
+      </figure>
+    ))}
+  </div>
+</section>

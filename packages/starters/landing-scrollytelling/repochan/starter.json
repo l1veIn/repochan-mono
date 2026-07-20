@@ -1,0 +1,286 @@
+{
+  "schemaVersion": "repochan.starter.v1",
+  "id": "landing-scrollytelling",
+  "name": "Scrollytelling Pipeline Narrative",
+  "description": "RepoChan's own 7-act scrollytelling landing page that narrates the pipeline itself: pinned scrub scenes, terminal typing, kinetic type, glow-cursor progress rail, and a painter asset cascade. zh default with a full en locale.",
+  "style": "scrollytelling-terminal-kinetic",
+  "tags": ["landing", "scrollytelling", "gsap", "scrolltrigger", "lenis", "kinetic-type", "terminal", "i18n", "dark"],
+  "previews": {
+    "desktop": "repochan/previews/desktop.webp",
+    "mobile": "repochan/previews/mobile.webp"
+  },
+  "config": {
+    "site": "repochan/site.json",
+    "assets": "repochan/assets.json",
+    "i18nDir": "repochan/i18n"
+  },
+  "content": {
+    "defaultLocale": "zh",
+    "supportedLocales": ["zh", "en"]
+  },
+  "assets": [
+    {
+      "kind": "scalar",
+      "slot": "foundation",
+      "required": true,
+      "output": "public/assets/foundation.webp",
+      "description": "Character foundation sheet; the visual anchor of the whole page (act 03 reveal) and the og:image.",
+      "order": {
+        "assetType": "foundation_sheet",
+        "templateId": "official/foundation-sheet",
+        "brief": {
+          "intent": "Create the downstream project's own foundation sheet; every other slot references it for character consistency.",
+          "mustInclude": ["key visual, expression variants, locked palette and key motifs on one sheet"],
+          "avoid": ["rendered paragraphs of text", "watermarks"],
+          "creativeFreedom": ["sheet layout", "motif selection that fits the project identity"]
+        },
+        "deliverables": [
+          { "name": "foundation", "format": "png", "width": 1024, "height": 1024, "aspectRatio": "1:1" }
+        ]
+      },
+      "postprocess": [
+        { "op": "compress", "args": { "format": "webp", "quality": 82, "maxWidth": 1024 }, "out": "public/assets/foundation.webp" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "readme-banner",
+      "required": true,
+      "output": "public/assets/banner.webp",
+      "description": "Wide README banner with the character; painter cascade item.",
+      "order": {
+        "assetType": "readme_banner",
+        "templateId": "official/readme-banner-21x9",
+        "brief": {
+          "mustInclude": ["wide banner composition featuring the project character", "no baked project name text unless the template calls for it"],
+          "avoid": ["UI screenshots", "watermarks"],
+          "creativeFreedom": ["scene and mood that support the project identity"]
+        },
+        "deliverables": [
+          { "name": "readme-banner", "format": "png", "width": 1536, "height": 1024, "aspectRatio": "3:2" }
+        ]
+      },
+      "postprocess": [
+        { "op": "compress", "args": { "format": "webp", "quality": 80, "maxWidth": 1600 }, "out": "public/assets/banner.webp" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "seamless-pattern",
+      "required": true,
+      "output": "public/assets/pattern.webp",
+      "description": "Seamless motif tile; painter-field backdrop at 7% opacity and the footer strip. Referred to from CSS via injected variables.",
+      "order": {
+        "assetType": "visual_pattern",
+        "templateId": "official/pattern-tile",
+        "brief": {
+          "mustInclude": ["one full-bleed seamless square tile", "low-contrast motifs suited to sit behind content at 5-10% opacity"],
+          "avoid": ["text", "characters", "frames"],
+          "creativeFreedom": ["motif density and rotation"]
+        },
+        "deliverables": [
+          { "name": "seamless-pattern", "format": "png", "width": 768, "height": 768, "aspectRatio": "1:1" }
+        ]
+      },
+      "postprocess": [
+        { "op": "compress", "args": { "format": "webp", "quality": 84, "maxWidth": 800 }, "out": "public/assets/pattern.webp" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "poster",
+      "required": true,
+      "output": "public/assets/poster.webp",
+      "description": "Poster with the character in her world; painter cascade item.",
+      "order": {
+        "assetType": "poster",
+        "templateId": "official/poster",
+        "brief": {
+          "mustInclude": ["poster composition featuring the project character"],
+          "avoid": ["watermarks", "UI baked into the image"],
+          "creativeFreedom": ["scene, mood and lettering that support the project identity"]
+        },
+        "deliverables": [
+          { "name": "poster", "format": "png", "width": 1536, "height": 1024, "aspectRatio": "3:2" }
+        ]
+      },
+      "postprocess": [
+        { "op": "compress", "args": { "format": "webp", "quality": 80, "maxWidth": 1200 }, "out": "public/assets/poster.webp" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "sticker-set",
+      "required": true,
+      "output": "public/assets/stickers.webp",
+      "description": "3×3 chibi emoji sticker sheet shown whole as the first painter cascade item (not sliced by the page).",
+      "order": {
+        "assetType": "chibi_emojis",
+        "templateId": "official/chibi-grid-3x3",
+        "brief": {
+          "mustInclude": ["strict 3×3 chibi sticker grid of the project character in the template's nine fixed expressions"],
+          "avoid": ["text", "borders", "grid lines"],
+          "creativeFreedom": ["matte color choice"]
+        },
+        "deliverables": [
+          { "name": "sticker-set", "format": "png", "width": 1024, "height": 1024, "aspectRatio": "1:1" }
+        ]
+      },
+      "postprocess": [
+        { "op": "compress", "args": { "format": "webp", "quality": 80, "maxWidth": 1024 }, "out": "public/assets/stickers.webp" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "icon",
+      "required": true,
+      "output": "public/assets/icon.webp",
+      "description": "App icon, also shown in the foundation mini-stack. The favicon set (favicon.ico, apple-touch-icon.png, icon-192/512.png) is derived from it via `repochan image edit favicon` / `resize`; regenerate those after replacing this slot.",
+      "order": {
+        "assetType": "icon",
+        "templateId": "official/icon-single",
+        "brief": {
+          "mustInclude": ["one scalable brand mark reading cleanly at 64px", "project motif without letterforms"],
+          "avoid": ["text", "watermarks"],
+          "creativeFreedom": ["mark geometry and accent colors from the project palette"]
+        },
+        "deliverables": [
+          { "name": "icon", "format": "png", "width": 512, "height": 512, "aspectRatio": "1:1" }
+        ]
+      },
+      "postprocess": [
+        { "op": "compress", "args": { "format": "webp", "quality": 90, "maxWidth": 512 }, "out": "public/assets/icon.webp" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "cutout-wave",
+      "required": true,
+      "output": "public/assets/cutout-wave.webp",
+      "description": "Transparent full-body character cutout, waving; the hero greeter with a live HTML speech bubble.",
+      "order": {
+        "assetType": "character_cutout",
+        "templateId": "official/character-cutout",
+        "brief": {
+          "mustInclude": [
+            "full-body character in a friendly waving pose, facing the viewer",
+            "single character on a perfectly flat uniform matte background for chroma-key extraction"
+          ],
+          "avoid": ["props", "scenery", "text", "the character touching any canvas edge"],
+          "creativeFreedom": ["gesture details inside the waving pose"]
+        },
+        "deliverables": [
+          { "name": "cutout-wave", "format": "png", "width": 1024, "height": 1024, "aspectRatio": "1:1" }
+        ]
+      },
+      "postprocess": [
+        { "op": "chroma-key", "args": { "matte": "auto" }, "out": "public/assets/cutout-wave-keyed.png" },
+        { "op": "compress", "args": { "format": "webp", "quality": 82, "maxWidth": 1024 }, "out": "public/assets/cutout-wave.webp" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "cutout-point",
+      "required": true,
+      "output": "public/assets/cutout-point.webp",
+      "description": "Transparent full-body character cutout, pointing; cameo in the analysis and meta-page acts (mirrored in the meta-page via CSS).",
+      "order": {
+        "assetType": "character_cutout",
+        "templateId": "official/character-cutout",
+        "brief": {
+          "mustInclude": [
+            "full-body character pointing toward the left, as if indicating adjacent page content",
+            "single character on a perfectly flat uniform matte background for chroma-key extraction"
+          ],
+          "avoid": ["props", "scenery", "text", "the character touching any canvas edge"],
+          "creativeFreedom": ["gesture details inside the pointing pose"]
+        },
+        "deliverables": [
+          { "name": "cutout-point", "format": "png", "width": 1024, "height": 1024, "aspectRatio": "1:1" }
+        ]
+      },
+      "postprocess": [
+        { "op": "chroma-key", "args": { "matte": "auto" }, "out": "public/assets/cutout-point-keyed.png" },
+        { "op": "compress", "args": { "format": "webp", "quality": 82, "maxWidth": 1024 }, "out": "public/assets/cutout-point.webp" }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "studio-wide",
+      "required": true,
+      "reference": "repochan/references/studio-pose-lineart.webp",
+      "output": "public/assets/studio-wide.webp",
+      "description": "Baked studio wide shot; the hero backdrop (dimmed to 38% under a gradient, live copy on top). The reference is a low-information pose/composition lineart extracted from the original scene: it keeps the back-view figure, desk/window layout and blank zones while dropping character identity, baked text and rendering style.",
+      "order": {
+        "assetType": "poster",
+        "templateId": "official/poster-scene",
+        "brief": {
+          "intent": "Repaint the hero studio backdrop for the downstream project's own character and world, keeping the reference lineart's composition exactly.",
+          "mustInclude": [
+            "character seen from behind at a desk on the right half, drawing at her workspace; keep the reference's figure position and scale",
+            "wall of pinned artwork on the left third, large window with a city skyline on the right, dusk mood with one warm desk lamp",
+            "landscape 3:2 edge-to-edge scene; no text, letters, numbers, signage, watermarks or UI anywhere in the image",
+            "the composition sits under a dark gradient at 38% opacity behind live HTML copy — keep values mid-to-dark and avoid bright focal points in the center-left"
+          ],
+          "avoid": ["rendered text", "logos", "composition drift from the reference lineart", "front-facing portraits"],
+          "creativeFreedom": ["world-specific props and posters (without legible text)", "lighting and palette from the project identity"]
+        },
+        "deliverables": [
+          { "name": "studio-wide", "format": "png", "width": 1536, "height": 1024, "aspectRatio": "3:2" }
+        ]
+      },
+      "postprocess": [
+        { "op": "compress", "args": { "format": "webp", "quality": 80, "maxWidth": 1536 }, "out": "public/assets/studio-wide.webp" }
+      ]
+    },
+    {
+      "kind": "bundle",
+      "slot": "webstate-tiles",
+      "required": true,
+      "reference": "repochan/references/webstates-grid-source.png",
+      "publications": [
+        { "key": "welcome", "cell": 0, "output": "public/assets/tile-0-alpha.webp" },
+        { "key": "searching", "cell": 1, "output": "public/assets/tile-1-alpha.webp" },
+        { "key": "loading", "cell": 2, "output": "public/assets/tile-2-alpha.webp" },
+        { "key": "empty", "cell": 3, "output": "public/assets/tile-3-alpha.webp" },
+        { "key": "error", "cell": 4, "output": "public/assets/tile-4-alpha.webp" },
+        { "key": "success", "cell": 5, "output": "public/assets/tile-5-alpha.webp" },
+        { "key": "not-found", "cell": 6, "output": "public/assets/tile-6-alpha.webp" },
+        { "key": "cta", "cell": 7, "output": "public/assets/tile-7-alpha.webp" },
+        { "key": "cozy", "cell": 8, "output": "public/assets/tile-8-alpha.webp" }
+      ],
+      "description": "3×3 chibi web-state grid sliced into nine named transparent tiles. The page consumes tiles positionally: persona dossier avatar (cell 2), foundation mini-stack (cell 0) and four painter cascade cameos (cells 3, 4, 5, 7, 8). The reference is the original delivered grid; downstream orders regenerate it with the template's fixed cell semantics.",
+      "order": {
+        "assetType": "web_state_stickers",
+        "templateId": "official/web-state-grid-3x3",
+        "brief": {
+          "mustInclude": [
+            "strict 3×3 grid of the project character in the nine fixed web-state poses (template cell semantics)",
+            "perfectly flat uniform matte background in a color absent from the character, identical in every pixel outside the stickers"
+          ],
+          "avoid": ["text", "letters", "numbers", "borders", "grid lines", "scenery", "shadows on the matte"],
+          "creativeFreedom": ["pose details inside each fixed semantic", "matte color choice"]
+        },
+        "deliverables": [
+          { "name": "webstate-grid", "format": "png", "width": 1024, "height": 1024, "aspectRatio": "1:1" }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "extract-grid",
+          "args": {
+            "rows": 3,
+            "cols": 3,
+            "mapping": { "welcome": 0, "searching": 1, "loading": 2, "empty": 3, "error": 4, "success": 5, "not-found": 6, "cta": 7, "cozy": 8 },
+            "normalize": { "canvasSize": 325, "padding": 8 },
+            "chroma": { "matteColor": "auto" },
+            "qa": { "alphaThreshold": 32, "minForegroundRatio": 0.05, "maxForegroundRatio": 0.95, "maxEdgeTouchRatio": 0.05 },
+            "format": "webp",
+            "quality": 80
+          },
+          "out": "public/assets"
+        }
+      ]
+    }
+  ]
+}

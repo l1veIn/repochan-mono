@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "repochan.starter-assets.v1",
+  "assets": {
+    "foundation": {
+      "kind": "scalar",
+      "src": "/assets/foundation.webp",
+      "status": "source",
+      "orderId": "ord-foundation-001"
+    },
+    "readme-banner": {
+      "kind": "scalar",
+      "src": "/assets/banner.webp",
+      "status": "source",
+      "orderId": "ord-banner-001"
+    },
+    "seamless-pattern": {
+      "kind": "scalar",
+      "src": "/assets/pattern.webp",
+      "status": "source",
+      "orderId": "ord-pattern-001"
+    },
+    "poster": {
+      "kind": "scalar",
+      "src": "/assets/poster.webp",
+      "status": "source",
+      "orderId": "ord-poster-001"
+    },
+    "sticker-set": {
+      "kind": "scalar",
+      "src": "/assets/stickers.webp",
+      "status": "source",
+      "orderId": "ord-sticker-001"
+    },
+    "icon": {
+      "kind": "scalar",
+      "src": "/assets/icon.webp",
+      "status": "source",
+      "orderId": "ord-icon-001"
+    },
+    "cutout-wave": {
+      "kind": "scalar",
+      "src": "/assets/cutout-wave.webp",
+      "status": "source"
+    },
+    "cutout-point": {
+      "kind": "scalar",
+      "src": "/assets/cutout-point.webp",
+      "status": "source"
+    },
+    "studio-wide": {
+      "kind": "scalar",
+      "src": "/assets/studio-wide.webp",
+      "status": "source"
+    },
+    "webstate-tiles": {
+      "kind": "bundle",
+      "status": "source",
+      "orderId": "ord-webstates-001",
+      "items": {
+        "welcome": { "src": "/assets/tile-0-alpha.webp", "status": "source" },
+        "searching": { "src": "/assets/tile-1-alpha.webp", "status": "source" },
+        "loading": { "src": "/assets/tile-2-alpha.webp", "status": "source" },
+        "empty": { "src": "/assets/tile-3-alpha.webp", "status": "source" },
+        "error": { "src": "/assets/tile-4-alpha.webp", "status": "source" },
+        "success": { "src": "/assets/tile-5-alpha.webp", "status": "source" },
+        "not-found": { "src": "/assets/tile-6-alpha.webp", "status": "source" },
+        "cta": { "src": "/assets/tile-7-alpha.webp", "status": "source" },
+        "cozy": { "src": "/assets/tile-8-alpha.webp", "status": "source" }
+      }
+    }
+  }
+}

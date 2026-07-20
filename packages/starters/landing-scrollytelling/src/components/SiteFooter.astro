@@ -1,0 +1,17 @@
+---
+import { locales, type Locale } from "../lib/site";
+
+type Props = { content: any; lang: Locale };
+const { content: c, lang } = Astro.props;
+const other: Locale = lang === "zh" ? "en" : "zh";
+---
+
+<div id="footer-pattern" aria-hidden="true"></div>
+<footer>
+  <div>{c.left}</div>
+  <div class="hand">{c.hand}</div>
+  <nav class="locale-switch" aria-label={c.localeLabel}>
+    <a href={locales[lang].path} aria-current="page">{locales[lang].label}</a>
+    <a href={locales[other].path}>{locales[other].label}</a>
+  </nav>
+</footer>

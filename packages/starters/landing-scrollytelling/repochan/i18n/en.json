@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "RepoChan — Give your repo a soul.",
+    "description": "RepoChan turns a git repository into a full brand-character kit: mascot persona, foundation sheet, stickers, posters, and a landing page. Every image on this page was produced by the pipeline itself."
+  },
+  "content": {
+    "og": {
+      "title": "RepoChan — Give your repo a soul.",
+      "description": "analysis → interview → persona → art-director → painter → page assembly. This page is the pipeline's final artifact."
+    },
+    "chrome": {
+      "dotsLabel": "Section navigation",
+      "dots": [
+        { "id": "s-hero", "color": "#38BDF8", "label": "00 HERO" },
+        { "id": "s-analysis", "color": "#34D399", "label": "01 ANALYSIS" },
+        { "id": "s-persona", "color": "#F9A8D4", "label": "02 PERSONA" },
+        { "id": "s-foundation", "color": "#38BDF8", "label": "03 FOUNDATION" },
+        { "id": "s-painter", "color": "#A78BFA", "label": "04 PAINTER" },
+        { "id": "s-page", "color": "#FACC15", "label": "05 PAGE" },
+        { "id": "s-cta", "color": "#38BDF8", "label": "06 TRY IT" }
+      ]
+    },
+    "hero": {
+      "ariaLabel": "Introducing RepoChan",
+      "tag": "<b>REPOCHAN</b> · CLI + AGENT SKILLS · DOGFOODED",
+      "titleHtml": "Give your repo<br>a <span class=\"accent\">soul</span>.",
+      "subHtml": "A git repository goes in, a full brand-character kit comes out — mascot persona, foundation sheet, stickers, posters, landing page. <b>Every single image on this page was actually produced by this pipeline.</b>",
+      "cola": "powered by iced cola & rock ★",
+      "bubble": "Hi, I'm RepoChan! Scroll down with me ↓",
+      "girlAlt": "RepoChan — silver-haired girl with heterochromia, waving hello",
+      "scrollHint": "SCROLL = PIPELINE PROGRESS"
+    },
+    "analysis": {
+      "ariaLabel": "Act 1: repository analysis",
+      "tag": "<b>[stage 01]</b> repochan analysis — deterministic scan + LLM enhancement",
+      "titleHtml": "Read the repo first.<br>Then talk about its <span class=\"accent\">soul</span>.",
+      "noteHtml": "The first runner in this relay is not a paintbrush — it's a scanner. <b>434 files, 44,388 lines of code, directory structure, README tone, the date of the first commit</b> — all of it becomes clues for the character. Her birthday, <b>06-13</b>, is this repo's very first commit.",
+      "termBar": "repochan — analysis — zsh",
+      "lines": [
+        { "cls": "cmd", "html": "$ repochan analysis" },
+        { "cls": "dim", "html": "⠋ Scanning repository… docs/ packages/ scripts/ test-repos/" },
+        { "cls": "ok", "html": "✔ analysis report → .repochan/analysis/current.json" },
+        { "cls": "", "html": "{" },
+        { "cls": "", "html": "&nbsp;&nbsp;<span class=\"key\">\"schemaVersion\"</span>: <span class=\"str\">\"repochan.analysis.v1\"</span>," },
+        { "cls": "", "html": "&nbsp;&nbsp;<span class=\"key\">\"project_name\"</span>: <span class=\"str\">\"repochan-mono\"</span>," },
+        { "cls": "", "html": "&nbsp;&nbsp;<span class=\"key\">\"total_files\"</span>: <span class=\"num\">434</span>," },
+        { "cls": "", "html": "&nbsp;&nbsp;<span class=\"key\">\"total_dirs\"</span>: <span class=\"num\">138</span>," },
+        { "cls": "", "html": "&nbsp;&nbsp;<span class=\"key\">\"total_lines\"</span>: <span class=\"num\">44388</span>," },
+        { "cls": "", "html": "&nbsp;&nbsp;<span class=\"key\">\"first_commit\"</span>: <span class=\"str\">\"2026-06-13\"</span>" },
+        { "cls": "", "html": "}" },
+        { "cls": "ok", "html": "→ naming seeds: \"RepoChan\" · \"Chan\" · \"Turn any git repository into a living mascot\"" },
+        { "cls": "dim", "html": "→ next: repochan interview — 8 dimensions, 7-14 questions" }
+      ],
+      "cameoAlt": "RepoChan pointing at the terminal"
+    },
+    "persona": {
+      "ariaLabel": "Act 2: persona generation",
+      "tag": "<b>[stage 02]</b> repochan persona create — World Architect × Character Designer × Consistency Guardian",
+      "titleHtml": "Fragments snap into place,<br>and <span class=\"accent\">she</span> comes alive.",
+      "subHtml": "A persona here is never a whim. Three agent roles collaborate — the World Architect builds the Sugar Riff studio first, the Character Designer assembles her from the analysis report's clues, and the Consistency Guardian rejects anything that \"isn't her\". <em>Weight matching, anti-overfitting, anti-language-leak</em> — all written into the skill.",
+      "dossier": {
+        "bday": "birthday: 06-13 ← first commit",
+        "avatarAlt": "Chibi RepoChan holding up her own drawing",
+        "name": "RepoChan",
+        "nameAccent": "仓库酱",
+        "role": "16 · high-schooler × freelance illustrator · runs the \"Sugar Riff\" studio",
+        "frags": [
+          { "color": "blue", "text": "heterochromia · left lake-blue #38BDF8" },
+          { "color": "purple", "text": "right violet-pink #A78BFA" },
+          { "color": "pink", "text": "cat-ear hair clips" },
+          { "color": "yellow", "text": "star-cursor earrings" },
+          { "color": "green", "text": "glowing stylus pendant" },
+          { "color": "blue", "text": "oversized band hoodie" },
+          { "color": "pink", "text": "big headphones = barrier" },
+          { "color": "yellow", "text": "runs on iced cola" },
+          { "color": "purple", "text": "rock is creative fuel" },
+          { "color": "green", "text": "detective-grade curiosity" }
+        ],
+        "mottoLead": "Catchphrase: \"No feeling, no drawing.\"",
+        "mottoQuote": "\"Drawing and rock are the same thing: both smash what's inside you out into the world.\""
+      }
+    },
+    "foundation": {
+      "ariaLabel": "Act 3: foundation sheet",
+      "tag": "<b>[stage 03]</b> art-director places the order → ord-foundation-001",
+      "titleHtml": "Foundation first.<br>It is the <span class=\"accent\">visual anchor</span> for everything downstream.",
+      "subHtml": "Six-color palette, expression variants, key motifs, icon sketches — all locked in on this one sheet. Every later brushstroke must pass it as <em>--reference</em>. Foundation first — that's what consistency means. What you're looking at is the real output of <em>ord-foundation-001</em>, not a mockup.",
+      "meta": ["order: ord-foundation-001", "type: character_sheet", "1024×1024", "painter: gpt-image-2"],
+      "minis": [
+        { "src": "icon", "alt": "icon prototype" },
+        { "src": "pattern", "alt": "seamless pattern prototype" },
+        { "src": "tile0", "alt": "chibi state prototype" }
+      ],
+      "stamp": "Foundation First!",
+      "sheetAlt": "RepoChan foundation sheet — key visual, expression variants, palette, key motifs"
+    },
+    "painter": {
+      "ariaLabel": "Act 4: painter at work",
+      "tag": "<b>[stage 04]</b> repochan image gen × 6 orders — all referencing the foundation sheet",
+      "titleHtml": "The painter gets to work,<br>and assets <span class=\"accent\">pour out</span>.",
+      "subHtml": "Stickers, pattern, poster, web-state tiles, banner, icon — every one generated with the foundation as reference, so every stroke is \"her\". Keep scrolling; the orders land one by one.",
+      "items": [
+        { "id": "p-stickers", "src": "stickers", "alt": "sticker set — 9 chibi RepoChan stickers", "capHtml": "<b>ord-sticker-001</b> · emoji stickers × 9", "sticker": false, "speed": 0.6 },
+        { "id": "p-poster", "src": "poster", "alt": "poster — Sugar Riff after school", "capHtml": "<b>ord-poster-001</b> · Sugar Riff after school", "sticker": false, "speed": 1.1 },
+        { "id": "p-banner", "src": "banner", "alt": "README banner — Rock Spirit RepoChan", "capHtml": "<b>ord-banner-001</b> · README banner · Rock Spirit", "sticker": false, "speed": 0.4 },
+        { "id": "p-t1", "src": "tile5", "alt": "state tile: Sugar Riff wave", "capHtml": "<b>ord-webstates-001</b> · 3×3 state grid", "sticker": true, "speed": 1.5 },
+        { "id": "p-t2", "src": "tile3", "alt": "state tile: investigating with a magnifier", "capHtml": "<b>image edit slice</b> · rows=3 cols=3", "sticker": true, "speed": 0.9 },
+        { "id": "p-t3", "src": "tile4", "alt": "state tile: tangled in cables", "capHtml": "tile-4 · debugging", "sticker": true, "speed": 1.3 },
+        { "id": "p-t4", "src": "tile8", "alt": "state tile: cola break", "capHtml": "tile-8 · REPO FUEL refill", "sticker": true, "speed": 0.7 },
+        { "id": "p-t5", "src": "tile7", "alt": "state tile: construction mode", "capHtml": "tile-7 · construction mode", "sticker": true, "speed": 1.7 }
+      ]
+    },
+    "page": {
+      "ariaLabel": "Act 5: page assembly",
+      "tag": "<b>[stage 05]</b> page assembly — web-designer / page-designer take the order",
+      "titleHtml": "The final leg —<br>is <span class=\"accent\">this very page</span>.",
+      "subHtml": "The page you're scrolling right now is the pipeline's final artifact. The foundation sheet, stickers, poster, pattern, character cutouts above — <em>not a single stock image</em>; everything came from the previous four stages.",
+      "echoHtml": "In the mini browser on the left lives the pipeline itself: <b>analysis → persona → foundation → painter → page</b>. By the time you scroll here, all six cells are lit. <b>This website was built by the pipeline it describes.</b>",
+      "browserBar": "localhost — you are here",
+      "cells": ["01<br>analysis", "02<br>persona", "03<br>foundation", "04<br>paint", "05<br>page", "06<br>★"],
+      "cameoAlt": "RepoChan pointing at the mini browser"
+    },
+    "cta": {
+      "ariaLabel": "Act 6: get started",
+      "tag": "<b>[stage 06]</b> your repo's turn",
+      "titleHtml": "Your repo<br>deserves a <span class=\"accent\">soul</span> too.",
+      "termBar": "your-repo — zsh",
+      "lines": [
+        { "cls": "cmd", "html": "$ npm install -g repochan" },
+        { "cls": "cmd", "html": "$ cd your-repo &amp;&amp; repochan init" },
+        { "cls": "ok", "html": "✔ .repochan/ protocol directory ready — agent skills take it from here" },
+        { "cls": "str", "html": "→ analysis → interview → persona → orders → painter → page" },
+        { "cls": "dim", "html": "# No feeling, no drawing. Once it clicks, nothing stops her." }
+      ],
+      "btnLabel": "GitHub → l1veIn/repochan-mono",
+      "note": "MIT License · CLI: repochan v0.3.0 · agent BYO — no embedded runtime"
+    },
+    "footer": {
+      "left": "REPOCHAN · RepoChan @ Sugar Riff · every visual on this page was generated by the repochan pipeline",
+      "hand": "\"Drawing and rock are the same thing: both smash what's inside you out into the world.\"",
+      "localeLabel": "Switch language"
+    }
+  }
+}

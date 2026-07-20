@@ -1,0 +1,39 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import GlowChrome from "../../components/GlowChrome.astro";
+import HeroSection from "../../components/HeroSection.astro";
+import AnalysisTerminal from "../../components/AnalysisTerminal.astro";
+import PersonaAssemble from "../../components/PersonaAssemble.astro";
+import FoundationReveal from "../../components/FoundationReveal.astro";
+import PainterCascade from "../../components/PainterCascade.astro";
+import MetaPage from "../../components/MetaPage.astro";
+import CtaTerminal from "../../components/CtaTerminal.astro";
+import SiteFooter from "../../components/SiteFooter.astro";
+import locale from "../../../repochan/i18n/en.json";
+
+const c = locale.content;
+---
+
+<SiteLayout
+  title={locale.meta.title}
+  description={locale.meta.description}
+  ogTitle={c.og.title}
+  ogDescription={c.og.description}
+  lang="en"
+>
+  <GlowChrome dots={c.chrome.dots} ariaLabel={c.chrome.dotsLabel} />
+  <main>
+    <HeroSection content={c.hero} />
+    <AnalysisTerminal content={c.analysis} />
+    <PersonaAssemble content={c.persona} />
+    <FoundationReveal content={c.foundation} />
+    <PainterCascade content={c.painter} />
+    <MetaPage content={c.page} />
+    <CtaTerminal content={c.cta} />
+  </main>
+  <SiteFooter content={c.footer} lang="en" />
+  <script>
+    import { initScrolly } from "../../lib/scrolly";
+    initScrolly();
+  </script>
+</SiteLayout>
