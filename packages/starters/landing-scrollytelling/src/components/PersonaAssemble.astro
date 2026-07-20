@@ -1,0 +1,36 @@
+---
+import { assets } from "../lib/site";
+
+type Props = { content: any };
+const { content: c } = Astro.props;
+const d = c.dossier;
+---
+
+<section class="stage" id="s-persona" aria-label={c.ariaLabel}>
+  <div class="pin-wrap">
+    <p class="stage-tag" set:html={c.tag} />
+    <h2 class="kinetic" set:html={c.titleHtml} />
+    <div class="cols">
+      <div class="dossier" id="dossier">
+        <div class="d-bday">{d.bday}</div>
+        <div class="d-head">
+          <img src={assets.tile(2)} alt={d.avatarAlt} width="325" height="325" loading="lazy" />
+          <div>
+            <h3>{d.name} <span>{d.nameAccent}</span></h3>
+            <div class="d-role">{d.role}</div>
+          </div>
+        </div>
+        <div class="frag-row">
+          {d.frags.map((f: any) => <span class:list={["frag", f.color]}>{f.text}</span>)}
+        </div>
+        <div class="d-motto">
+          {d.mottoLead}
+          <b>{d.mottoQuote}</b>
+        </div>
+      </div>
+      <div>
+        <p class="stage-sub" set:html={c.subHtml} />
+      </div>
+    </div>
+  </div>
+</section>

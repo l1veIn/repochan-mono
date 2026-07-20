@@ -1,0 +1,26 @@
+---
+import { assets, site } from "../lib/site";
+
+type Props = { content: any };
+const { content: c } = Astro.props;
+---
+
+<section class="stage" id="s-hero" aria-label={c.ariaLabel}>
+  <div id="hero-bg" aria-hidden="true"></div>
+  <div class="inner">
+    <div>
+      <p class="stage-tag" style="--accent:var(--blue)" set:html={c.tag} />
+      <h1 class="kinetic" id="hero-title" set:html={c.titleHtml} />
+      <p id="hero-sub" set:html={c.subHtml} />
+      <div id="hero-chips">
+        <span class="cmd-chip">{site.installCmd}</span>
+        <span id="hero-cola">{c.cola}</span>
+      </div>
+    </div>
+    <div id="hero-girl">
+      <div class="bubble">{c.bubble}</div>
+      <img src={assets.cutoutWave} alt={c.girlAlt} width="1024" height="1024" fetchpriority="high" />
+    </div>
+  </div>
+  <div id="scroll-hint" aria-hidden="true">{c.scrollHint} <span class="arr">▾▾▾</span></div>
+</section>

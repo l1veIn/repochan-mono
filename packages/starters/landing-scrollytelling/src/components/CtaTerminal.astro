@@ -1,0 +1,23 @@
+---
+import { site } from "../lib/site";
+
+type Props = { content: any };
+const { content: c } = Astro.props;
+---
+
+<section class="stage" id="s-cta" aria-label={c.ariaLabel}>
+  <div class="pin-wrap">
+    <p class="stage-tag" style="text-align:center" set:html={c.tag} />
+    <h2 class="kinetic" set:html={c.titleHtml} />
+    <div class="term" id="cta-term">
+      <div class="term-bar"><i></i><i></i><i></i>{c.termBar}</div>
+      <div class="term-body">
+        {c.lines.map((line: any) => (
+          <div class:list={["tline", line.cls]} set:html={line.html} />
+        ))}
+      </div>
+    </div>
+    <a id="cta-btn" href={site.repositoryUrl} target="_blank" rel="noopener">{c.btnLabel}</a>
+    <p id="cta-note">{c.note}</p>
+  </div>
+</section>

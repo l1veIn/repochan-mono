@@ -1,0 +1,26 @@
+---
+/**
+ * Fixed chrome: progress rail, traveling glow cursor, section dots.
+ * Purely decorative — hidden from AT and removed on mobile / reduced motion.
+ */
+type Dot = { id: string; color: string; label: string };
+type Props = { dots: Dot[]; ariaLabel: string };
+const { dots, ariaLabel } = Astro.props;
+---
+
+<div id="rail" aria-hidden="true"><div id="rail-fill"></div></div>
+<div id="glow-cursor" aria-hidden="true">
+  <svg viewBox="0 0 32 32">
+    <path
+      style="fill: var(--blue); stroke: var(--hi)"
+      stroke-width="1.2"
+      d="M16 1 L19.2 12.8 L31 16 L19.2 19.2 L16 31 L12.8 19.2 L1 16 L12.8 12.8 Z"></path>
+  </svg>
+</div>
+<nav id="rail-dots" aria-label={ariaLabel} aria-hidden="true">
+  {dots.map((dot) => (
+    <div class="dot" data-for={dot.id} style={`--dot-c:${dot.color}`}>
+      <i></i>{dot.label}
+    </div>
+  ))}
+</nav>

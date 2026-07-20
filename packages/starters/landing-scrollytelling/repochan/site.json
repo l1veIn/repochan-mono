@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "RepoChan",
+    "description": "Turn a git repository into a living mascot persona and a complete brand-asset kit — driven by your coding agent.",
+    "repositoryUrl": "https://github.com/l1veIn/repochan-mono"
+  },
+  "theme": {
+    "primary": "#38BDF8",
+    "base": "#0B0F19",
+    "ink": "#E5EAF3",
+    "accents": ["#F9A8D4", "#A78BFA", "#34D399", "#FACC15"]
+  },
+  "brand": {
+    "artStyle": "Cel-shaded anime illustration over a dark neon-terminal UI",
+    "motifs": ["star cursor", "cat-ear hair clips", "glowing stylus pendant", "iced cola"],
+    "patterns": ["seamless RepoChan motif tile"]
+  },
+  "locales": {
+    "default": "zh",
+    "supported": ["zh", "en"]
+  }
+}

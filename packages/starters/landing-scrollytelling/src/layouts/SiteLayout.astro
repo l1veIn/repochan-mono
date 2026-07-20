@@ -1,0 +1,54 @@
+---
+import "../styles/global.css";
+import { site, buildCssVars, locales, type Locale } from "../lib/site";
+
+type Props = {
+  title: string;
+  description: string;
+  ogTitle: string;
+  ogDescription: string;
+  lang: Locale;
+};
+
+const { title, description, ogTitle, ogDescription, lang } = Astro.props;
+const cssVars = buildCssVars();
+const canonical = new URL(Astro.url.pathname, Astro.site ?? "https://repochan.local");
+---
+
+<!doctype html>
+<html lang={locales[lang].langAttr}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content={site.themeColor} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={ogTitle} />
+    <meta property="og:description" content={ogDescription} />
+    <meta property="og:image" content={site.ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512" href="/icon-512.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&family=Permanent+Marker&display=swap"
+      rel="stylesheet"
+    />
+    <style is:inline set:html={cssVars} />
+    <script is:inline>
+      // Apply the reduced-motion static layout before first paint so the
+      // page never flashes the animated choreography for users who opt out.
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        document.documentElement.classList.add("reduced");
+      }
+    </script>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

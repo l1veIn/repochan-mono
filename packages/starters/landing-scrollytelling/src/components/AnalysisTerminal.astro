@@ -1,0 +1,27 @@
+---
+import { assets } from "../lib/site";
+
+type Props = { content: any };
+const { content: c } = Astro.props;
+---
+
+<section class="stage" id="s-analysis" aria-label={c.ariaLabel}>
+  <div class="pin-wrap">
+    <p class="stage-tag" set:html={c.tag} />
+    <h2 class="kinetic" set:html={c.titleHtml} />
+    <div class="cols">
+      <div>
+        <p id="analysis-note" set:html={c.noteHtml} />
+      </div>
+      <div class="term" id="analysis-term">
+        <div class="term-bar"><i></i><i></i><i></i>{c.termBar}</div>
+        <div class="term-body">
+          {c.lines.map((line: any) => (
+            <div class:list={["tline", line.cls]} set:html={line.html} />
+          ))}
+        </div>
+      </div>
+    </div>
+    <img id="cameo-analysis" src={assets.cutoutPoint} alt={c.cameoAlt} width="1024" height="1024" loading="lazy" />
+  </div>
+</section>

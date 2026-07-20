@@ -1,0 +1,26 @@
+---
+import { assets } from "../lib/site";
+
+type Props = { content: any };
+const { content: c } = Astro.props;
+---
+
+<section class="stage" id="s-page" aria-label={c.ariaLabel}>
+  <div class="pin-wrap">
+    <p class="stage-tag" set:html={c.tag} />
+    <h2 class="kinetic" set:html={c.titleHtml} />
+    <div class="cols">
+      <div>
+        <p class="stage-sub" set:html={c.subHtml} />
+        <p id="page-echo" set:html={c.echoHtml} />
+      </div>
+      <div class="browser" id="meta-browser">
+        <div class="term-bar"><i></i><i></i><i></i>{c.browserBar}</div>
+        <div class="wire">
+          {c.cells.map((cell: string) => <div class="w" set:html={cell} />)}
+        </div>
+      </div>
+    </div>
+    <img id="cameo-page" src={assets.cutoutPoint} alt={c.cameoAlt} width="1024" height="1024" loading="lazy" />
+  </div>
+</section>

@@ -1,0 +1,38 @@
+---
+import { assets, assetPath } from "../lib/site";
+
+type Props = { content: any };
+const { content: c } = Astro.props;
+---
+
+<section class="stage" id="s-foundation" aria-label={c.ariaLabel}>
+  <div class="pin-wrap">
+    <p class="stage-tag" set:html={c.tag} />
+    <h2 class="kinetic" set:html={c.titleHtml} />
+    <div class="cols">
+      <div>
+        <p class="stage-sub" set:html={c.subHtml} />
+        <div class="sheet-meta">
+          {c.meta.map((m: string) => <span>{m}</span>)}
+        </div>
+        <div class="mini-stack">
+          {c.minis.map((m: any) => (
+            <img src={assetPath(m.src)} alt={m.alt} width="74" height="74" loading="lazy" />
+          ))}
+        </div>
+      </div>
+      <div class="sheet-frame">
+        <span class="stamp" id="foundation-stamp">{c.stamp}</span>
+        <img
+          class="sheet"
+          id="foundation-sheet"
+          src={assets.foundation}
+          alt={c.sheetAlt}
+          width="1024"
+          height="1024"
+          loading="lazy"
+        />
+      </div>
+    </div>
+  </div>
+</section>
