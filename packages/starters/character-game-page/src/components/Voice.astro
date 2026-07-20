@@ -1,0 +1,26 @@
+---
+import type { Content } from "../lib/content";
+
+type Props = { voice: Content["voice"] };
+const { voice } = Astro.props;
+---
+
+<section id="voice" aria-label={voice.kicker}>
+  <div class="voice-main">
+    <div class="voice-kicker" data-reveal>{voice.kicker}</div>
+    <div class="voice-line" id="voiceLine">
+      {voice.line.map((seg) =>
+        seg.accent ? <span class="accent">{seg.t}</span> : <>{seg.t}</>
+      )}
+    </div>
+    <p class="voice-sub" data-reveal>
+      {voice.sub.map((seg) => (seg.m === "b" ? <b>{seg.t}</b> : <>{seg.t}</>))}
+    </p>
+    <div class="voice-jp" data-reveal>{voice.jp}</div>
+  </div>
+  <div class="marquee" data-reveal aria-hidden="true">
+    <div class="marquee-track" id="marqueeTrack">
+      {voice.marquee.map((line) => <span><i>※</i>{line}</span>)}
+    </div>
+  </div>
+</section>

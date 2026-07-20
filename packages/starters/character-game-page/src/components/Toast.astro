@@ -1,0 +1,6 @@
+---
+type Props = { template: string };
+const { template } = Astro.props;
+---
+
+<div id="toast" role="status" aria-live="polite" data-template={template}></div>

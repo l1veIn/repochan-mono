@@ -1,0 +1,12 @@
+---
+import type { Content } from "../lib/content";
+
+type Props = { items: Content["rail"]; navLabel: string };
+const { items, navLabel } = Astro.props;
+---
+
+<nav class="rail" id="rail" aria-label={navLabel}>
+  {items.map((item) => (
+    <a href={`#${item.id}`} data-hover><span>{item.label}</span></a>
+  ))}
+</nav>

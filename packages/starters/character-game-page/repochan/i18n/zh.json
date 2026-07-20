@@ -1,0 +1,455 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "zh",
+  "meta": {
+    "title": "仓库酱 REPOCHAN — CHARACTER FILE",
+    "description": "仓库酱（RepoChan）的角色档案页：16 岁自由插画师、Sugar Riff 主理人。档案、设定索引、双面生活、世界日→夜、台词与图鉴——本页由 RepoChan 人设流水线产出。"
+  },
+  "content": {
+    "htmlLang": "zh-CN",
+    "ogLocale": "zh_CN",
+    "boot": {
+      "statusLoading": "LOADING CHARACTER DATA …",
+      "statusLoaded": "CHARACTER DATA LOADED — 倉庫ちゃん"
+    },
+    "a11y": {
+      "skipToContent": "跳到主要内容",
+      "mainNav": "章节导航",
+      "railNav": "页面位置导航",
+      "worldToggle": "切换 Sugar Riff 的白天与深夜",
+      "copyHex": "复制色值 {hex}"
+    },
+    "hud": {
+      "brandSub": "CHARACTER FILE No.001",
+      "tag": "SUGAR RIFF · CHARACTER FILE",
+      "nav": [
+        {
+          "id": "profile",
+          "num": "01",
+          "label": "档案"
+        },
+        {
+          "id": "index",
+          "num": "02",
+          "label": "设定"
+        },
+        {
+          "id": "world",
+          "num": "03",
+          "label": "世界"
+        },
+        {
+          "id": "voice",
+          "num": "04",
+          "label": "台词"
+        },
+        {
+          "id": "facts",
+          "num": "05",
+          "label": "图鉴"
+        }
+      ]
+    },
+    "rail": [
+      {
+        "id": "hero",
+        "label": "TOP"
+      },
+      {
+        "id": "profile",
+        "label": "PROFILE"
+      },
+      {
+        "id": "index",
+        "label": "INDEX"
+      },
+      {
+        "id": "world",
+        "label": "WORLD"
+      },
+      {
+        "id": "voice",
+        "label": "VOICE"
+      },
+      {
+        "id": "facts",
+        "label": "ARCHIVE"
+      }
+    ],
+    "hero": {
+      "kicker": "16-YEAR-OLD DIGITAL ARTIST · SUGAR RIFF 主理人",
+      "nameCn": "仓库酱",
+      "nameEn": "R E P O C H A N",
+      "catch": {
+        "quote": "「没感觉，画不了。」",
+        "text": "白天是坐在窗边的高一生，放学铃一响——就是圈粉几十万的自由插画师。"
+      },
+      "chips": [
+        "AGE 16",
+        "158 CM",
+        "06.13",
+        "异色瞳 · 美瞳",
+        "赶稿听 PUNK"
+      ],
+      "side": {
+        "text": "放課後のイラストレーター — ",
+        "em": "倉庫ちゃん"
+      },
+      "ghost": {
+        "stroke": "Repo",
+        "solid": "Chan"
+      },
+      "charAlt": "仓库酱 全身立绘：银发异色瞳、猫耳发夹、oversized 乐队卫衣、颈挂大耳机",
+      "scrollCue": "SCROLL"
+    },
+    "profile": {
+      "num": "01",
+      "title": "档案",
+      "subtitle": "PROFILE — CHARACTER DATA",
+      "stats": [
+        {
+          "k": "NAME / 笔名",
+          "v": "仓库酱",
+          "small": "RepoChan"
+        },
+        {
+          "k": "ROLE / 身份",
+          "v": "自由插画师",
+          "small": "高一生"
+        },
+        {
+          "k": "BASE / 据点",
+          "v": "Sugar Riff",
+          "small": "创意街区"
+        },
+        {
+          "k": "SKILL / 特技",
+          "v": "灵魂速写",
+          "small": "三个和弦识曲"
+        }
+      ],
+      "heading": {
+        "lead": "眼睛里永远闪着",
+        "em": "「找到了」",
+        "trail": "的光——",
+        "line2": "像刚发现秘密的侦探。"
+      },
+      "paragraphs": [
+        [
+          {
+            "t": "仓库酱是那种一开口就会把人拉进创作热情里的女孩。她带着侦探般的好奇心，喜欢从零碎线索里拼出一个"
+          },
+          {
+            "t": "「灵魂画像」",
+            "m": "b"
+          },
+          {
+            "t": "：一个乐队 demo 的前三个和弦、一个仓库 README 的语气、一个 VTuber 的口头禅——这些在别人眼里是零散信息，在她眼里已经是一个完整的人了。"
+          }
+        ],
+        [
+          {
+            "t": "在学习上她是个不折不扣的小天才——上课随便听听就能考前三，作业在学校写完，因为"
+          },
+          {
+            "t": "放学后的每一分钟都要留给 Sugar Riff",
+            "m": "i"
+          },
+          {
+            "t": "。同学们只知道她成绩好、话不多、戴着一只猫耳发夹有点怪；没人知道这个坐在窗边的女生，在网上是圈粉几十万的「仓库酱」。"
+          }
+        ],
+        [
+          {
+            "t": "但她也有 16 岁的本色毛病：灵感一来桌面就会变成战场；兴奋过头会把还没画完的稿子发给客户然后红着脸撤回"
+          },
+          {
+            "t": "「啊那个不算！！」",
+            "m": "b"
+          },
+          {
+            "t": "；方向感约等于零，从地铁站走到自己的工作室都能拐错三个路口。"
+          }
+        ]
+      ],
+      "quote": {
+        "text": "「画画和摇滚是一回事：都是把心里的东西砸出来。」",
+        "caption": "MOTTO — 仓库酱的座右铭"
+      },
+      "visual": {
+        "img": "/assets/crops/seated-main.webp",
+        "alt": "工作台前的仓库酱：手握数位笔、戴着大耳机",
+        "capLeft": "FIG.01 — AT THE DESK",
+        "capRight": "FOUNDATION SHEET"
+      },
+      "dual": {
+        "label": "DUAL LIFE — 双面生活",
+        "panels": [
+          {
+            "img": "/assets/scene-school.webp",
+            "alt": "白天的教室：穿校服的仓库酱坐在窗边",
+            "vs": "DAY · 昼",
+            "t1": "08:00 — 15:30 · SCHOOL",
+            "t2": "窗边的安静优等生",
+            "t3": "校服整齐、作业在学校写完、考前三不靠努力。没人知道她放学后去哪——「Sugar Riff 是什么？」她笑笑说，一个朋友开的。"
+          },
+          {
+            "img": "/assets/scene-day.webp",
+            "alt": "放学后的 Sugar Riff 工作室",
+            "vs": "AFTER SCHOOL · 放课后",
+            "t1": "16:00 — LATE · SUGAR RIFF",
+            "t2": "自由的「仓库酱」",
+            "t3": "校服外套往音箱上一扔，换上帽衫、戴上耳机、音量拧大——这个世界就只剩下笔和摇滚。毕竟秘密身份这件事，本身就够摇滚的。"
+          }
+        ]
+      }
+    },
+    "index": {
+      "num": "02",
+      "title": "设定索引",
+      "subtitle": "INDEX — EXPRESSIONS / PALETTE / MOTIFS",
+      "expressions": {
+        "label": "EXPRESSIONS — 表情差分",
+        "items": [
+          {
+            "img": "/assets/crops/expr-excited.png",
+            "alt": "仓库酱表情差分：兴奋",
+            "name": "兴奋",
+            "nameEn": "EXCITED",
+            "quote": "「发现灵魂了！」"
+          },
+          {
+            "img": "/assets/crops/expr-focused.png",
+            "alt": "仓库酱表情差分：专注",
+            "name": "专注",
+            "nameEn": "FOCUSED",
+            "quote": "「听摇滚中勿扰」"
+          },
+          {
+            "img": "/assets/crops/expr-deadpan.png",
+            "alt": "仓库酱表情差分：死机",
+            "name": "死机",
+            "nameEn": "DEADPAN",
+            "quote": "「没感觉，画不了。」"
+          }
+        ]
+      },
+      "states": {
+        "label": "STATES — 状态图鉴 3×3",
+        "items": [
+          {
+            "img": "/assets/webstates/tile-0.png",
+            "alt": "仓库酱网页状态贴纸 01"
+          },
+          {
+            "img": "/assets/webstates/tile-2.png",
+            "alt": "仓库酱网页状态贴纸 02"
+          },
+          {
+            "img": "/assets/webstates/tile-3.png",
+            "alt": "仓库酱网页状态贴纸 03"
+          },
+          {
+            "img": "/assets/webstates/tile-4.png",
+            "alt": "仓库酱网页状态贴纸 04"
+          },
+          {
+            "img": "/assets/webstates/tile-6.png",
+            "alt": "仓库酱网页状态贴纸 05"
+          },
+          {
+            "img": "/assets/webstates/tile-7.png",
+            "alt": "仓库酱网页状态贴纸 06"
+          },
+          {
+            "img": "/assets/stickers/tile-1.png",
+            "alt": "仓库酱表情贴纸 07"
+          },
+          {
+            "img": "/assets/stickers/tile-6.png",
+            "alt": "仓库酱表情贴纸 08"
+          },
+          {
+            "img": "/assets/sticker-8.png",
+            "alt": "仓库酱表情贴纸 09"
+          }
+        ]
+      },
+      "palette": {
+        "label": "PALETTE — 六色系统 · 点击复制 HEX",
+        "copyTag": "COPY",
+        "items": [
+          {
+            "hex": "#38BDF8",
+            "name": "Sky Blue · 主色"
+          },
+          {
+            "hex": "#F9A8D4",
+            "name": "Pink · 发尾樱粉"
+          },
+          {
+            "hex": "#A78BFA",
+            "name": "Violet · 右眼紫粉"
+          },
+          {
+            "hex": "#34D399",
+            "name": "Mint · 发尾薄荷青"
+          },
+          {
+            "hex": "#FACC15",
+            "name": "Amber · 冰可乐气泡"
+          },
+          {
+            "hex": "#111827",
+            "name": "Ink · 卫衣与夜"
+          }
+        ]
+      },
+      "motifs": {
+        "label": "MOTIFS — 关键母题",
+        "items": [
+          {
+            "no": "01",
+            "img": "/assets/crops/motif-clip-alpha.png",
+            "alt": "猫耳发夹",
+            "name": "猫耳发夹",
+            "nameEn": "CAT-EAR HAIR CLIP",
+            "desc": "初中时在杂货店看到，单纯觉得可爱就买了，一戴就是好几年。她的视觉签名——「没有为什么，就是喜欢」。"
+          },
+          {
+            "no": "02",
+            "img": "/assets/crops/motif-earring-alpha.png",
+            "alt": "星形光标耳坠",
+            "name": "星形光标耳坠",
+            "nameEn": "STAR CURSOR EARRING",
+            "desc": "14 岁接到第一个开源项目委托后，自己买给自己的纪念品，左耳一只。「第一次赚钱了要买个酷的」。"
+          },
+          {
+            "no": "03",
+            "img": "/assets/crops/motif-pendant-alpha.png",
+            "alt": "发光画笔吊坠",
+            "name": "发光画笔吊坠",
+            "nameEn": "STYLUS PENDANT",
+            "desc": "粉丝送的迷你 stylus 吊坠。画不出来的时候，她会无意识地握着它——艺术家的幸运符。"
+          },
+          {
+            "no": "04",
+            "img": "/assets/crops/motif-headphones-alpha.png",
+            "alt": "大耳机",
+            "name": "大耳机",
+            "nameEn": "OVER-EAR HEADPHONES",
+            "desc": "她的结界。播放列表里有几百首歌，每一个委托都有专属的 BGM 歌单。赶 deadline 时，切 punk。"
+          }
+        ]
+      }
+    },
+    "world": {
+      "num": "03",
+      "title": "世界",
+      "subtitle": "WORLD — SUGAR RIFF, DAY & NIGHT",
+      "intro": "创意街区转角处的一间小工作室，门口贴着荧光粉马克笔手写的「Sugar Riff」贴纸——字迹有点歪，但她拒绝重写。滚动页面，从放学后的午后，一直待到 deadline 的深夜。",
+      "labelDay": "AFTER SCHOOL — 放学后的 Sugar Riff",
+      "labelNight": "DEADLINE NIGHT — Sugar Riff 的工作夜",
+      "imgDayAlt": "Sugar Riff 的午后：阳光斜洒工作台",
+      "imgNightAlt": "Sugar Riff 的深夜：只剩工作台上方一盏暖黄的灯",
+      "capDay": {
+        "kicker": "SCENE 01 — 15:32",
+        "text": "午后阳光斜洒工作台，一手数位笔、一手咬了一半的三明治。校服外套搭在角落的吉他音箱上，窗外有人遛狗、远处有电车经过。安静、温暖、属于她一个人的时间。"
+      },
+      "capNight": {
+        "kicker": "SCENE 02 — 01:47",
+        "text": "只有工作台上方一盏暖黄的灯亮着。桌上多了几罐空可乐，黑胶唱机放着旧唱片，猫耳发夹歪了一点——但她没注意到，因为「这段 solo 太炸了，让我再画十分钟」。"
+      },
+      "toggleDay": "DAY",
+      "toggleNight": "NIGHT"
+    },
+    "voice": {
+      "kicker": "04 · VOICE — 她的台词",
+      "line": [
+        {
+          "t": "「没感觉，"
+        },
+        {
+          "t": "画不了。",
+          "accent": true
+        },
+        {
+          "t": "」"
+        }
+      ],
+      "sub": [
+        {
+          "t": "接委托有一条铁律：没感觉的不接。再高的报价，看了简介觉得不对路就直接拒——"
+        },
+        {
+          "t": "「画没感觉的东西，线条会死掉。」",
+          "m": "b"
+        }
+      ],
+      "jp": "ノット・フィーリング、ノット・ドローイング",
+      "marquee": [
+        "撤回！撤回啊啊啊！",
+        "这个灵魂我收到了",
+        "别催了在画了",
+        "听摇滚中勿扰",
+        "发现灵魂了！",
+        "你看这个人——它刚才跟我说话了"
+      ]
+    },
+    "facts": {
+      "num": "05",
+      "title": "图鉴",
+      "subtitle": "ARCHIVE — FUN FACTS COLLECTION",
+      "cards": [
+        {
+          "no": "FACT No.01",
+          "title": "异色瞳，其实是美瞳",
+          "desc": "抽屉里有一整盒不同颜色的美瞳，蓝+紫粉是日常「招牌配色」——「但万圣节会戴全黑的」。"
+        },
+        {
+          "no": "FACT No.02",
+          "title": "数位笔都有摇滚乐手的名字",
+          "desc": "最常用的那支叫 Freddie，勾线用的叫 Kurt。每支笔都有专属的乐队和使用场景。"
+        },
+        {
+          "no": "FACT No.03",
+          "title": "门口招牌拒绝重写",
+          "desc": "Sugar Riff 门口的荧光粉手写字迹有点歪，但她拒绝重写——「第一次写的最有灵魂」。"
+        },
+        {
+          "no": "FACT No.04",
+          "title": "切错歌，整张画会变凶",
+          "desc": "画不同风格切不同乐队已成肌肉记忆。上次给温柔系轻小说画封面不小心切到 Metallica——「整个人都画凶了」。"
+        },
+        {
+          "no": "FACT No.05",
+          "title": "做迷你 zine 分享幕后脑洞",
+          "desc": "把近期喜欢的委托和幕后脑洞做成迷你 zine。冰箱永远囤着冰可乐——「糖分和气泡是赶稿的双引擎」。"
+        }
+      ],
+      "special": {
+        "no": "SPECIAL SKILL",
+        "title": "「灵魂速写」与「BGM 匹配」",
+        "desc": "能在任意一首歌的前三个和弦内说出歌名和乐队；能根据一个人的社交主页，三分钟内画出角色印象速写。她自己称之为——「跟它聊天的能力」。",
+        "img": "/assets/crops/chibi-full.png",
+        "alt": "Q 版仓库酱"
+      }
+    },
+    "footer": {
+      "tagline": "sugar 是甜的，riff 是炸的。跟我一样。",
+      "noteLines": [
+        "CHARACTER FILE No.001 — REPOCHAN PERSONA SHOWCASE",
+        "ART: FOUNDATION SHEET + ORIGINAL SCENES",
+        "MOTION: GSAP + SCROLLTRIGGER + LENIS"
+      ],
+      "credit": {
+        "text": "本页由 RepoChan 人设流水线产出",
+        "linkLabel": "GitHub · repochan",
+        "url": "https://github.com/l1veIn/repochan-mono"
+      }
+    },
+    "toast": {
+      "copied": "已复制 {hex} — {name}"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+---
+import type { Content } from "../lib/content";
+
+type Props = { footer: Content["footer"]; palette: Content["index"]["palette"]["items"] };
+const { footer, palette } = Astro.props;
+---
+
+<footer>
+  <div>
+    <div class="f-logo">REPO<em>CHAN</em></div>
+    <p class="f-tagline">{footer.tagline}</p>
+    <p class="f-credit">
+      {footer.credit.text} ·
+      <a href={footer.credit.url} target="_blank" rel="noopener noreferrer" data-hover>{footer.credit.linkLabel}</a>
+    </p>
+  </div>
+  <div class="f-note">
+    {footer.noteLines.map((line) => <>{line}<br /></>)}
+    <div class="f-dots" aria-hidden="true">
+      {palette.map((c, i) => (
+        <i style={`background:${c.hex}${i === palette.length - 1 ? ";border:1px solid var(--line)" : ""}`}></i>
+      ))}
+    </div>
+  </div>
+</footer>

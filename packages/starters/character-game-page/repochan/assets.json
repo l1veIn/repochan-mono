@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "repochan.starter-assets.v1",
+  "assets": {
+    "hero-cutout": {
+      "kind": "scalar",
+      "src": "/assets/hero-cutout.webp",
+      "status": "source",
+      "orderId": "ord-foundation-001"
+    },
+    "scene-day": {
+      "kind": "scalar",
+      "src": "/assets/scene-day.webp",
+      "status": "source",
+      "orderId": "ord-foundation-001"
+    },
+    "scene-night": {
+      "kind": "scalar",
+      "src": "/assets/scene-night.webp",
+      "status": "source",
+      "orderId": "ord-foundation-001"
+    },
+    "scene-school": {
+      "kind": "scalar",
+      "src": "/assets/scene-school.webp",
+      "status": "source",
+      "orderId": "ord-foundation-001"
+    },
+    "pattern": {
+      "kind": "scalar",
+      "src": "/assets/pattern.webp",
+      "status": "source",
+      "orderId": "ord-pattern-001"
+    },
+    "icon": {
+      "kind": "scalar",
+      "src": "/favicon.ico",
+      "status": "source",
+      "orderId": "ord-icon-001"
+    },
+    "seated-main": {
+      "kind": "scalar",
+      "src": "/assets/crops/seated-main.webp",
+      "status": "source",
+      "orderId": "ord-foundation-001"
+    },
+    "expr-excited": {
+      "kind": "scalar",
+      "src": "/assets/crops/expr-excited.png",
+      "status": "source",
+      "orderId": "ord-foundation-001"
+    },
+    "expr-focused": {
+      "kind": "scalar",
+      "src": "/assets/crops/expr-focused.png",
+      "status": "source",
+      "orderId": "ord-foundation-001"
+    },
+    "expr-deadpan": {
+      "kind": "scalar",
+      "src": "/assets/crops/expr-deadpan.png",
+      "status": "source",
+      "orderId": "ord-foundation-001"
+    },
+    "motif-clip": {
+      "kind": "scalar",
+      "src": "/assets/crops/motif-clip-alpha.png",
+      "status": "source",
+      "orderId": "ord-foundation-001"
+    },
+    "motif-earring": {
+      "kind": "scalar",
+      "src": "/assets/crops/motif-earring-alpha.png",
+      "status": "source",
+      "orderId": "ord-foundation-001"
+    },
+    "motif-pendant": {
+      "kind": "scalar",
+      "src": "/assets/crops/motif-pendant-alpha.png",
+      "status": "source",
+      "orderId": "ord-foundation-001"
+    },
+    "motif-headphones": {
+      "kind": "scalar",
+      "src": "/assets/crops/motif-headphones-alpha.png",
+      "status": "source",
+      "orderId": "ord-foundation-001"
+    },
+    "chibi": {
+      "kind": "scalar",
+      "src": "/assets/crops/chibi-full.png",
+      "status": "source",
+      "orderId": "ord-sticker-001"
+    },
+    "webstates": {
+      "kind": "bundle",
+      "status": "source",
+      "orderId": "ord-webstates-001",
+      "items": {
+        "welcome": { "src": "/assets/webstates/tile-5.png", "status": "source" },
+        "searching": { "src": "/assets/webstates/tile-6.png", "status": "source" },
+        "loading": { "src": "/assets/webstates/tile-0.png", "status": "source" },
+        "empty": { "src": "/assets/webstates/tile-1.png", "status": "source" },
+        "error": { "src": "/assets/webstates/tile-4.png", "status": "source" },
+        "success": { "src": "/assets/webstates/tile-2.png", "status": "source" },
+        "not-found": { "src": "/assets/webstates/tile-3.png", "status": "source" },
+        "cta": { "src": "/assets/webstates/tile-7.png", "status": "source" },
+        "cozy": { "src": "/assets/webstates/tile-8.png", "status": "source" }
+      }
+    },
+    "stickers": {
+      "kind": "bundle",
+      "status": "source",
+      "orderId": "ord-sticker-001",
+      "items": {
+        "welcome": { "src": "/assets/stickers/tile-0.png", "status": "source" },
+        "searching": { "src": "/assets/stickers/tile-1.png", "status": "source" },
+        "loading": { "src": "/assets/sticker-2.png", "status": "source" },
+        "empty": { "src": "/assets/stickers/tile-3.png", "status": "source" },
+        "error": { "src": "/assets/stickers/tile-4.png", "status": "source" },
+        "success": { "src": "/assets/sticker-5.png", "status": "source" },
+        "not-found": { "src": "/assets/stickers/tile-6.png", "status": "source" },
+        "cta": { "src": "/assets/stickers/tile-7.png", "status": "source" },
+        "cozy": { "src": "/assets/sticker-8.png", "status": "source" }
+      }
+    }
+  }
+}

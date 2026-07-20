@@ -1,0 +1,23 @@
+---
+import type { Content } from "../lib/content";
+import { slotSrc } from "../lib/site";
+
+type Props = { hud: Content["hud"]; navLabel: string };
+const { hud, navLabel } = Astro.props;
+---
+
+<header class="hud" id="hud">
+  <a class="hud-brand" href="#hero" data-hover>
+    <img src={slotSrc.icon192} alt="RepoChan icon" width="30" height="30" />
+    <span>
+      <span class="b1">REPO<em>CHAN</em></span>
+      <span class="b2" style="display:block">{hud.brandSub}</span>
+    </span>
+  </a>
+  <nav class="hud-nav" aria-label={navLabel}>
+    {hud.nav.map((item) => (
+      <a href={`#${item.id}`} data-hover><i>{item.num}</i>{item.label}</a>
+    ))}
+  </nav>
+  <span class="hud-tag">{hud.tag}</span>
+</header>
