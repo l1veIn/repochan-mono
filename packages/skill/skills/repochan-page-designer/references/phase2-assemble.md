@@ -20,6 +20,38 @@ repochan starter asset-apply <slot> --order <order-id> [--result-version <versio
 
 已经是最终格式的仓库截图或真实 proof 走 `starter asset-import <slot> --file <path>`：CLI 原子复制到声明的 scalar output，并在 `assets.json` 记录 local-file SHA-256 provenance。Bundle/publications 仍必须走 `asset-apply`。
 
+## Extract QA 失败回流
+
+`asset-apply` 因 extract QA 失败时以非零退出；带 `--json` 运行时 stdout 输出结构化信封（人类可读模式下只打印摘要，排查时务必带 `--json` 重跑）：
+
+```json
+{
+  "ok": false,
+  "error": "ExtractError",
+  "command": "starter asset-apply",
+  "slot": "<slot>",
+  "orderId": "<order-id>",
+  "resultVersion": "<version-id>",
+  "defects": [{ "code": "empty_cell", "key": "empty", "index": 3, "detail": "..." }],
+  "strategyUsed": "equal-cell",
+  "pipeline": "v1",
+  "matteColor": "#00ff00",
+  "matteColorSource": "auto-sampled",
+  "qa": null
+}
+```
+
+处理流程：解析信封 → 按下表决定重生动作 → 要求 Painter 重生新版本（Painter 侧的 prompt 改法见 repochan-painter 的 `references/extract-qa-retry.md`）→ 对新 version 重跑 `asset-apply`。不要手切 PNG、不要手工改 `public/` 或 `assets.json` 来绕过失败。
+
+| defect code | 回流动作 |
+|------|------|
+| `edge_touch` / `sheet_edge_touch` / `empty_cell` / `frame_count_mismatch` | 阻断 apply；要求 Painter 加强 cell margin / 整表留白，并把 layout-guide 作为 gen reference（`sheet_edge_touch` 与 `edge_touch` 同一指引）；同一订单连续 2 次失败建议拆单（按 row 或 single-cell 分别开订单） |
+| `matte_subject_collision` / `chroma_residue` | 报告信封中的 `matteColor` 与 `metric`，要求 Painter 换 matte hex 或加强 flat matte prompt |
+| `foreground_ratio_low` / `foreground_ratio_high` | 报告 metric；要求 Painter 检查内容过稀或 matte 污染 |
+| `ml_unavailable` / `invalid_options` | 修 ML 环境或 starter 的 extract-grid args；不要盲目重生 |
+
+再次强调：只有调试 image-edit 本身时才直接调用 `repochan image edit`（见上「CLI 边界」），正常回流永远走 Painter 重生 + `asset-apply` 重跑。
+
 ## 验收顺序
 
 1. `repochan starter validate --output-dir .repochan/web-starter --localized`

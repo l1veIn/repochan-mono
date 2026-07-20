@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readFile, rm, symlink as fsSymlink, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, readFile, rm, symlink as fsSymlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -12,14 +12,33 @@ import {
   runStarterValidate,
 } from "./starter.js";
 import { getDefaultStarterId, getStarter, readStarterInstance } from "../lib/starter-loader.js";
-import { chromaKeyImage, compressImage, extractMatteGrid } from "@repochan/image-edit";
+import { ApplyFailurePrintedError } from "../lib/output.js";
+import { chromaKeyImage, compressImage, extractAssets, ExtractError, type ExtractQaReport } from "@repochan/image-edit";
 
 vi.mock("@repochan/image-edit", async (importOriginal) => ({
   ...await importOriginal<typeof import("@repochan/image-edit")>(),
-  extractMatteGrid: vi.fn(),
+  extractAssets: vi.fn(),
   compressImage: vi.fn(),
   chromaKeyImage: vi.fn(),
 }));
+
+function gridQa(strategyUsed: ExtractQaReport["strategyUsed"] = "chroma-grid", pipeline: "v1" | "v2" = "v2"): ExtractQaReport {
+  return {
+    ok: true,
+    defects: [],
+    matte: {
+      matte: [0, 255, 0],
+      source: "auto-sampled",
+      score: 0,
+      minSubjectDistance: 300,
+      clearsEraseRadius: true,
+      eraseRadius: 28,
+      candidateScores: [],
+    },
+    strategyUsed,
+    pipeline,
+  };
+}
 
 const tempDirs: string[] = [];
 
@@ -333,7 +352,7 @@ describe("starter v1 commands", () => {
   it("applies a named grid bundle and records per-item provenance and QA", async () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const { root, siteDir, assetsPath } = await gridBundleFixture();
-    vi.mocked(extractMatteGrid).mockImplementation(async (_source, outDir, options) => {
+    vi.mocked(extractAssets).mockImplementation(async (_source, outDir, options) => {
       await mkdir(outDir, { recursive: true });
       const items = Object.entries(options.mapping as Record<string, number>).map(([key, index]) => ({
         key, index, file: `${key}.png`, path: path.join(outDir, `${key}.png`),
@@ -341,7 +360,7 @@ describe("starter v1 commands", () => {
         qa: { foregroundPixels: 64, foregroundRatio: 0.64, edgeTouchPixels: 0, edgeTouchRatio: 0, alphaThreshold: 16 },
       }));
       for (const item of items) await writeFile(item.path, item.key);
-      return { sourceFile: "source.png", rows: 1, cols: 2, matteColor: [0, 255, 0], matteColorSource: "auto-sampled", items };
+      return { sourceFile: "source.png", rows: 1, cols: 2, matteColor: [0, 255, 0], matteColorSource: "auto-sampled", items, qa: gridQa() };
     });
 
     await runStarterAssetApply(root, "web-states", { outputDir: siteDir, order: "ord-grid-001", json: true });
@@ -354,7 +373,7 @@ describe("starter v1 commands", () => {
     });
   });
 
-  it("forwards extract-grid args.format/quality to extractMatteGrid and lands webp outputs", async () => {
+  it("forwards extract-grid args.format/quality to extractAssets and lands webp outputs", async () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const { root, siteDir, assetsPath } = await gridBundleFixture();
     // Rewrite the bundle to declare webp output.
@@ -369,7 +388,7 @@ describe("starter v1 commands", () => {
     await writeFile(manifestPath, JSON.stringify(manifest));
 
     const seenOptions: Array<{ format?: string; quality?: number }> = [];
-    vi.mocked(extractMatteGrid).mockImplementation(async (_source, outDir, options) => {
+    vi.mocked(extractAssets).mockImplementation(async (_source, outDir, options) => {
       seenOptions.push({ format: options.format, quality: options.quality });
       await mkdir(outDir, { recursive: true });
       const ext = options.format === "webp" ? "webp" : "png";
@@ -379,7 +398,7 @@ describe("starter v1 commands", () => {
         qa: { foregroundPixels: 64, foregroundRatio: 0.64, edgeTouchPixels: 0, edgeTouchRatio: 0, alphaThreshold: 16 },
       }));
       for (const item of items) await writeFile(item.path, item.key);
-      return { sourceFile: "source.png", rows: 1, cols: 2, matteColor: [0, 255, 0], matteColorSource: "auto-sampled", items };
+      return { sourceFile: "source.png", rows: 1, cols: 2, matteColor: [0, 255, 0], matteColorSource: "auto-sampled", items, qa: gridQa() };
     });
 
     await runStarterAssetApply(root, "web-states", { outputDir: siteDir, order: "ord-grid-001", json: true });
@@ -440,7 +459,7 @@ describe("starter v1 commands", () => {
     await mkdir(path.dirname(welcome), { recursive: true });
     await writeFile(welcome, "old");
     const assetsBefore = await readFile(assetsPath, "utf8");
-    vi.mocked(extractMatteGrid).mockRejectedValueOnce(new Error("alpha QA failed"));
+    vi.mocked(extractAssets).mockRejectedValueOnce(new Error("alpha QA failed"));
 
     await expect(runStarterAssetApply(root, "web-states", {
       outputDir: siteDir, order: "ord-grid-001", overwrite: true, json: true,
@@ -497,7 +516,148 @@ describe("starter v1 commands", () => {
     await expect(runStarterAssetApply(root, "web-states", {
       outputDir: siteDir, order: "ord-grid-001", overwrite: true, json: true,
     })).rejects.toThrow(/publications do not match.*grid\.cell_keys/);
-    expect(extractMatteGrid).not.toHaveBeenCalled();
+    expect(extractAssets).not.toHaveBeenCalled();
     expect(await readFile(assetsPath)).toEqual(assetsBefore);
+  });
+
+  it("prints the apply failure envelope on ExtractError under --json and rethrows the sentinel", async () => {
+    const { root, siteDir, assetsPath } = await gridBundleFixture();
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const assetsBefore = await readFile(assetsPath, "utf8");
+    const failure = new ExtractError(
+      "extractAssets: chroma-grid QA failed:\n- empty (cell 1): empty foreground",
+      [{ code: "empty_cell", key: "empty", index: 1, detail: "empty foreground" }],
+      gridQa(),
+    );
+    vi.mocked(extractAssets).mockRejectedValueOnce(failure);
+
+    await expect(runStarterAssetApply(root, "web-states", {
+      outputDir: siteDir, order: "ord-grid-001", overwrite: true, json: true,
+    })).rejects.toBeInstanceOf(ApplyFailurePrintedError);
+
+    expect(log).toHaveBeenCalledTimes(1);
+    const envelope = JSON.parse(String(log.mock.calls[0]?.[0]));
+    expect(envelope).toMatchObject({
+      ok: false,
+      error: "ExtractError",
+      command: "starter asset-apply",
+      slot: "web-states",
+      orderId: "ord-grid-001",
+      resultVersion: "v1",
+      strategyUsed: "chroma-grid",
+      pipeline: "v2",
+      matteColor: "#00ff00",
+      matteColorSource: "auto-sampled",
+    });
+    expect(envelope.defects).toEqual([{ code: "empty_cell", key: "empty", index: 1, detail: "empty foreground" }]);
+    expect(envelope.qa.strategyUsed).toBe("chroma-grid");
+    // temp staging root is cleaned and no state changed
+    const leftovers = await readdir(siteDir);
+    expect(leftovers.filter((name) => name.startsWith(".repochan-starter-"))).toEqual([]);
+    expect(await readFile(assetsPath, "utf8")).toBe(assetsBefore);
+  });
+
+  it("recovers a wrapped ExtractError through the cause chain for the envelope", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const { root, siteDir } = await gridBundleFixture();
+    const failure = new ExtractError("extractAssets: QA failed", [
+      { code: "sheet_edge_touch", key: "cta", index: 7, detail: "touches the sheet edge", metric: 0.12 },
+    ], gridQa("chroma-grid", "v2"));
+    vi.mocked(extractAssets).mockRejectedValueOnce(Object.assign(new Error("stageGridBundle failed"), { cause: failure }));
+
+    await expect(runStarterAssetApply(root, "web-states", {
+      outputDir: siteDir, order: "ord-grid-001", overwrite: true, json: true,
+    })).rejects.toBeInstanceOf(ApplyFailurePrintedError);
+    const envelope = JSON.parse(String(log.mock.calls.at(-1)?.[0]));
+    expect(envelope.slot).toBe("web-states");
+    expect(envelope.defects[0]).toMatchObject({ code: "sheet_edge_touch", key: "cta", metric: 0.12 });
+    expect(envelope.strategyUsed).toBe("chroma-grid");
+    expect(envelope.pipeline).toBe("v2");
+  });
+
+  it("rethrows ExtractError unchanged without an envelope when --json is off", async () => {
+    const { root, siteDir, assetsPath } = await gridBundleFixture();
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const assetsBefore = await readFile(assetsPath, "utf8");
+    const failure = new ExtractError("extractAssets: QA failed", [
+      { code: "empty_cell", key: "empty", index: 1, detail: "empty foreground" },
+    ]);
+    vi.mocked(extractAssets).mockRejectedValueOnce(failure);
+
+    await expect(runStarterAssetApply(root, "web-states", {
+      outputDir: siteDir, order: "ord-grid-001", overwrite: true,
+    })).rejects.toBe(failure);
+    expect(log).not.toHaveBeenCalled();
+    const leftovers = await readdir(siteDir);
+    expect(leftovers.filter((name) => name.startsWith(".repochan-starter-"))).toEqual([]);
+    expect(await readFile(assetsPath, "utf8")).toBe(assetsBefore);
+  });
+
+  it("rethrows non-ExtractError failures without an envelope under --json", async () => {
+    const { root, siteDir } = await gridBundleFixture();
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    vi.mocked(extractAssets).mockRejectedValueOnce(new Error("image exceeds max dimension 8192"));
+
+    await expect(runStarterAssetApply(root, "web-states", {
+      outputDir: siteDir, order: "ord-grid-001", overwrite: true, json: true,
+    })).rejects.toThrow(/image exceeds max dimension 8192/);
+    expect(log).not.toHaveBeenCalled();
+  });
+
+  it("accepts the canary chroma-grid starter and forwards its extract-grid args to extractAssets", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const root = await projectFixture();
+    const siteDir = path.join(root, "site");
+    await runStarterPull(root, { outputDir: siteDir, json: true });
+    const canary = JSON.parse(await readFile(new URL("../../test/fixtures/canary-chroma-grid.json", import.meta.url), "utf8"));
+    await writeFile(path.join(siteDir, "repochan", "starter.json"), JSON.stringify(canary));
+    const publications = canary.assets[0].publications as Array<{ key: string; cell: number; output: string }>;
+    const sourceItems = Object.fromEntries(publications.map((publication) => [
+      publication.key,
+      { src: `/${publication.output.replace(/^public\//, "")}`, status: "source" },
+    ]));
+    await writeFile(path.join(siteDir, "repochan", "assets.json"), JSON.stringify({
+      schemaVersion: "repochan.starter-assets.v1",
+      assets: { "web-states": { kind: "bundle", status: "source", items: sourceItems } },
+    }));
+    const versionDir = path.join(root, ".repochan", "orders", "ord-canary-001", "versions", "v1");
+    await mkdir(versionDir, { recursive: true });
+    await writeFile(path.join(root, ".repochan", "orders", "ord-canary-001", "order.json"), JSON.stringify(canonicalOrder("ord-canary-001")));
+    await writeFile(path.join(versionDir, "source.png"), "source");
+    await writeFile(path.join(versionDir, "meta.json"), JSON.stringify({
+      versionId: "v1", createdAt: "2026-01-01T00:00:00.000Z", files: ["source.png"],
+    }));
+
+    const seenOptions: Array<Record<string, unknown>> = [];
+    vi.mocked(extractAssets).mockImplementation(async (_source, outDir, options) => {
+      seenOptions.push(options as unknown as Record<string, unknown>);
+      await mkdir(outDir, { recursive: true });
+      const items = Object.entries(options.mapping as Record<string, number>).map(([key, index]) => ({
+        key, index, file: `${key}.webp`, path: path.join(outDir, `${key}.webp`),
+        geometry: { cell: { row: 0, col: index, x: index * 10, y: 0, w: 10, h: 10 }, foreground: { x: 1, y: 1, w: 8, h: 8 }, normalized: { x: 2, y: 2, w: 60, h: 60, canvasWidth: 64, canvasHeight: 64, padding: 0 } },
+        qa: { foregroundPixels: 64, foregroundRatio: 0.64, edgeTouchPixels: 0, edgeTouchRatio: 0, alphaThreshold: 16 },
+      }));
+      for (const item of items) await writeFile(item.path, item.key);
+      return {
+        sourceFile: "source.png", rows: 3, cols: 3, matteColor: [0, 255, 0], matteColorSource: "auto-subject-aware",
+        items, qa: gridQa("chroma-grid", "v2"),
+      };
+    });
+
+    await runStarterAssetApply(root, "web-states", { outputDir: siteDir, order: "ord-canary-001", json: true });
+    expect(seenOptions).toHaveLength(1);
+    expect(seenOptions[0]).toMatchObject({
+      strategy: "chroma-grid",
+      rows: 3,
+      cols: 3,
+      chroma: { pipeline: "v2", matteColor: "auto", matteSelect: "subject-aware" },
+      geometry: { mode: "centroid-components" },
+      normalize: { canvasSize: 256, padding: 16 },
+      qa: { minForegroundRatio: 0.005, maxForegroundRatio: 0.8, maxSheetEdgeTouchRatio: 0 },
+      format: "webp",
+      quality: 80,
+    });
+    expect(await readFile(path.join(siteDir, "public/assets/states/welcome.webp"), "utf8")).toBe("welcome");
+    expect(await readFile(path.join(siteDir, "public/assets/states/cozy.webp"), "utf8")).toBe("cozy");
   });
 });

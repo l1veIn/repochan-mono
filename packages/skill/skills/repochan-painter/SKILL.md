@@ -215,6 +215,7 @@ EOF
 | [prompt-assembly.md](references/prompt-assembly.md) | 填 template / 无 template 组装 |
 | [prompt-methodology.md](references/prompt-methodology.md) | 写任何 prompt 前的方法论 |
 | [asset-type-guides.md](references/asset-type-guides.md) | 按 assetType 出图前 |
+| [extract-qa-retry.md](references/extract-qa-retry.md) | page-designer 回流 extract QA 缺陷时 |
 | [output-and-save.md](references/output-and-save.md) | 规格映射、强制 gen、保存 |
 | [safety-and-mindset.md](references/safety-and-mindset.md) | 安全与约稿心态 |
 | [examples.md](references/examples.md) | 对照完整执行路径 |

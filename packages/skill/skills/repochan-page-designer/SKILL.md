@@ -67,6 +67,8 @@ repochan starter asset-apply <slot> --order <delivered-order-id> --overwrite
 
 已经是最终格式的真实截图等本地资产，可用 `repochan starter asset-import <slot> --file <path> --overwrite`。Bundle 的切格、chroma、alpha QA、normalize 和具名 PNG 投影必须由 `asset-apply` 原子完成。
 
+`asset-apply` 因 extract QA 失败时，按 `--json` 信封中的 `defects` 决定回流动作（加强留白/换 matte/layout-guide reference/拆单），要求 Painter 重生新版本后重跑 apply；不要自己手切 PNG 或手改 `public/`。失败映射表见 [phase2-assemble.md](references/phase2-assemble.md)。
+
 完整边界见 [phase2-assemble.md](references/phase2-assemble.md)。
 
 ### 5. 本地化验收

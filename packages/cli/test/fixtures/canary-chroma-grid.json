@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "repochan.starter.v1",
+  "id": "canary-chroma-grid",
+  "name": "Canary Chroma Grid",
+  "description": "PR5 canary: extract-grid with explicit chroma-grid + chroma v2 + subject-aware matte (design doc 'Starter extract-grid args 示例（canary）'). Test fixture only — official starters keep equal-cell + v1 until PR7.",
+  "tags": ["canary", "web-states"],
+  "previews": {
+    "desktop": "repochan/previews/desktop.png",
+    "mobile": "repochan/previews/mobile.png"
+  },
+  "config": {
+    "site": "repochan/site.json",
+    "assets": "repochan/assets.json",
+    "i18nDir": "repochan/i18n"
+  },
+  "content": {
+    "defaultLocale": "en",
+    "supportedLocales": ["en"]
+  },
+  "assets": [
+    {
+      "kind": "bundle",
+      "slot": "web-states",
+      "required": true,
+      "publications": [
+        { "key": "welcome", "cell": 0, "output": "public/assets/states/welcome.webp" },
+        { "key": "searching", "cell": 1, "output": "public/assets/states/searching.webp" },
+        { "key": "loading", "cell": 2, "output": "public/assets/states/loading.webp" },
+        { "key": "empty", "cell": 3, "output": "public/assets/states/empty.webp" },
+        { "key": "error", "cell": 4, "output": "public/assets/states/error.webp" },
+        { "key": "success", "cell": 5, "output": "public/assets/states/success.webp" },
+        { "key": "not-found", "cell": 6, "output": "public/assets/states/not-found.webp" },
+        { "key": "cta", "cell": 7, "output": "public/assets/states/cta.webp" },
+        { "key": "cozy", "cell": 8, "output": "public/assets/states/cozy.webp" }
+      ],
+      "postprocess": [
+        {
+          "op": "extract-grid",
+          "out": ".repochan-grid/web-states",
+          "args": {
+            "rows": 3,
+            "cols": 3,
+            "strategy": "chroma-grid",
+            "chroma": {
+              "pipeline": "v2",
+              "matteColor": "auto",
+              "matteSelect": "subject-aware"
+            },
+            "geometry": { "mode": "centroid-components" },
+            "normalize": { "canvasSize": 256, "padding": 16 },
+            "qa": {
+              "minForegroundRatio": 0.005,
+              "maxForegroundRatio": 0.8,
+              "maxSheetEdgeTouchRatio": 0
+            },
+            "format": "webp",
+            "quality": 80
+          }
+        }
+      ]
+    }
+  ]
+}

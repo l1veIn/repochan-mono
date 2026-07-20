@@ -27,10 +27,15 @@ Pattern 是**直接消费型资产**。每个 `official/pattern-tile` order 只�
 
 贴纸表是**网格生产资产**。它既可承载表情，也可为网页批量生产 404、empty、loading、success、CTA cameo 等语义状态。切分质量取决于严格网格、uniform matte、间距和轮廓；你（Painter）只负责原图，不自己切格，也不承诺当前 CLI 已能自动投影多 slot。
 
+**分工边界**：切分、QA、具名投影归 page-designer 的 `repochan starter asset-apply`；Painter **不**对 order 产物运行 `image edit extract*` 作为交付预检，也不把派生 alpha/切片写回 order——交付物始终是原图。asset-apply 的 QA 失败会按缺陷码回流重生请求，改法速查见 [extract-qa-retry.md](extract-qa-retry.md)。
+
 **贴纸表必须**：
 - **精简每个 cell 的内容**：每个表情 cell 只保留角色头像/半身 + 表情 + 简单配色。**不要**在 cell 内注入背景配饰、文字标签、复杂场景、额外道具。`{{key_motifs}}` 和 `{{color_palette}}` 只用于角色本身的配色呼应，不要变成 cell 内的装饰物。
 - **保证 uniform matte**：严格使用模板/订单指定的单一抠图底色，整张一致、平面、无渐变、纹理、投影或环境光污染；未指定时遵守模板默认，不擅自换色。
+- **matte 与主体色相分离**：matte 必须是非白纯色，且远离角色任何部位的颜色。按主体色相选 matte：粉/紫主体 → 绿 matte；绿主体 → 洋红 matte；深红主体 → 绿 matte。
 - **保证充足间距**：贴纸之间必须有大量 matte 留白，贴纸不得触碰 cell 边缘或彼此。间距太小会导致切分时贴纸被截断或粘连。
+- **cell 内安全边距约 10%**：每个 cell 四边内缩约 10% 作为安全区，贴纸主体（含道具、特效、描边）不进入该边距带。
+- **grid 订单使用 layout-guide reference**：先用 `repochan image edit layout-guide --rows R --cols C --out <guide.png>` 生成确定性构图参考，再把它与 foundation 一起作为 `repochan image gen --reference` 传入（多 reference 各传一次 flag）。guide 只约束构图——**不要**把 guide 的框线、安全区线、十字线或 cell 编号画进成图。
 - **保持正方形比例**：整体图像必须是 1:1 正方形，否则切分后 cell 比例变形。
 - **保持 cell 一致**：3×3/4×4 网格的行列、镜头、角色尺度与安全边距严格一致；每格只表达订单约定的一种状态。
 - **控制 alpha 风险**：避免与 matte 接近的角色颜色、大面积半透明、辉光、毛发溢色和跨 cell 元素；高风险状态改用独立 production order。

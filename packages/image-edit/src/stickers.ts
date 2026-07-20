@@ -1,10 +1,8 @@
 import { promises as fs } from "node:fs";
-import path from "node:path";
-import { readPngSize } from "./slicing.js";
-import { matteImage, loadImglySharp, type MatteModel } from "./imgly.js";
+import { extractAssets, ExtractError } from "./extract.js";
 
 // ---------------------------------------------------------------------------
-// Types
+// Types (FROZEN compatibility contract — design doc §8)
 // ---------------------------------------------------------------------------
 
 /** Metadata for one extracted transparent sticker. */
@@ -83,34 +81,30 @@ export function findConnectedComponents(
 }
 
 // ---------------------------------------------------------------------------
-// Sticker extraction: pure pixel pipeline
+// Sticker extraction: adapter over extractAssets({ strategy: "ml-blobs" })
 // ---------------------------------------------------------------------------
 
 /**
- * Background-removal + smart-slicing pipeline for a single grid image:
+ * Background-removal + smart-slicing pipeline for a single grid image.
  *
- *   1. Run ML matting (ISNet via @imgly) on the WHOLE grid once. The alpha
- *      mask both (a) removes the background and (b) locates each sticker.
- *   2. Connected-component analysis on the alpha mask finds each sticker's
- *      TRUE bounding box — this fixes misalignment that equal-cell slicing
- *      cannot (AI grids drift: rows offset by tens of px from the ideal).
- *   3. Crop each sticker by its real bbox. Dimensions vary per sticker;
- *      frontend centers each in a uniform container if needed.
+ * Internally delegates to `extractAssets({ strategy: "ml-blobs" })`
+ * (whole-image ISNet matting → connected-component blob detection → per-blob
+ * crop) and adapts the result back to the FROZEN `ExtractStickersResult`
+ * shape (design §8): the CLI `--json` keys `{ sourceFile, outDir, stickers,
+ * config }` and the `StickerMeta` fields must not change.
  *
- * Refuses to guess when the blob count ≠ rows×cols: overlapping stickers
- * merge into one blob (too few), holed stickers split into several (too
- * many). Both mean the grid is structurally wrong and needs regeneration.
+ * Publishing is atomic (staging rename): on failure the output directory is
+ * never left half-written — an intentional behavior change from the previous
+ * rm+mkdir approach (design §8).
  *
- * Works on ANY background (plain/illustrated/gradient) — ISNet is a general
- * foreground segmenter, not a white-threshold heuristic.
- *
- * Pure pixel operation: writes transparent PNGs to `outDir` and returns
- * metadata. Does NOT touch any `.repochan/` protocol directory — the caller
- * persists the returned metadata wherever it wants.
+ * NOTE: ml-blobs is NOT a zero-network path — the ISNet model may download on
+ * first run. Refuses to guess when the blob count ≠ rows×cols: overlapping
+ * stickers merge into one blob (too few), holed stickers split into several
+ * (too many). Both mean the grid is structurally wrong and needs regeneration.
  *
  * @param imagePath  absolute path to a PNG grid image
  * @param options    { rows, cols, model?, overwrite? }
- * @param outDir     directory to write sticker PNGs (created; cleared if overwrite)
+ * @param outDir     directory to write sticker PNGs (published atomically)
  */
 export async function extractStickersFromImage(
   imagePath: string,
@@ -125,86 +119,43 @@ export async function extractStickersFromImage(
   if (!Number.isInteger(rows) || !Number.isInteger(cols) || rows < 1 || cols < 1) {
     throw new Error(`extractStickersFromImage: rows and cols must be positive integers (got rows=${rows}, cols=${cols}).`);
   }
-
-  const sourceFile = imagePath.split(/[\\/]/).pop()!;
-  const { width, height } = await readPngSize(imagePath);
-
   if ((await exists(outDir)) && !overwrite) {
     throw new Error(`extractStickersFromImage: output directory already exists: ${outDir}. Pass overwrite=true to replace.`);
   }
-  await fs.rm(outDir, { recursive: true, force: true });
-  await fs.mkdir(outDir, { recursive: true });
 
-  // ── Step 1: ML matting on the whole grid. ──────────────────────────────
-  const srcBuf = await fs.readFile(imagePath);
-  const { data: gridData, channels: gridChannels } = await matteImage(srcBuf, "image/png", model as MatteModel);
-
-  // ── Step 2: locate stickers via the matting alpha mask. ────────────────
-  const alpha = new Uint8Array(width * height);
-  for (let p = 0, q = 3; p < alpha.length; p++, q += gridChannels) alpha[p] = gridData[q];
-  const allBlobs = findConnectedComponents(alpha, width, height, 128);
-  // Stickers are sizable blobs; drop tiny noise (< 0.5% of canvas).
-  const minBlobSize = Math.floor(width * height * 0.005);
-  const stickerBlobs = allBlobs.filter((b) => b.size >= minBlobSize);
-
-  const expected = rows * cols;
-  if (stickerBlobs.length !== expected) {
-    const detail = stickerBlobs.slice(0, 8).map((b) => `(${b.x0},${b.y0})-${b.x1},${b.y1} ${b.size}px`).join("  ");
-    throw new Error(
-      `extractStickersFromImage: detected ${stickerBlobs.length} foreground regions but expected ${rows}×${cols}=${expected}. ` +
-        `The grid is structurally irregular (overlapping stickers merge, holed stickers split). ` +
-        `Regenerate the grid with cleaner separation, or adjust rows/cols. Top blobs: ${detail}`,
-    );
-  }
-
-  // Sort into reading order: top-to-bottom by row, then left-to-right by col.
-  stickerBlobs.sort((a, b) => a.cy - b.cy);
-  const rowBand = Math.ceil(stickerBlobs.length / rows);
-  const sorted: typeof stickerBlobs = [];
-  for (let r = 0; r < rows; r++) {
-    const band = stickerBlobs.slice(r * rowBand, Math.min((r + 1) * rowBand, stickerBlobs.length));
-    band.sort((a, b) => a.cx - b.cx);
-    sorted.push(...band);
-  }
-
-  // ── Step 3: crop each sticker by its true bounding box. ───────────────
-  const sharp = (await loadImglySharp()).default;
-  const stickers: StickerMeta[] = [];
-  for (let i = 0; i < sorted.length; i++) {
-    const blob = sorted[i];
-    const bw = blob.x1 - blob.x0 + 1;
-    const bh = blob.y1 - blob.y0 + 1;
-    const cellBuf = Buffer.alloc(bw * bh * 4);
-    for (let dy = 0; dy < bh; dy++) {
-      for (let dx = 0; dx < bw; dx++) {
-        const srcIdx = (width * (blob.y0 + dy) + (blob.x0 + dx)) * gridChannels;
-        const dstIdx = (bw * dy + dx) << 2;
-        cellBuf[dstIdx] = gridData[srcIdx];
-        cellBuf[dstIdx + 1] = gridData[srcIdx + 1];
-        cellBuf[dstIdx + 2] = gridData[srcIdx + 2];
-        cellBuf[dstIdx + 3] = gridChannels >= 4 ? gridData[srcIdx + 3] : 255;
-      }
-    }
-
-    const stickerIdx = String(i).padStart(2, "0");
-    const outFile = `s${stickerIdx}.png`;
-    await sharp(cellBuf, { raw: { width: bw, height: bh, channels: 4 } }).png().toFile(path.join(outDir, outFile));
-
-    stickers.push({
-      index: i,
-      file: outFile,
-      bbox: { x: blob.x0, y: blob.y0, w: bw, h: bh },
-      centroid: { x: Math.round(blob.cx), y: Math.round(blob.cy) },
-      width: bw,
-      height: bh,
+  try {
+    const result = await extractAssets(imagePath, outDir, {
+      strategy: "ml-blobs",
+      rows,
+      cols,
+      overwrite,
+      hybrid: { model },
     });
-  }
 
-  return {
-    sourceFile,
-    stickers,
-    config: { model, engine: "imgly-isnet", method: "blob-detection", expected, detected: stickerBlobs.length },
-  };
+    return {
+      sourceFile: result.sourceFile,
+      stickers: result.items.map((item) => ({
+        index: item.index,
+        file: item.file,
+        // ml-blobs items always carry sourceBounds/cropSize/centroid.
+        bbox: item.geometry.sourceBounds!,
+        centroid: item.centroid!,
+        width: item.geometry.cropSize!.w,
+        height: item.geometry.cropSize!.h,
+      })),
+      config: { model, engine: "imgly-isnet", method: "blob-detection", expected: rows * cols, detected: result.items.length },
+    };
+  } catch (error) {
+    // Adapter contract: legacy callers expect plain Errors with the
+    // extractStickersFromImage prefix (e.g. the blob-count refusal).
+    if (error instanceof ExtractError && error.defects.length > 0) {
+      throw new Error(`extractStickersFromImage: ${error.defects[0].detail}`);
+    }
+    if (error instanceof Error && error.message.startsWith("extractAssets: ")) {
+      throw new Error(`extractStickersFromImage: ${error.message.slice("extractAssets: ".length)}`);
+    }
+    throw error;
+  }
 }
 
 async function exists(p: string): Promise<boolean> {

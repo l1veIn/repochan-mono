@@ -47,7 +47,10 @@ function options(overrides: Partial<ExtractMatteGridOptions> = {}): ExtractMatte
     rows: 3,
     cols: 3,
     mapping: KEYS,
-    chroma: { matteColor: MATTE, threshold: 10, softness: 10 },
+    // Legacy behavior tests run through the explicit escape hatch (PR7 flipped
+    // the defaults to chroma-grid + v2): equal-cell + frozen pipeline v1.
+    strategy: "equal-cell",
+    chroma: { matteColor: MATTE, pipeline: "v1", threshold: 10, softness: 10 },
     normalize: { canvasSize: 64, padding: 8 },
     ...overrides,
   };
@@ -103,7 +106,7 @@ describe("extractMatteGrid", () => {
     const { dir, image, out } = await fixture();
     const result = await extractMatteGrid(image, out, options({
       subset: ["not-found", "empty"],
-      chroma: { matteColor: "auto", threshold: 10, softness: 10 },
+      chroma: { matteColor: "auto", pipeline: "v1", threshold: 10, softness: 10 },
     }));
     expect(result.items.map((item) => item.key)).toEqual(["not-found", "empty"]);
     expect(result.matteColorSource).toBe("auto-sampled");

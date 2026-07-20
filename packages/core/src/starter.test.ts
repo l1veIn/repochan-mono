@@ -182,6 +182,135 @@ describe("starter v1", () => {
     expect(() => validateStarterManifest(mismatch)).toThrow(/mapping must exactly match/);
   });
 
+  describe("extract-grid args validation (PR5)", () => {
+    const gridManifest = (args: Record<string, unknown>, format: "png" | "webp" = "png"): StarterManifest => {
+      const cellCount = Number(args.rows) * Number(args.cols);
+      const keys = ["welcome", "searching", "loading", "empty", "error", "success", "not-found", "cta", "cozy"].slice(0, cellCount);
+      return {
+        ...manifest,
+        assets: [{
+          kind: "bundle",
+          slot: "web-states",
+          required: true,
+          publications: keys.map((key, cell) => ({ key, cell, output: `public/assets/states/${key}.${format}` })),
+          postprocess: [{ op: "extract-grid", out: ".repochan-grid/web-states", args }],
+        }],
+      };
+    };
+    const baseArgs = { rows: 1, cols: 2, normalize: { canvasSize: 64 } };
+
+    it("accepts the canary chroma-grid + v2 config from the design doc", () => {
+      const canary = gridManifest({
+        rows: 3,
+        cols: 3,
+        strategy: "chroma-grid",
+        chroma: { pipeline: "v2", matteColor: "auto", matteSelect: "subject-aware" },
+        geometry: { mode: "centroid-components" },
+        normalize: { canvasSize: 256, padding: 16 },
+        qa: { minForegroundRatio: 0.005, maxForegroundRatio: 0.8, maxSheetEdgeTouchRatio: 0 },
+        format: "webp",
+        quality: 80,
+      }, "webp");
+      expect(validateStarterManifest(canary).assets[0].slot).toBe("web-states");
+    });
+
+    it("accepts a legal hybrid config and legacy equal-cell defaults", () => {
+      expect(validateStarterManifest(gridManifest(baseArgs)).assets[0].kind).toBe("bundle");
+      expect(validateStarterManifest(gridManifest({
+        ...baseArgs,
+        strategy: "equal-cell",
+        geometry: { mode: "equal-cell" },
+        chroma: { pipeline: "v1", threshold: 28, softness: 34, spillSuppression: 0.85 },
+      })).assets[0].kind).toBe("bundle");
+      expect(validateStarterManifest(gridManifest({
+        ...baseArgs,
+        strategy: "hybrid",
+        geometry: { mode: "centroid-components", debrisFraction: 0.3, minBlobFraction: 0.005, noiseMinAbs: 60, mergedSpanFactor: 1.5, debrisBorderTolPx: 2 },
+        qa: { residueMaxFraction: 0.001, residueEdgeDepthPx: 2 },
+        hybrid: { mlFallback: true, model: "medium", mlCrop: "dilated-seed", dilateFraction: 0.2 },
+      })).assets[0].kind).toBe("bundle");
+    });
+
+    it("rejects an unknown strategy enum value", () => {
+      expect(() => validateStarterManifest(gridManifest({ ...baseArgs, strategy: "magic-grid" })))
+        .toThrow(/\.strategy must be 'equal-cell' \| 'chroma-grid' \| 'ml-blobs' \| 'hybrid'/);
+    });
+
+    it("rejects strategy/geometry.mode pairings forbidden by design §3", () => {
+      for (const strategy of ["chroma-grid", "hybrid"]) {
+        const hybrid = strategy === "hybrid" ? { hybrid: { mlFallback: true } } : {};
+        expect(() => validateStarterManifest(gridManifest({ ...baseArgs, strategy, geometry: { mode: "equal-cell" }, ...hybrid })))
+          .toThrow(new RegExp(`geometry\\.mode 'equal-cell' is incompatible with strategy '${strategy}'`));
+      }
+      expect(() => validateStarterManifest(gridManifest({ ...baseArgs, geometry: { mode: "centroid-components" } })))
+        .toThrow(/geometry\.mode 'centroid-components' is incompatible with strategy 'equal-cell'/);
+      expect(() => validateStarterManifest(gridManifest({ ...baseArgs, strategy: "ml-blobs", geometry: { mode: "centroid-components" } })))
+        .toThrow(/geometry is not applicable to strategy 'ml-blobs'/);
+      expect(() => validateStarterManifest(gridManifest({ ...baseArgs, geometry: { mode: "magic" } })))
+        .toThrow(/geometry\.mode must be 'equal-cell' \| 'centroid-components'/);
+    });
+
+    it("rejects hybrid without mlFallback === true (design §7)", () => {
+      expect(() => validateStarterManifest(gridManifest({ ...baseArgs, strategy: "hybrid" })))
+        .toThrow(/hybrid\.mlFallback must be true when strategy is 'hybrid'/);
+      expect(() => validateStarterManifest(gridManifest({ ...baseArgs, strategy: "hybrid", hybrid: { mlFallback: false } })))
+        .toThrow(/hybrid\.mlFallback must be true when strategy is 'hybrid'/);
+      expect(() => validateStarterManifest(gridManifest({ ...baseArgs, strategy: "hybrid", hybrid: { mlCrop: "seed-cell" } })))
+        .toThrow(/hybrid\.mlFallback must be true when strategy is 'hybrid'/);
+    });
+
+    it("rejects out-of-range geometry numeric keys", () => {
+      const withGeometry = (geometry: Record<string, unknown>) => gridManifest({ ...baseArgs, strategy: "chroma-grid", geometry: { mode: "centroid-components", ...geometry } });
+      expect(() => validateStarterManifest(withGeometry({ debrisFraction: 1.5 }))).toThrow(/geometry\.debrisFraction must be between 0 and 1/);
+      expect(() => validateStarterManifest(withGeometry({ minBlobFraction: -0.1 }))).toThrow(/geometry\.minBlobFraction must be between 0 and 1/);
+      expect(() => validateStarterManifest(withGeometry({ noiseMinAbs: -1 }))).toThrow(/geometry\.noiseMinAbs must be a non-negative integer/);
+      expect(() => validateStarterManifest(withGeometry({ noiseMinAbs: 1.5 }))).toThrow(/geometry\.noiseMinAbs must be a non-negative integer/);
+      expect(() => validateStarterManifest(withGeometry({ debrisBorderTolPx: 0.5 }))).toThrow(/geometry\.debrisBorderTolPx must be a non-negative integer/);
+      expect(() => validateStarterManifest(withGeometry({ mergedSpanFactor: 0.5 }))).toThrow(/geometry\.mergedSpanFactor must be a number >= 1/);
+    });
+
+    it("rejects illegal chroma keys", () => {
+      const withChroma = (chroma: Record<string, unknown>) => gridManifest({ ...baseArgs, chroma });
+      expect(() => validateStarterManifest(withChroma({ pipeline: "v3" }))).toThrow(/chroma\.pipeline must be 'v1' \| 'v2'/);
+      expect(() => validateStarterManifest(withChroma({ matteSelect: "smart" }))).toThrow(/chroma\.matteSelect must be 'corner' \| 'subject-aware'/);
+      expect(() => validateStarterManifest(withChroma({ threshold: -1 }))).toThrow(/chroma\.threshold must be a number >= 0/);
+      expect(() => validateStarterManifest(withChroma({ softness: "soft" }))).toThrow(/chroma\.softness must be a number >= 0/);
+      expect(() => validateStarterManifest(withChroma({ fringeThreshold: -2 }))).toThrow(/chroma\.fringeThreshold must be a number >= 0/);
+      expect(() => validateStarterManifest(withChroma({ fringeDelta: -3 }))).toThrow(/chroma\.fringeDelta must be a number >= 0/);
+      expect(() => validateStarterManifest(withChroma({ unmixReach: 33 }))).toThrow(/chroma\.unmixReach must be an integer from 0 to 32/);
+      expect(() => validateStarterManifest(withChroma({ unmixReach: 1.5 }))).toThrow(/chroma\.unmixReach must be an integer from 0 to 32/);
+      expect(() => validateStarterManifest(withChroma({ spillMaxFraction: 2 }))).toThrow(/chroma\.spillMaxFraction must be between 0 and 1/);
+      expect(() => validateStarterManifest(withChroma({ spillSuppression: -0.1 }))).toThrow(/chroma\.spillSuppression must be between 0 and 1/);
+    });
+
+    it("rejects out-of-range qa residue and sheet-edge keys", () => {
+      const withQa = (qa: Record<string, unknown>) => gridManifest({ ...baseArgs, qa });
+      expect(() => validateStarterManifest(withQa({ maxSheetEdgeTouchRatio: 1.5 }))).toThrow(/qa\.maxSheetEdgeTouchRatio must be between 0 and 1/);
+      expect(() => validateStarterManifest(withQa({ residueMaxFraction: -0.5 }))).toThrow(/qa\.residueMaxFraction must be between 0 and 1/);
+      expect(() => validateStarterManifest(withQa({ residueEdgeDepthPx: 9 }))).toThrow(/qa\.residueEdgeDepthPx must be an integer from 0 to 8/);
+      expect(() => validateStarterManifest(withQa({ residueEdgeDepthPx: 0.5 }))).toThrow(/qa\.residueEdgeDepthPx must be an integer from 0 to 8/);
+    });
+
+    it("rejects illegal hybrid policy keys", () => {
+      const withHybrid = (hybrid: Record<string, unknown>) => gridManifest({ ...baseArgs, strategy: "chroma-grid", hybrid });
+      expect(() => validateStarterManifest(withHybrid({ mlFallback: "yes" }))).toThrow(/hybrid\.mlFallback must be a boolean/);
+      expect(() => validateStarterManifest(withHybrid({ model: "huge" }))).toThrow(/hybrid\.model must be 'small' \| 'medium' \| 'large'/);
+      expect(() => validateStarterManifest(withHybrid({ mlCrop: "whole" }))).toThrow(/hybrid\.mlCrop must be 'seed-cell' \| 'dilated-seed' \| 'source-bounds'/);
+      expect(() => validateStarterManifest(withHybrid({ dilateFraction: 2 }))).toThrow(/hybrid\.dilateFraction must be between 0 and 1/);
+    });
+
+    it("still allows unknown keys in extract-grid args and nested objects", () => {
+      expect(validateStarterManifest(gridManifest({
+        ...baseArgs,
+        futureFlag: true,
+        chroma: { matteColor: "auto", futureChroma: 1 },
+        geometry: { futureGeo: 2 },
+        qa: { futureQa: 3 },
+        hybrid: { mlFallback: false, futureHybrid: 4 },
+      })).assets[0].kind).toBe("bundle");
+    });
+  });
+
   it("projects deterministic analysis and persona fields", () => {
     const projected = projectStarterSiteConfig({
       defaults: site,

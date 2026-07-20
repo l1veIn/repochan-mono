@@ -306,15 +306,15 @@ export async function runImageEditCompress(
   }
 }
 
-/** repochan image edit chroma-key <img> [--out out.png] [--matte auto|#ff00ff] [--threshold N] [--softness N] [--spill 0.85] */
+/** repochan image edit chroma-key <img> [--out out.png] [--matte auto|#ff00ff] [--threshold N] [--softness N] [--spill 0.85] [--pipeline v1|v2] (default pipeline v2; v1 = legacy escape hatch) */
 export async function runImageEditChromaKey(
   cwd: string,
   imagePath: string | undefined,
-  options: OutputOptions & { out?: string; matte?: string; threshold?: string; softness?: string; spill?: string },
+  options: OutputOptions & { out?: string; matte?: string; threshold?: string; softness?: string; spill?: string; pipeline?: string },
 ) {
   if (!imagePath) {
     throw new UsageError(
-      "Usage: repochan image edit chroma-key <img> [--out out.png] [--matte auto|#ff00ff|magenta|green|cyan] [--threshold 28] [--softness 34] [--spill 0.85]",
+      "Usage: repochan image edit chroma-key <img> [--out out.png] [--matte auto|#ff00ff|magenta|green|cyan] [--threshold 96] [--softness 34] [--spill 0.85] [--pipeline v1|v2] (default v2; v1 = legacy)",
     );
   }
   const absIn = path.resolve(cwd, imagePath);
@@ -329,6 +329,10 @@ export async function runImageEditChromaKey(
   const threshold = options.threshold ? parseFloat(options.threshold) : undefined;
   const softness = options.softness ? parseFloat(options.softness) : undefined;
   const spill = options.spill ? parseFloat(options.spill) : undefined;
+  const pipeline = options.pipeline ?? "v2"; // PR7 default; v1 = legacy escape hatch
+  if (pipeline !== "v1" && pipeline !== "v2") {
+    throw new UsageError(`--pipeline must be v1 | v2 (got "${options.pipeline}")`);
+  }
 
   if (threshold !== undefined && (isNaN(threshold) || threshold < 0)) {
     throw new UsageError(`--threshold must be a non-negative number (got "${options.threshold}")`);
@@ -341,6 +345,7 @@ export async function runImageEditChromaKey(
       threshold,
       softness,
       spillSuppression: spill,
+      pipeline,
     });
     spinner.succeed(
       `Chroma keyed → ${path.relative(cwd, absOut) || absOut} (matte: ${matteColorToHex(result.matteColor)} ${result.matteColorSource}, quality score: ${result.threshold}/${result.softness})`,
@@ -353,6 +358,7 @@ export async function runImageEditChromaKey(
         outFile: absOut,
         matteColor: matteColorToHex(result.matteColor),
         matteColorSource: result.matteColorSource,
+        pipeline,
         threshold: result.threshold,
         softness: result.softness,
         spillSuppression: result.spillSuppression,
@@ -518,6 +524,229 @@ export async function runImageEditGifFromFrames(
         loop: result.loop,
       },
     );
+  } catch (err) {
+    spinner.fail();
+    throw err;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// PR4 (cutout-slice-stability design): unified extract + layout guide.
+// `image edit extract` binds @repochan/image-edit's extractAssets; structured
+// QA failures (ExtractError) bubble to main(), where printError renders them
+// as `{ ok:false, error:"ExtractError", defects, qa }` under --json. The
+// slot/orderId apply envelope belongs to `starter asset-apply` (PR5), not here.
+// ---------------------------------------------------------------------------
+
+const EXTRACT_STRATEGIES = ["equal-cell", "chroma-grid", "ml-blobs", "hybrid"] as const;
+
+function requirePositiveGrid(rows: unknown, cols: unknown): { rows: number; cols: number } {
+  const r = Number(rows);
+  const c = Number(cols);
+  if (!Number.isInteger(r) || !Number.isInteger(c) || r < 1 || c < 1) {
+    throw new UsageError(`--rows and --cols must be positive integers (got rows=${String(rows)}, cols=${String(cols)})`);
+  }
+  return { rows: r, cols: c };
+}
+
+async function resolveExtractMapping(
+  cwd: string,
+  options: { mapping?: string; mappingFile?: string },
+): Promise<import("@repochan/image-edit").GridSemanticMapping | undefined> {
+  if (options.mapping && options.mappingFile) {
+    throw new UsageError("--mapping and --mapping-file are mutually exclusive");
+  }
+  if (options.mappingFile) {
+    const abs = path.resolve(cwd, options.mappingFile);
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(await fs.readFile(abs, "utf8"));
+    } catch (err) {
+      throw new UsageError(`--mapping-file is not readable JSON: ${abs} (${err instanceof Error ? err.message : String(err)})`);
+    }
+    return parsed as import("@repochan/image-edit").GridSemanticMapping;
+  }
+  if (options.mapping) {
+    const keys = options.mapping.split(",").map((key) => key.trim()).filter(Boolean);
+    if (keys.length === 0) throw new UsageError("--mapping must list at least one semantic key (comma-separated)");
+    return keys;
+  }
+  return undefined;
+}
+
+/**
+ * repochan image edit extract <img> --rows <n> --cols <n> --out <dir>
+ *   [--strategy chroma-grid|equal-cell|ml-blobs|hybrid] [--pipeline v1|v2]
+ *   [--mapping a,b,c | --mapping-file f.json] [--matte auto|#hex]
+ *   [--matte-select corner|subject-aware] [--normalize N] [--padding P]
+ *   [--format png|webp] [--ml-fallback] [--overwrite] [--json]
+ * Defaults (PR7): strategy chroma-grid, pipeline v2; equal-cell/v1 are the
+ * explicit escape hatches.
+ */
+export async function runImageEditExtract(
+  cwd: string,
+  imagePath: string | undefined,
+  options: OutputOptions & {
+    rows?: number;
+    cols?: number;
+    out?: string;
+    strategy?: string;
+    pipeline?: string;
+    mapping?: string;
+    mappingFile?: string;
+    matte?: string;
+    matteSelect?: string;
+    normalize?: string | number;
+    padding?: string;
+    format?: string;
+    mlFallback?: boolean;
+    overwrite?: boolean;
+  },
+) {
+  if (!imagePath) {
+    throw new UsageError(
+      "Usage: repochan image edit extract <img> --rows <n> --cols <n> --out <dir> " +
+      "[--strategy chroma-grid|equal-cell|ml-blobs|hybrid] [--pipeline v1|v2] " +
+      "[--mapping a,b,c | --mapping-file f.json] [--matte auto|#ff00ff] " +
+      "[--matte-select corner|subject-aware] [--normalize 256] [--padding 16] " +
+      "[--format png|webp] [--ml-fallback] [--overwrite] (defaults: chroma-grid + v2)",
+    );
+  }
+  if (!options.out) throw new UsageError("--out <dir> is required for extract");
+  const { rows, cols } = requirePositiveGrid(options.rows, options.cols);
+
+  const strategyRaw = options.strategy ?? "chroma-grid"; // PR7 default; equal-cell = escape hatch
+  if (!(EXTRACT_STRATEGIES as readonly string[]).includes(strategyRaw)) {
+    throw new UsageError(`--strategy must be ${EXTRACT_STRATEGIES.join(" | ")} (got "${options.strategy}")`);
+  }
+  const strategy = strategyRaw as import("@repochan/image-edit").ExtractStrategy;
+  const pipeline = options.pipeline ?? "v2"; // PR7 default; v1 = legacy escape hatch
+  if (pipeline !== "v1" && pipeline !== "v2") {
+    throw new UsageError(`--pipeline must be v1 | v2 (got "${options.pipeline}")`);
+  }
+  const matteSelect = options.matteSelect ?? "corner";
+  if (matteSelect !== "corner" && matteSelect !== "subject-aware") {
+    throw new UsageError(`--matte-select must be corner | subject-aware (got "${options.matteSelect}")`);
+  }
+  const format = options.format ?? "png";
+  if (format !== "png" && format !== "webp") {
+    throw new UsageError(`--format must be png | webp (got "${options.format}")`);
+  }
+  if (options.mlFallback && strategy !== "hybrid") {
+    throw new UsageError(`--ml-fallback only applies to --strategy hybrid (got "${strategy}")`);
+  }
+  if (strategy === "hybrid" && options.mlFallback !== true) {
+    throw new UsageError("--strategy hybrid requires --ml-fallback (ML assist is always explicit); use --strategy chroma-grid otherwise");
+  }
+
+  const named = strategy !== "ml-blobs";
+  const mapping = await resolveExtractMapping(cwd, options);
+  if (named && !mapping) {
+    throw new UsageError(`--mapping a,b,c or --mapping-file f.json is required for strategy "${strategy}" (named outputs)`);
+  }
+
+  let matteColor: import("@repochan/image-edit").MatteColor | "auto" | undefined;
+  if (options.matte) {
+    const { parseMatteColor } = await import("@repochan/image-edit");
+    try {
+      matteColor = parseMatteColor(options.matte);
+    } catch (err) {
+      throw new UsageError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  let normalize: { canvasSize: number; padding: number } | undefined;
+  if (options.normalize !== undefined) {
+    const canvasSize = Number(options.normalize);
+    if (!Number.isInteger(canvasSize) || canvasSize < 1) {
+      throw new UsageError(`--normalize must be a positive integer canvas size (got "${options.normalize}")`);
+    }
+    let padding = 0;
+    if (options.padding !== undefined) {
+      padding = Number(options.padding);
+      if (!Number.isInteger(padding) || padding < 0) {
+        throw new UsageError(`--padding must be a non-negative integer (got "${options.padding}")`);
+      }
+    }
+    normalize = { canvasSize, padding };
+  }
+  if (named && !normalize) {
+    throw new UsageError(`--normalize <canvas-size> is required for strategy "${strategy}" (named outputs are normalized onto a canvas)`);
+  }
+
+  const absIn = path.resolve(cwd, imagePath);
+  const absOut = path.resolve(cwd, options.out);
+  const { extractAssets, matteColorToHex } = await import("@repochan/image-edit");
+
+  const spinner = ora(`Extracting ${rows}×${cols} grid (${strategy}, chroma ${pipeline})…`).start();
+  try {
+    const result = await extractAssets(absIn, absOut, {
+      strategy,
+      rows,
+      cols,
+      mapping: named ? mapping : undefined,
+      chroma: { pipeline, matteColor, matteSelect },
+      normalize,
+      hybrid: strategy === "hybrid" ? { mlFallback: true } : undefined,
+      format,
+      overwrite: options.overwrite,
+    });
+    spinner.succeed(`Extracted ${result.items.length} assets → ${path.relative(cwd, absOut) || absOut}`);
+    emitResult(
+      options,
+      `Extracted ${result.items.length} assets from ${result.sourceFile} (${result.qa.strategyUsed}, chroma ${result.qa.pipeline}, matte ${matteColorToHex(result.matteColor)} ${result.matteColorSource}) → ${absOut}`,
+      {
+        sourceFile: result.sourceFile,
+        outDir: absOut,
+        rows: result.rows,
+        cols: result.cols,
+        strategy: result.qa.strategyUsed,
+        pipeline: result.qa.pipeline,
+        matteColor: matteColorToHex(result.matteColor),
+        matteColorSource: result.matteColorSource,
+        items: result.items,
+        qa: result.qa,
+      },
+    );
+    return result;
+  } catch (err) {
+    spinner.fail();
+    throw err;
+  }
+}
+
+/** repochan image edit layout-guide --rows <n> --cols <n> --out guide.png [--overwrite] [--json] */
+export async function runImageEditLayoutGuide(
+  cwd: string,
+  options: OutputOptions & { rows?: number; cols?: number; out?: string; overwrite?: boolean },
+) {
+  if (!options.out) {
+    throw new UsageError("Usage: repochan image edit layout-guide --rows <n> --cols <n> --out guide.png [--overwrite]");
+  }
+  const { rows, cols } = requirePositiveGrid(options.rows, options.cols);
+  const absOut = path.resolve(cwd, options.out);
+  const { writeLayoutGuide } = await import("@repochan/image-edit");
+
+  const spinner = ora(`Rendering ${rows}×${cols} layout guide…`).start();
+  try {
+    const result = await writeLayoutGuide(absOut, { rows, cols, overwrite: options.overwrite });
+    spinner.succeed(`Layout guide → ${path.relative(cwd, absOut) || absOut}`);
+    emitResult(
+      options,
+      `Layout guide ${result.width}×${result.height} (${rows}×${cols} cells of ${result.cellWidth}×${result.cellHeight}) → ${result.outFile}. ` +
+      `Use it as an image gen --reference composition constraint; prompts must not reproduce the guide lines.`,
+      {
+        outFile: result.outFile,
+        width: result.width,
+        height: result.height,
+        rows: result.rows,
+        cols: result.cols,
+        cellWidth: result.cellWidth,
+        cellHeight: result.cellHeight,
+        safeMargin: result.safeMargin,
+      },
+    );
+    return result;
   } catch (err) {
     spinner.fail();
     throw err;

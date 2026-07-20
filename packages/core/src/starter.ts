@@ -378,6 +378,49 @@ function validateExtractGridArgs(
       throw new Error(`${label}.mapping must exactly match publications key/cell assignments.`);
     }
   }
+  // Design doc "core: validateExtractGridArgs 完整清单" (PR5): unknown keys
+  // stay allowed; every KNOWN key below is rejected when illegal, so a bad
+  // extract-grid config fails at manifest validation, not at asset-apply.
+  const strategy = args.strategy ?? "equal-cell";
+  if (strategy !== "equal-cell" && strategy !== "chroma-grid" && strategy !== "ml-blobs" && strategy !== "hybrid") {
+    throw new Error(`${label}.strategy must be 'equal-cell' | 'chroma-grid' | 'ml-blobs' | 'hybrid' (got ${JSON.stringify(args.strategy)}).`);
+  }
+  if (args.geometry !== undefined && (!args.geometry || typeof args.geometry !== "object" || Array.isArray(args.geometry))) {
+    throw new Error(`${label}.geometry must be an object.`);
+  }
+  const geometry = args.geometry as Record<string, unknown> | undefined;
+  const geometryMode = geometry?.mode;
+  if (geometryMode !== undefined && geometryMode !== "equal-cell" && geometryMode !== "centroid-components") {
+    throw new Error(`${label}.geometry.mode must be 'equal-cell' | 'centroid-components' (got ${JSON.stringify(geometryMode)}).`);
+  }
+  // strategy ↔ geometry.mode pairing (design §3).
+  if ((strategy === "chroma-grid" || strategy === "hybrid") && geometryMode === "equal-cell") {
+    throw new Error(`${label}.geometry.mode 'equal-cell' is incompatible with strategy '${strategy}' (requires 'centroid-components').`);
+  }
+  if (strategy === "equal-cell" && geometryMode === "centroid-components") {
+    throw new Error(`${label}.geometry.mode 'centroid-components' is incompatible with strategy 'equal-cell' (requires 'equal-cell').`);
+  }
+  if (strategy === "ml-blobs" && geometry !== undefined) {
+    throw new Error(`${label}.geometry is not applicable to strategy 'ml-blobs'.`);
+  }
+  if (geometry) {
+    for (const key of ["minBlobFraction", "debrisFraction"] as const) {
+      const value = geometry[key];
+      if (value !== undefined && (typeof value !== "number" || value < 0 || value > 1)) throw new Error(`${label}.geometry.${key} must be between 0 and 1.`);
+    }
+    if (geometry.noiseMinAbs !== undefined && (!Number.isInteger(geometry.noiseMinAbs) || Number(geometry.noiseMinAbs) < 0)) {
+      throw new Error(`${label}.geometry.noiseMinAbs must be a non-negative integer.`);
+    }
+    if (geometry.debrisBorderTolPx !== undefined && (!Number.isInteger(geometry.debrisBorderTolPx) || Number(geometry.debrisBorderTolPx) < 0)) {
+      throw new Error(`${label}.geometry.debrisBorderTolPx must be a non-negative integer.`);
+    }
+    if (geometry.mergedSpanFactor !== undefined && (typeof geometry.mergedSpanFactor !== "number" || Number(geometry.mergedSpanFactor) < 1)) {
+      throw new Error(`${label}.geometry.mergedSpanFactor must be a number >= 1.`);
+    }
+    if (geometry.alphaThreshold !== undefined && (!Number.isInteger(geometry.alphaThreshold) || Number(geometry.alphaThreshold) < 1 || Number(geometry.alphaThreshold) > 255)) {
+      throw new Error(`${label}.geometry.alphaThreshold must be an integer from 1 to 255.`);
+    }
+  }
   if (args.qa !== undefined && (!args.qa || typeof args.qa !== "object" || Array.isArray(args.qa))) {
     throw new Error(`${label}.qa must be an object.`);
   }
@@ -386,16 +429,63 @@ function validateExtractGridArgs(
     if (qa.alphaThreshold !== undefined && (!Number.isInteger(qa.alphaThreshold) || Number(qa.alphaThreshold) < 1 || Number(qa.alphaThreshold) > 255)) {
       throw new Error(`${label}.qa.alphaThreshold must be an integer from 1 to 255.`);
     }
-    for (const key of ["minForegroundRatio", "maxForegroundRatio", "maxEdgeTouchRatio"] as const) {
+    for (const key of ["minForegroundRatio", "maxForegroundRatio", "maxEdgeTouchRatio", "maxSheetEdgeTouchRatio", "residueMaxFraction"] as const) {
       const ratio = qa[key];
       if (ratio !== undefined && (typeof ratio !== "number" || ratio < 0 || ratio > 1)) throw new Error(`${label}.qa.${key} must be between 0 and 1.`);
     }
     if (typeof qa.minForegroundRatio === "number" && typeof qa.maxForegroundRatio === "number" && qa.minForegroundRatio > qa.maxForegroundRatio) {
       throw new Error(`${label}.qa.minForegroundRatio cannot exceed maxForegroundRatio.`);
     }
+    if (qa.residueEdgeDepthPx !== undefined && (!Number.isInteger(qa.residueEdgeDepthPx) || Number(qa.residueEdgeDepthPx) < 0 || Number(qa.residueEdgeDepthPx) > 8)) {
+      throw new Error(`${label}.qa.residueEdgeDepthPx must be an integer from 0 to 8.`);
+    }
   }
   if (args.chroma !== undefined && (!args.chroma || typeof args.chroma !== "object" || Array.isArray(args.chroma))) {
     throw new Error(`${label}.chroma must be an object.`);
+  }
+  if (args.chroma && typeof args.chroma === "object") {
+    const chroma = args.chroma as Record<string, unknown>;
+    if (chroma.pipeline !== undefined && chroma.pipeline !== "v1" && chroma.pipeline !== "v2") {
+      throw new Error(`${label}.chroma.pipeline must be 'v1' | 'v2' (got ${JSON.stringify(chroma.pipeline)}).`);
+    }
+    if (chroma.matteSelect !== undefined && chroma.matteSelect !== "corner" && chroma.matteSelect !== "subject-aware") {
+      throw new Error(`${label}.chroma.matteSelect must be 'corner' | 'subject-aware' (got ${JSON.stringify(chroma.matteSelect)}).`);
+    }
+    for (const key of ["threshold", "softness", "fringeThreshold", "fringeDelta"] as const) {
+      const value = chroma[key];
+      if (value !== undefined && (typeof value !== "number" || value < 0)) throw new Error(`${label}.chroma.${key} must be a number >= 0.`);
+    }
+    if (chroma.unmixReach !== undefined && (!Number.isInteger(chroma.unmixReach) || Number(chroma.unmixReach) < 0 || Number(chroma.unmixReach) > 32)) {
+      throw new Error(`${label}.chroma.unmixReach must be an integer from 0 to 32.`);
+    }
+    for (const key of ["spillMaxFraction", "spillSuppression"] as const) {
+      const value = chroma[key];
+      if (value !== undefined && (typeof value !== "number" || value < 0 || value > 1)) throw new Error(`${label}.chroma.${key} must be between 0 and 1.`);
+    }
+  }
+  if (args.hybrid !== undefined && (!args.hybrid || typeof args.hybrid !== "object" || Array.isArray(args.hybrid))) {
+    throw new Error(`${label}.hybrid must be an object.`);
+  }
+  if (args.hybrid && typeof args.hybrid === "object") {
+    const hybrid = args.hybrid as Record<string, unknown>;
+    // Design §7: there is no legal "hybrid without network" configuration.
+    if (strategy === "hybrid" && hybrid.mlFallback !== true) {
+      throw new Error(`${label}.hybrid.mlFallback must be true when strategy is 'hybrid'; use strategy 'chroma-grid' otherwise.`);
+    }
+    if (hybrid.mlFallback !== undefined && typeof hybrid.mlFallback !== "boolean") {
+      throw new Error(`${label}.hybrid.mlFallback must be a boolean.`);
+    }
+    if (hybrid.model !== undefined && hybrid.model !== "small" && hybrid.model !== "medium" && hybrid.model !== "large") {
+      throw new Error(`${label}.hybrid.model must be 'small' | 'medium' | 'large' (got ${JSON.stringify(hybrid.model)}).`);
+    }
+    if (hybrid.mlCrop !== undefined && hybrid.mlCrop !== "seed-cell" && hybrid.mlCrop !== "dilated-seed" && hybrid.mlCrop !== "source-bounds") {
+      throw new Error(`${label}.hybrid.mlCrop must be 'seed-cell' | 'dilated-seed' | 'source-bounds' (got ${JSON.stringify(hybrid.mlCrop)}).`);
+    }
+    if (hybrid.dilateFraction !== undefined && (typeof hybrid.dilateFraction !== "number" || hybrid.dilateFraction < 0 || hybrid.dilateFraction > 1)) {
+      throw new Error(`${label}.hybrid.dilateFraction must be between 0 and 1.`);
+    }
+  } else if (strategy === "hybrid") {
+    throw new Error(`${label}.hybrid.mlFallback must be true when strategy is 'hybrid'; use strategy 'chroma-grid' otherwise.`);
   }
   const format = args.format ?? "png";
   if (format !== "png" && format !== "webp") {

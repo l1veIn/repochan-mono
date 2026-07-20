@@ -1,0 +1,47 @@
+id: "official/item-prop-grid-3x3"
+asset_type: "item_props"
+label: "3×3 世界观道具表"
+description: "从角色世界观提取的 9 件主题道具/物品（工具、法器、收藏品），统一风格的孤立物件，可按 cell_keys 自动提取为具名透明资产，适合 feature 卡片、区块装饰与空态点缀。"
+tags: ["item", "prop", "object", "grid", "sliceable"]
+size: "1024x1024"
+
+grid:
+  rows: 3
+  cols: 3
+  sliceable: true
+  cell_keys:
+    - "item-0"
+    - "item-1"
+    - "item-2"
+    - "item-3"
+    - "item-4"
+    - "item-5"
+    - "item-6"
+    - "item-7"
+    - "item-8"
+
+prompt_template: |
+  strict 3x3 thematic prop sheet for {{repo_name}}, exactly nine isolated objects drawn from the character's world,
+  each prop is a single standalone object (tools, artifacts, collectibles — no characters, no hands, no creatures),
+  every prop uses the same visual language: {{key_motifs}} and {{color_palette}}, same line weight and cel-shaded finish,
+  the nine props are clearly distinct from each other and readable at small sizes,
+  perfectly flat uniform matte background of pure {{matte_color}}, no gradient, texture, shadow, or off-color,
+  each prop is centered in its cell with generous clear matte margin, no prop may touch a cell edge or enter another cell,
+  no words, letters, numbers, punctuation, labels, watermarks, borders, frames, or grid lines,
+  square 1:1 canvas, evenly aligned rows and columns, production-ready chroma-key sheet, white die-cut sticker look
+
+  Prop set: {{prop_set}} — one prop per cell, left-to-right and top-to-bottom.
+
+constraints:
+  - "strict 3-row × 3-column grid with exactly 9 props in the declared order"
+  - "every prop is a standalone inanimate object — no characters, body parts, or creatures"
+  - "perfectly flat uniform matte background using a color absent from the props and effects"
+  - "matte_color must NOT be white (#FFFFFF) or near-white — props often contain white highlights that a white matte would punch out during chroma-key extraction"
+  - "the matte is not a prop color and must remain identical in every pixel outside the props"
+  - "every prop has generous clear matte margin and must not touch or cross any cell edge"
+  - "no prop, effect, shadow, or decoration spans multiple cells"
+  - "no text, letters, numbers, punctuation, labels, logos, signatures, or watermarks"
+  - "no borders, frames, dividers, grid lines, cell boxes, scenery, or textured backgrounds"
+  - "keep a safe margin of about 10% of the cell size inside every cell; props including glow effects stay within the inner safe area"
+  - "choose the matte hue by distance from the subject: green matte for pink/purple-dominant subjects, magenta for green-dominant subjects, green for deep-red-dominant subjects"
+  - "do not reproduce layout-guide boxes, lines, crosshairs, or cell labels/numbers from any reference guide image"

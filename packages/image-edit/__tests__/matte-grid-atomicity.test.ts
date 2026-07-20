@@ -45,7 +45,8 @@ describe("extractMatteGrid atomic publishing", () => {
       rows: 1,
       cols: 2,
       mapping: ["first", "second"],
-      chroma: { matteColor: [255, 0, 255], threshold: 10, softness: 10 },
+      strategy: "equal-cell",
+      chroma: { matteColor: [255, 0, 255], pipeline: "v1", threshold: 10, softness: 10 },
       normalize: { canvasSize: 64, padding: 8 },
       overwrite: true,
     })).rejects.toThrow(/induced staged publish failure/);

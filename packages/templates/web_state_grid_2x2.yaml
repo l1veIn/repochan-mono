@@ -1,0 +1,44 @@
+id: "official/web-state-grid-2x2"
+asset_type: "web_state_stickers"
+label: "2×2 最小 Web 状态表"
+description: "最小语义的 2×2 Q 版角色状态表（loading / empty / error / success），适合只需要核心四态的轻量站点；可按 cell_keys 自动提取为具名透明资产。"
+tags: ["web", "state", "sticker", "chibi", "grid", "fixed-semantic"]
+size: "1024x1024"
+
+grid:
+  rows: 2
+  cols: 2
+  sliceable: true
+  cell_keys:
+    - "loading"
+    - "empty"
+    - "error"
+    - "success"
+
+prompt_template: |
+  strict 2x2 chibi web-state sticker sheet with exactly four isolated stickers of the same {{character_visual}},
+  simplified cute proportions, large head, bold readable silhouette, use {{color_palette}} and {{key_motifs}},
+  consistent identity, outfit, line weight, camera angle, scale, and lighting in every cell,
+  perfectly flat uniform non-character matte background of pure {{matte_color}}, no gradient, texture, shadow, or off-color,
+  generous empty margin on all four sides of every cell, no sticker may touch a cell edge or enter another cell,
+  no words, letters, numbers, punctuation, labels, captions, speech bubbles, interface text, watermarks, borders, frames, or grid lines,
+  no element crosses a cell boundary, square 1:1 canvas, evenly aligned rows and columns, production-ready chroma-key sheet, white die-cut sticker look
+
+  Fixed cell semantics, left-to-right and top-to-bottom:
+  CELL 0: loading — patient active waiting pose with abstract non-text motion marks
+  CELL 1: empty — gently presenting clearly empty hands or an empty neutral container, no symbols or text
+  CELL 2: error — apologetic concerned pose with a simple non-text warning gesture
+  CELL 3: success — joyful celebration with small abstract sparkles
+
+constraints:
+  - "strict 2-row × 2-column grid with exactly 4 stickers in the declared fixed semantic order"
+  - "perfectly flat uniform matte background using a color absent from the character, costume, props, outlines, and effects"
+  - "matte_color must NOT be white (#FFFFFF) or near-white — most characters contain white in their outfit/highlights/eyes, and a white matte would be punched out together with those whites during chroma-key extraction, destroying the silhouette"
+  - "the matte is not a character color and must remain identical in every pixel outside the stickers"
+  - "every sticker has generous clear matte margin and must not touch or cross any cell edge"
+  - "no sticker, prop, effect, shadow, or decoration spans multiple cells"
+  - "no text, letters, numbers, punctuation, labels, captions, speech bubbles, logos, signatures, or watermarks"
+  - "no borders, frames, dividers, grid lines, cell boxes, scenery, or textured backgrounds"
+  - "keep a safe margin of about 10% of the cell size inside every cell; sticker subjects including props and effects stay within the inner safe area"
+  - "choose the matte hue by distance from the subject: green matte for pink/purple-dominant subjects, magenta for green-dominant subjects, green for deep-red-dominant subjects"
+  - "do not reproduce layout-guide boxes, lines, crosshairs, or cell labels/numbers from any reference guide image"

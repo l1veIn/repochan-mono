@@ -270,10 +270,12 @@
           "args": {
             "rows": 3,
             "cols": 3,
+            "strategy": "chroma-grid",
             "mapping": { "welcome": 0, "searching": 1, "loading": 2, "empty": 3, "error": 4, "success": 5, "not-found": 6, "cta": 7, "cozy": 8 },
             "normalize": { "canvasSize": 320, "padding": 10 },
-            "chroma": { "matteColor": "auto" },
-            "qa": { "alphaThreshold": 32, "minForegroundRatio": 0.05, "maxForegroundRatio": 0.9, "maxEdgeTouchRatio": 0.05 },
+            "chroma": { "matteColor": "auto", "pipeline": "v2", "matteSelect": "subject-aware" },
+            "geometry": { "mode": "centroid-components" },
+            "qa": { "alphaThreshold": 32, "minForegroundRatio": 0.05, "maxForegroundRatio": 0.9, "maxSheetEdgeTouchRatio": 0.05 },
             "format": "webp",
             "quality": 80
           },

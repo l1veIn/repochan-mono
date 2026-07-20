@@ -236,7 +236,7 @@ describe("estimateMatteColor", () => {
 // ---------------------------------------------------------------------------
 
 describe("chromaKeyImage", () => {
-  it("extracts subject from a magenta-matte PNG", async () => {
+  it("extracts subject from a magenta-matte PNG (default pipeline v2 since PR7)", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "ie-chroma-"));
     const srcPath = path.join(dir, "input.png");
     const outPath = path.join(dir, "output.png");
@@ -246,8 +246,8 @@ describe("chromaKeyImage", () => {
 
     expect(result.matteColor).toEqual([255, 0, 255]);
     expect(result.matteColorSource).toBe("provided");
-    expect(result.threshold).toBe(28);
-    expect(result.softness).toBe(34);
+    expect(result.threshold).toBe(96); // v2 hard-cut default
+    expect(result.softness).toBe(34); // v1-only knob, reported for back-compat
 
     // Output exists and is a valid PNG
     const stat = await fs.stat(outPath);
@@ -259,6 +259,24 @@ describe("chromaKeyImage", () => {
     // Corner pixel should be transparent
     const cornerIdx = 0;
     expect(outPng.data[cornerIdx + 3]).toBe(0);
+
+    await fs.rm(dir, { recursive: true, force: true });
+  });
+
+  it("explicit pipeline v1 keeps the legacy thresholds (escape hatch)", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "ie-chroma-v1-"));
+    const srcPath = path.join(dir, "input.png");
+    const outPath = path.join(dir, "output.png");
+    await makeMattePng(200, 200, [255, 0, 255], [0, 200, 100], srcPath);
+
+    const result = await chromaKeyImage(srcPath, outPath, { matteColor: [255, 0, 255], pipeline: "v1" });
+
+    expect(result.threshold).toBe(28);
+    expect(result.softness).toBe(34);
+    const outPng = PNG.sync.read(await fs.readFile(outPath));
+    expect(outPng.data[3]).toBe(0); // corner transparent
+    const centerIdx = (100 * 200 + 100) * 4;
+    expect(outPng.data[centerIdx + 3]).toBe(255); // subject survives
 
     await fs.rm(dir, { recursive: true, force: true });
   });

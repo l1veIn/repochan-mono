@@ -174,7 +174,7 @@
         ]
       },
       "postprocess": [
-        { "op": "chroma-key", "args": { "matte": "auto" }, "out": "public/assets/cutout-wave-keyed.png" },
+        { "op": "chroma-key", "args": { "matte": "auto", "pipeline": "v2" }, "out": "public/assets/cutout-wave-keyed.png" },
         { "op": "compress", "args": { "format": "webp", "quality": 82, "maxWidth": 1024 }, "out": "public/assets/cutout-wave.webp" }
       ]
     },
@@ -200,7 +200,7 @@
         ]
       },
       "postprocess": [
-        { "op": "chroma-key", "args": { "matte": "auto" }, "out": "public/assets/cutout-point-keyed.png" },
+        { "op": "chroma-key", "args": { "matte": "auto", "pipeline": "v2" }, "out": "public/assets/cutout-point-keyed.png" },
         { "op": "compress", "args": { "format": "webp", "quality": 82, "maxWidth": 1024 }, "out": "public/assets/cutout-point.webp" }
       ]
     },
@@ -271,10 +271,12 @@
           "args": {
             "rows": 3,
             "cols": 3,
+            "strategy": "chroma-grid",
             "mapping": { "welcome": 0, "searching": 1, "loading": 2, "empty": 3, "error": 4, "success": 5, "not-found": 6, "cta": 7, "cozy": 8 },
             "normalize": { "canvasSize": 325, "padding": 8 },
-            "chroma": { "matteColor": "auto" },
-            "qa": { "alphaThreshold": 32, "minForegroundRatio": 0.05, "maxForegroundRatio": 0.95, "maxEdgeTouchRatio": 0.05 },
+            "chroma": { "matteColor": "auto", "pipeline": "v2", "matteSelect": "subject-aware" },
+            "geometry": { "mode": "centroid-components" },
+            "qa": { "alphaThreshold": 32, "minForegroundRatio": 0.05, "maxForegroundRatio": 0.95, "maxSheetEdgeTouchRatio": 0.05 },
             "format": "webp",
             "quality": 80
           },

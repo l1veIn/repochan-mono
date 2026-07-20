@@ -32,3 +32,5 @@ constraints:
   - "clean self-contained silhouette suitable for chroma-key extraction"
   - "matte_color must be a color absent from the character, costume, props, outlines, and effects"
   - "matte_color must NOT be white (#FFFFFF) or near-white — most characters contain white in their outfit/highlights/eyes, and a white matte would be punched out together with those whites during chroma-key extraction, destroying the silhouette"
+  - "choose the matte hue by distance from the subject: green matte for pink/purple-dominant subjects, magenta for green-dominant subjects, green for deep-red-dominant subjects"
+  - "do not reproduce layout-guide boxes, lines, crosshairs, or labels from any reference guide image"

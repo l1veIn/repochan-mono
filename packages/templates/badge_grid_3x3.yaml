@@ -1,0 +1,46 @@
+id: "official/badge-grid-3x3"
+asset_type: "badge_set"
+label: "3×3 成就徽章表"
+description: "同一品牌语族的 9 枚成就/等级徽章（如铜→金进阶或里程碑集合），平面矢量质感，可按 cell_keys 自动提取为具名透明资产，适合游戏化文档、社区与排行榜场景。"
+tags: ["badge", "achievement", "rank", "grid", "fixed-semantic", "sliceable"]
+size: "1024x1024"
+
+grid:
+  rows: 3
+  cols: 3
+  sliceable: true
+  cell_keys:
+    - "rank-1"
+    - "rank-2"
+    - "rank-3"
+    - "rank-4"
+    - "rank-5"
+    - "rank-6"
+    - "rank-7"
+    - "rank-8"
+    - "rank-9"
+
+prompt_template: |
+  strict 3x3 achievement badge sheet for {{repo_name}}, exactly nine isolated badges in ONE coherent brand family,
+  each badge is a flat vector-style emblem derived from the character's visual language: {{key_motifs}} and {{color_palette}},
+  the nine badges read as a clear progression from rank-1 (entry, humble materials) to rank-9 (prestige, radiant materials),
+  every badge uses the same line weight, the same geometric vocabulary, the same cel-shaded finish,
+  perfectly flat uniform matte background of pure {{matte_color}}, no gradient, texture, shadow, or off-color,
+  each badge is centered in its cell with generous clear matte margin, no badge may touch a cell edge or enter another cell,
+  no words, letters, numbers, punctuation, labels, watermarks, borders, frames, or grid lines,
+  square 1:1 canvas, evenly aligned rows and columns, production-ready chroma-key sheet
+
+  Fixed cell semantics, left-to-right and top-to-bottom: rank-1 … rank-9 in ascending prestige order.
+
+constraints:
+  - "strict 3-row × 3-column grid with exactly 9 badges in ascending prestige order"
+  - "perfectly flat uniform matte background using a color absent from the badges, ribbons, and effects"
+  - "matte_color must NOT be white (#FFFFFF) or near-white — badges often contain metallic whites and highlights that a white matte would punch out during chroma-key extraction"
+  - "the matte is not a badge color and must remain identical in every pixel outside the badges"
+  - "every badge has generous clear matte margin and must not touch or cross any cell edge"
+  - "no badge, glow, effect, shadow, or decoration spans multiple cells"
+  - "no text, letters, numbers, punctuation, labels, logos, signatures, or watermarks"
+  - "no borders, frames, dividers, grid lines, cell boxes, scenery, or textured backgrounds"
+  - "keep a safe margin of about 10% of the cell size inside every cell; badges including glow effects stay within the inner safe area"
+  - "choose the matte hue by distance from the subject: green matte for pink/purple-dominant subjects, magenta for green-dominant subjects, green for deep-red-dominant subjects"
+  - "do not reproduce layout-guide boxes, lines, crosshairs, or cell labels/numbers from any reference guide image"

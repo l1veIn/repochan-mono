@@ -79,3 +79,12 @@ See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the package layout, dependency di
 | [`packages/skill/`](./packages/skill/) | Skill inventory (wizard + team roles) |
 | [`packages/core/`](./packages/core/) | Protocol, schemas, business rules |
 | [`packages/starters/`](./packages/starters/) | Landing-page starter catalog |
+
+---
+
+## Acknowledgments
+
+RepoChan's cutout / grid-extraction pipeline (`@repochan/image-edit`) borrows proven techniques from these open-source projects:
+
+- [`aldegad/sprite-gen`](https://github.com/aldegad/sprite-gen) (Apache-2.0) — the chroma v2 pipeline is a TypeScript port of its known-key soft-alpha unmix, trapped-spill despill, and key-depth classification; the centroid grid geometry (component assignment, merged-span split, debris handling) follows its slice-sheet design. See [`packages/image-edit/NOTICE`](./packages/image-edit/NOTICE).
+- [`0x0funky/agent-sprite-forge`](https://github.com/0x0funky/agent-sprite-forge) — generation-side stabilization ideas: layout-guide images as composition references and fail-loud QC gates that feed regeneration instead of masking defects.

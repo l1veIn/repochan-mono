@@ -27,18 +27,23 @@ import {
 import {
   chromaKeyImage,
   compressImage,
+  extractAssets,
+  ExtractError,
   extractStickersFromImage,
-  extractMatteGrid,
   framesToGif,
   generateIco,
   imageFormatForExtension,
   inspectImage,
+  matteColorToHex,
   parseMatteColor,
   removeImageBackground,
   resizeImage,
   sliceGridToFiles,
+  type ExtractAssetsResult,
+  type ExtractQaReport,
+  type ExtractStrategy,
 } from "@repochan/image-edit";
-import { emitResult, dim, type OutputOptions, UsageError } from "../lib/output.js";
+import { emitResult, dim, printJson, isExtractError, ApplyFailurePrintedError, type OutputOptions, UsageError } from "../lib/output.js";
 import { readDataFile } from "../lib/data-file.js";
 import {
   getDefaultStarterId,
@@ -310,7 +315,7 @@ async function applyStep(step: StarterPostprocessStep, sourceFiles: string[], ou
       return;
     case "chroma-key": {
       const parsed = parseMatteColor(String(args.matte ?? "auto"));
-      await chromaKeyImage(source, out, { matteColor: parsed as any, threshold: Number(args.threshold) || undefined, softness: Number(args.softness) || undefined, spillSuppression: Number(args.spill) || undefined });
+      await chromaKeyImage(source, out, { matteColor: parsed as any, pipeline: args.pipeline === "v1" ? "v1" : args.pipeline === "v2" ? "v2" : undefined, threshold: Number(args.threshold) || undefined, softness: Number(args.softness) || undefined, spillSuppression: Number(args.spill) || undefined });
       return;
     }
     case "bg-remove":
@@ -336,7 +341,7 @@ async function applyStep(step: StarterPostprocessStep, sourceFiles: string[], ou
   }
 }
 
-type GridApplyResult = Awaited<ReturnType<typeof extractMatteGrid>>;
+type GridApplyResult = ExtractAssetsResult;
 
 async function stageGridBundle(
   slot: StarterAssetSlot & { kind: "bundle" },
@@ -350,16 +355,24 @@ async function stageGridBundle(
   const chroma = args.chroma && typeof args.chroma === "object" ? { ...(args.chroma as Record<string, unknown>) } : {};
   if (typeof chroma.matteColor === "string") chroma.matteColor = parseMatteColor(chroma.matteColor);
   const extractedDir = sitePath(tempRoot, step.out);
-  const result = await extractMatteGrid(source, extractedDir, {
+  // Call extractAssets directly (not the extractMatteGrid compat wrapper) so
+  // the full strategy/geometry/hybrid args pass through and ExtractError keeps
+  // its structured defects/qa for the asset-apply failure envelope.
+  const result = await extractAssets(source, extractedDir, {
+    strategy: (args.strategy as ExtractStrategy | undefined) ?? "chroma-grid",
     rows: Number(args.rows),
     cols: Number(args.cols),
     mapping,
+    subset: args.subset as readonly string[] | undefined,
     chroma: chroma as any,
+    geometry: args.geometry as any,
     normalize: args.normalize as any,
     qa: args.qa as any,
+    hybrid: args.hybrid as any,
     format: args.format as "png" | "webp" | undefined,
     quality: args.quality !== undefined ? Number(args.quality) : undefined,
     overwrite: true,
+    maxDimension: args.maxDimension !== undefined ? Number(args.maxDimension) : undefined,
   });
   const byKey = new Map(result.items.map((item) => [item.key, item]));
   for (const publication of publications) {
@@ -407,6 +420,22 @@ async function publishFilesWithRollback(
   }
 }
 
+/**
+ * Recover an ExtractError thrown by image-edit's extractAssets: instanceof
+ * first, then the duck-typed isExtractError fallback, walking the cause chain
+ * in case stageGridBundle (or a future wrapper) re-throws a wrapped error
+ * (design "Structured failure plumbing").
+ */
+function asExtractError(error: unknown): ExtractError | { message: string; defects: unknown[]; qa?: unknown } | undefined {
+  let current: unknown = error;
+  while (current !== undefined && current !== null) {
+    if (current instanceof ExtractError) return current;
+    if (isExtractError(current)) return current;
+    current = (current as { cause?: unknown }).cause;
+  }
+  return undefined;
+}
+
 export async function runStarterAssetApply(cwd: string, slotName: string | undefined, options: StarterOptions) {
   const target = outputDir(cwd, options.outputDir);
   await assertNoSymlinkPath(target, "", "Starter target");
@@ -437,11 +466,11 @@ export async function runStarterAssetApply(cwd: string, slotName: string | undef
     if ((await exists(finalPath)) && !options.overwrite) throw new UsageError(`Starter asset output exists: ${finalPath}. Pass --overwrite to replace.`);
   }
 
+  const gridStep = slot.kind === "bundle" ? slot.postprocess.find((step) => step.op === "extract-grid") : undefined;
   const tempRoot = await fs.mkdtemp(path.join(target, ".repochan-starter-"));
   try {
     let gridResult: GridApplyResult | undefined;
     if (slot.kind === "bundle") {
-      const gridStep = slot.postprocess.find((step) => step.op === "extract-grid");
       if (!gridStep) throw new Error(`Bundle slot '${slot.slot}' is missing its validated extract-grid step.`);
       gridResult = await stageGridBundle(slot, gridStep, sourceFiles[0], tempRoot);
     } else if (slot.postprocess?.length) {
@@ -505,6 +534,30 @@ export async function runStarterAssetApply(cwd: string, slotName: string | undef
       orderId: options.order,
       versionId: result.version.versionId,
     });
+  } catch (err) {
+    // Apply failure envelope (design "Structured failure plumbing", PR5): the
+    // apply layer owns slot/orderId context, so the structured JSON is printed
+    // here and main() skips its own printError via the sentinel.
+    const extractError = asExtractError(err);
+    if (extractError && options.json) {
+      const qa = extractError.qa as ExtractQaReport | undefined;
+      const declaredStrategy = gridStep?.args?.strategy;
+      printJson({
+        ok: false,
+        error: "ExtractError",
+        command: "starter asset-apply",
+        slot: slot.slot,
+        orderId: options.order,
+        resultVersion: result.version.versionId,
+        defects: extractError.defects,
+        strategyUsed: qa?.strategyUsed ?? (typeof declaredStrategy === "string" ? declaredStrategy : "chroma-grid"),
+        pipeline: qa?.pipeline ?? "v2",
+        ...(qa?.matte ? { matteColor: matteColorToHex(qa.matte.matte), matteColorSource: qa.matte.source } : {}),
+        qa: qa ?? null,
+      });
+      throw new ApplyFailurePrintedError(err);
+    }
+    throw err;
   } finally {
     await fs.rm(tempRoot, { recursive: true, force: true });
   }

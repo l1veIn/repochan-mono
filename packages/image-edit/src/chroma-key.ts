@@ -20,6 +20,19 @@ const DEFAULT_THRESHOLD = 28.0;
 const DEFAULT_SOFTNESS = 34.0;
 const DEFAULT_SPILL_SUPPRESSION = 0.85;
 
+/** Hard acceptance bound for decoded rasters (design doc §10): width, height, and total pixels. */
+export const DEFAULT_MAX_DIMENSION = 8192;
+
+/**
+ * Throw when a decoded raster exceeds the max dimension guard.
+ * Applied at every raw decode entry to stop oversized PNGs from OOMing the agent.
+ */
+export function assertMaxDimensions(width: number, height: number, maxDimension = DEFAULT_MAX_DIMENSION): void {
+  if (width > maxDimension || height > maxDimension || width * height > maxDimension * maxDimension) {
+    throw new Error(`image exceeds max dimension ${maxDimension}`);
+  }
+}
+
 // ── Types ──────────────────────────────────────────────────────────────────
 
 export type MatteColor = [number, number, number]; // [r, g, b] 0-255
@@ -27,12 +40,26 @@ export type MatteColor = [number, number, number]; // [r, g, b] 0-255
 export type ChromaKeyOptions = {
   /** Matte (background) color. If omitted, auto-sampled from image corners. Default: auto. */
   matteColor?: MatteColor | "auto";
-  /** Distance below which a pixel is fully transparent. Default 28.0. */
+  /** Distance below which a pixel is fully transparent. Default 28.0 (v1) / 96 (v2). */
   threshold?: number;
-  /** Smooth transition band above threshold. Default 34.0. */
+  /** Smooth transition band above threshold. Default 34.0. v1 only, ignored by v2. */
   softness?: number;
-  /** Edge spill suppression strength 0–1. Default 0.85. */
+  /** Edge spill suppression strength 0–1. Default 0.85. v1 only, ignored by v2. */
   spillSuppression?: number;
+  /** Chroma pipeline version. Default "v2" (PR7); "v1" is the byte-frozen legacy escape hatch. */
+  pipeline?: "v1" | "v2";
+  /** v2 only: in-band blend distance ceiling. Default 180. */
+  fringeThreshold?: number;
+  /** v2 only: minimum key tint for blend/spill classes. Default 18. */
+  fringeDelta?: number;
+  /** v2 only: Chebyshev depth reach for soft-alpha unmix. Default 4. */
+  unmixReach?: number;
+  /** v2 only: max trapped-spill cluster size as fraction of subject pixels. Default 0.005. */
+  spillMaxFraction?: number;
+  /** Color space. "ycbcr" is reserved and currently throws Unsupported. */
+  mode?: "rgb" | "ycbcr";
+  /** Max width/height (and total pixel bound) guard. Default 8192. */
+  maxDimension?: number;
 };
 
 export type ChromaKeyResult = {
@@ -66,8 +93,8 @@ function smoothstep(t: number): number {
  * Mode is more robust than median when the subject bleeds into the corners —
  * background pixels still dominate the frequency count.
  */
-export function estimateMatteColor(data: Buffer, width: number, height: number, channels: number): MatteColor {
-  const sample = Math.min(width, height, 32);
+export function estimateMatteColor(data: Buffer, width: number, height: number, channels: number, cornerSample = 32): MatteColor {
+  const sample = Math.min(width, height, cornerSample);
   const binSize = 8; // quantize to bins of 8 (0-7→0, 8-15→8, … 248-255→248)
   const binCount = Math.ceil(256 / binSize);
 
@@ -233,6 +260,38 @@ export async function chromaKeyImage(
   const raw = await sharp(imagePath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const { data, info } = raw;
   const { width, height, channels } = info;
+  assertMaxDimensions(width, height, options.maxDimension ?? DEFAULT_MAX_DIMENSION);
+
+  // v2 (the PR7 default) and reserved modes delegate to the dual-track
+  // pipeline. Dynamic import keeps chroma-key.ts ↔ chroma-pipeline.ts
+  // acyclic; the explicit v1 escape-hatch path below stays byte-identical.
+  const pipeline = options.pipeline ?? "v2";
+  if (pipeline === "v2" || (options.mode && options.mode !== "rgb")) {
+    const { runChromaPipeline } = await import("./chroma-pipeline.js");
+    const result = runChromaPipeline(data, width, height, channels, {
+      pipeline,
+      matteColor: options.matteColor,
+      threshold: options.threshold,
+      fringeThreshold: options.fringeThreshold,
+      fringeDelta: options.fringeDelta,
+      unmixReach: options.unmixReach,
+      spillMaxFraction: options.spillMaxFraction,
+      mode: options.mode,
+      maxDimension: options.maxDimension,
+    });
+    await fs.mkdir(path.dirname(outPath), { recursive: true });
+    await sharp(result.data, { raw: { width, height, channels: 4 } }).png().toFile(outPath);
+    const sourceFile = imagePath.split(/[\\/]/).pop()!;
+    return {
+      sourceFile,
+      outFile: outPath,
+      matteColor: result.matteColor,
+      matteColorSource: result.matteColorSource,
+      threshold: options.threshold ?? 96,
+      softness,
+      spillSuppression,
+    };
+  }
 
   // Resolve matte color: provided or auto-sampled.
   let matte: MatteColor;

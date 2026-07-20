@@ -49,3 +49,6 @@ constraints:
   - "no sticker, prop, effect, shadow, or decoration spans multiple cells"
   - "no text, letters, numbers, punctuation, labels, captions, speech bubbles, logos, signatures, or watermarks"
   - "no borders, frames, dividers, grid lines, cell boxes, scenery, or textured backgrounds"
+  - "keep a safe margin of about 10% of the cell size inside every cell; sticker subjects including props and effects stay within the inner safe area"
+  - "choose the matte hue by distance from the subject: green matte for pink/purple-dominant subjects, magenta for green-dominant subjects, green for deep-red-dominant subjects"
+  - "do not reproduce layout-guide boxes, lines, crosshairs, or cell labels/numbers from any reference guide image"
