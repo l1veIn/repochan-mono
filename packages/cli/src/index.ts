@@ -16,6 +16,7 @@ import * as starter from "./commands/starter.js";
 import * as starterSync from "./commands/starter-sync.js";
 import * as image from "./commands/image.js";
 import * as dev from "./commands/dev.js";
+import * as browse from "./commands/browse.js";
 import { recordError, hasRecorded } from "./lib/dev-telemetry.js";
 
 // Version: semver from package.json + git hash suffix (shared with register.ts
@@ -306,6 +307,13 @@ cli.command("image <sub>", "Image generation, configure, status, probe, and edit
       default: throw new Error(`Unknown image subcommand: ${sub}. Use: gen | configure | status | probe | edit`);
     }
   });
+
+// ---- browse (local protocol viewer) ----
+cli.command("browse", "Open the local .repochan/ protocol viewer (read-only)")
+  .option("--port <n>", "Port to bind on 127.0.0.1 (default 4173, falls back to a free port)")
+  .option("--no-open", "Do not open the browser automatically")
+  .option("--json", "Machine-readable JSON output")
+  .action(async (opts: any) => { await browse.runBrowse(process.cwd(), opts); });
 
 // ---- dev (local-only tooling; telemetry opt-in via REPOCHAN_DEV_TELEMETRY) ----
 cli.command("dev <sub>", "Local dev tooling (telemetry / diagnostics)")

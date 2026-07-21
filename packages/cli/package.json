@@ -30,6 +30,7 @@
   ],
   "dependencies": {
     "@inquirer/prompts": "^7.0.0",
+    "@repochan/browse": "workspace:*",
     "@repochan/core": "workspace:*",
     "@repochan/image-edit": "workspace:*",
     "@repochan/image-gen": "workspace:*",

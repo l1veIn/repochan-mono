@@ -5,6 +5,7 @@ export {
   stampForPath,
   protocolRoot,
   root,
+  assertNoProtocolSymlinkPath,
   stripProtocolPrefix,
   safeProtocolPath,
   exists,

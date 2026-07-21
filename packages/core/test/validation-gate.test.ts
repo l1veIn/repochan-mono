@@ -187,7 +187,7 @@ describe("unified validation layer", () => {
 
     it("keeps the public protocol module on its explicit safe allowlist", () => {
       expect(Object.keys(publicProtocol).sort()).toEqual([
-        "PROTOCOL_DIR", "exists", "hasInterview", "initProtocol", "inspectProtocol", "listJsonFiles",
+        "PROTOCOL_DIR", "assertNoProtocolSymlinkPath", "exists", "hasInterview", "initProtocol", "inspectProtocol", "listJsonFiles",
         "orderDir", "orderJsonPath", "orderReferencesDir", "orderVersionDir", "orderVersionsDir",
         "personaCandidatePath", "personaCandidatesDir", "personaReviewPath", "personaReviewVersionsDir",
         "protocolRoot", "protocolVersionPath", "readAnalysisArtifact", "readInterviewArtifact", "readJson",

@@ -15,11 +15,12 @@
 - **`packages/image-edit`** is a library: local pixel ops (slice / bg-remove / chroma-key / compress / resize / favicon / GIF). Zero network, zero credentials, no protocol awareness.
 - **`packages/templates`** is pure YAML data for asset templates. Agents consume templates only via `repochan template list|get`.
 - **`packages/starters`** is pure scaffold data: complete Astro/Tailwind project directories consumed via `repochan starter pull --starter <id>`. No build, no code exports. Each starter is a subdirectory with its own Astro `package.json` and sole manifest at `repochan/starter.json`. Mirrors `@repochan/templates` structure but holds whole-site scaffolds, not prompt YAML.
+- **`packages/browse`** is the local read-only protocol viewer behind `repochan browse`: a Vite+React SPA plus a thin `node:http` server bound to `127.0.0.1`. All `.repochan/` reads go through `@repochan/core` (no parallel schema, no writes); starter-source resolution stays in the CLI and is injected as plain data.
 
 ## Dependency direction (must stay acyclic)
 
 ```text
-cli → core | skill | image-gen | image-edit | templates
+cli → core | skill | image-gen | image-edit | templates | browse → core
 ```
 
 `@repochan/starters` is an independent publishable, not a CLI dependency: `repochan starter sync` downloads it on demand into `~/.repochan/starters/` (resolution: `--from` > `REPOCHAN_STARTERS_DIR` > cache > bundled package when present in dev).
