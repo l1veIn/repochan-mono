@@ -1,63 +1,112 @@
-# RepoChan
+<div align="center">
 
-[English](./README.md) · [架构说明](./ARCHITECTURE.md)
+<img src="./docs/assets/readme/banner.jpg" alt="RepoChan — 工作台前的人设看板娘" width="100%">
 
-**把任意 git 仓库变成鲜活的看板娘人格与一致的视觉品牌**——设定集、图标、贴纸、海报、落地页——由**你自带的** coding agent 驱动。
+<br/>
 
-你已经在用 coding agent（Claude Code、Codex、Pi、Cursor、Hermes、……）。RepoChan 给这个 agent 一条可运行的创意管线：分析 → 人设 → 美术指导 → 绘制 → 落地页。硬约束在代码里（schema、状态机、依赖门）；创作判断在 skill 里。**不内嵌任何 runtime**——你的 agent 负责编排，RepoChan 负责追踪。
+**把任何 git 仓库变成有生命力的吉祥物人设和统一的视觉品牌** ——
+
+角色设定集、图标、贴纸、海报、落地页——由*你自己的* coding agent 驱动。
+
+<br/>
+
+[![npm](https://img.shields.io/npm/v/repochan?color=38BDF8&label=npm)](https://www.npmjs.com/package/repochan)
+[![license](https://img.shields.io/badge/license-MIT-111827)](./LICENSE)
+[![node](https://img.shields.io/badge/node-%E2%89%A520-34D399)](https://nodejs.org)
+[![skills](https://img.shields.io/badge/agent-BYO-F9A8D4)](./packages/skill/)
+
+**[English](./README.md) · [中文文档](./README_zh.md) · [架构](./ARCHITECTURE.md)**
+
+</div>
 
 ---
 
-## 它怎么工作
+你已经在用某个 coding agent（Claude Code、Codex、Pi、Cursor、Hermes……）。RepoChan 交给它一条创意产线：**分析 → 人设 → 美术指导 → 绘制 → 落地页**。硬规则在代码里（schema、状态机、依赖门禁），创意判断在 skill 里。**没有内嵌运行时**——你的 agent 负责编排，RepoChan 负责记账。
 
-你对**自己的 agent** 说话。向导 skill 调度各团队：
+## 它是怎么工作的
 
-```text
-① 分析师     → analysis
-② 访谈〔可选〕 → interview
-③ 创意团队   → persona
-   ⏸ 检查点：确认人设
-④ 美术总监   → 全部订单（foundation + 下游）
-⑤ 画师       → 先 foundation，再带参考图做下游
-   ⏸ 检查点：确认设定集封面
-⑥ 页面设计   → 落地页 / 部署准备
-   ⏸ 检查点：部署前
+你跟**你的 agent**对话，向导 skill 负责调度团队：
+
+```mermaid
+flowchart LR
+  A[① 分析师<br/>analysis] --> B[② 访谈者<br/>interview · 可选]
+  B --> C[③ 创意团队<br/>persona]
+  C --> P1{{⏸ 确认人设}}
+  P1 --> D[④ 美术总监<br/>全部订单]
+  D --> E[⑤ 画师<br/>设定集 → 下游]
+  E --> P2{{⏸ 确认设定集}}
+  P2 --> F[⑥ 页面设计<br/>落地页]
+  F --> P3{{⏸ 部署前}}
 ```
 
 | 模式 | 何时 | 行为 |
 |------|------|------|
-| **向导（默认）** | 「做个看板娘和网站」 | 串全流程，检查点停下 |
-| **yolo** | 你明确说 `yolo` | 在已授权范围采用默认创意决策；外部写仍需明确授权 |
-| **非交互执行** | CI / 无 TTY | 自动选择本地可逆决策；在未授权的外部写之前停止 |
-| **逐团队（高级）** | 「只做 analysis」/「重画这张」 | 只加载对应团队 skill |
+| **向导（默认）** | 「给我做吉祥物和网站」 | 全流程，检查点停下确认 |
+| **yolo** | 你明确说 `yolo` | 授权范围内用默认创意决策；外部写仍需明确授权 |
+| **非交互** | CI / 无 TTY | 自动选本地可逆决策；未授权的外部写之前停 |
+| **单团队（高级）** | 「只做分析」「重画这张单」 | 单个团队 skill |
 
-**视觉一致性**靠 **foundation sheet（设定集封面）** 锚定。下游资产都引用它，从图标到落地页品牌保持一致。
+**视觉一致性**由**设定集（foundation sheet）**锚定：下游资产全部引用它，从 icon 到落地页保持同一角色。每个角色产出的是 `.repochan/` 下 schema 校验过的版本化产物——整个创意状态都能 `cat`、`diff`、`git blame`。
 
-每个角色产出一份经 schema 校验、版本化、落在 `.repochan/` 下的 artifact。没有任何东西被手写进协议树——你的 agent 调 CLI 子命令，RepoChan 校验并落盘。整个创意状态都能 `cat`、`diff`、`git blame`。
+---
+
+## 狗粮：我们自己的品牌就是 RepoChan 做的
+
+下面的一切都是这条产线为 RepoChan 自己生产的——人设、设定集、网格、抠图、落地 starter。
+
+<table>
+  <tr>
+    <td align="center"><img src="./packages/starters/landing-neobrutal-zine/public/assets/stickers/sticker-0.webp" width="96"><br/><sub>欢迎</sub></td>
+    <td align="center"><img src="./packages/starters/landing-neobrutal-zine/public/assets/stickers/sticker-1.webp" width="96"><br/><sub>搜索中</sub></td>
+    <td align="center"><img src="./packages/starters/landing-neobrutal-zine/public/assets/stickers/sticker-5.webp" width="96"><br/><sub>成功</sub></td>
+    <td align="center"><img src="./packages/starters/landing-neobrutal-zine/public/assets/webstates/state-4.webp" width="96"><br/><sub>错误</sub></td>
+    <td align="center"><img src="./packages/starters/landing-neobrutal-zine/public/assets/webstates/state-8.webp" width="96"><br/><sub>惬意</sub></td>
+    <td align="center"><img src="./packages/starters/character-game-page/public/assets/hero-cutout.webp" width="96"><br/><sub>抠图</sub></td>
+  </tr>
+</table>
+
+网格图在统一 matte 上以 layout-guide 为构图参考生成，再由我们自己的 chroma-grid 管线切分（soft-alpha unmix、质心归格、fail-loud QA）——同样的 `repochan image edit` 命令就随 CLI 发布。
+
+### Starter 画廊
+
+完整可本地化的 Astro 站点——slot、locale 文件、订单溯源资产齐备。任意 `repochan starter pull`：
+
+<table>
+  <tr>
+    <td align="center"><a href="./packages/starters/landing-swiss-type"><img src="./packages/starters/landing-swiss-type/repochan/previews/desktop.webp" width="220"><br/><sub>swiss-type</sub></a></td>
+    <td align="center"><a href="./packages/starters/landing-memphis"><img src="./packages/starters/landing-memphis/repochan/previews/desktop.webp" width="220"><br/><sub>memphis</sub></a></td>
+    <td align="center"><a href="./packages/starters/landing-glitch-os"><img src="./packages/starters/landing-glitch-os/repochan/previews/desktop.webp" width="220"><br/><sub>glitch-os</sub></a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="./packages/starters/landing-solarpunk"><img src="./packages/starters/landing-solarpunk/repochan/previews/desktop.webp" width="220"><br/><sub>solarpunk</sub></a></td>
+    <td align="center"><a href="./packages/starters/landing-museum"><img src="./packages/starters/landing-museum/repochan/previews/desktop.webp" width="220"><br/><sub>museum</sub></a></td>
+    <td align="center"><a href="./packages/starters/landing-toy-city"><img src="./packages/starters/landing-toy-city/repochan/previews/desktop.webp" width="220"><br/><sub>toy-city</sub></a></td>
+  </tr>
+</table>
+
+……另有 14 个，见 [starter 目录](./packages/starters/README.md)。
 
 ---
 
 ## 试试看
 
-**前置条件：** Node.js ≥ 20、你已经在用的 coding agent、（出图需要）OpenAI-compatible 的 images endpoint。
+**前置要求**：Node.js ≥ 20、一个你已在用的 coding agent、（生成图像需要）一个 OpenAI 兼容的 images endpoint。
 
 ```bash
-npm install -g repochan
-repochan setup                 # 把 skill 装进你的 agent
-# repochan image configure       # 单独配置图像 endpoint 凭证
+npm install -g repochan && repochan setup          # 把 skill 装进你的 agent
+# repochan image configure       # 配置图像端点凭证
 ```
 
-随后在项目中打开 coding agent，输入 `/repochan` 启动 RepoChan 流程。试试：
+然后在项目里打开你的 coding agent，输入 `/repochan` 运行 RepoChan 工作流。试试：
 
-> 「给这个仓库做个看板娘和全套品牌资产」  
-> 「yolo，全套搞定」  
+> 「给这个仓库一个吉祥物和全套品牌资产」  
+> 「yolo，全流程」  
 > 「只分析这个仓库」
 
-升级 CLI 后请再次运行 `repochan setup` 来刷新随包分发的 skills；若需要刷新，`repochan status` 会报告版本漂移。
+升级 CLI 后再跑一次 `repochan setup` 刷新随包 skill；`repochan status` 会在需要刷新时提示版本漂移。
 
----
-
-## 从源码构建（贡献者）
+<details>
+<summary><b>从源码构建（贡献者）</b></summary>
 
 ```bash
 pnpm install
@@ -67,6 +116,8 @@ pnpm test                     # 全量 monorepo 测试
 ```
 
 包结构、依赖方向、发布合同见 [`ARCHITECTURE.md`](./ARCHITECTURE.md)。
+
+</details>
 
 ---
 
