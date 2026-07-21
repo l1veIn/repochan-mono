@@ -1,0 +1,214 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "zh",
+  "meta": {
+    "title": "RepoChan — 把仓库变成可交付的品牌规格",
+    "description": "RepoChan 是一套 CLI 与 .repochan/ 协议：把 git 仓库转译为版本化、可追溯的品牌资产——人设、设定集、贴纸、海报、落地页。"
+  },
+  "content": {
+    "masthead": {
+      "wordmark": "RepoChan",
+      "protocol": "repochan · protocol v1",
+      "docIndex": "DOC / 01",
+      "iconAlt": "RepoChan 图标"
+    },
+    "hero": {
+      "index": "01",
+      "kicker": "CLI + PROTOCOL · AGENT BYO",
+      "lines": [
+        "把仓库变成",
+        "可交付的",
+        "品牌规格。"
+      ],
+      "sub": "工具不思考。Agent 做决定。产物全部有版本。",
+      "installCmd": "npm install -g repochan",
+      "copyLabel": "复制",
+      "copiedLabel": "已复制",
+      "footnote": "静态可读 · 无 JS 信息完整 · 字 ≥ 70% / 图 ≤ 30%",
+      "figCaption": "Fig. 01 — 角色 cutout B · 开放手掌邀约 · ord-cutout-001（完整入画版）",
+      "figAlt": "RepoChan 角色 cutout：身体前倾，开放手掌伸向观众"
+    },
+    "typeTrack": {
+      "items": [
+        "PROTOCOL",
+        "PERSONA",
+        "PAINT",
+        "PAGE"
+      ]
+    },
+    "thesis": {
+      "index": "02",
+      "title": "定义",
+      "note": "三段极短定义。名词化。无修饰。",
+      "items": [
+        {
+          "no": "02.1",
+          "term": "WHAT",
+          "def": "一套 CLI 与 .repochan/ 协议目录：扫描 git 仓库，输出品牌资产的结构化规格。"
+        },
+        {
+          "no": "02.2",
+          "term": "HOW",
+          "def": "确定性扫描在前，外部 agent 编排在后。CLI 只做协议读写，不做创意判断。"
+        },
+        {
+          "no": "02.3",
+          "term": "OUTPUT",
+          "def": "人设、设定集、贴纸、海报、落地页。每个产物有订单、有版本、可追溯。"
+        }
+      ]
+    },
+    "pipeline": {
+      "index": "03",
+      "title": "流水线规格",
+      "note": "六步。每步一条命令，一份协议产物。",
+      "head": {
+        "step": "步骤",
+        "input": "输入",
+        "output": "输出",
+        "command": "命令"
+      },
+      "rows": [
+        {
+          "no": "03.1",
+          "name": "初始化",
+          "input": "git 仓库",
+          "output": ".repochan/ 协议目录",
+          "cmd": "repochan init"
+        },
+        {
+          "no": "03.2",
+          "name": "分析",
+          "input": "源码 · README · 提交史",
+          "output": "分析报告",
+          "cmd": "repochan analysis"
+        },
+        {
+          "no": "03.3",
+          "name": "访谈",
+          "input": "分析报告",
+          "output": "访谈报告",
+          "cmd": "repochan interview create"
+        },
+        {
+          "no": "03.4",
+          "name": "人设",
+          "input": "分析 + 访谈",
+          "output": "吉祥物人设",
+          "cmd": "repochan persona create"
+        },
+        {
+          "no": "03.5",
+          "name": "绘制",
+          "input": "人设 + 资产模板",
+          "output": "设定集 / 贴纸 / 海报",
+          "cmd": "repochan order create · image gen"
+        },
+        {
+          "no": "03.6",
+          "name": "装配",
+          "input": "资产 + 文案",
+          "output": "落地页站点",
+          "cmd": "repochan starter pull"
+        }
+      ]
+    },
+    "artifacts": {
+      "index": "04",
+      "title": "产物索引",
+      "note": "本仓库的真实订单产物。按订单编号溯源。",
+      "head": {
+        "item": "产物",
+        "spec": "规格",
+        "source": "来源"
+      },
+      "rows": [
+        {
+          "no": "04.1",
+          "item": "Foundation Sheet",
+          "spec": "1024² 角色设定集",
+          "source": "ord-foundation-001"
+        },
+        {
+          "no": "04.2",
+          "item": "Stickers ×9",
+          "spec": "2K 网格 + 640px 透明 tile",
+          "source": "ord-sticker-001"
+        },
+        {
+          "no": "04.3",
+          "item": "Webstates ×9",
+          "spec": "2K 网格 + 640px 透明 tile",
+          "source": "ord-webstates-001"
+        },
+        {
+          "no": "04.4",
+          "item": "Studio Poster",
+          "spec": "1536×1024 场景海报",
+          "source": "ord-poster-001"
+        },
+        {
+          "no": "04.5",
+          "item": "Icon Set",
+          "spec": "favicon / touch / 192 / 512",
+          "source": "ord-icon-001"
+        },
+        {
+          "no": "04.6",
+          "item": "Character Cutout",
+          "spec": "透明 WebP 立绘",
+          "source": "ord-cutout-001"
+        },
+        {
+          "no": "04.7",
+          "item": "Props Tiles",
+          "spec": "道具裁切 tile 组",
+          "source": "ord-props-001"
+        },
+        {
+          "no": "04.8",
+          "item": "Landing Starters ×4",
+          "spec": "Astro 站点脚手架",
+          "source": "packages/starters"
+        }
+      ]
+    },
+    "evidence": {
+      "index": "05",
+      "title": "证据",
+      "note": "真实 dogfood 产物。非装饰图库。",
+      "figures": [
+        {
+          "tag": "Fig. A",
+          "alt": "RepoChan 角色设定集：主视觉、表情、色板与关键道具",
+          "caption": "Fig. A — foundation sheet · ord-foundation-001 · 角色一致性锚点"
+        },
+        {
+          "tag": "Fig. B",
+          "alt": "Sugar Riff 工作室场景海报：仓库酱在数位板前作画",
+          "caption": "Fig. B — studio poster · ord-poster-001 · 世界观场景"
+        }
+      ]
+    },
+    "cta": {
+      "index": "06",
+      "title": "开始使用",
+      "cmd": "npm install -g repochan && repochan setup",
+      "copyLabel": "复制命令",
+      "copiedLabel": "已复制",
+      "docsLabel": "文档与源码 →",
+      "fine": "setup 把技能装进你的 agent。之后每一步都是一条 repochan 子命令。"
+    },
+    "colophon": {
+      "lines": [
+        "字体：Inter Tight / Noto Sans SC / JetBrains Mono。",
+        "网格：12 栏 · 4/8px 基线 · 桌面边距 ≥ 64px。",
+        "禁渐变 · 禁玻璃 · 禁厚投影 · 禁纸纹颗粒。"
+      ],
+      "cutoutAlt": "仓库酱挥手小立绘",
+      "cutoutCaption": "仓库酱 · 页脚点缀出场 · ≤120px",
+      "localeSwitchLabel": "English",
+      "copyright": "© 2026 RepoChan · MIT"
+    }
+  }
+}

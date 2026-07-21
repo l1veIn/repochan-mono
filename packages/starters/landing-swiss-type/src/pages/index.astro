@@ -1,0 +1,29 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import Masthead from "../components/Masthead.astro";
+import HeroType from "../components/HeroType.astro";
+import TypeTrack from "../components/TypeTrack.astro";
+import Thesis from "../components/Thesis.astro";
+import PipelineSpec from "../components/PipelineSpec.astro";
+import ArtifactIndex from "../components/ArtifactIndex.astro";
+import Evidence from "../components/Evidence.astro";
+import Cta from "../components/Cta.astro";
+import Colophon from "../components/Colophon.astro";
+import { getContent } from "../lib/site";
+
+const t = getContent("zh");
+---
+
+<SiteLayout title={t.meta.title} description={t.meta.description} locale="zh">
+  <Masthead content={t.masthead} />
+  <main>
+    <HeroType content={t.hero} />
+    <TypeTrack content={t.typeTrack} />
+    <Thesis content={t.thesis} />
+    <PipelineSpec content={t.pipeline} />
+    <ArtifactIndex content={t.artifacts} />
+    <Evidence content={t.evidence} />
+    <Cta content={t.cta} />
+  </main>
+  <Colophon content={t.colophon} locale="zh" />
+</SiteLayout>

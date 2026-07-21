@@ -34,7 +34,7 @@
       "kind": "scalar",
       "slot": "hero-scene",
       "required": true,
-      "reference": "repochan/references/hero-orchard-scene.png",
+      "reference": "repochan/references/hero-orchard-scene.webp",
       "output": "public/assets/hero-orchard.webp",
       "description": "Sunrise orchard hero scene with the project character gardening among young trees — baked L1+L2 landscape poster (3:2) with a soft morning-sky safe zone on the left/top for live title text. Reference is the raw 4K-class scene master.",
       "order": {
@@ -89,7 +89,7 @@
       "kind": "scalar",
       "slot": "cutout-gardener",
       "required": true,
-      "reference": "repochan/references/gardener-cutout-matte.png",
+      "reference": "repochan/references/gardener-cutout-matte.webp",
       "output": "public/assets/cutout-gardener.webp",
       "description": "Full-body die-cut cutout of the character as a gardener watering a small sapling — the Sprout section's independent L2, transparent webp produced by chroma-key + compress. Reference is the raw matte master (2:3).",
       "order": {
@@ -249,7 +249,7 @@
       "kind": "scalar",
       "slot": "cta-cutout",
       "required": true,
-      "reference": "repochan/references/cta-cutout-matte.png",
+      "reference": "repochan/references/cta-cutout-matte.webp",
       "output": "public/assets/cutout-wave.webp",
       "description": "Waving cutout cameo on the Share Table CTA — transparent webp produced by chroma-key + compress. Reference is the raw matte master (1:1).",
       "order": {
@@ -309,7 +309,7 @@
       "kind": "bundle",
       "slot": "stickers",
       "required": true,
-      "reference": "repochan/references/stickers-grid.png",
+      "reference": "repochan/references/stickers-grid.webp",
       "publications": [
         {
           "key": "welcome",

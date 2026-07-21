@@ -1,0 +1,26 @@
+---
+import { assets } from "../lib/site";
+import type { StarringContent } from "../lib/i18n/types";
+
+type Props = { content: StarringContent };
+const { content } = Astro.props;
+---
+
+<section class="card starring" id="starring" aria-label={`${content.role} ${content.name}`}>
+  <div class="reveal starring__stage">
+    <img
+      src={assets.starCutout.src}
+      width={assets.starCutout.width}
+      height={assets.starCutout.height}
+      alt={content.alt}
+      loading="lazy"
+    />
+  </div>
+  <div class="reveal">
+    <p class="starring__role">{content.role} · {content.roleLatin}</p>
+    <h2 class="starring__name">{content.name}</h2>
+    <p class="starring__latin">{content.latin}</p>
+    <p class="starring__credit">{content.credit}</p>
+    <p class="starring__note">{content.note}</p>
+  </div>
+</section>

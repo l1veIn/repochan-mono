@@ -1,0 +1,61 @@
+---
+import "../styles/global.css";
+import { site, assets, alternatePath, buildCssVars, type Locale } from "../lib/site";
+
+type Props = {
+  title: string;
+  description: string;
+  locale: Locale;
+  brand: string;
+  skip: string;
+  localeSwitch: string;
+};
+
+const { title, description, locale, brand, skip, localeSwitch } = Astro.props;
+const cssVars = buildCssVars();
+---
+
+<!doctype html>
+<html lang={locale === "zh" ? "zh-CN" : "en"}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content={site.theme.base} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={assets.og.src} />
+    <meta property="og:locale" content={locale === "zh" ? "zh_CN" : "en_US"} />
+    <link rel="alternate" hreflang={locale === "zh" ? "zh-CN" : "en"} href={locale === "zh" ? "/" : "/en/"} />
+    <link rel="alternate" hreflang={locale === "zh" ? "en" : "zh-CN"} href={alternatePath(locale)} />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Serif+SC:wght@400;600;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style is:inline set:html={cssVars} />
+  </head>
+  <body>
+    <div class="letterbox letterbox--top">
+      <span class="letterbox__brand">{brand}</span>
+      <nav class="letterbox__controls" aria-label="frame">
+        <a class="letterbox__link" href="#end-card">{skip}</a>
+        <a class="letterbox__link" href={alternatePath(locale)} hreflang={locale === "zh" ? "en" : "zh-CN"}>{localeSwitch}</a>
+      </nav>
+    </div>
+    <slot />
+    <div class="letterbox letterbox--bottom" aria-hidden="true">
+      <span class="letterbox__mark"></span>
+    </div>
+    <script>
+      import "../lib/motion";
+    </script>
+  </body>
+</html>

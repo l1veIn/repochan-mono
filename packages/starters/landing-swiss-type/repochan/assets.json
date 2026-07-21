@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "repochan.starter-assets.v1",
+  "assets": {
+    "hero-cutout": {
+      "kind": "scalar",
+      "src": "/assets/cutout-b-full.webp",
+      "status": "source",
+      "orderId": "ord-cutout-001"
+    },
+    "footer-cutout": {
+      "kind": "scalar",
+      "src": "/assets/cutout-wave.webp",
+      "status": "source",
+      "orderId": "ord-cutout-001"
+    },
+    "icon": {
+      "kind": "scalar",
+      "src": "/assets/icon.webp",
+      "status": "source",
+      "orderId": "ord-icon-001"
+    },
+    "foundation": {
+      "kind": "scalar",
+      "src": "/assets/evidence/foundation-sheet.jpg",
+      "status": "source",
+      "orderId": "ord-foundation-001"
+    },
+    "studio-poster": {
+      "kind": "scalar",
+      "src": "/assets/evidence/studio-poster.jpg",
+      "status": "source",
+      "orderId": "ord-poster-001"
+    }
+  }
+}

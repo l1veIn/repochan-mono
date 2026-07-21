@@ -1,0 +1,34 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import StudioCard from "../../components/StudioCard.astro";
+import TitleCard from "../../components/TitleCard.astro";
+import Starring from "../../components/Starring.astro";
+import CreditsRoll from "../../components/CreditsRoll.astro";
+import SceneStills from "../../components/SceneStills.astro";
+import TaglineCard from "../../components/TaglineCard.astro";
+import EndCard from "../../components/EndCard.astro";
+import PostCredits from "../../components/PostCredits.astro";
+import { getContent } from "../../lib/site";
+
+const t = getContent("en");
+---
+
+<SiteLayout
+  title={t.meta.title}
+  description={t.meta.description}
+  locale="en"
+  brand={t.frame.brand}
+  skip={t.frame.skip}
+  localeSwitch={t.frame.localeSwitch}
+>
+  <main>
+    <StudioCard content={t.studio} />
+    <TitleCard content={t.title} />
+    <Starring content={t.starring} />
+    <CreditsRoll content={t.credits} />
+    <SceneStills content={t.stills} />
+    <TaglineCard content={t.tagline} />
+    <EndCard content={t.end} />
+    <PostCredits content={t.postCredits} />
+  </main>
+</SiteLayout>

@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "Repo-Chan · A Film by a Multi-Agent Crew | RepoChan",
+    "description": "RepoChan turns a git repo into a complete brand kit: persona, illustrations, stickers, landing pages. This page rolls the opening credits of its multi-agent crew."
+  },
+  "content": {
+    "htmlLang": "en",
+    "frame": {
+      "brand": "REPOCHAN · A MULTI-AGENT PRODUCTION",
+      "skip": "Skip intro",
+      "localeSwitch": "中文"
+    },
+    "studio": {
+      "overline": "SUGAR RIFF",
+      "line": "PRESENTS",
+      "co": "in association with the REPOCHAN CREW"
+    },
+    "title": {
+      "kicker": "A FILM MADE BY A MULTI-AGENT CREW",
+      "main": "Repo-Chan",
+      "latin": "仓 库 酱",
+      "sub": "Give your repository a soul"
+    },
+    "starring": {
+      "role": "Starring",
+      "roleLatin": "主演",
+      "name": "Repo-Chan",
+      "latin": "仓库酱",
+      "credit": "The RepoChan mascot · in every scene",
+      "alt": "Full-body cutout of Repo-Chan: blue-haired mascot holding a clapperboard prop",
+      "note": "All footage in this picture was shot (drawn) by the generation pipeline"
+    },
+    "credits": {
+      "title": "Cast & Crew",
+      "note": "演职员表",
+      "rows": [
+        { "role": "Story / Worldbuilding", "name": "repochan-persona · World Architect" },
+        { "role": "Character Design", "name": "repochan-persona · Character Designer" },
+        { "role": "Art Direction", "name": "repochan-art-director" },
+        { "role": "Cinematography", "name": "repochan-painter" },
+        { "role": "Editing / Assembly", "name": "repochan-page-designer" },
+        { "role": "Web Production Design", "name": "repochan-web-designer" },
+        { "role": "Script Consultant", "name": "repochan-interviewer" },
+        { "role": "Research", "name": "repochan-analysis" }
+      ]
+    },
+    "stills": {
+      "title": "Scene Stills",
+      "note": "剧照",
+      "figures": [
+        { "tag": "STILL 01", "caption": "The foundation sheet · character and world in one take", "alt": "Repo-Chan foundation sheet: expressions, poses and props on one page" },
+        { "tag": "STILL 02", "caption": "The studio · production pipeline on camera", "alt": "Wide shot of Repo-Chan's studio: easels, a terminal and scattered drafts" },
+        { "tag": "STILL 03", "caption": "The poster · promotional material", "alt": "RepoChan poster: Repo-Chan with the brand key visual" }
+      ]
+    },
+    "tagline": {
+      "line": "Turn a git repository into a complete brand kit.",
+      "sub": "Persona, illustrations, stickers, landing pages — delivered in a single screening."
+    },
+    "end": {
+      "overline": "Lights up",
+      "title": "Roll Camera",
+      "cmd": "npm install -g repochan && repochan setup",
+      "copyLabel": "Copy",
+      "copiedLabel": "Copied",
+      "githubLabel": "GitHub ↗",
+      "fine": "RepoChan · MIT · Your repo, your crew",
+      "logoAlt": "RepoChan Repo-Chan icon"
+    },
+    "postCredits": {
+      "kicker": "POST-CREDITS SCENE",
+      "line": "No repositories were harmed in the making of this picture.",
+      "sub": "(One was forked repeatedly.)",
+      "stickerAlt": "Repo-Chan sticker"
+    }
+  }
+}

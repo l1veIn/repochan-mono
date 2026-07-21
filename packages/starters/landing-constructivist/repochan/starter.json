@@ -81,7 +81,7 @@
       "kind": "scalar",
       "slot": "symbol-cutout-a",
       "required": true,
-      "reference": "repochan/references/cutout-a-matte.png",
+      "reference": "repochan/references/cutout-a-matte.webp",
       "output": "public/assets/cutout-a-full.webp",
       "description": "Full-body die-cut cutout A (dynamic full-frame pose) — the poster 01 symbol, silhouetted at runtime by CSS mask (red/halftone), never re-cropped. Slot declares the complete in-frame cutout; transparent webp produced by chroma-key + compress. Reference is the raw matte master (2:3).",
       "order": {
@@ -143,7 +143,7 @@
       "kind": "scalar",
       "slot": "symbol-cutout-b",
       "required": true,
-      "reference": "repochan/references/cutout-b-matte.png",
+      "reference": "repochan/references/cutout-b-matte.webp",
       "output": "public/assets/cutout-b-full.webp",
       "description": "Full-body die-cut cutout B (forward-leaning open-palm pose) — the poster 03 symbol and the colophon seal stamp, silhouetted at runtime by CSS mask (black/red), never re-cropped. Slot declares the complete in-frame cutout; transparent webp produced by chroma-key + compress. Reference is the raw matte master (1:1).",
       "order": {
@@ -205,7 +205,7 @@
       "kind": "scalar",
       "slot": "evidence-foundation",
       "required": true,
-      "reference": "repochan/references/foundation-sheet.png",
+      "reference": "repochan/references/foundation-sheet.webp",
       "output": "public/assets/evidence/foundation-sheet.jpg",
       "description": "Foundation sheet — Fig. A of the product poster (screen 06), real pipeline evidence in a hard-offset frame. Reference is the source sheet master (1:1); the page asset is a JPEG q85 compress of it.",
       "order": {
@@ -252,7 +252,7 @@
       "kind": "scalar",
       "slot": "evidence-poster",
       "required": true,
-      "reference": "repochan/references/studio-poster.png",
+      "reference": "repochan/references/studio-poster.webp",
       "output": "public/assets/evidence/studio-poster.jpg",
       "description": "Studio scene poster — Fig. B of the product poster (screen 06), real pipeline evidence in a hard-offset frame. Reference is the source poster master (3:2); the page asset is a JPEG q82 compress of it.",
       "order": {

@@ -34,7 +34,7 @@
       "kind": "scalar",
       "slot": "opening-portrait",
       "required": true,
-      "reference": "repochan/references/opening-portrait-matte.png",
+      "reference": "repochan/references/opening-portrait-matte.webp",
       "output": "public/assets/opening-portrait.webp",
       "description": "Opening portrait in the lobby — the only room where the character itself appears; full-body complete-in-frame cutout, transparent webp produced by chroma-key + compress. Reference is the raw matte master (2:3).",
       "order": {
@@ -94,7 +94,7 @@
       "kind": "scalar",
       "slot": "exhibit-cutout",
       "required": true,
-      "reference": "repochan/references/exhibit-cutout-matte.png",
+      "reference": "repochan/references/exhibit-cutout-matte.webp",
       "output": "public/assets/cutout-wave.webp",
       "description": "Second complete-in-frame cutout — the main study of Gallery B, waving; transparent webp produced by chroma-key + compress. Reference is the raw matte master (1:1).",
       "order": {
@@ -400,7 +400,7 @@
       "kind": "bundle",
       "slot": "stickers",
       "required": true,
-      "reference": "repochan/references/stickers-grid.png",
+      "reference": "repochan/references/stickers-grid.webp",
       "publications": [
         {
           "key": "welcome",
@@ -529,7 +529,7 @@
       "kind": "bundle",
       "slot": "webstates",
       "required": true,
-      "reference": "repochan/references/webstates-grid.png",
+      "reference": "repochan/references/webstates-grid.webp",
       "publications": [
         {
           "key": "welcome",

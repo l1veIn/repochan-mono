@@ -1,0 +1,15 @@
+---
+import type { TitleContent } from "../lib/i18n/types";
+
+type Props = { content: TitleContent };
+const { content } = Astro.props;
+---
+
+<section class="card" id="title" aria-label={content.main}>
+  <div class="reveal reveal--slow">
+    <p class="card__kicker">{content.kicker}</p>
+    <h1 class="title__main">{content.main}</h1>
+    <p class="title__latin">{content.latin}</p>
+    <p class="title__sub">{content.sub}</p>
+  </div>
+</section>

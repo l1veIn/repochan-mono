@@ -1,0 +1,30 @@
+---
+import { site, assets } from "../lib/site";
+import type { EndContent } from "../lib/i18n/types";
+
+type Props = { content: EndContent };
+const { content } = Astro.props;
+---
+
+<section class="card end" id="end-card" aria-label={content.title}>
+  <div class="reveal reveal--slow">
+    <img
+      class="end__logo"
+      src={assets.icon.src}
+      width={assets.icon.width}
+      height={assets.icon.height}
+      alt={content.logoAlt}
+      loading="lazy"
+    />
+    <p class="end__overline">{content.overline}</p>
+    <h2 class="end__title">{content.title}</h2>
+    <p class="end__cmd">
+      <code>{content.cmd}</code>
+      <button class="end__copy" type="button" data-copy={content.cmd} data-copied={content.copiedLabel}>
+        {content.copyLabel}
+      </button>
+    </p>
+    <a class="end__github" href={site.project.repositoryUrl} rel="noopener">{content.githubLabel}</a>
+    <p class="end__fine">{content.fine}</p>
+  </div>
+</section>

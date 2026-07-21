@@ -212,21 +212,21 @@
         "label": "EXPRESSIONS — 表情差分",
         "items": [
           {
-            "img": "/assets/crops/expr-excited.png",
+            "img": "/assets/crops/expr-excited.webp",
             "alt": "仓库酱表情差分：兴奋",
             "name": "兴奋",
             "nameEn": "EXCITED",
             "quote": "「发现灵魂了！」"
           },
           {
-            "img": "/assets/crops/expr-focused.png",
+            "img": "/assets/crops/expr-focused.webp",
             "alt": "仓库酱表情差分：专注",
             "name": "专注",
             "nameEn": "FOCUSED",
             "quote": "「听摇滚中勿扰」"
           },
           {
-            "img": "/assets/crops/expr-deadpan.png",
+            "img": "/assets/crops/expr-deadpan.webp",
             "alt": "仓库酱表情差分：死机",
             "name": "死机",
             "nameEn": "DEADPAN",
@@ -238,39 +238,39 @@
         "label": "STATES — 状态图鉴 3×3",
         "items": [
           {
-            "img": "/assets/webstates/tile-0.png",
+            "img": "/assets/webstates/tile-0.webp",
             "alt": "仓库酱网页状态贴纸 01"
           },
           {
-            "img": "/assets/webstates/tile-2.png",
+            "img": "/assets/webstates/tile-2.webp",
             "alt": "仓库酱网页状态贴纸 02"
           },
           {
-            "img": "/assets/webstates/tile-3.png",
+            "img": "/assets/webstates/tile-3.webp",
             "alt": "仓库酱网页状态贴纸 03"
           },
           {
-            "img": "/assets/webstates/tile-4.png",
+            "img": "/assets/webstates/tile-4.webp",
             "alt": "仓库酱网页状态贴纸 04"
           },
           {
-            "img": "/assets/webstates/tile-6.png",
+            "img": "/assets/webstates/tile-6.webp",
             "alt": "仓库酱网页状态贴纸 05"
           },
           {
-            "img": "/assets/webstates/tile-7.png",
+            "img": "/assets/webstates/tile-7.webp",
             "alt": "仓库酱网页状态贴纸 06"
           },
           {
-            "img": "/assets/stickers/tile-1.png",
+            "img": "/assets/stickers/tile-1.webp",
             "alt": "仓库酱表情贴纸 07"
           },
           {
-            "img": "/assets/stickers/tile-6.png",
+            "img": "/assets/stickers/tile-6.webp",
             "alt": "仓库酱表情贴纸 08"
           },
           {
-            "img": "/assets/sticker-8.png",
+            "img": "/assets/sticker-8.webp",
             "alt": "仓库酱表情贴纸 09"
           }
         ]
@@ -310,7 +310,7 @@
         "items": [
           {
             "no": "01",
-            "img": "/assets/crops/motif-clip-alpha.png",
+            "img": "/assets/crops/motif-clip-alpha.webp",
             "alt": "猫耳发夹",
             "name": "猫耳发夹",
             "nameEn": "CAT-EAR HAIR CLIP",
@@ -318,7 +318,7 @@
           },
           {
             "no": "02",
-            "img": "/assets/crops/motif-earring-alpha.png",
+            "img": "/assets/crops/motif-earring-alpha.webp",
             "alt": "星形光标耳坠",
             "name": "星形光标耳坠",
             "nameEn": "STAR CURSOR EARRING",
@@ -326,7 +326,7 @@
           },
           {
             "no": "03",
-            "img": "/assets/crops/motif-pendant-alpha.png",
+            "img": "/assets/crops/motif-pendant-alpha.webp",
             "alt": "发光画笔吊坠",
             "name": "发光画笔吊坠",
             "nameEn": "STYLUS PENDANT",
@@ -334,7 +334,7 @@
           },
           {
             "no": "04",
-            "img": "/assets/crops/motif-headphones-alpha.png",
+            "img": "/assets/crops/motif-headphones-alpha.webp",
             "alt": "大耳机",
             "name": "大耳机",
             "nameEn": "OVER-EAR HEADPHONES",
@@ -431,7 +431,7 @@
         "no": "SPECIAL SKILL",
         "title": "「灵魂速写」与「BGM 匹配」",
         "desc": "能在任意一首歌的前三个和弦内说出歌名和乐队；能根据一个人的社交主页，三分钟内画出角色印象速写。她自己称之为——「跟它聊天的能力」。",
-        "img": "/assets/crops/chibi-full.png",
+        "img": "/assets/crops/chibi-full.webp",
         "alt": "Q 版仓库酱"
       }
     },

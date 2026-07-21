@@ -1,0 +1,76 @@
+---
+import type { ThesisContent } from "../lib/i18n/types";
+
+type Props = { content: ThesisContent };
+const { content } = Astro.props;
+---
+
+<section class="section" aria-labelledby="thesis-title">
+  <div class="container">
+    <div class="section-head">
+      <span class="idx">{content.index}</span>
+      <h2 id="thesis-title">{content.title}</h2>
+      <p class="note">{content.note}</p>
+    </div>
+    <div class="thesis-list">
+      {
+        content.items.map((item) => (
+          <div class="thesis-row grid-12">
+            <span class="no mono">{item.no}</span>
+            <span class="term mono">{item.term}</span>
+            <p class="def">{item.def}</p>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .thesis-row {
+    border-top: 1px solid var(--rule);
+    padding-block: 24px;
+    align-items: baseline;
+  }
+
+  .thesis-row:last-child {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .no {
+    grid-column: span 2;
+    font-size: 0.875rem;
+    color: var(--accent);
+  }
+
+  .term {
+    grid-column: span 2;
+    font-size: clamp(1.25rem, 2.5vw, 2rem);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .def {
+    grid-column: span 8;
+    margin: 0;
+    font-size: clamp(1rem, 1.8vw, 1.375rem);
+    font-weight: 500;
+    line-height: 1.6;
+    max-width: 52ch;
+  }
+
+  @media (max-width: 760px) {
+    .no {
+      grid-column: span 3;
+    }
+
+    .term {
+      grid-column: span 9;
+    }
+
+    .def {
+      grid-column: 4 / span 9;
+      margin-top: 8px;
+    }
+  }
+</style>

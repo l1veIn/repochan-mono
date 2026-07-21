@@ -1,0 +1,241 @@
+/* ─────────────────────────────────────────────────────────────
+   swiss-typographic-machine · 全局基础样式
+   token 由 SiteLayout 从 repochan/site.json 内联注入：
+   --ink --paper --rule --accent --muted
+   ───────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Inter Tight", "Noto Sans SC", "Helvetica Neue", Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--ink);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+code,
+.mono {
+  font-family: "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* 12 栏瑞士网格容器：桌面边距 ≥ 64px */
+.container {
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: clamp(20px, 4.5vw, 64px);
+}
+
+.grid-12 {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(16px, 2vw, 32px);
+}
+
+/* section 头部：accent 编号 + 1px 规则线 + 标题 */
+.section {
+  border-top: 1px solid var(--rule);
+  padding-block: clamp(48px, 8vh, 96px);
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: clamp(32px, 5vh, 64px);
+}
+
+.section-head .idx {
+  font-family: "JetBrains Mono", Menlo, monospace;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.section-head h2 {
+  margin: 0;
+  font-size: clamp(1.75rem, 4vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.section-head .note {
+  margin-left: auto;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  max-width: 32ch;
+  text-align: right;
+}
+
+/* 复制按钮：文本式，无装饰 */
+.copy-btn {
+  font-family: "JetBrains Mono", Menlo, monospace;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  padding: 4px 12px;
+  white-space: nowrap;
+  transition: color 120ms linear, border-color 120ms linear;
+}
+
+.copy-btn:hover {
+  color: var(--ink);
+  border-color: var(--accent);
+}
+
+.copy-btn.is-copied {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.copy-btn:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* 规格表（pipeline / artifact index 共用） */
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: clamp(0.875rem, 1.4vw, 1rem);
+}
+
+.spec-table th {
+  font-family: "JetBrains Mono", Menlo, monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: left;
+  padding: 8px 16px 8px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.spec-table td {
+  padding: 16px 16px 16px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--rule) 25%, transparent);
+  vertical-align: baseline;
+}
+
+.spec-table .row-no {
+  font-family: "JetBrains Mono", Menlo, monospace;
+  font-size: 0.8125rem;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.spec-table .row-cmd {
+  font-family: "JetBrains Mono", Menlo, monospace;
+  font-size: 0.8125em;
+  white-space: nowrap;
+}
+
+.spec-table tbody tr {
+  position: relative;
+  transition: font-weight 120ms linear;
+}
+
+/* 行 hover：仅改变字重 + 左侧 accent bar（设计稿 4.交互） */
+.spec-table tbody tr:hover {
+  font-weight: 700;
+}
+
+.spec-table tbody tr:hover td:first-child {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+/* 移动端：表转定义列表式堆叠 */
+@media (max-width: 760px) {
+  .spec-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .spec-table,
+  .spec-table tbody,
+  .spec-table tr,
+  .spec-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .spec-table tbody tr {
+    border-bottom: 1px solid var(--rule);
+    padding: 16px 0;
+  }
+
+  .spec-table td {
+    border-bottom: none;
+    padding: 4px 0;
+  }
+
+  .spec-table td[data-th]::before {
+    content: attr(data-th) " · ";
+    font-family: "JetBrains Mono", Menlo, monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .spec-table .row-cmd {
+    white-space: normal;
+    word-break: break-all;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

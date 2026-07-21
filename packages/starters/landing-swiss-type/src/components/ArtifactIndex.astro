@@ -1,0 +1,40 @@
+---
+import type { ArtifactsContent } from "../lib/i18n/types";
+
+type Props = { content: ArtifactsContent };
+const { content } = Astro.props;
+---
+
+<section class="section" aria-labelledby="artifacts-title">
+  <div class="container">
+    <div class="section-head">
+      <span class="idx">{content.index}</span>
+      <h2 id="artifacts-title">{content.title}</h2>
+      <p class="note">{content.note}</p>
+    </div>
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th scope="col">{content.index}.n</th>
+          <th scope="col">{content.head.item}</th>
+          <th scope="col">{content.head.spec}</th>
+          <th scope="col">{content.head.source}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          content.rows.map((row) => (
+            <tr>
+              <td class="row-no">{row.no}</td>
+              <td data-th={content.head.item}>{row.item}</td>
+              <td data-th={content.head.spec}>{row.spec}</td>
+              <td class="row-cmd" data-th={content.head.source}>
+                <code>{row.source}</code>
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

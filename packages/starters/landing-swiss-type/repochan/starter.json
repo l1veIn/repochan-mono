@@ -1,0 +1,297 @@
+{
+  "schemaVersion": "repochan.starter.v1",
+  "id": "landing-swiss-type",
+  "name": "瑞士字体机 · Swiss Typographic Machine",
+  "description": "RepoChan's own Swiss-International landing page: a type-driven industrial document where the mascot is deliberately demoted to a cameo — masthead mini icon, a hero Fig. 01 with the complete-in-frame cutout B under a 1px rule caption, numbered thesis / pipeline spec / artifact index tables, real dogfood evidence figures (foundation sheet + studio poster), a mono-command CTA and a ≤120px footer cutout. zh default locale with a full en edition; every bitmap is real pipeline output.",
+  "style": "swiss-typographic-machine",
+  "tags": [
+    "landing",
+    "swiss",
+    "international-typographic",
+    "type-driven",
+    "spec-table",
+    "minimal",
+    "bilingual"
+  ],
+  "previews": {
+    "desktop": "repochan/previews/desktop.webp",
+    "mobile": "repochan/previews/mobile.webp"
+  },
+  "config": {
+    "site": "repochan/site.json",
+    "assets": "repochan/assets.json",
+    "i18nDir": "repochan/i18n"
+  },
+  "content": {
+    "defaultLocale": "zh",
+    "supportedLocales": [
+      "zh",
+      "en"
+    ]
+  },
+  "assets": [
+    {
+      "kind": "scalar",
+      "slot": "hero-cutout",
+      "required": true,
+      "reference": "repochan/references/cutout-b-matte.webp",
+      "output": "public/assets/cutout-b-full.webp",
+      "description": "Complete-in-frame die-cut cutout B (forward lunge, open-palm reach) — the hero's Fig. 01 with a 1px-rule mono caption, the page's only large character visual. Transparent webp produced by chroma-key + compress. Reference is the raw matte master (1:1, complete-in-frame doctrine: no edge cropping).",
+      "order": {
+        "assetType": "character_cutout",
+        "templateId": "official/character-cutout",
+        "brief": {
+          "intent": "Regenerate the hero Fig. 01 cutout for the downstream project's character: a welcoming forward-leaning pose with an open palm reaching toward the viewer, complete-in-frame so it can sit in a Swiss figure block with a rule caption.",
+          "mustInclude": [
+            "one full-body character leaning forward with an open-palm reach, fully inside the canvas",
+            "perfectly flat uniform matte background in a color absent from the character",
+            "square 1:1 framing, character centered, all limbs/hair/props complete with margin on every edge"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "scenery",
+            "shadows on the matte",
+            "cropped limbs or props",
+            "edge bleeding"
+          ],
+          "creativeFreedom": [
+            "character outfit details",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "cutout-matte",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "2048x2048"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "chroma-key",
+          "args": {
+            "matte": "auto",
+            "pipeline": "v2"
+          },
+          "out": "public/assets/cutout-b-full.png"
+        },
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 88
+          },
+          "out": "public/assets/cutout-b-full.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "footer-cutout",
+      "required": true,
+      "reference": "repochan/references/cutout-b-matte.webp",
+      "output": "public/assets/cutout-wave.webp",
+      "description": "Footer cameo cutout (same cutout-B master as the hero Fig. 01, waving read) — displayed at ≤120px in the colophon as the mascot's only other appearance. Transparent webp produced by chroma-key + compress. Reference is the raw matte master (1:1, complete-in-frame).",
+      "order": {
+        "assetType": "character_cutout",
+        "templateId": "official/character-cutout",
+        "brief": {
+          "intent": "Regenerate the footer-cameo cutout for the downstream project's character: a small friendly waving/presenting pose that still reads at ≤120px in a page colophon.",
+          "mustInclude": [
+            "one full-body character waving or presenting, fully inside the canvas",
+            "perfectly flat uniform matte background in a color absent from the character",
+            "square 1:1 framing, character centered, readable at favicon-adjacent sizes"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "scenery",
+            "shadows on the matte",
+            "cropped limbs or props",
+            "edge bleeding"
+          ],
+          "creativeFreedom": [
+            "character outfit details",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "cutout-matte",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "2048x2048"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "chroma-key",
+          "args": {
+            "matte": "auto",
+            "pipeline": "v2"
+          },
+          "out": "public/assets/cutout-wave.png"
+        },
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 88
+          },
+          "out": "public/assets/cutout-wave.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "icon",
+      "required": true,
+      "output": "public/assets/icon.webp",
+      "description": "Project icon — masthead 28px badge; also the favicon source (favicon.ico / apple-touch-icon.png / icon-192.png / icon-512.png are derived from it offline via compress + favicon + resize).",
+      "order": {
+        "assetType": "icon",
+        "templateId": "official/icon-single",
+        "brief": {
+          "mustInclude": [
+            "one scalable brand mark reading cleanly at 28px in a masthead",
+            "project motif without any letterforms"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "watermarks"
+          ],
+          "creativeFreedom": [
+            "mark geometry",
+            "accent colors from the project palette"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "icon",
+            "format": "png",
+            "width": 512,
+            "height": 512,
+            "aspectRatio": "1:1",
+            "genSize": "1024x1024"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 90,
+            "maxWidth": 512
+          },
+          "out": "public/assets/icon.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "foundation",
+      "required": true,
+      "reference": "repochan/references/foundation.webp",
+      "output": "public/assets/evidence/foundation-sheet.jpg",
+      "description": "Character foundation sheet — Evidence Fig. A, shown as a real dogfood artifact with a rule caption (key visual, expressions, palette, props), served as JPEG q85. Reference is the raw generated master (1:1); also the page's og:image.",
+      "order": {
+        "assetType": "foundation_sheet",
+        "templateId": "official/foundation-sheet",
+        "brief": {
+          "intent": "Regenerate the downstream project character's foundation sheet — the consistency baseline every other order references — so the Evidence section can show it as a real traceable artifact.",
+          "mustInclude": [
+            "one foundation sheet for the project character: key visual, expression set, color palette and key props",
+            "square 1:1 framing with every panel fully inside the canvas"
+          ],
+          "avoid": [
+            "watermarks",
+            "rendered paragraphs of text",
+            "panels cropped by the canvas edge"
+          ],
+          "creativeFreedom": [
+            "panel layout",
+            "expression and prop selection within the persona"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "foundation",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "1024x1024"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": {
+            "format": "jpeg",
+            "quality": 85
+          },
+          "out": "public/assets/evidence/foundation-sheet.jpg"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "studio-poster",
+      "required": true,
+      "output": "public/assets/evidence/studio-poster.jpg",
+      "description": "Studio scene poster — Evidence Fig. B, the character's world scene shown as a real dogfood artifact with a rule caption; 3:2 landscape, served as JPEG q82.",
+      "order": {
+        "assetType": "poster",
+        "templateId": "official/poster-scene",
+        "brief": {
+          "intent": "Repaint the studio scene poster for the downstream project: the project character at work in its world (e.g. drawing at a pen display), a landscape scene that reads as evidence of the brand world rather than decoration.",
+          "mustInclude": [
+            "the project character integrated into a coherent workspace/world scene",
+            "landscape 3:2 framing that crops cleanly at evidence-figure sizes"
+          ],
+          "avoid": [
+            "rendered text",
+            "logos",
+            "UI baked into the image",
+            "watermarks"
+          ],
+          "creativeFreedom": [
+            "scene props and lighting within the project identity",
+            "composition and camera angle"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "poster",
+            "format": "png",
+            "width": 1536,
+            "height": 1024,
+            "aspectRatio": "3:2",
+            "genSize": "1536x1024"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": {
+            "format": "jpeg",
+            "quality": 82
+          },
+          "out": "public/assets/evidence/studio-poster.jpg"
+        }
+      ]
+    }
+  ]
+}

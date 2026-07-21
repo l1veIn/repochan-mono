@@ -1,0 +1,64 @@
+---
+import { assets } from "../lib/site";
+import type { MastheadContent } from "../lib/i18n/types";
+
+type Props = { content: MastheadContent };
+const { content } = Astro.props;
+---
+
+<header class="masthead">
+  <div class="container masthead-inner">
+    <a class="brand" href="#top" aria-label={content.wordmark}>
+      <img src={assets.icon.src} alt={content.iconAlt} width="28" height="28" class="brand-icon" />
+      <span class="brand-name">{content.wordmark}</span>
+    </a>
+    <p class="protocol mono">{content.protocol}</p>
+    <p class="doc-index mono" aria-hidden="true">{content.docIndex}</p>
+  </div>
+</header>
+
+<style>
+  .masthead {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .masthead-inner {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    min-height: 56px;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+  }
+
+  .brand-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .protocol {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+
+  .doc-index {
+    margin: 0 0 0 auto;
+    font-size: 0.8125rem;
+    color: var(--accent);
+  }
+
+  @media (max-width: 560px) {
+    .doc-index {
+      display: none;
+    }
+  }
+</style>

@@ -1,0 +1,151 @@
+---
+import { assets } from "../lib/site";
+import type { HeroContent } from "../lib/i18n/types";
+
+type Props = { content: HeroContent };
+const { content } = Astro.props;
+---
+
+<section class="hero" id="top" aria-labelledby="hero-title">
+  <div class="container hero-grid">
+    <div class="hero-main">
+      <div class="hero-meta">
+        <span class="idx mono">{content.index}</span>
+        <span class="kicker mono">{content.kicker}</span>
+      </div>
+      <h1 id="hero-title" class="display" data-scroll-weight>
+        {content.lines.map((line) => <span class="display-line">{line}</span>)}
+      </h1>
+      <p class="sub">{content.sub}</p>
+      <div class="install">
+        <code class="install-cmd">{content.installCmd}</code>
+        <button
+          type="button"
+          class="copy-btn"
+          data-copy={content.installCmd}
+          data-copied={content.copiedLabel}
+        >
+          {content.copyLabel}
+        </button>
+      </div>
+      <p class="footnote mono">{content.footnote}</p>
+    </div>
+    {content.figCaption && (
+      <figure class="hero-fig">
+        <img src={assets.heroCutout.src} alt={content.figAlt ?? ""} loading="eager" decoding="async" />
+        <figcaption class="mono">{content.figCaption}</figcaption>
+      </figure>
+    )}
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-block: clamp(48px, 10vh, 128px) clamp(40px, 8vh, 96px);
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 5fr);
+    gap: clamp(24px, 4vw, 64px);
+    align-items: end;
+  }
+  @media (min-width: 1080px) {
+    .hero-grid {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    }
+  }
+  @media (max-width: 720px) {
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
+    .hero-fig {
+      max-width: 320px;
+    }
+  }
+
+  .hero-fig {
+    margin: 0;
+    border-top: 1px solid var(--rule);
+    padding-top: 12px;
+  }
+  .hero-fig img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: clamp(320px, 60vh, 640px);
+    object-fit: contain;
+    object-position: bottom right;
+  }
+  .hero-fig figcaption {
+    margin-top: 8px;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    border-top: 1px solid var(--rule);
+    padding-top: 8px;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 16px;
+    align-items: baseline;
+    margin-bottom: clamp(24px, 4vh, 48px);
+  }
+
+  .idx {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  .kicker {
+    font-size: 0.8125rem;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+  }
+
+  .display {
+    margin: 0;
+    font-size: clamp(3rem, 12vw, 9rem);
+    font-weight: 800;
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    /* 变量字重轴：JS 按滚动进度覆写 font-variation-settings */
+    font-variation-settings: "wght" 700;
+  }
+
+  .display-line {
+    display: block;
+  }
+
+  .sub {
+    margin: clamp(24px, 4vh, 40px) 0 0;
+    font-size: clamp(1.125rem, 2.2vw, 1.5rem);
+    font-weight: 500;
+    max-width: 40ch;
+  }
+
+  .install {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: clamp(24px, 4vh, 40px);
+    padding: 16px 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    flex-wrap: wrap;
+  }
+
+  .install-cmd {
+    font-size: clamp(0.9375rem, 1.8vw, 1.125rem);
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  .footnote {
+    margin: 16px 0 0;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+</style>

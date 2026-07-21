@@ -212,21 +212,21 @@
         "label": "EXPRESSIONS — 表情差分",
         "items": [
           {
-            "img": "/assets/crops/expr-excited.png",
+            "img": "/assets/crops/expr-excited.webp",
             "alt": "RepoChan expression: excited",
             "name": "Excited",
             "nameEn": "EXCITED",
             "quote": "\"Found its soul!\""
           },
           {
-            "img": "/assets/crops/expr-focused.png",
+            "img": "/assets/crops/expr-focused.webp",
             "alt": "RepoChan expression: focused",
             "name": "Focused",
             "nameEn": "FOCUSED",
             "quote": "\"Listening to rock. Do not disturb.\""
           },
           {
-            "img": "/assets/crops/expr-deadpan.png",
+            "img": "/assets/crops/expr-deadpan.webp",
             "alt": "RepoChan expression: deadpan",
             "name": "Deadpan",
             "nameEn": "DEADPAN",
@@ -238,39 +238,39 @@
         "label": "STATES — 状态图鉴 3×3",
         "items": [
           {
-            "img": "/assets/webstates/tile-0.png",
+            "img": "/assets/webstates/tile-0.webp",
             "alt": "RepoChan web-state sticker 01"
           },
           {
-            "img": "/assets/webstates/tile-2.png",
+            "img": "/assets/webstates/tile-2.webp",
             "alt": "RepoChan web-state sticker 02"
           },
           {
-            "img": "/assets/webstates/tile-3.png",
+            "img": "/assets/webstates/tile-3.webp",
             "alt": "RepoChan web-state sticker 03"
           },
           {
-            "img": "/assets/webstates/tile-4.png",
+            "img": "/assets/webstates/tile-4.webp",
             "alt": "RepoChan web-state sticker 04"
           },
           {
-            "img": "/assets/webstates/tile-6.png",
+            "img": "/assets/webstates/tile-6.webp",
             "alt": "RepoChan web-state sticker 05"
           },
           {
-            "img": "/assets/webstates/tile-7.png",
+            "img": "/assets/webstates/tile-7.webp",
             "alt": "RepoChan web-state sticker 06"
           },
           {
-            "img": "/assets/stickers/tile-1.png",
+            "img": "/assets/stickers/tile-1.webp",
             "alt": "RepoChan reaction sticker 07"
           },
           {
-            "img": "/assets/stickers/tile-6.png",
+            "img": "/assets/stickers/tile-6.webp",
             "alt": "RepoChan reaction sticker 08"
           },
           {
-            "img": "/assets/sticker-8.png",
+            "img": "/assets/sticker-8.webp",
             "alt": "RepoChan reaction sticker 09"
           }
         ]
@@ -310,7 +310,7 @@
         "items": [
           {
             "no": "01",
-            "img": "/assets/crops/motif-clip-alpha.png",
+            "img": "/assets/crops/motif-clip-alpha.webp",
             "alt": "Cat-ear hair clip",
             "name": "Cat-Ear Hair Clip",
             "nameEn": "CAT-EAR HAIR CLIP",
@@ -318,7 +318,7 @@
           },
           {
             "no": "02",
-            "img": "/assets/crops/motif-earring-alpha.png",
+            "img": "/assets/crops/motif-earring-alpha.webp",
             "alt": "Star cursor earring",
             "name": "Star Cursor Earring",
             "nameEn": "STAR CURSOR EARRING",
@@ -326,7 +326,7 @@
           },
           {
             "no": "03",
-            "img": "/assets/crops/motif-pendant-alpha.png",
+            "img": "/assets/crops/motif-pendant-alpha.webp",
             "alt": "Glowing stylus pendant",
             "name": "Stylus Pendant",
             "nameEn": "STYLUS PENDANT",
@@ -334,7 +334,7 @@
           },
           {
             "no": "04",
-            "img": "/assets/crops/motif-headphones-alpha.png",
+            "img": "/assets/crops/motif-headphones-alpha.webp",
             "alt": "Over-ear headphones",
             "name": "Over-Ear Headphones",
             "nameEn": "OVER-EAR HEADPHONES",
@@ -431,7 +431,7 @@
         "no": "SPECIAL SKILL",
         "title": "\"Soul Sketch\" & \"BGM Match\"",
         "desc": "She can name the song and band within the first three chords of anything, and sketch a character impression from someone's social profile in three minutes. She calls it — \"the ability to have a conversation with it.\"",
-        "img": "/assets/crops/chibi-full.png",
+        "img": "/assets/crops/chibi-full.webp",
         "alt": "Chibi RepoChan"
       }
     },

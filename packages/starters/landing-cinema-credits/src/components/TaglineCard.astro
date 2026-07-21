@@ -1,0 +1,13 @@
+---
+import type { TaglineContent } from "../lib/i18n/types";
+
+type Props = { content: TaglineContent };
+const { content } = Astro.props;
+---
+
+<section class="card" id="tagline" aria-label={content.line}>
+  <div class="reveal reveal--slow">
+    <p class="tagline__line">{content.line}</p>
+    <p class="tagline__sub">{content.sub}</p>
+  </div>
+</section>

@@ -1,0 +1,32 @@
+---
+import type { CreditsContent } from "../lib/i18n/types";
+
+type Props = { content: CreditsContent };
+const { content } = Astro.props;
+---
+
+<section class="card" id="credits" aria-label={content.title}>
+  <div class="credits__head reveal">
+    <h2 class="credits__title">{content.title}</h2>
+    <p class="credits__note">{content.note}</p>
+  </div>
+  <div class="credits__window">
+    <div class="credits__roll">
+      {content.rows.map((row) => (
+        <div class="credit-row">
+          <span class="credit-row__role">{row.role}</span>
+          <span class="credit-row__name">{row.name}</span>
+        </div>
+      ))}
+      {/* 上滚循环所需的副本；reduced-motion 下由 CSS 隐藏 */}
+      <div class="credits__dup" aria-hidden="true">
+        {content.rows.map((row) => (
+          <div class="credit-row">
+            <span class="credit-row__role">{row.role}</span>
+            <span class="credit-row__name">{row.name}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>

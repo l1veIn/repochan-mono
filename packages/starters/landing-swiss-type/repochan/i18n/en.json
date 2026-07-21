@@ -1,0 +1,214 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "RepoChan — Turn a repo into a deliverable brand spec",
+    "description": "RepoChan is a CLI and a .repochan/ protocol: it compiles a git repository into versioned, traceable brand assets — persona, foundation sheet, stickers, posters, landing pages."
+  },
+  "content": {
+    "masthead": {
+      "wordmark": "RepoChan",
+      "protocol": "repochan · protocol v1",
+      "docIndex": "DOC / 01",
+      "iconAlt": "RepoChan icon"
+    },
+    "hero": {
+      "index": "01",
+      "kicker": "CLI + PROTOCOL · AGENT BYO",
+      "lines": [
+        "TURN A REPO",
+        "INTO A",
+        "BRAND SPEC."
+      ],
+      "sub": "The tool never thinks. The agent decides. Every artifact is versioned.",
+      "installCmd": "npm install -g repochan",
+      "copyLabel": "Copy",
+      "copiedLabel": "Copied",
+      "footnote": "Readable static · complete without JS · type ≥ 70% / image ≤ 30%",
+      "figCaption": "Fig. 01 — mascot cutout B · open-palm gesture · ord-cutout-001 (complete-in-frame)",
+      "figAlt": "RepoChan mascot cutout: leaning forward, open palm reaching toward the viewer"
+    },
+    "typeTrack": {
+      "items": [
+        "PROTOCOL",
+        "PERSONA",
+        "PAINT",
+        "PAGE"
+      ]
+    },
+    "thesis": {
+      "index": "02",
+      "title": "Thesis",
+      "note": "Three short definitions. Nominalized. No ornament.",
+      "items": [
+        {
+          "no": "02.1",
+          "term": "WHAT",
+          "def": "A CLI and a .repochan/ protocol directory that scans a git repository and emits structured specs for brand assets."
+        },
+        {
+          "no": "02.2",
+          "term": "HOW",
+          "def": "Deterministic scans first, external-agent orchestration second. The CLI reads and writes protocol; it makes no creative judgments."
+        },
+        {
+          "no": "02.3",
+          "term": "OUTPUT",
+          "def": "Persona, foundation sheet, stickers, posters, landing pages. Every artifact has an order, a version, and a traceable origin."
+        }
+      ]
+    },
+    "pipeline": {
+      "index": "03",
+      "title": "Pipeline Spec",
+      "note": "Six steps. One command and one protocol artifact per step.",
+      "head": {
+        "step": "Step",
+        "input": "Input",
+        "output": "Output",
+        "command": "Command"
+      },
+      "rows": [
+        {
+          "no": "03.1",
+          "name": "Init",
+          "input": "git repository",
+          "output": ".repochan/ protocol dir",
+          "cmd": "repochan init"
+        },
+        {
+          "no": "03.2",
+          "name": "Analysis",
+          "input": "source · README · history",
+          "output": "analysis report",
+          "cmd": "repochan analysis"
+        },
+        {
+          "no": "03.3",
+          "name": "Interview",
+          "input": "analysis report",
+          "output": "interview report",
+          "cmd": "repochan interview create"
+        },
+        {
+          "no": "03.4",
+          "name": "Persona",
+          "input": "analysis + interview",
+          "output": "mascot persona",
+          "cmd": "repochan persona create"
+        },
+        {
+          "no": "03.5",
+          "name": "Paint",
+          "input": "persona + templates",
+          "output": "foundation / stickers / posters",
+          "cmd": "repochan order create · image gen"
+        },
+        {
+          "no": "03.6",
+          "name": "Assemble",
+          "input": "assets + copy",
+          "output": "landing site",
+          "cmd": "repochan starter pull"
+        }
+      ]
+    },
+    "artifacts": {
+      "index": "04",
+      "title": "Artifact Index",
+      "note": "Real order artifacts from this repository. Traceable by order id.",
+      "head": {
+        "item": "Artifact",
+        "spec": "Spec",
+        "source": "Source"
+      },
+      "rows": [
+        {
+          "no": "04.1",
+          "item": "Foundation Sheet",
+          "spec": "1024² character sheet",
+          "source": "ord-foundation-001"
+        },
+        {
+          "no": "04.2",
+          "item": "Stickers ×9",
+          "spec": "2K grid + 640px transparent tiles",
+          "source": "ord-sticker-001"
+        },
+        {
+          "no": "04.3",
+          "item": "Webstates ×9",
+          "spec": "2K grid + 640px transparent tiles",
+          "source": "ord-webstates-001"
+        },
+        {
+          "no": "04.4",
+          "item": "Studio Poster",
+          "spec": "1536×1024 scene poster",
+          "source": "ord-poster-001"
+        },
+        {
+          "no": "04.5",
+          "item": "Icon Set",
+          "spec": "favicon / touch / 192 / 512",
+          "source": "ord-icon-001"
+        },
+        {
+          "no": "04.6",
+          "item": "Character Cutout",
+          "spec": "transparent WebP",
+          "source": "ord-cutout-001"
+        },
+        {
+          "no": "04.7",
+          "item": "Props Tiles",
+          "spec": "cropped prop tile set",
+          "source": "ord-props-001"
+        },
+        {
+          "no": "04.8",
+          "item": "Landing Starters ×4",
+          "spec": "Astro site scaffolds",
+          "source": "packages/starters"
+        }
+      ]
+    },
+    "evidence": {
+      "index": "05",
+      "title": "Evidence",
+      "note": "Real dogfood artifacts. Not a decorative gallery.",
+      "figures": [
+        {
+          "tag": "Fig. A",
+          "alt": "RepoChan foundation sheet: key visual, expressions, palette and key props",
+          "caption": "Fig. A — foundation sheet · ord-foundation-001 · character consistency anchor"
+        },
+        {
+          "tag": "Fig. B",
+          "alt": "Sugar Riff studio scene poster: RepoChan drawing at her pen display",
+          "caption": "Fig. B — studio poster · ord-poster-001 · world scene"
+        }
+      ]
+    },
+    "cta": {
+      "index": "06",
+      "title": "Get Started",
+      "cmd": "npm install -g repochan && repochan setup",
+      "copyLabel": "Copy command",
+      "copiedLabel": "Copied",
+      "docsLabel": "Docs & source →",
+      "fine": "setup installs the skills into your agent. Every step after that is one repochan subcommand."
+    },
+    "colophon": {
+      "lines": [
+        "Type: Inter Tight / Noto Sans SC / JetBrains Mono.",
+        "Grid: 12 columns · 4/8px baseline · desktop margins ≥ 64px.",
+        "No gradients · no glass · no heavy shadows · no paper grain."
+      ],
+      "cutoutAlt": "RepoChan small waving cutout",
+      "cutoutCaption": "RepoChan · footer cameo · ≤120px",
+      "localeSwitchLabel": "中文",
+      "copyright": "© 2026 RepoChan · MIT"
+    }
+  }
+}

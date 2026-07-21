@@ -467,7 +467,7 @@
       "kind": "bundle",
       "slot": "webstate-tiles",
       "required": true,
-      "reference": "repochan/references/webstates-grid-source.png",
+      "reference": "repochan/references/webstates-grid-source.webp",
       "publications": [
         {
           "key": "welcome",

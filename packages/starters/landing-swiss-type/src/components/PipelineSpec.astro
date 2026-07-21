@@ -1,0 +1,42 @@
+---
+import type { PipelineContent } from "../lib/i18n/types";
+
+type Props = { content: PipelineContent };
+const { content } = Astro.props;
+---
+
+<section class="section" aria-labelledby="pipeline-title">
+  <div class="container">
+    <div class="section-head">
+      <span class="idx">{content.index}</span>
+      <h2 id="pipeline-title">{content.title}</h2>
+      <p class="note">{content.note}</p>
+    </div>
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th scope="col">{content.index}.n</th>
+          <th scope="col">{content.head.step}</th>
+          <th scope="col">{content.head.input}</th>
+          <th scope="col">{content.head.output}</th>
+          <th scope="col">{content.head.command}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          content.rows.map((row) => (
+            <tr>
+              <td class="row-no">{row.no}</td>
+              <td data-th={content.head.step}>{row.name}</td>
+              <td data-th={content.head.input}>{row.input}</td>
+              <td data-th={content.head.output}>{row.output}</td>
+              <td class="row-cmd" data-th={content.head.command}>
+                <code>{row.cmd}</code>
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

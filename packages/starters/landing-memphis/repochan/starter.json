@@ -34,7 +34,7 @@
       "kind": "scalar",
       "slot": "hero-cutout",
       "required": true,
-      "reference": "repochan/references/hero-cutout-matte.png",
+      "reference": "repochan/references/hero-cutout-matte.webp",
       "output": "public/assets/hero-cutout.webp",
       "description": "Full-body die-cut cutout riding the hero shape stage — the page's main visual, transparent webp produced by chroma-key + compress. Reference is the raw matte master (2:3).",
       "order": {
@@ -94,7 +94,7 @@
       "kind": "scalar",
       "slot": "cta-cutout",
       "required": true,
-      "reference": "repochan/references/cta-cutout-matte.png",
+      "reference": "repochan/references/cta-cutout-matte.webp",
       "output": "public/assets/cutout-wave.webp",
       "description": "Second die-cut cutout riding the edge of the closing CTA color block — transparent webp produced by chroma-key + compress. Reference is the raw matte master (1:1).",
       "order": {
@@ -251,7 +251,7 @@
       "kind": "bundle",
       "slot": "stickers",
       "required": true,
-      "reference": "repochan/references/stickers-grid.png",
+      "reference": "repochan/references/stickers-grid.webp",
       "publications": [
         {
           "key": "welcome",
@@ -380,7 +380,7 @@
       "kind": "bundle",
       "slot": "webstates",
       "required": true,
-      "reference": "repochan/references/webstates-grid.png",
+      "reference": "repochan/references/webstates-grid.webp",
       "publications": [
         {
           "key": "welcome",

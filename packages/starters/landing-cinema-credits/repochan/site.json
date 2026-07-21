@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "RepoChan",
+    "description": "Turn a git repository into a full brand kit — mascot persona, illustrations, stickers, posters and a landing page — via a CLI + agent pipeline.",
+    "repositoryUrl": "https://github.com/l1veIn/repochan-mono"
+  },
+  "theme": {
+    "primary": "#38BDF8",
+    "base": "#000000",
+    "ink": "#F5F5F5",
+    "accents": ["#A3A3A3", "#525252", "#0A1424"]
+  },
+  "brand": {
+    "artStyle": "Cinema opening credits — a theatrical black-void screening: constant letterbox frame, classic credit-roll typography (Cinzel + Song serif, wide-tracked small caps), sequential title cards fading in on black, a spotlight sweep across the starring cutout and a lights-up end card.",
+    "motifs": ["letterbox frame", "title card", "credit roll", "spotlight sweep", "scene still"],
+    "patterns": ["fade-in cards on black", "left-role right-name credit rows", "wide letter tracking", "radial lights-up glow"]
+  },
+  "locales": {
+    "default": "zh",
+    "supported": ["zh", "en"]
+  }
+}

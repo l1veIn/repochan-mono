@@ -1,0 +1,14 @@
+---
+import type { StudioContent } from "../lib/i18n/types";
+
+type Props = { content: StudioContent };
+const { content } = Astro.props;
+---
+
+<section class="card" id="studio" aria-label={content.overline}>
+  <div class="reveal">
+    <p class="studio__overline">{content.overline}</p>
+    <p class="studio__line">{content.line}</p>
+    <p class="studio__co">{content.co}</p>
+  </div>
+</section>

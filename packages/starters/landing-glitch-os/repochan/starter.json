@@ -34,7 +34,7 @@
       "kind": "scalar",
       "slot": "cutout-a",
       "required": true,
-      "reference": "repochan/references/cutout-a-matte.png",
+      "reference": "repochan/references/cutout-a-matte.webp",
       "output": "public/assets/cutout-a.webp",
       "description": "Full-body die-cut cutout A (handing-a-stylus pose) — the desktop hero visual leaning against the icon column, transparent webp produced by chroma-key + compress. Reference is the raw matte master (2:3).",
       "order": {
@@ -93,7 +93,7 @@
       "kind": "scalar",
       "slot": "cutout-b",
       "required": true,
-      "reference": "repochan/references/cutout-b-matte.png",
+      "reference": "repochan/references/cutout-b-matte.webp",
       "output": "public/assets/cutout-b.webp",
       "description": "Full-body die-cut cutout B (reaching-out inviting pose) — the persona window's avatar, displayed with CSS RGB-split glitch slices; transparent webp produced by chroma-key + compress. Reference is the raw matte master (1:1).",
       "order": {
@@ -152,7 +152,7 @@
       "kind": "scalar",
       "slot": "foundation",
       "required": true,
-      "reference": "repochan/references/foundation.png",
+      "reference": "repochan/references/foundation.webp",
       "description": "Character foundation sheet — the foundation window's evidence image (key visual, expressions, palette, props), served as JPEG q85. Reference is the raw generated master (1:1); also the page's og:image.",
       "output": "public/assets/foundation.jpg",
       "order": {
@@ -247,7 +247,7 @@
       "kind": "bundle",
       "slot": "stickers",
       "required": true,
-      "reference": "repochan/references/stickers-grid.png",
+      "reference": "repochan/references/stickers-grid.webp",
       "publications": [
         {
           "key": "welcome",
@@ -376,7 +376,7 @@
       "kind": "bundle",
       "slot": "webstates",
       "required": true,
-      "reference": "repochan/references/webstates-grid.png",
+      "reference": "repochan/references/webstates-grid.webp",
       "publications": [
         {
           "key": "welcome",

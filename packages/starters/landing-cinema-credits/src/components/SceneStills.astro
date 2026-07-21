@@ -1,0 +1,33 @@
+---
+import { assets } from "../lib/site";
+import type { StillsContent } from "../lib/i18n/types";
+
+type Props = { content: StillsContent };
+const { content } = Astro.props;
+
+const stillAssets = [assets.stillFoundation, assets.stillStudio, assets.stillPoster];
+---
+
+<section class="card" id="stills" aria-label={content.title}>
+  <div class="credits__head reveal">
+    <h2 class="credits__title">{content.title}</h2>
+    <p class="credits__note">{content.note}</p>
+  </div>
+  <div class="stills__grid reveal reveal--slow">
+    {content.figures.map((fig, i) => (
+      <figure class="still">
+        <img
+          src={stillAssets[i].src}
+          width={stillAssets[i].width}
+          height={stillAssets[i].height}
+          alt={fig.alt}
+          loading="lazy"
+        />
+        <figcaption>
+          <span class="still__tag">{fig.tag}</span>
+          <span class="still__caption">{fig.caption}</span>
+        </figcaption>
+      </figure>
+    ))}
+  </div>
+</section>

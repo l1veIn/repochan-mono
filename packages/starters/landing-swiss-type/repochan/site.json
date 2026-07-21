@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "RepoChan",
+    "description": "Turn a git repository into a full brand kit — mascot persona, illustrations, stickers, posters and a landing page — via a CLI + agent pipeline.",
+    "repositoryUrl": "https://github.com/l1veIn/repochan-mono"
+  },
+  "theme": {
+    "primary": "#38BDF8",
+    "base": "#F4F1EA",
+    "ink": "#0A0A0A",
+    "accents": ["#0A0A0A", "#6B7280"]
+  },
+  "brand": {
+    "artStyle": "Swiss International typographic machine — a type-driven industrial document: flat paper ground, 1px rule lines, mono-spaced index numbers, giant display type and spec tables; no gradients, no glass, no heavy shadows, no paper grain; the mascot is deliberately demoted to a cameo (masthead mini icon, Fig.-captioned cutout, ≤120px footer cameo).",
+    "motifs": ["1px rule line", "index number", "spec table", "figure caption", "giant display type", "install command row"],
+    "patterns": ["12-column Swiss grid", "4/8px baseline rhythm", "hard-cut section boundaries", "horizontal type track"]
+  },
+  "locales": {
+    "default": "zh",
+    "supported": ["zh", "en"]
+  }
+}

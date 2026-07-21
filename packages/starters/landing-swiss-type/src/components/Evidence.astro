@@ -1,0 +1,88 @@
+---
+import { assets } from "../lib/site";
+import type { EvidenceContent } from "../lib/i18n/types";
+
+type Props = { content: EvidenceContent };
+const { content } = Astro.props;
+// figures[0] → foundation，figures[1] → poster（src 由 assets.json 溯源，locale 只持有 alt/caption）
+const srcs = [assets.evidenceFoundation, assets.evidencePoster] as const;
+---
+
+<section class="section" aria-labelledby="evidence-title">
+  <div class="container">
+    <div class="section-head">
+      <span class="idx">{content.index}</span>
+      <h2 id="evidence-title">{content.title}</h2>
+      <p class="note">{content.note}</p>
+    </div>
+    <div class="figures grid-12">
+      {
+        content.figures.map((fig, i) => {
+          const src = srcs[i] ?? srcs[0];
+          return (
+            <figure class:list={["figure", i === 0 ? "fig-a" : "fig-b"]}>
+              <img
+                src={src.src}
+                alt={fig.alt}
+                width={src.width}
+                height={src.height}
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption class="mono">
+                <span class="tag">{fig.tag}</span>
+                {fig.caption}
+              </figcaption>
+            </figure>
+          );
+        })
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .figures {
+    row-gap: 48px;
+    align-items: start;
+  }
+
+  .figure {
+    margin: 0;
+  }
+
+  .figure img {
+    border: 1px solid var(--rule);
+    width: 100%;
+  }
+
+  .fig-a {
+    grid-column: span 5;
+  }
+
+  .fig-b {
+    grid-column: span 7;
+  }
+
+  figcaption {
+    margin-top: 12px;
+    font-size: 0.8125rem;
+    color: var(--muted);
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+  }
+
+  .tag {
+    color: var(--accent);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 760px) {
+    .fig-a,
+    .fig-b {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

@@ -81,7 +81,7 @@
       "kind": "scalar",
       "slot": "chibi-walker",
       "required": true,
-      "reference": "repochan/references/stickers-grid.png",
+      "reference": "repochan/references/stickers-grid.webp",
       "output": "public/assets/chibi-walker.png",
       "description": "Full-in-frame chibi patrolling the central plaza — a tight crop of the sticker sheet's welcome cell (ord-sticker-001, repochan/references/stickers-grid.png); regenerate via the stickers bundle, then re-crop the welcome cell full-frame without the sticker padding."
     },
@@ -89,7 +89,7 @@
       "kind": "scalar",
       "slot": "footer-cutout",
       "required": true,
-      "reference": "repochan/references/cutout-matte.png",
+      "reference": "repochan/references/cutout-matte.webp",
       "output": "public/assets/cutout-wave.webp",
       "description": "Die-cut cutout waving from the footer block — transparent webp produced by chroma-key + compress. Reference is the raw matte master (full-in-frame version B, 1:1).",
       "order": {
@@ -149,7 +149,7 @@
       "kind": "scalar",
       "slot": "thumb-foundation",
       "required": true,
-      "reference": "repochan/references/foundation-sheet.png",
+      "reference": "repochan/references/foundation-sheet.webp",
       "output": "public/assets/thumbs/foundation.jpg",
       "description": "Foundation Hall window display — 640px JPEG thumbnail of the project's foundation sheet. Reference is the full master sheet (1:1).",
       "order": {
@@ -198,7 +198,7 @@
       "kind": "scalar",
       "slot": "thumb-poster-studio",
       "required": true,
-      "reference": "repochan/references/poster-studio.png",
+      "reference": "repochan/references/poster-studio.webp",
       "output": "public/assets/thumbs/poster-studio.jpg",
       "description": "Painter Shed window display — 768px JPEG thumbnail of the risograph-pop character poster. Reference is the full master poster (3:2).",
       "order": {
@@ -248,7 +248,7 @@
       "kind": "scalar",
       "slot": "thumb-poster-memphis",
       "required": true,
-      "reference": "repochan/references/poster-memphis.png",
+      "reference": "repochan/references/poster-memphis.webp",
       "output": "public/assets/thumbs/poster-memphis.jpg",
       "description": "Sticker Shop poster-pole display — 768px JPEG thumbnail of the Memphis geometric poster. Reference is the full master poster (1:1).",
       "order": {
@@ -299,7 +299,7 @@
       "kind": "bundle",
       "slot": "stickers",
       "required": true,
-      "reference": "repochan/references/stickers-grid.png",
+      "reference": "repochan/references/stickers-grid.webp",
       "publications": [
         {
           "key": "welcome",

@@ -66,6 +66,7 @@ Starter Designer works in a creator-owned directory or repository. Official incl
 | `caddy` | Caddy architectural automatic-HTTPS landing page | no |
 | `character-game-page` | RepoChan game-HUD character profile page | no |
 | `landing-anti-design` | RepoChan anti-design chaos bulletin board (experimental) | no |
+| `landing-cinema-credits` | RepoChan cinema opening-credits ceremonial narrative | no |
 | `landing-constructivist` | RepoChan constructivist poster-wall sequence | no |
 | `landing-frutiger-aero` | RepoChan Frutiger Aero / Y2K glass landing page | no |
 | `landing-glitch-os` | RepoChan glitch-art fake desktop OS | no |
@@ -74,6 +75,7 @@ Starter Designer works in a creator-owned directory or repository. Official incl
 | `landing-neobrutal-zine` | RepoChan neo-brutal rock zine landing page | no |
 | `landing-scrollytelling` | RepoChan dark-terminal scrollytelling theatre | no |
 | `landing-solarpunk` | RepoChan solarpunk orchard growth narrative | no |
+| `landing-swiss-type` | RepoChan Swiss-International typographic machine landing page | no |
 | `landing-toy-city` | RepoChan isometric toy-city pipeline sandbox | no |
 | `landing-wireframe-morph` | RepoChan wireframe-to-render metamorphosis narrative | no |
 | `marktext` | MarkText midnight Art Deco editorial landing page | no |

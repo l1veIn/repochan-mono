@@ -1,0 +1,629 @@
+/* ─────────────────────────────────────────────────────────────
+   cinema-opening-credits · 全局基础样式
+   token 由 SiteLayout 从 repochan/site.json 内联注入：
+   --void --credit --role --spot --dim --end-tint
+   ───────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--void);
+  color: var(--credit);
+  font-family: "Noto Sans SC", "Helvetica Neue", Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--spot);
+  color: var(--void);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+a {
+  color: var(--spot);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ── 宽银幕 letterbox（桌面恒定上下条） ─────────────────────── */
+
+.letterbox {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: clamp(2.75rem, 7vh, 4.5rem);
+  background: var(--void);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  padding: 0 clamp(1rem, 4vw, 3rem);
+  pointer-events: none;
+}
+
+.letterbox--top {
+  top: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--credit) 8%, transparent);
+  justify-content: space-between;
+}
+
+.letterbox--bottom {
+  bottom: 0;
+  border-top: 1px solid color-mix(in srgb, var(--credit) 8%, transparent);
+  justify-content: center;
+}
+
+.letterbox > * {
+  pointer-events: auto;
+}
+
+.letterbox__brand {
+  font-size: 0.625rem;
+  letter-spacing: 0.32em;
+  color: var(--dim);
+  white-space: nowrap;
+}
+
+.letterbox__controls {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+}
+
+.letterbox__link {
+  font-size: 0.625rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--role);
+}
+
+.letterbox__link:hover {
+  color: var(--spot);
+  text-decoration: none;
+}
+
+.letterbox__mark {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--dim);
+  opacity: 0.6;
+}
+
+/* 内容不被 letterbox 压住 */
+main {
+  padding-top: clamp(2.75rem, 7vh, 4.5rem);
+}
+
+/* ── 字幕卡通用 ─────────────────────────────────────────────── */
+
+.card {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: clamp(3rem, 10vh, 6rem) clamp(1.25rem, 6vw, 4rem);
+  position: relative;
+}
+
+.card__kicker {
+  font-size: 0.6875rem;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--role);
+  margin: 0 0 1.75rem;
+}
+
+.serif {
+  font-family: "Cinzel", "Noto Serif SC", "Songti SC", serif;
+}
+
+/* 淡入签名：字幕卡由黑场浮现 */
+.reveal {
+  opacity: 0;
+  transform: translateY(1.5rem);
+  transition:
+    opacity 1.2s ease,
+    transform 1.2s ease;
+}
+
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+.reveal--slow {
+  transition-duration: 2s;
+}
+
+/* ── Studio Card ────────────────────────────────────────────── */
+
+.studio__overline {
+  font-family: "Cinzel", serif;
+  font-size: clamp(1.5rem, 4.5vw, 3rem);
+  letter-spacing: 0.35em;
+  margin: 0 0 0.75rem;
+  color: var(--credit);
+}
+
+.studio__line {
+  font-size: clamp(0.875rem, 1.6vw, 1.125rem);
+  letter-spacing: 1.2em;
+  text-indent: 1.2em;
+  color: var(--role);
+  margin: 0 0 2.5rem;
+}
+
+.studio__co {
+  font-size: 0.6875rem;
+  letter-spacing: 0.3em;
+  color: var(--dim);
+  margin: 0;
+}
+
+/* ── Title Card ─────────────────────────────────────────────── */
+
+.title__main {
+  font-family: "Cinzel", "Noto Serif SC", "Songti SC", serif;
+  font-size: clamp(3.5rem, 14vw, 10rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: 0.08em;
+  margin: 0;
+  color: var(--credit);
+  text-shadow: 0 0 4rem color-mix(in srgb, var(--spot) 22%, transparent);
+}
+
+.title__latin {
+  font-family: "Cinzel", serif;
+  font-size: clamp(0.875rem, 2.2vw, 1.5rem);
+  letter-spacing: 0.5em;
+  color: var(--spot);
+  margin: 1.75rem 0 0;
+}
+
+.title__sub {
+  font-size: clamp(1rem, 2vw, 1.375rem);
+  letter-spacing: 0.5em;
+  text-indent: 0.5em;
+  color: var(--role);
+  margin: 1.5rem 0 0;
+}
+
+/* ── Starring ───────────────────────────────────────────────── */
+
+.starring {
+  gap: 2rem;
+}
+
+.starring__stage {
+  position: relative;
+  width: min(40vw, 16rem);
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+}
+
+.starring__stage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+/* dig 割侧光：一道缓慢扫过的光 */
+.starring__stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 38%,
+    color-mix(in srgb, var(--credit) 16%, transparent) 50%,
+    transparent 62%
+  );
+  background-size: 280% 100%;
+  animation: light-sweep 7s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes light-sweep {
+  0%,
+  20% {
+    background-position: 120% 0;
+  }
+  60%,
+  100% {
+    background-position: -40% 0;
+  }
+}
+
+.starring__role {
+  font-size: 0.75rem;
+  letter-spacing: 0.6em;
+  text-indent: 0.6em;
+  text-transform: uppercase;
+  color: var(--role);
+  margin: 0 0 1rem;
+}
+
+.starring__name {
+  font-family: "Cinzel", "Noto Serif SC", "Songti SC", serif;
+  font-size: clamp(2.5rem, 8vw, 5.5rem);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin: 0;
+  color: var(--spot);
+}
+
+.starring__latin {
+  font-size: 0.75rem;
+  letter-spacing: 0.5em;
+  color: var(--role);
+  margin: 0.75rem 0 0;
+}
+
+.starring__credit {
+  font-size: 0.875rem;
+  letter-spacing: 0.2em;
+  color: var(--credit);
+  margin: 1.5rem 0 0;
+}
+
+.starring__note {
+  font-size: 0.6875rem;
+  letter-spacing: 0.24em;
+  color: var(--dim);
+  margin: 2rem 0 0;
+}
+
+/* ── Credits Roll ───────────────────────────────────────────── */
+
+.credits__head {
+  margin-bottom: 2.5rem;
+}
+
+.credits__title {
+  font-family: "Cinzel", "Noto Serif SC", "Songti SC", serif;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  letter-spacing: 0.4em;
+  text-indent: 0.4em;
+  margin: 0;
+  color: var(--credit);
+}
+
+.credits__note {
+  font-size: 0.625rem;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin: 0.75rem 0 0;
+}
+
+/* 缓慢上滚窗口；reduced-motion 下展开为静态列表 */
+.credits__window {
+  height: min(64vh, 34rem);
+  overflow: hidden;
+  width: min(100%, 52rem);
+  mask-image: linear-gradient(transparent, black 18%, black 82%, transparent);
+  -webkit-mask-image: linear-gradient(transparent, black 18%, black 82%, transparent);
+}
+
+.credits__roll {
+  animation: credits-roll 46s linear infinite;
+}
+
+@keyframes credits-roll {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+.credit-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  padding: 1.1rem 0;
+  width: min(100%, 52rem);
+  margin: 0 auto;
+}
+
+.credit-row__role {
+  flex: 1;
+  text-align: right;
+  font-size: 0.6875rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--role);
+}
+
+.credit-row__name {
+  flex: 1.5;
+  text-align: left;
+  font-family: "Cinzel", "Noto Serif SC", "Songti SC", serif;
+  font-size: clamp(0.9375rem, 1.8vw, 1.1875rem);
+  letter-spacing: 0.08em;
+  color: var(--credit);
+}
+
+/* ── Scene Stills ───────────────────────────────────────────── */
+
+.stills__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(1rem, 3vw, 2rem);
+  width: min(100%, 68rem);
+  margin-top: 3rem;
+}
+
+.still {
+  margin: 0;
+  text-align: left;
+}
+
+.still img {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border: 1px solid color-mix(in srgb, var(--credit) 12%, transparent);
+}
+
+.still__tag {
+  display: block;
+  font-size: 0.625rem;
+  letter-spacing: 0.4em;
+  color: var(--spot);
+  margin-top: 0.875rem;
+}
+
+.still__caption {
+  display: block;
+  font-size: 0.8125rem;
+  letter-spacing: 0.12em;
+  color: var(--role);
+  margin-top: 0.375rem;
+}
+
+/* ── Tagline ────────────────────────────────────────────────── */
+
+.tagline__line {
+  font-family: "Cinzel", "Noto Serif SC", "Songti SC", serif;
+  font-size: clamp(1.5rem, 4.5vw, 3.25rem);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.4;
+  margin: 0;
+  max-width: 40rem;
+  color: var(--credit);
+}
+
+.tagline__sub {
+  font-size: clamp(0.875rem, 1.6vw, 1.0625rem);
+  letter-spacing: 0.28em;
+  color: var(--role);
+  margin: 2rem 0 0;
+}
+
+/* ── End Card（灯光亮起） ───────────────────────────────────── */
+
+.end {
+  background:
+    radial-gradient(ellipse 90% 65% at 50% 62%, color-mix(in srgb, var(--spot) 14%, transparent), transparent 70%),
+    linear-gradient(var(--void), var(--end-tint) 55%, var(--void));
+}
+
+.end__logo {
+  width: clamp(4.5rem, 10vw, 6.5rem);
+  height: auto;
+  margin: 0 auto 2rem;
+  filter: drop-shadow(0 0 2rem color-mix(in srgb, var(--spot) 45%, transparent));
+}
+
+.end__overline {
+  font-size: 0.6875rem;
+  letter-spacing: 0.5em;
+  text-indent: 0.5em;
+  color: var(--role);
+  margin: 0 0 1rem;
+}
+
+.end__title {
+  font-family: "Noto Sans SC", sans-serif;
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  margin: 0 0 3rem;
+  color: var(--credit);
+}
+
+.end__cmd {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.end__cmd code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: clamp(0.75rem, 1.6vw, 0.9375rem);
+  color: var(--credit);
+  background: color-mix(in srgb, var(--credit) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--credit) 18%, transparent);
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.375rem;
+  word-break: break-all;
+}
+
+.end__copy {
+  font: inherit;
+  font-size: 0.6875rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--void);
+  background: var(--spot);
+  border: 1px solid var(--spot);
+  border-radius: 0.375rem;
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.end__copy:hover {
+  opacity: 0.85;
+}
+
+.end__copy.is-copied {
+  background: var(--credit);
+  border-color: var(--credit);
+}
+
+.end__github {
+  display: inline-block;
+  margin-top: 1.75rem;
+  font-size: 0.8125rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.end__fine {
+  margin-top: 4rem;
+  font-size: 0.625rem;
+  letter-spacing: 0.3em;
+  color: var(--dim);
+}
+
+/* ── Post-credits ───────────────────────────────────────────── */
+
+.post {
+  min-height: 70svh;
+  padding-bottom: 8rem;
+}
+
+.post__kicker {
+  font-size: 0.625rem;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin: 0 0 2.5rem;
+}
+
+.post__sticker {
+  width: clamp(6rem, 16vw, 9rem);
+  height: auto;
+  margin: 0 auto 2rem;
+}
+
+.post__line {
+  font-family: "Cinzel", "Noto Serif SC", "Songti SC", serif;
+  font-size: clamp(1.0625rem, 2.4vw, 1.5rem);
+  letter-spacing: 0.12em;
+  margin: 0;
+  color: var(--credit);
+}
+
+.post__sub {
+  font-size: 0.8125rem;
+  letter-spacing: 0.2em;
+  color: var(--dim);
+  margin: 1rem 0 0;
+}
+
+/* ── 响应式 ─────────────────────────────────────────────────── */
+
+@media (max-width: 760px) {
+  .letterbox {
+    height: 2.5rem;
+  }
+
+  main {
+    padding-top: 2.5rem;
+  }
+
+  .letterbox__brand {
+    display: none;
+  }
+
+  .letterbox--top {
+    justify-content: flex-end;
+  }
+
+  .starring__stage {
+    width: min(74vw, 20rem);
+  }
+
+  .stills__grid {
+    grid-template-columns: 1fr;
+    width: min(100%, 26rem);
+  }
+
+  .credits__window {
+    height: min(58vh, 30rem);
+  }
+
+  .credit-row {
+    gap: 1rem;
+  }
+
+  .credit-row__role {
+    letter-spacing: 0.18em;
+  }
+}
+
+/* ── reduced-motion：静态职员表一页 + 剧照网格，无动画 ──────── */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .starring__stage::after {
+    display: none;
+  }
+
+  .credits__window {
+    height: auto;
+    overflow: visible;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+
+  .credits__roll {
+    animation: none;
+  }
+
+  .credits__roll .credits__dup {
+    display: none;
+  }
+}

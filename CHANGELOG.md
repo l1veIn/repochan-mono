@@ -60,7 +60,12 @@ This changelog records coordinated public package sets.
   收缩至 starter-site.v1 4 桶 theme + brand 三节、assets.json 协议化、
   references 母图回收、canonical 预览；全部通过 `starter validate` 与
   pull smoke（临时目录 validate + build）。wireframe-morph 的 lineart-full
-  是 `slot:` 资产间引用的首个生产用例。
+  是 `slot:` 资产间引用的首个生产用例。随后 pilot 站（landing-swiss-type）
+  与 Batch 3（landing-cinema-credits）完成同样迁移，10 个设计稿全部成为
+  官方 starter。
+- starter 包减重（282MB → 111MB）：references 母图统一转 webp q92 ≤2048px
+  （starter.json reference 路径同步）；character-game-page 的 PNG tile/crops
+  与 landing-museum 的 studies/props 转 webp（deliverables 母图 format 保持 png）。
 - `official/chibi-grid-3x3` 补 `grid.cell_keys`（9 个表情语义键）。
 - `scripts/preview-sites.sh` 默认改扫 `packages/starters`（`PREVIEW_SITES_DIR`
   可覆盖）。

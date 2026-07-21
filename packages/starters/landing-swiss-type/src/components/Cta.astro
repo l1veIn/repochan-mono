@@ -1,0 +1,65 @@
+---
+import { site } from "../lib/site";
+import type { CtaContent } from "../lib/i18n/types";
+
+type Props = { content: CtaContent };
+const { content } = Astro.props;
+---
+
+<section class="section cta" aria-labelledby="cta-title">
+  <div class="container">
+    <div class="section-head">
+      <span class="idx">{content.index}</span>
+      <h2 id="cta-title">{content.title}</h2>
+    </div>
+    <div class="cmd-row">
+      <code class="cmd">{content.cmd}</code>
+      <button
+        type="button"
+        class="copy-btn"
+        data-copy={content.cmd}
+        data-copied={content.copiedLabel}
+      >
+        {content.copyLabel}
+      </button>
+    </div>
+    <p class="fine">{content.fine}</p>
+    <a class="docs mono" href={site.project.repositoryUrl} rel="noopener">{content.docsLabel}</a>
+  </div>
+</section>
+
+<style>
+  .cta {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .cmd-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding-block: 24px;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .cmd {
+    font-size: clamp(1rem, 2.6vw, 1.75rem);
+    font-weight: 500;
+    color: var(--accent);
+    word-break: break-all;
+  }
+
+  .fine {
+    margin: 24px 0 0;
+    max-width: 56ch;
+    color: var(--muted);
+  }
+
+  .docs {
+    display: inline-block;
+    margin-top: 24px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+  }
+</style>

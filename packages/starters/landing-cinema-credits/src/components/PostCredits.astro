@@ -1,0 +1,23 @@
+---
+import { assets } from "../lib/site";
+import type { PostCreditsContent } from "../lib/i18n/types";
+
+type Props = { content: PostCreditsContent };
+const { content } = Astro.props;
+---
+
+<section class="card post" id="post-credits" aria-label={content.kicker}>
+  <div class="reveal">
+    <p class="post__kicker">{content.kicker}</p>
+    <img
+      class="post__sticker"
+      src={assets.sticker.src}
+      width={assets.sticker.width}
+      height={assets.sticker.height}
+      alt={content.stickerAlt}
+      loading="lazy"
+    />
+    <p class="post__line">{content.line}</p>
+    <p class="post__sub">{content.sub}</p>
+  </div>
+</section>

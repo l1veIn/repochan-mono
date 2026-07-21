@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "zh",
+  "meta": {
+    "title": "仓库酱 · 一部由 multi-agent 剧组协作完成的影片 | RepoChan",
+    "description": "RepoChan 把 git 仓库变成完整的品牌资产：人设、插画、贴纸、落地页。本页以电影片头演职员表的形式，介绍这支 multi-agent 剧组。"
+  },
+  "content": {
+    "htmlLang": "zh-CN",
+    "frame": {
+      "brand": "REPOCHAN · A MULTI-AGENT PRODUCTION",
+      "skip": "跳过片头",
+      "localeSwitch": "EN"
+    },
+    "studio": {
+      "overline": "SUGAR RIFF",
+      "line": "出品",
+      "co": "与 REPOCHAN 剧组 联合呈现"
+    },
+    "title": {
+      "kicker": "一部由 MULTI-AGENT 剧组协作完成的影片",
+      "main": "仓库酱",
+      "latin": "R E P O - C H A N",
+      "sub": "给仓库一个灵魂"
+    },
+    "starring": {
+      "role": "主演",
+      "roleLatin": "STARRING",
+      "name": "仓库酱",
+      "latin": "REPO-CHAN",
+      "credit": "RepoChan 看板娘 · 全程出镜",
+      "alt": "仓库酱全身立绘：蓝发看板娘，抱着场记板道具",
+      "note": "本片全部画面来自生成流水线实拍（实绘）"
+    },
+    "credits": {
+      "title": "演职员表",
+      "note": "CAST & CREW",
+      "rows": [
+        { "role": "原作 / 世界观", "name": "repochan-persona · 世界架构师" },
+        { "role": "角色设计", "name": "repochan-persona · 角色设计师" },
+        { "role": "美术总监", "name": "repochan-art-director" },
+        { "role": "摄影 / 生成", "name": "repochan-painter" },
+        { "role": "剪辑 / 装配", "name": "repochan-page-designer" },
+        { "role": "网页美术", "name": "repochan-web-designer" },
+        { "role": "剧本顾问", "name": "repochan-interviewer" },
+        { "role": "调研", "name": "repochan-analysis" }
+      ]
+    },
+    "stills": {
+      "title": "剧照",
+      "note": "SCENE STILLS",
+      "figures": [
+        { "tag": "STILL 01", "caption": "设定集 · 角色与世界观一次成稿", "alt": "仓库酱角色设定集：表情、姿态与道具同页排布" },
+        { "tag": "STILL 02", "caption": "画室 · 生产流水线实拍", "alt": "仓库酱的画室广角场景：画架、终端与散落的草稿" },
+        { "tag": "STILL 03", "caption": "海报 · 宣发物料", "alt": "RepoChan 主题海报：仓库酱与品牌主视觉" }
+      ]
+    },
+    "tagline": {
+      "line": "把一个 git 仓库，变成完整的品牌资产。",
+      "sub": "人设 · 插画 · 贴纸 · 落地页——一次放映，全部交付。"
+    },
+    "end": {
+      "overline": "灯光亮起",
+      "title": "现在开拍",
+      "cmd": "npm install -g repochan && repochan setup",
+      "copyLabel": "复制",
+      "copiedLabel": "已复制",
+      "githubLabel": "GitHub ↗",
+      "fine": "RepoChan · MIT · 你的仓库，你的剧组",
+      "logoAlt": "RepoChan 仓库酱图标"
+    },
+    "postCredits": {
+      "kicker": "片尾彩蛋 · POST-CREDITS",
+      "line": "没有一个仓库在本片拍摄中受到伤害。",
+      "sub": "（只有一个被反复 fork。）",
+      "stickerAlt": "仓库酱表情包贴纸"
+    }
+  }
+}

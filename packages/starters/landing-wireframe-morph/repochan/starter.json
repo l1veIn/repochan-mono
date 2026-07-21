@@ -34,7 +34,7 @@
       "kind": "scalar",
       "slot": "cutout-a",
       "required": true,
-      "reference": "repochan/references/cutout-a-matte.png",
+      "reference": "repochan/references/cutout-a-matte.webp",
       "output": "public/assets/cutout-a.webp",
       "description": "Full-body die-cut cutout (pose A: low-angle diagonal leap) — the page's final-render character, reused across the FLAT/TEXTURE/RENDER/LIVE/WORLD stages via CSS filter states. Transparent webp produced by chroma-key + compress. Reference is the raw matte master (2:3). Apply this slot before lineart-full: the lineart is redrawn on top of this cutout's pose.",
       "order": {
@@ -348,7 +348,7 @@
       "kind": "bundle",
       "slot": "stickers",
       "required": true,
-      "reference": "repochan/references/stickers-grid.png",
+      "reference": "repochan/references/stickers-grid.webp",
       "publications": [
         {
           "key": "welcome",

@@ -354,108 +354,108 @@
       "kind": "scalar",
       "slot": "expr-excited",
       "required": true,
-      "output": "public/assets/crops/expr-excited.png",
+      "output": "public/assets/crops/expr-excited.webp",
       "description": "Expression card (excited) for the Index expression cards — sourced from the sticker sheet (ord-sticker-001, success cell); regenerate via the stickers bundle, not foundation crops."
     },
     {
       "kind": "scalar",
       "slot": "expr-focused",
       "required": true,
-      "output": "public/assets/crops/expr-focused.png",
+      "output": "public/assets/crops/expr-focused.webp",
       "description": "Expression card (focused) for the Index expression cards — sourced from the sticker sheet (ord-sticker-001, searching cell); regenerate via the stickers bundle."
     },
     {
       "kind": "scalar",
       "slot": "expr-deadpan",
       "required": true,
-      "output": "public/assets/crops/expr-deadpan.png",
+      "output": "public/assets/crops/expr-deadpan.webp",
       "description": "Expression card (deadpan) for the Index expression cards — sourced from the sticker sheet (ord-sticker-001, confident cell); regenerate via the stickers bundle."
     },
     {
       "kind": "scalar",
       "slot": "motif-clip",
       "required": true,
-      "output": "public/assets/crops/motif-clip-alpha.png",
+      "output": "public/assets/crops/motif-clip-alpha.webp",
       "description": "Alpha-cut motif prop (clip) for the Index motif cards — sourced from the prop sheet (ord-props-001, repochan/references/props-grid.png); regenerate via extract-grid, not foundation crops."
     },
     {
       "kind": "scalar",
       "slot": "motif-earring",
       "required": true,
-      "output": "public/assets/crops/motif-earring-alpha.png",
+      "output": "public/assets/crops/motif-earring-alpha.webp",
       "description": "Alpha-cut motif prop (earring) for the Index motif cards — sourced from the prop sheet (ord-props-001, repochan/references/props-grid.png); regenerate via extract-grid, not foundation crops."
     },
     {
       "kind": "scalar",
       "slot": "motif-pendant",
       "required": true,
-      "output": "public/assets/crops/motif-pendant-alpha.png",
+      "output": "public/assets/crops/motif-pendant-alpha.webp",
       "description": "Alpha-cut motif prop (pendant) for the Index motif cards — sourced from the prop sheet (ord-props-001, repochan/references/props-grid.png); regenerate via extract-grid, not foundation crops."
     },
     {
       "kind": "scalar",
       "slot": "motif-headphones",
       "required": true,
-      "output": "public/assets/crops/motif-headphones-alpha.png",
+      "output": "public/assets/crops/motif-headphones-alpha.webp",
       "description": "Alpha-cut motif prop (headphones) for the Index motif cards — sourced from the prop sheet (ord-props-001, repochan/references/props-grid.png); regenerate via extract-grid, not foundation crops."
     },
     {
       "kind": "scalar",
       "slot": "chibi",
       "required": false,
-      "output": "public/assets/crops/chibi-full.png",
+      "output": "public/assets/crops/chibi-full.webp",
       "description": "Chibi variant used in the special-skill archive card — sourced from the sticker sheet (ord-sticker-001, welcome cell); regenerate via the stickers bundle."
     },
     {
       "kind": "bundle",
       "slot": "webstates",
       "required": true,
-      "reference": "repochan/references/webstates-grid.png",
+      "reference": "repochan/references/webstates-grid.webp",
       "publications": [
         {
           "key": "welcome",
           "cell": 0,
-          "output": "public/assets/webstates/tile-5.png"
+          "output": "public/assets/webstates/tile-5.webp"
         },
         {
           "key": "searching",
           "cell": 1,
-          "output": "public/assets/webstates/tile-6.png"
+          "output": "public/assets/webstates/tile-6.webp"
         },
         {
           "key": "loading",
           "cell": 2,
-          "output": "public/assets/webstates/tile-0.png"
+          "output": "public/assets/webstates/tile-0.webp"
         },
         {
           "key": "empty",
           "cell": 3,
-          "output": "public/assets/webstates/tile-1.png"
+          "output": "public/assets/webstates/tile-1.webp"
         },
         {
           "key": "error",
           "cell": 4,
-          "output": "public/assets/webstates/tile-4.png"
+          "output": "public/assets/webstates/tile-4.webp"
         },
         {
           "key": "success",
           "cell": 5,
-          "output": "public/assets/webstates/tile-2.png"
+          "output": "public/assets/webstates/tile-2.webp"
         },
         {
           "key": "not-found",
           "cell": 6,
-          "output": "public/assets/webstates/tile-3.png"
+          "output": "public/assets/webstates/tile-3.webp"
         },
         {
           "key": "cta",
           "cell": 7,
-          "output": "public/assets/webstates/tile-7.png"
+          "output": "public/assets/webstates/tile-7.webp"
         },
         {
           "key": "cozy",
           "cell": 8,
-          "output": "public/assets/webstates/tile-8.png"
+          "output": "public/assets/webstates/tile-8.webp"
         }
       ],
       "description": "3×3 web-state sticker sheet sliced into named tiles. The source sheet (kept read-only at repochan/references/webstates-grid.png) was generated with custom cell semantics, so source tiles were mapped to the nearest template key by content (source cell 7 is a maintenance pose published under 'cta'); the page displays tiles positionally without semantic labels. Publications follow the template cell order so a regenerated official/web-state-grid-3x3 sheet extracts correctly. The states grid shows loading / success / not-found / error / searching / cta.",
@@ -528,7 +528,7 @@
               "maxForegroundRatio": 0.9,
               "maxSheetEdgeTouchRatio": 0.05
             },
-            "format": "png"
+            "format": "webp"
           },
           "out": "public/assets/webstates"
         }
@@ -538,52 +538,52 @@
       "kind": "bundle",
       "slot": "stickers",
       "required": true,
-      "reference": "repochan/references/stickers-grid.png",
+      "reference": "repochan/references/stickers-grid.webp",
       "publications": [
         {
           "key": "welcome",
           "cell": 0,
-          "output": "public/assets/stickers/tile-0.png"
+          "output": "public/assets/stickers/tile-0.webp"
         },
         {
           "key": "searching",
           "cell": 1,
-          "output": "public/assets/stickers/tile-1.png"
+          "output": "public/assets/stickers/tile-1.webp"
         },
         {
           "key": "loading",
           "cell": 2,
-          "output": "public/assets/sticker-2.png"
+          "output": "public/assets/sticker-2.webp"
         },
         {
           "key": "empty",
           "cell": 3,
-          "output": "public/assets/stickers/tile-3.png"
+          "output": "public/assets/stickers/tile-3.webp"
         },
         {
           "key": "error",
           "cell": 4,
-          "output": "public/assets/stickers/tile-4.png"
+          "output": "public/assets/stickers/tile-4.webp"
         },
         {
           "key": "success",
           "cell": 5,
-          "output": "public/assets/sticker-5.png"
+          "output": "public/assets/sticker-5.webp"
         },
         {
           "key": "not-found",
           "cell": 6,
-          "output": "public/assets/stickers/tile-6.png"
+          "output": "public/assets/stickers/tile-6.webp"
         },
         {
           "key": "cta",
           "cell": 7,
-          "output": "public/assets/stickers/tile-7.png"
+          "output": "public/assets/stickers/tile-7.webp"
         },
         {
           "key": "cozy",
           "cell": 8,
-          "output": "public/assets/sticker-8.png"
+          "output": "public/assets/sticker-8.webp"
         }
       ],
       "description": "3×3 chibi expression sheet sliced into named tiles. The source sheet (kept read-only at repochan/references/stickers-grid.png) follows official/chibi-grid-3x3 expression semantics; bundles require a cell-keyed template, so publications reuse the official/web-state-grid-3x3 keys with source tiles mapped to the nearest key by content (wave→welcome, curious→searching, celebrating→success, pointing→cta, cozy→cozy; loading/empty/error/not-found hold the remaining expression cells). Cells 2/5/8 are published as background-removed floats (sticker-2/5/8.png) because the hero floats them over the dark scene; the states grid shows searching / not-found / cozy. A regenerated web-state sheet extracts through the same mapping; downstream wanting expression semantics can slice its own chibi sheet to the same outputs.",
@@ -656,7 +656,7 @@
               "maxForegroundRatio": 0.9,
               "maxSheetEdgeTouchRatio": 0.05
             },
-            "format": "png"
+            "format": "webp"
           },
           "out": "public/assets/stickers"
         }
