@@ -1,7 +1,7 @@
 id: "official/character-cutout"
 asset_type: "character_cutout"
 label: "角色抠图（matte 底定制姿态）"
-description: "纯色 matte 背景上的角色定制姿态图，配合 chroma-key 抠出透明 PNG。用于角色打破矩形容器：探出 section 边缘、漂浮在 section 之间、做交互引导。"
+description: "纯色 matte 背景上的角色定制姿态图，配合 chroma-key 抠出透明 PNG。用于角色打破矩形容器：探出 section 边缘、漂浮在 section 之间、做交互引导。默认产出**完整入画**的通用资产（全身/七分身完整、四边留白）；出血裁切构图属于设计绑定变体（见 constraints 末条），不得作为通用 starter 资产。"
 tags: ["character_cutout", "cutout", "transparent", "pose", "web"]
 size: "1024x1024"
 
@@ -17,6 +17,7 @@ prompt_template: |
   Keep the full subject visible and separated from the matte.
   The character is the ONLY thing on the matte background — no props, no furniture, no scenery.
   The character does NOT touch any edge — generous margin on all four sides.
+  Every part of the character is complete and in frame: hair tips, fingers, shoe soles, cables, held items — nothing is cropped by the canvas.
   The character's silhouette is clean and uncluttered.
   Simple self-contained outfit and accessories — nothing extending beyond the body silhouette.
   No text, no watermark, no signature.
@@ -27,6 +28,7 @@ constraints:
   - "ONE single character on a perfectly flat uniform matte background — no grid, no multiple poses"
   - "matte background must be pure flat {{matte_color}} — no gradients, texture, shadow, or off-color"
   - "character must NOT touch any canvas edge — generous margin on all four sides"
+  - "every body part, hair tip, finger, shoe, cable and held item is fully visible — no edge cropping"
   - "NO props, furniture, scenery, or background elements — character only"
   - "NO text, watermark, or signature"
   - "clean self-contained silhouette suitable for chroma-key extraction"
@@ -34,3 +36,4 @@ constraints:
   - "matte_color must NOT be white (#FFFFFF) or near-white — most characters contain white in their outfit/highlights/eyes, and a white matte would be punched out together with those whites during chroma-key extraction, destroying the silhouette"
   - "choose the matte hue by distance from the subject: green matte for pink/purple-dominant subjects, magenta for green-dominant subjects, green for deep-red-dominant subjects"
   - "do not reproduce layout-guide boxes, lines, crosshairs, or labels from any reference guide image"
+  - "bleeding/cropped compositions (subject exits the canvas edge) are design-bound variants: they are only valid when the target page has H3/H4 layer elements acting as the visual boundary that receives the crop (e.g. a card edge the character leans on, a section boundary the hair sweeps behind). Never ship a bleeding cutout as a general-purpose or starter asset"

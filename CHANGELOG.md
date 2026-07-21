@@ -6,6 +6,11 @@ This changelog records coordinated public package sets.
 
 ### 清晰度机制（genSize）与 web-designer 微调
 
+- Cutout 资产分类学：通用 cutout 必须完整入画（四边留白、肢体完整）；
+  出血裁切版是设计绑定资产（需 H3/H4 层边界配合），不得进 starter/通用库。
+  `official/character-cutout` 模板与 web-designer skill 已写入该教义；
+  ord-cutout-001 v3 重新交付完整入画版 A/B（2048×3072 / 2048×2048），
+  替换 4 个 starter 中的出血版；01 swiss-type hero 右侧新增 Fig. 01。
 - Order deliverables 新增 `genSize`（生成分辨率 ≥ 成品尺寸，后处理降采样）——
   清晰度契约落在订单层；painter 解析顺序：用户 > genSize > 模板 size >
   deliverable 宽高，生成尺寸永远 ≥ 成品尺寸。5 个 starter 的 33 处
