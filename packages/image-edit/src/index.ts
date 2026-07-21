@@ -11,6 +11,7 @@ export * from "./compress.js";
 export * from "./matte-grid.js";
 export * from "./grid-geometry.js";
 export * from "./extract.js";
+export * from "./iconfont.js";
 export * from "./layout-guide.js";
 export * from "./seam-validation.js";
 export * from "./image-inspect.js";

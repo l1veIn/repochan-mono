@@ -32,6 +32,7 @@ import {
   compressImage,
   extractAssets,
   ExtractError,
+  extractIconfont,
   extractStickersFromImage,
   framesToGif,
   generateIco,
@@ -362,6 +363,20 @@ async function applyStep(step: StarterPostprocessStep, sourceFiles: string[], ou
       return;
     case "extract-grid":
       throw new Error("extract-grid is a starter bundle operation and cannot run as a scalar postprocess step.");
+    case "iconfont":
+      await extractIconfont(source, out, {
+        rows: args.rows !== undefined ? Number(args.rows) : undefined,
+        cols: args.cols !== undefined ? Number(args.cols) : undefined,
+        mapping: args.mapping as any,
+        chroma: {
+          pipeline: args.pipeline === "v1" ? "v1" : args.pipeline === "v2" ? "v2" : undefined,
+          matteSelect: args.matteSelect as any,
+        },
+        normalizeSize: args.normalizeSize !== undefined ? Number(args.normalizeSize) : undefined,
+        viewBox: args.viewBox !== undefined ? Number(args.viewBox) : undefined,
+        overwrite,
+      });
+      return;
   }
 }
 

@@ -715,6 +715,111 @@ export async function runImageEditExtract(
   }
 }
 
+/**
+ * repochan image edit iconfont <sheet> --rows <n> --cols <n> --mapping a,b,c --out <dir>
+ *   [--pipeline v1|v2] [--matte auto|#hex] [--matte-select corner|subject-aware]
+ *   [--normalize 512] [--view-box 24] [--overwrite] [--json]
+ * Hollow-icon sheet → lucide-style SVG icon set (per-icon <svg viewBox="0 0 24 24"
+ * fill="currentColor">, sprite.svg, index.json). Tiles are intermediate only.
+ */
+export async function runImageEditIconfont(
+  cwd: string,
+  imagePath: string | undefined,
+  options: OutputOptions & {
+    rows?: number;
+    cols?: number;
+    out?: string;
+    pipeline?: string;
+    mapping?: string;
+    mappingFile?: string;
+    matte?: string;
+    matteSelect?: string;
+    normalize?: string | number;
+    viewBox?: string;
+    overwrite?: boolean;
+  },
+) {
+  if (!imagePath) {
+    throw new UsageError(
+      "Usage: repochan image edit iconfont <sheet> --rows <n> --cols <n> --mapping a,b,c --out <dir> " +
+      "[--pipeline v1|v2] [--matte auto|#ff00ff] [--matte-select corner|subject-aware] " +
+      "[--normalize 512] [--view-box 24] [--overwrite]",
+    );
+  }
+  if (!options.out) throw new UsageError("--out <dir> is required for iconfont");
+  const { rows, cols } = requirePositiveGrid(options.rows, options.cols);
+
+  const pipeline = options.pipeline ?? "v2";
+  if (pipeline !== "v1" && pipeline !== "v2") {
+    throw new UsageError(`--pipeline must be v1 | v2 (got "${options.pipeline}")`);
+  }
+  const matteSelect = options.matteSelect ?? "corner";
+  if (matteSelect !== "corner" && matteSelect !== "subject-aware") {
+    throw new UsageError(`--matte-select must be corner | subject-aware (got "${options.matteSelect}")`);
+  }
+  const mapping = await resolveExtractMapping(cwd, options);
+  if (!mapping) throw new UsageError("--mapping a,b,c or --mapping-file f.json is required for iconfont (named icons)");
+
+  let matteColor: import("@repochan/image-edit").MatteColor | "auto" | undefined;
+  if (options.matte) {
+    const { parseMatteColor } = await import("@repochan/image-edit");
+    try {
+      matteColor = parseMatteColor(options.matte);
+    } catch (err) {
+      throw new UsageError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  let normalizeSize: number | undefined;
+  if (options.normalize !== undefined) {
+    normalizeSize = Number(options.normalize);
+    if (!Number.isInteger(normalizeSize) || normalizeSize < 16) {
+      throw new UsageError(`--normalize must be an integer >= 16 (got "${options.normalize}")`);
+    }
+  }
+  let viewBox: number | undefined;
+  if (options.viewBox !== undefined) {
+    viewBox = Number(options.viewBox);
+    if (!Number.isFinite(viewBox) || viewBox < 1) {
+      throw new UsageError(`--view-box must be a positive number (got "${options.viewBox}")`);
+    }
+  }
+
+  const absIn = path.resolve(cwd, imagePath);
+  const absOut = path.resolve(cwd, options.out);
+  const { extractIconfont } = await import("@repochan/image-edit");
+
+  const spinner = ora(`Tracing ${rows}×${cols} iconfont sheet (chroma ${pipeline})…`).start();
+  try {
+    const result = await extractIconfont(absIn, absOut, {
+      rows,
+      cols,
+      mapping,
+      chroma: { pipeline, matteColor, matteSelect },
+      normalizeSize,
+      viewBox,
+      overwrite: options.overwrite,
+    });
+    spinner.succeed(`Traced ${result.icons.length} icons → ${path.relative(cwd, absOut) || absOut}`);
+    emitResult(
+      options,
+      `Iconfont: ${result.icons.length} SVG icons + sprite.svg + index.json → ${absOut}`,
+      {
+        outDir: absOut,
+        rows,
+        cols,
+        icons: result.icons,
+        spriteFile: result.spriteFile,
+        indexFile: result.indexFile,
+      },
+    );
+    return result;
+  } catch (err) {
+    spinner.fail();
+    throw err;
+  }
+}
+
 /** repochan image edit layout-guide --rows <n> --cols <n> --out guide.png [--overwrite] [--json] */
 export async function runImageEditLayoutGuide(
   cwd: string,

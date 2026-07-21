@@ -237,7 +237,8 @@ cli.command("image <sub>", "Image generation, configure, status, probe, and edit
   .option("--mapping <keys>", "Comma-separated semantic keys in row-major order (image edit extract)")
   .option("--mapping-file <path>", "JSON semantic mapping: key array or { key: cellIndex } (image edit extract)")
   .option("--matte-select <mode>", "Matte auto-select mode: corner (default) | subject-aware (image edit extract)")
-  .option("--normalize <n>", "Normalize extracted assets onto an N×N canvas (image edit extract)")
+  .option("--normalize <n>", "Normalize extracted assets onto an N×N canvas (image edit extract); iconfont intermediate tile size, default 512 (image edit iconfont)")
+  .option("--view-box <n>", "Iconfont SVG viewBox edge, default 24 (image edit iconfont)")
   .option("--ml-fallback", "Allow ML assist fallback; required with --strategy hybrid (image edit extract)")
   .option("--format <fmt>", "Output format: webp | jpeg | avif | png (image edit compress)")
   .option("--max-width <n>", "Max output width in pixels, downscales if larger (image edit compress)")
@@ -290,13 +291,14 @@ cli.command("image <sub>", "Image generation, configure, status, probe, and edit
         if (editSub === "bg-remove") return await image.runImageEditBgRemove(process.cwd(), args[2], opts);
         if (editSub === "chroma-key") return await image.runImageEditChromaKey(process.cwd(), args[2], opts);
         if (editSub === "extract") return await image.runImageEditExtract(process.cwd(), args[2], opts);
+        if (editSub === "iconfont") return await image.runImageEditIconfont(process.cwd(), args[2], opts);
         if (editSub === "layout-guide") return await image.runImageEditLayoutGuide(process.cwd(), opts);
         if (editSub === "extract-stickers") return await image.runImageEditExtractStickers(process.cwd(), args[2], opts);
         if (editSub === "resize") return await image.runImageEditResize(process.cwd(), args[2], opts);
         if (editSub === "favicon") return await image.runImageEditFavicon(process.cwd(), args[2], opts);
         if (editSub === "compress") return await image.runImageEditCompress(process.cwd(), args[2], opts);
         if (editSub === "gif-from-frames") return await image.runImageEditGifFromFrames(process.cwd(), args.slice(2), opts);
-        throw new Error(`Unknown image edit subcommand: ${editSub}. Use: slice | validate-seams | bg-remove | chroma-key | extract | layout-guide | extract-stickers | resize | favicon | compress | gif-from-frames`);
+        throw new Error(`Unknown image edit subcommand: ${editSub}. Use: slice | validate-seams | bg-remove | chroma-key | extract | iconfont | layout-guide | extract-stickers | resize | favicon | compress | gif-from-frames`);
       }
       default: throw new Error(`Unknown image subcommand: ${sub}. Use: gen | configure | status | probe | edit`);
     }

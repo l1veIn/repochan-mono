@@ -26,3 +26,17 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+imagetracer.js
+--------------
+
+src/vendor/imagetracer.cjs is the unmodified single-file build (v1.2.6)
+of imagetracer.js, used to vectorize tile alpha silhouettes into SVG
+paths (src/iconfont.ts):
+
+    imagetracer.js — https://github.com/jankovicsandras/imagetracerjs
+    Copyright András Jankovics (andras@jankovics.net)
+
+The upstream project dedicates the software to the public domain under
+The Unlicense; the full license text is retained in the header of
+src/vendor/imagetracer.cjs.

@@ -63,3 +63,4 @@ constraints:
   - "keep a safe margin of about 12% of the cell size inside every cell"
   - "do not reproduce layout-guide boxes, lines, crosshairs, or cell labels from any reference guide image"
   - "FILLED variant (only when the page needs rich brand-color icons at >=64px display): solid shapes filled with the brand palette, dominant color + one accent, minimal 2-3 color zones; expect extract QA to need maxForegroundRatio 0.99 and a matte whose tint axis avoids the dominant fill (e.g. sky-blue fills on magenta, never on green)"
+  - "OUTLINE postprocess: for the default hollow sheet, prefer the `iconfont` postprocess op (or `repochan image edit iconfont`) over plain extract-grid — it traces each tile's alpha into lucide-style SVG icons (viewBox 0 0 24 24, fill=currentColor) plus sprite.svg and index.json"

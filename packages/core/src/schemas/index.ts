@@ -599,6 +599,7 @@ export const OrderDerivedStepSchema = Type.Object({
     Type.Literal("favicon"),
     Type.Literal("gif-from-frames"),
     Type.Literal("extract-grid"),
+    Type.Literal("iconfont"),
   ]),
   args: Type.Optional(Type.Record(Type.String(), Type.Any())),
   out: Type.String({ minLength: 1 }),

@@ -67,6 +67,12 @@ This changelog records coordinated public package sets.
   （starter.json reference 路径同步）；character-game-page 的 PNG tile/crops
   与 landing-museum 的 studies/props 转 webp（deliverables 母图 format 保持 png）。
 - `official/chibi-grid-3x3` 补 `grid.cell_keys`（9 个表情语义键）。
+- iconfont 专用后处理：`extractIconfont`（chroma-grid 提取 → alpha 轮廓追踪
+  → 真矢量 SVG）落地——每图标一个 `fill="currentColor"` + 24 viewBox 的
+  lucide 风格 SVG，外加 sprite.svg 与 index.json；CLI `image edit iconfont`、
+  starter postprocess op `iconfont`（末步规则）、derived schema 同步。
+  轮廓追踪 vendor imagetracerjs（Unlicense，NOTICE 归因）。
+  实验表（ord-iconfont-001）已产出 16 个 SVG 并归档 derived/。
 - `official/iconfont-grid-4x4` 重写为镂空描边主形态（非白 matte + 16 个 UI
   语义 cell_keys + chroma-grid 提取契约）：实验证明镂空单色描边在新管线
   16/16 零残留且 alpha 可作 CSS mask 换色；品牌色填充变体可用但需注意
