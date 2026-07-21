@@ -28,6 +28,9 @@ This changelog records coordinated public package sets.
 - `@repochan/templates`: new `official/web-state-grid-2x2`,
   `official/badge-grid-3x3`, `official/item-prop-grid-3x3`; grid/cutout
   templates enforce non-white matte, safe margins, and matte hue rules.
+  `official/icon-single` revised: icon sources are content-focused and
+  full-bleed — circular/rounded-square masking is a postprocess decision,
+  never baked into source art.
 - Starters: regenerated all grid stickers/webstates via the new pipeline
   (layout-guide + non-white matte generation, chroma-grid + v2 extraction);
   sealed-scroll cameos regenerated from a blue-matte sheet after QA rejected
