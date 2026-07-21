@@ -139,3 +139,11 @@ RepoChan 的抠图 / 网格切分管线（`@repochan/image-edit`）借鉴了以�
 
 - [`aldegad/sprite-gen`](https://github.com/aldegad/sprite-gen)（Apache-2.0）—— chroma v2 管线移植自其已知背景色 soft-alpha unmix、trapped-spill despill 与 key-depth 分类；centroid 网格几何（连通域归格、跨格劈分、碎屑处理）沿袭其 slice-sheet 设计。见 [`packages/image-edit/NOTICE`](./packages/image-edit/NOTICE)。
 - [`0x0funky/agent-sprite-forge`](https://github.com/0x0funky/agent-sprite-forge) —— 生成侧稳定化思路：以 layout-guide 图作为构图参考、fail-loud 质检门驱动重生而非掩盖缺陷。
+
+---
+
+<div align="center">
+<img src="./docs/assets/readme/footer-banner.webp" alt="Sugar Riff 工作室——仓库酱在略显凌乱的工作台前，满墙动漫海报与手办，午后暖阳" width="100%">
+<br/>
+<sub>Sugar Riff 工作室——每张海报和手办都是她世界的真实一角（可乐永远是冰的）。</sub>
+</div>
