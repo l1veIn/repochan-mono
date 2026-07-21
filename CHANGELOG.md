@@ -30,7 +30,12 @@ This changelog records coordinated public package sets.
   templates enforce non-white matte, safe margins, and matte hue rules.
   `official/icon-single` revised: icon sources are content-focused and
   full-bleed — circular/rounded-square masking is a postprocess decision,
-  never baked into source art.
+  never baked into source art; the background is a designed brand backdrop
+  (no chroma matte, no keying — postprocess is shape mask + resize only).
+  `official/hero-pose-lineart-extract` narrowed to its one legitimate purpose:
+  transmitting character pose when it has a structural relationship with
+  H3/H4 page elements — character-only lineart, never for poster-style
+  placements. starter-designer skill documents the same doctrine.
 - Starters: regenerated all grid stickers/webstates via the new pipeline
   (layout-guide + non-white matte generation, chroma-grid + v2 extraction);
   sealed-scroll cameos regenerated from a blue-matte sheet after QA rejected

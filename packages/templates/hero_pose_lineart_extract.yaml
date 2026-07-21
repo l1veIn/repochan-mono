@@ -1,42 +1,48 @@
 id: "official/hero-pose-lineart-extract"
 asset_type: "pose_lineart"
-label: "Hero 姿态线稿提取"
+label: "人物姿态线稿提取"
 description: >
-  从 hero 合成图中提取纯线稿,只保留角色姿态、肢体位置、构图占位和留白布局。
-  删除一切渲染细节(颜色、阴影、衣服褶皱、材质纹理、背景元素、面部特征)。
-  产物作为迁移订单的 composition 参考图——信息量少,不泄露原始角色的衣着/配色,
-  避免干扰新角色的生成。
-tags: ["hero", "lineart", "starter", "prep"]
+  从人物合成图中提取纯人物姿态线稿——只保留角色，去掉一切无关信息。
+  唯一用途：当人物姿态与页面 H3/H4 层元素存在结构/空间配合关系时
+  （例如按钮悬在人物手心上方、人物指向某个具体标题、人物坐在卡片边缘），
+  向下游传递必须复现的姿态信息。海报式摆放（姿态无结构意义）不应使用本模板。
+tags: ["hero", "lineart", "starter", "prep", "pose"]
 size: "2560x1440"
 quality: "high"
 
 prompt_template: |
-  Clean lineart extraction from the reference image for pose and composition
-  reference purposes. The reference image is a hero composite — extract ONLY
-  the structural information:
+  Clean character-pose lineart extraction from the reference image. The ONLY
+  purpose of this lineart is to transmit the character's pose to a downstream
+  artist who must reproduce it exactly, because the pose has a structural
+  relationship with page elements (e.g. a button resting above the character's
+  open palm, the character pointing at a specific headline, the character
+  sitting on a card edge).
 
-  KEEP (extract as clean lineart):
+  KEEP (extract as clean lineart — character only):
   - Character body pose: limb positions, gesture, weight distribution
   - Character silhouette and overall body shape
-  - Spatial composition: where the character sits in the frame, the blank-zone
-    layout, the negative-space structure
-  - Major architectural lines of the composition (horizon, diagonal axes)
+  - Gaze direction and pointing direction (they are part of the pose contract)
+  - Hand shapes and open-palm / holding gestures in detail — page elements may
+    be designed to rest on or align with them
 
-  REMOVE (do not draw):
+  REMOVE (do not draw — everything that is not the character):
+  - All scene and background elements: architecture, furniture, horizon,
+    atmosphere, particles, decorations
+  - All held/carried objects and props — keep only the hand gesture/position
   - All colors, shading, gradients, shadows, highlights
   - All clothing details: folds, textures, patterns, accessories
-  - All held/carried objects and props — keep only the hand gesture/position
-  - All facial features: eyes, hair, expression details
-  - All background elements: textures, atmosphere, particles, decorations
+  - All facial features beyond a simple head/gaze indication
   - All material rendering: metal, fabric, skin tones
 
-  The result should look like a rough anatomical gesture sketch — pure black
-  lines on pure white background. Think mannequin + pose arrows, not a finished
-  drawing. The character's position in the frame MUST be identical to the
-  reference (same side, same proportion of frame occupied, same blank zones).
+  The result should look like a rough anatomical gesture sketch of ONE
+  character — pure black lines on pure white background. Think mannequin +
+  pose arrows, not a finished drawing. The character's position and scale in
+  the frame MUST match the reference exactly (same side, same proportion of
+  frame occupied), because page layers are positioned against that placement.
 
 constraints:
   - "Pure black lines on pure white background — no grays, no fills"
-  - "Character position and pose must be identical to the reference"
+  - "Character only: no scene, no props, no background elements of any kind"
+  - "Character position, scale and pose must be identical to the reference"
+  - "Hand gestures and gaze/pointing direction must be precisely preserved — page elements align with them"
   - "No colors, no shading, no clothing details, no facial features"
-  - "Preserve the exact blank-zone layout of the original composition"

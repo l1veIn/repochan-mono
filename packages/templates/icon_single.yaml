@@ -1,21 +1,20 @@
 id: "official/icon-single"
 asset_type: "icon"
 label: "单 icon（可缩放）"
-description: "一个干净的角色品牌 icon 原图，适合后处理（抠图/遮罩/resize）为 favicon / app icon / logo。纯色 matte 背景，内容出血到边缘，高对比，favicon 尺寸可辨认。"
+description: "一个完整的角色品牌 icon 原图：内容出血到边缘的完整方形画作，背景是设计的一部分。后处理只做形状遮罩（圆形/圆角）与 resize，不抠图。"
 tags: ["icon", "favicon", "logo", "brand"]
 size: "512x512"
 
 prompt_template: |
   ONE single app icon / brand mark source image for {{repo_name}},
   derived from the character's most iconic visual element: {{key_motifs}},
-  bold simple emblem with a crisp silhouette, high contrast against a solid flat matte background,
-  using {{color_palette}},
+  bold simple emblem with a crisp silhouette, using {{color_palette}},
   the icon content fills the whole square canvas and may bleed off the edges — cropping is decided later,
+  the background is part of the design: a clean brand-colored backdrop (flat or subtle motif) that belongs to the final icon,
   the icon must be readable and recognizable at favicon size (16×16px),
   minimal layered geometry, premium product finish,
   no text, no letters, no numbers, no watermark, no border, no frame,
   flat cel-shaded style consistent with the character's art style,
-  perfectly flat uniform matte background of pure {{matte_color}}, no gradient, no texture, no shadow,
   masterpiece, best quality
 
 constraints:
@@ -23,8 +22,6 @@ constraints:
   - "the icon content fills the canvas and bleeds to or past the canvas edges; do NOT shrink the subject to fit with padding — cropping is a postprocess decision"
   - "do NOT design for any particular mask shape: no circular composition, no rounded-square composition, no badge/disc layout — shape masking (circle, rounded square, squircle) is a postprocess step, never baked into the source art"
   - "no ring, no disc, no border, no frame, no decorative outline around the icon"
+  - "the background is a designed brand backdrop (flat brand color or subtle brand motif) — it ships with the icon; it is NOT a chroma-key matte and must not be a placeholder color"
   - "bold simple silhouette readable at 16×16px favicon size"
-  - "perfectly flat uniform matte background using a color absent from the icon subject and its outlines"
-  - "matte_color must NOT be white (#FFFFFF) or near-white — icon subjects often contain white highlights that a white matte would punch out during chroma-key extraction"
-  - "choose the matte hue by distance from the subject: green matte for pink/purple-dominant subjects, magenta for green-dominant subjects, green for deep-red-dominant subjects"
   - "NO text, letters, numbers, labels, or watermarks"
