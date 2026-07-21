@@ -6,6 +6,7 @@ import {
   runStarterAssetApply,
   runStarterAssetImport,
   runStarterConfigure,
+  runStarterCreateOrder,
   runStarterGet,
   runStarterList,
   runStarterPull,
@@ -135,6 +136,29 @@ async function gridBundleFixture() {
     versionId: "v1", createdAt: "2026-01-01T00:00:00.000Z", files: ["source.png"],
   }));
   return { root, siteDir, assetsPath };
+}
+
+async function slotReferenceFixture() {
+  const root = await projectFixture();
+  const siteDir = path.join(root, "site");
+  await runStarterPull(root, { outputDir: siteDir, json: true });
+  const manifestPath = path.join(siteDir, "repochan", "starter.json");
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  manifest.assets.push({
+    kind: "scalar",
+    slot: "scene-night",
+    required: false,
+    reference: "slot:hero-composite",
+    output: "public/assets/scene-night.webp",
+    order: {
+      assetType: "scene",
+      templateId: "official/hero-character-migrate",
+      brief: { mustInclude: ["night mood"] },
+    },
+    postprocess: [{ op: "compress", out: "public/assets/scene-night.webp" }],
+  });
+  await writeFile(manifestPath, JSON.stringify(manifest));
+  return { root, siteDir, manifestPath };
 }
 
 describe("starter v1 commands", () => {
@@ -788,5 +812,73 @@ describe("starter v1 commands", () => {
     const json = JSON.parse(String(log.mock.calls.at(-1)?.[0]));
     expect(json.derived).toBeUndefined();
     expect(json.derivedWarning).toMatch(/derived archive failed/);
+  });
+
+  it("resolves a slot: reference to the referenced slot's customized asset", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const { root, siteDir } = await slotReferenceFixture();
+    await writeFile(path.join(siteDir, "public/assets/hero-composite.webp"), "customized-hero");
+    const assetsPath = path.join(siteDir, "repochan", "assets.json");
+    const assets = JSON.parse(await readFile(assetsPath, "utf8"));
+    assets.assets["hero-composite"].status = "customized";
+    await writeFile(assetsPath, JSON.stringify(assets));
+
+    await runStarterCreateOrder(root, "scene-night", { outputDir: siteDir, intent: "night version", json: true });
+
+    const json = JSON.parse(String(log.mock.calls.at(-1)?.[0]));
+    expect(json.orderId).toBe("ord-scene-night-001");
+    expect(json.referenceWarning).toBeUndefined();
+    const orderDir = path.join(root, ".repochan", "orders", "ord-scene-night-001");
+    const order = JSON.parse(await readFile(path.join(orderDir, "order.json"), "utf8"));
+    expect(order.references[0]).toMatchObject({ type: "file", role: "composition", path: "references/hero-composite.webp" });
+    expect(await readFile(path.join(orderDir, "references", "hero-composite.webp"), "utf8")).toBe("customized-hero");
+  });
+
+  it("warns when a slot: reference still resolves to the starter source asset", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const { root, siteDir } = await slotReferenceFixture();
+
+    await runStarterCreateOrder(root, "scene-night", { outputDir: siteDir, intent: "night version", json: true });
+
+    const json = JSON.parse(String(log.mock.calls.at(-1)?.[0]));
+    expect(json.orderId).toBe("ord-scene-night-001");
+    expect(json.referenceWarning).toMatch(/starter source asset/);
+    expect(json.referenceWarning).toMatch(/hero-composite/);
+    const orderDir = path.join(root, ".repochan", "orders", "ord-scene-night-001");
+    const order = JSON.parse(await readFile(path.join(orderDir, "order.json"), "utf8"));
+    expect(order.references[0]).toMatchObject({ type: "file", role: "composition", path: "references/hero-composite.webp" });
+    expect(await readFile(path.join(orderDir, "references", "hero-composite.webp"), "utf8"))
+      .toBe(await readFile(path.join(siteDir, "public/assets/hero-composite.webp"), "utf8"));
+  });
+
+  it("rejects a slot: reference whose target slot has no asset state", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const { root, siteDir, manifestPath } = await slotReferenceFixture();
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    manifest.assets.push({
+      kind: "scalar",
+      slot: "scene-day",
+      required: false,
+      output: "public/assets/scene-day.webp",
+      postprocess: [{ op: "compress", out: "public/assets/scene-day.webp" }],
+    });
+    manifest.assets.find((asset: { slot: string }) => asset.slot === "scene-night").reference = "slot:scene-day";
+    await writeFile(manifestPath, JSON.stringify(manifest));
+
+    await expect(runStarterCreateOrder(root, "scene-night", { outputDir: siteDir, intent: "night version", json: true }))
+      .rejects.toThrow(/slot reference 'slot:scene-day' has no asset state/);
+  });
+
+  it("skips the missing-reference check for slot: references in starter validate", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const { root, siteDir, manifestPath } = await slotReferenceFixture();
+
+    await runStarterValidate(root, undefined, { outputDir: siteDir, json: true });
+
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    manifest.assets.find((asset: { slot: string }) => asset.slot === "scene-night").reference = "public/assets/missing-reference.webp";
+    await writeFile(manifestPath, JSON.stringify(manifest));
+    await expect(runStarterValidate(root, undefined, { outputDir: siteDir, json: true }))
+      .rejects.toThrow(/scene-night: missing reference public\/assets\/missing-reference\.webp/);
   });
 });

@@ -4,6 +4,16 @@ This changelog records coordinated public package sets.
 
 ## Unreleased
 
+### Starter 资产间引用（`slot:` reference）
+
+- Scalar slot 的 `reference` 接受 `slot:<slot-name>`：迁移参考解析为同一 starter
+  内目标 scalar slot 在 assets.json 里的当前产物（composition 角色），用于
+  资产间一致性（如 scene-night 参考 scene-day 保持 wipe 构图），取代
+  场景线稿。manifest 校验拦截未知 slot / bundle 目标 / 自引用 / 引用环；
+  `create-order` 时目标仍为 `source` 状态会带 `referenceWarning` 提示先
+  apply 被引用方。character-game-page 的 scene-* 已改造为该模式（线稿删除，
+  scene-day 自由构图）。
+
 ### Orders — postprocess 派生归档（审计）
 
 - Starter postprocess 步骤新增 `keep` 字段（默认 `true`）。`starter asset-apply`

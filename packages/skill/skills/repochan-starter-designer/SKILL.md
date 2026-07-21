@@ -53,6 +53,8 @@ Starter 是一份仍然属于原项目的完整成品：保留项目名、角色
 - `scalar`：一个 `output`，可带 order、reference 和确定性 postprocess；postprocess 步骤可声明 `keep`（默认 `true`）——`keep ≠ false` 的步骤产物在下游 `asset-apply` 时会归档到订单的 `derived/` 并写入 `derived.json` 索引，纯中间态或超大产物可显式 `keep: false` 省略归档；
 - `bundle`：具名 `publications[]` 与唯一 `extract-grid` postprocess，用于 3×3/4×4 等批量角色贴纸。
 
+**资产间引用（`slot:` reference）**：scalar slot 的 `reference` 除文件路径外，还接受 `slot:<另一个 scalar slot>`——表示该资产的迁移参考是**同一 starter 内另一个 slot 的当前产物**，用于资产间的一致性（典型：scene-night 参考 scene-day 保持 wipe 构图一致，白天场景自由发挥、夜晚参考白天的新图）。约束：目标 slot 必须存在且为 scalar（bundle 多产物有歧义）、不得自引用、`slot:` 链不得成环（manifest 校验期拦截）。语义要点：下游 `create-order` 时引用解析到目标 slot 在 assets.json 里的**当前** src——若目标还是 `source` 状态，CLI 会带 `referenceWarning` 提醒先在目标 slot 上完成 create-order + asset-apply；因此声明 `slot:` 引用时必须在 slot description 里写清先后顺序（"apply scene-day first"）。构图自由的那个 slot（被引用方）不要带 `slot:` 引用。
+
 ### 4. 预览、验证与交付
 
 生成 canonical desktop/mobile 预览并在 `repochan/starter.json.previews` 声明。随后运行：

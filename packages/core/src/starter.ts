@@ -7,6 +7,7 @@ const LocaleSchema = Type.String({ pattern: "^[A-Za-z0-9][A-Za-z0-9_-]*$" });
 const ThemeColorSchema = Type.String({ pattern: "^#[0-9A-Fa-f]{3}(?:[0-9A-Fa-f]{3})?$" });
 const OrderIdSchema = Type.String({ pattern: "^ord-[a-z0-9][a-z0-9-]*$" });
 const VersionIdSchema = Type.String({ pattern: "^[A-Za-z0-9][A-Za-z0-9_.-]*$" });
+const SLOT_REFERENCE_PATTERN = /^slot:([a-z0-9][a-z0-9-]*)$/;
 
 export const StarterPostprocessOpSchema = Type.Union([
   Type.Literal("compress"),
@@ -66,11 +67,16 @@ const StarterPostprocessStepSchema = Type.Object({
   keep: Type.Optional(Type.Boolean()),
 }, { additionalProperties: false });
 
+const SlotReferenceSchema = Type.String({ pattern: "^slot:[a-z0-9][a-z0-9-]*$" });
+// An asset slot reference is either a site-root-relative file path or
+// `slot:<name>` pointing at another scalar slot's current asset state.
+const StarterAssetReferenceSchema = Type.Union([RelativePathSchema, SlotReferenceSchema]);
+
 const StarterScalarAssetSlotSchema = Type.Object({
   kind: Type.Literal("scalar"),
   slot: Type.String({ pattern: "^[a-z0-9][a-z0-9-]*$" }),
   required: Type.Boolean(),
-  reference: Type.Optional(RelativePathSchema),
+  reference: Type.Optional(StarterAssetReferenceSchema),
   output: RelativePathSchema,
   description: Type.Optional(Type.String()),
   order: Type.Optional(StarterAssetOrderSchema),
@@ -81,7 +87,7 @@ const StarterBundleAssetSlotSchema = Type.Object({
   kind: Type.Literal("bundle"),
   slot: Type.String({ pattern: "^[a-z0-9][a-z0-9-]*$" }),
   required: Type.Boolean(),
-  reference: Type.Optional(RelativePathSchema),
+  reference: Type.Optional(StarterAssetReferenceSchema),
   publications: Type.Array(StarterAssetPublicationSchema, { minItems: 1 }),
   description: Type.Optional(Type.String()),
   order: Type.Optional(StarterAssetOrderSchema),
@@ -213,6 +219,7 @@ export type StarterAssetOrder = {
 type StarterAssetSlotBase = {
   slot: string;
   required: boolean;
+  /** Migration reference: a site-root-relative file path, or `slot:<name>` pointing at another scalar slot's current asset. */
   reference?: string;
   description?: string;
   order?: StarterAssetOrder;
@@ -309,8 +316,21 @@ export function validateStarterManifest(value: unknown): StarterManifest {
   }
   assertSafeRelativePath(manifest.previews.desktop, "previews.desktop");
   assertSafeRelativePath(manifest.previews.mobile, "previews.mobile");
+  const assetsBySlot = new Map(manifest.assets.map((asset) => [asset.slot, asset]));
   for (const asset of manifest.assets) {
-    if (asset.reference) assertSafeRelativePath(asset.reference, `assets.${asset.slot}.reference`);
+    if (asset.reference) {
+      const slotRef = SLOT_REFERENCE_PATTERN.exec(asset.reference);
+      if (slotRef) {
+        const label = `assets.${asset.slot}.reference`;
+        const targetName = slotRef[1];
+        if (targetName === asset.slot) throw new Error(`${label} must not reference its own slot '${targetName}'.`);
+        const target = assetsBySlot.get(targetName);
+        if (!target) throw new Error(`${label} references unknown slot '${targetName}'.`);
+        if (target.kind !== "scalar") throw new Error(`${label} must reference a scalar slot; '${targetName}' is a bundle.`);
+      } else {
+        assertSafeRelativePath(asset.reference, `assets.${asset.slot}.reference`);
+      }
+    }
     if (asset.kind === "scalar") assertSafeRelativePath(asset.output, `assets.${asset.slot}.output`);
     const publications = asset.kind === "bundle" ? asset.publications : [];
     assertUnique(publications.map((item) => item.key), `assets.${asset.slot}.publications.key`);
@@ -345,6 +365,19 @@ export function validateStarterManifest(value: unknown): StarterManifest {
       throw new Error(`assets.${asset.slot}.output must match the final postprocess out (${finalOut}).`);
     }
   }
+  // slot: reference chains must be acyclic (manifests are tiny; plain DFS).
+  const visitState = new Map<string, "visiting" | "done">();
+  const visitSlot = (slot: StarterAssetSlot): void => {
+    if (visitState.get(slot.slot) === "done") return;
+    if (visitState.get(slot.slot) === "visiting") {
+      throw new Error(`assets.${slot.slot}.reference: slot: reference cycle detected.`);
+    }
+    visitState.set(slot.slot, "visiting");
+    const slotRef = slot.reference ? SLOT_REFERENCE_PATTERN.exec(slot.reference) : null;
+    if (slotRef) visitSlot(assetsBySlot.get(slotRef[1])!);
+    visitState.set(slot.slot, "done");
+  };
+  for (const asset of manifest.assets) visitSlot(asset);
   return manifest;
 }
 

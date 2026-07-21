@@ -276,8 +276,24 @@ export async function runStarterCreateOrder(cwd: string, slotName: string | unde
   const existingIds = new Set(listed.orders.map((order: any) => String(order.orderId)));
   const orderId = slugOrderId(slot.slot, existingIds);
   const references = [...(slot.order.references ?? [])] as Array<Record<string, unknown>>;
+  let referenceWarning: string | undefined;
   if (slot.reference && !references.some((reference) => reference.type === "file")) {
-    references.unshift({ type: "file", path: sitePath(target, slot.reference), role: "composition" });
+    if (slot.reference.startsWith("slot:")) {
+      // `slot:<name>` resolves to the referenced scalar slot's current asset
+      // state: assets.json src is a served URL path (`/assets/x.webp`), which
+      // maps back to the site file under `public/`.
+      const targetSlot = slot.reference.slice("slot:".length);
+      const assets = validateStarterAssetsConfig(await readJson(sitePath(target, manifest.config.assets)));
+      const state = assets.assets[targetSlot];
+      if (!state) throw new UsageError(`starter create-order: slot reference '${slot.reference}' has no asset state in ${manifest.config.assets}.`);
+      if (state.kind !== "scalar") throw new UsageError(`starter create-order: slot reference '${slot.reference}' must resolve to a scalar asset state.`);
+      references.unshift({ type: "file", path: sitePath(target, path.join("public", state.src.replace(/^\//, ""))), role: "composition" });
+      if (state.status === "source") {
+        referenceWarning = `slot reference '${slot.reference}' resolved to the starter source asset (${state.src}); run starter create-order + asset-apply for '${targetSlot}' first if this order must stay consistent with its regenerated image.`;
+      }
+    } else {
+      references.unshift({ type: "file", path: sitePath(target, slot.reference), role: "composition" });
+    }
   } else {
     for (const reference of references) {
       if (reference.type === "file" && typeof reference.path === "string") reference.path = sitePath(target, reference.path);
@@ -302,7 +318,12 @@ export async function runStarterCreateOrder(cwd: string, slotName: string | unde
     references,
   };
   const result = await createOrders(cwd, { order });
-  emitResult(options, `Created starter order ${orderId} for ${slot.slot}.`, { ...result, orderId, slot: slot.slot });
+  emitResult(options, `Created starter order ${orderId} for ${slot.slot}.${referenceWarning ? `\nwarning: ${referenceWarning}` : ""}`, {
+    ...result,
+    orderId,
+    slot: slot.slot,
+    ...(referenceWarning ? { referenceWarning } : {}),
+  });
 }
 
 function numbers(value: unknown): number[] {
@@ -763,7 +784,9 @@ async function validateStarterDir(cwd: string, starter: StarterMeta, options: { 
   const issues: string[] = [];
   const files = await walkFiles(starter.dir);
   for (const asset of starter.assets) {
-    if (asset.reference && !(await exists(sitePath(starter.dir, asset.reference)))) issues.push(`${asset.slot}: missing reference ${asset.reference}`);
+    // `slot:` references point at another slot's runtime asset state, not a
+    // file inside the starter directory, so they skip the existence check.
+    if (asset.reference && !asset.reference.startsWith("slot:") && !(await exists(sitePath(starter.dir, asset.reference)))) issues.push(`${asset.slot}: missing reference ${asset.reference}`);
     if (asset.required && asset.kind === "scalar" && !(await exists(sitePath(starter.dir, asset.output)))) {
       issues.push(`${asset.slot}: missing fallback output ${asset.output}`);
     }

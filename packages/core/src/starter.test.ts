@@ -325,6 +325,77 @@ describe("starter v1", () => {
     });
   });
 
+  describe("slot: asset references", () => {
+    const sceneSlot = (slot: string, reference?: string): StarterManifest["assets"][number] => ({
+      kind: "scalar",
+      slot,
+      required: true,
+      ...(reference ? { reference } : {}),
+      output: `public/assets/${slot}.webp`,
+      postprocess: [{ op: "compress", out: `public/assets/${slot}.webp` }],
+    });
+
+    it("accepts a slot: reference to another scalar slot, including chains", () => {
+      expect(validateStarterManifest({
+        ...manifest,
+        assets: [sceneSlot("scene-day"), sceneSlot("scene-night", "slot:scene-day")],
+      }).assets[1].reference).toBe("slot:scene-day");
+      expect(validateStarterManifest({
+        ...manifest,
+        assets: [sceneSlot("a"), sceneSlot("b", "slot:a"), sceneSlot("c", "slot:b")],
+      }).assets).toHaveLength(3);
+    });
+
+    it("keeps plain file-path references working unchanged", () => {
+      const validated = validateStarterManifest({
+        ...manifest,
+        assets: [sceneSlot("scene-day"), sceneSlot("scene-night", "public/assets/scene-day-reference.webp")],
+      });
+      expect(validated.assets[1].reference).toBe("public/assets/scene-day-reference.webp");
+      expect(() => validateStarterManifest({
+        ...manifest,
+        assets: [sceneSlot("scene-day"), sceneSlot("scene-night", "../outside.webp")],
+      })).toThrow(/assets\.scene-night\.reference must be a safe/);
+    });
+
+    it("rejects a slot: reference to an unknown slot", () => {
+      expect(() => validateStarterManifest({
+        ...manifest,
+        assets: [sceneSlot("scene-day"), sceneSlot("scene-night", "slot:nope")],
+      })).toThrow(/assets\.scene-night\.reference references unknown slot 'nope'/);
+    });
+
+    it("rejects a slot: reference to a bundle slot", () => {
+      expect(() => validateStarterManifest({
+        ...manifest,
+        assets: [
+          {
+            kind: "bundle",
+            slot: "states",
+            required: true,
+            publications: [{ key: "welcome", cell: 0, output: "public/assets/states/welcome.png" }],
+            postprocess: [{ op: "extract-grid", out: ".repochan-grid/states", args: { rows: 1, cols: 1, normalize: { canvasSize: 32 } } }],
+          },
+          sceneSlot("scene-night", "slot:states"),
+        ],
+      })).toThrow(/assets\.scene-night\.reference must reference a scalar slot; 'states' is a bundle/);
+    });
+
+    it("rejects a slot: self-reference", () => {
+      expect(() => validateStarterManifest({
+        ...manifest,
+        assets: [sceneSlot("scene-day", "slot:scene-day")],
+      })).toThrow(/assets\.scene-day\.reference must not reference its own slot 'scene-day'/);
+    });
+
+    it("rejects a cyclic slot: reference chain", () => {
+      expect(() => validateStarterManifest({
+        ...manifest,
+        assets: [sceneSlot("a", "slot:b"), sceneSlot("b", "slot:a")],
+      })).toThrow(/slot: reference cycle detected/);
+    });
+  });
+
   it("projects deterministic analysis and persona fields", () => {
     const projected = projectStarterSiteConfig({
       defaults: site,

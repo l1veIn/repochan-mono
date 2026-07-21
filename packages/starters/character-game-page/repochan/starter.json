@@ -51,21 +51,20 @@
       "kind": "scalar",
       "slot": "scene-day",
       "required": true,
-      "reference": "public/assets/scene-day-lineart.webp",
       "output": "public/assets/scene-day.webp",
-      "description": "Signature scene: after-school afternoon at the Sugar Riff studio. Used in the World pinned day layer, the after-school dual-life panel and as og:image. The lineart reference keeps only the composition (window / desk / chair layout and blank zones) — character identity, text and rendering style are intentionally removed.",
+      "description": "Signature scene: after-school afternoon at the Sugar Riff studio. Used in the World pinned day layer, the after-school dual-life panel and as og:image. No composition reference — the downstream project invents its own signature place; only the character (via the foundation order) carries over. scene-night and scene-school reference this slot's regenerated output for wipe consistency.",
       "order": {
         "assetType": "poster",
         "templateId": "official/poster-scene",
         "brief": {
-          "intent": "Repaint the afternoon studio scene for the downstream project's own character and signature place, keeping the reference lineart's composition exactly.",
+          "intent": "Paint the afternoon signature scene for the downstream project's own character and signature place — free composition, the project invents its own place.",
           "mustInclude": [
-            "keep the window / desk / chair layout and the blank zones of the reference composition",
-            "warm after-school afternoon light",
+            "the downstream character inside its own signature place, warm after-school afternoon light",
+            "clear foreground/background structure and a quiet blank zone that could host live copy",
             "landscape 3:2, edge-to-edge scene, no text, letters, numbers, watermarks or UI anywhere in the image"
           ],
-          "avoid": ["rendered text", "logos", "composition drift from the reference lineart"],
-          "creativeFreedom": ["lighting", "studio props that support the project identity", "the downstream character's pose and placement"]
+          "avoid": ["rendered text", "logos", "UI baked into the image"],
+          "creativeFreedom": ["place design", "composition", "lighting", "props that support the project identity", "the downstream character's pose and placement"]
         },
         "deliverables": [
           { "name": "scene-day", "format": "png", "width": 1536, "height": 1024, "aspectRatio": "3:2" }
@@ -79,20 +78,20 @@
       "kind": "scalar",
       "slot": "scene-night",
       "required": true,
-      "reference": "public/assets/scene-night-lineart.webp",
+      "reference": "slot:scene-day",
       "output": "public/assets/scene-night.webp",
-      "description": "Same studio at deadline night; wipes over scene-day in the World section, so the composition must echo scene-day (the night lineart reference was generated against the day lineart).",
+      "description": "Same place at deadline night; wipes over scene-day in the World section, so the composition must echo scene-day. The reference is the scene-day slot's own regenerated output (inter-asset slot reference) — apply scene-day first, then this order picks up the downstream project's actual day scene for composition consistency. No lineart needed.",
       "order": {
         "assetType": "poster",
         "templateId": "official/poster-scene",
         "brief": {
-          "intent": "Repaint the same studio at deadline night for the downstream project, keeping the reference lineart's composition exactly so it can wipe over the day scene.",
+          "intent": "Repaint the same place at deadline night for the downstream project, keeping the day scene's composition exactly so it can wipe over it.",
           "mustInclude": [
-            "same camera and layout as the day scene reference — identical window / desk / chair positions",
-            "single warm lamp over the desk in an otherwise dark room",
+            "same camera and layout as the day scene reference — identical architecture, furniture positions and blank zones",
+            "single warm lamp over the workspace in an otherwise dark room",
             "landscape 3:2, edge-to-edge scene, no text, letters, numbers, watermarks or UI anywhere in the image"
           ],
-          "avoid": ["rendered text", "logos", "composition drift from the reference lineart"],
+          "avoid": ["rendered text", "logos", "composition drift from the day scene reference"],
           "creativeFreedom": ["night lighting details", "deadline clutter that supports the project identity"]
         },
         "deliverables": [
@@ -107,20 +106,20 @@
       "kind": "scalar",
       "slot": "scene-school",
       "required": true,
-      "reference": "public/assets/scene-school-lineart.webp",
+      "reference": "slot:scene-day",
       "output": "public/assets/scene-school.webp",
-      "description": "Day-side panel of the dual-life split: classroom by day, character by the window. The lineart reference keeps only the composition (window / desks / chair layout and blank zones).",
+      "description": "Day-side panel of the dual-life split: classroom by day, character by the window. References the scene-day slot's regenerated output so the split panel's framing (horizon, blank zones, character scale) echoes the studio scene; apply scene-day first.",
       "order": {
         "assetType": "poster",
         "templateId": "official/poster-scene",
         "brief": {
-          "intent": "Repaint the daytime classroom scene for the downstream project's own character, keeping the reference lineart's composition exactly.",
+          "intent": "Repaint the daytime classroom scene for the downstream project's own character, echoing the day scene reference's framing so the dual-life split reads as one world.",
           "mustInclude": [
-            "keep the window / desks / chair layout and the blank zones of the reference composition",
+            "daytime classroom with the downstream character by the window, framing and blank zones echoing the day scene reference",
             "quiet daytime classroom mood",
             "landscape 3:2, edge-to-edge scene, no text, letters, numbers, watermarks or UI anywhere in the image"
           ],
-          "avoid": ["rendered text", "logos", "composition drift from the reference lineart"],
+          "avoid": ["rendered text", "logos", "composition drift from the day scene reference"],
           "creativeFreedom": ["lighting", "classroom details that support the project identity"]
         },
         "deliverables": [
