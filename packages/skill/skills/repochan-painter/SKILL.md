@@ -107,7 +107,7 @@ CLI 关键参数：`--prompt`、`--reference <path>`（可重复，每个参考�
 
 **`--quality` 从模板读取**：`repochan template get <templateId> --json` 返回的 `quality` 字段（`low` | `medium` | `high` | `auto`）直接传给 `image gen --quality`。模板没声明 quality 时不传（走默认）。
 
-**`--size` 也从模板读取**：模板的 `size` 字段（如 `2560x1440`）直接传给 `image gen --size`。用户明确指定尺寸时覆盖模板。
+**`--size` 解析顺序**：用户明确尺寸 > deliverable 的 `genSize`（订单声明的生成分辨率，≥ 成品尺寸）> 模板 `size` > deliverable 的 `width`/`height`。生成尺寸永远 ≥ 成品尺寸，降采样交给后处理——这是高 DPI 清晰度的来源。
 
 foundation_sheet 本身是锚点，不需要 `--reference`。
 

@@ -56,6 +56,8 @@ export const StarterAssetOrderSchema = Type.Object({
     width: Type.Optional(Type.Number()),
     height: Type.Optional(Type.Number()),
     aspectRatio: Type.Optional(Type.String()),
+    /** Requested generation resolution (WxH) >= final asset size; painter generates at this size and postprocess downscales. */
+    genSize: Type.Optional(Type.String({ pattern: "^\\d+x\\d+$" })),
   }, { additionalProperties: false }))),
   references: Type.Optional(Type.Array(StarterReferenceSchema)),
 }, { additionalProperties: false });
@@ -212,7 +214,7 @@ export type StarterAssetOrder = {
   assetType?: string;
   templateId?: string;
   brief?: { intent?: string; mustInclude?: string[]; avoid?: string[]; creativeFreedom?: string[] };
-  deliverables?: Array<{ name: string; format: string; width?: number; height?: number; aspectRatio?: string }>;
+  deliverables?: Array<{ name: string; format: string; width?: number; height?: number; aspectRatio?: string; genSize?: string }>;
   references?: Array<Record<string, unknown>>;
 };
 

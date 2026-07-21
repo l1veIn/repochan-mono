@@ -4,6 +4,19 @@ This changelog records coordinated public package sets.
 
 ## Unreleased
 
+### 清晰度机制（genSize）与 web-designer 微调
+
+- Order deliverables 新增 `genSize`（生成分辨率 ≥ 成品尺寸，后处理降采样）——
+  清晰度契约落在订单层；painter 解析顺序：用户 > genSize > 模板 size >
+  deliverable 宽高，生成尺寸永远 ≥ 成品尺寸。5 个 starter 的 33 处
+  deliverables 已声明 genSize（网格 2048×2048、cutout 2048×3072、场景
+  2304×1536）。
+- web-designer skill：默认技术栈（Astro + 集中式 i18n locale，与官方
+  starter 同构便于二开）；资产不满足标准时偏向重新生成而非凑合。
+- 狗粮资产全部 2K 重生：webstates/stickers 网格（2048²，cell 682px 降采样
+  640px tile）与 cutout A/B（2048×3072 / 2048×2048），订单新版本 +
+  derived 归档。
+
 ### Dogfood 偏移修复（starter 审计）
 
 - cgp crops 资产可复刻化：motif 道具（clip/earring/pendant/headphones）

@@ -19,6 +19,8 @@ description: >
 
 从 analysis、README、persona、foundation 和真实产品证据提炼内容骨架。Hero 与其他 section 同级；不要用空泛 section 填充“完整感”。
 
+**默认技术栈**：用户未指定时，默认与官方 starter 同构——**Astro（静态构建）+ 集中式 i18n locale 文件**（页面文本全部走 locale，不散落组件字面量），样式用 token 化的现代 CSS。这样产物可直接二开、与 starter 体系互通（日后可由 starter-designer 产品化）。用户指定了其他栈则从其栈，但 i18n 集中化与 token 化约定保留。
+
 阅读 [section-recipes.md](references/section-recipes.md) 选择内容 recipe，并按 [page-art-direction.md](references/page-art-direction.md) 选择 HTML-first、Section-driven 或 Continuous art direction。复杂过渡、连续场景、角色多次出现或色彩逐屏演进时使用 Continuous。
 
 ### 2. 建立视觉系统与 Gate 1
@@ -32,6 +34,8 @@ description: >
 逐 section 标记 L1 背景、L2 角色/插画、L3 文本、L4 交互，并记录 baked/live layers、canonical viewport、safe zone、responsive variant 和 transition contract。L4 永远 live；常规 L3 保持 live。完整判断见 [layer-methodology.md](references/layer-methodology.md)。
 
 按 bake mask 创建生产订单：composite、uniform-matte cutout、canonical pattern 或 HTML-first。视觉母稿不是可直接抠图的生产资产；Painter 交付原图，页面装配阶段再执行确定性后处理。
+
+**资产不满足就重新生成，不凑合**：现有资产（旧订单结果、starter 源图、历史裁切）在清晰度、风格一致性、matte 规范或姿态构图上达不到当前标准时，新建订单重走 Painter 流程（带 foundation 引用与当前模板约束），不要拿旧图降格使用或手工修补。订单系统支持无限版本——重生是常态操作，旧版本自动成为历史。唯一例外是用户明确要求保留的既有资产。
 
 角色不应只出现在 Hero。适合 404、empty、loading、success、CTA cameo 等统一镜头的小型状态，可规划 3×3/4×4 uniform-matte 网格并为每个 cell 定义语义名称、publication、尺寸和 fallback。可产品化的网格合同使用 manifest `publications[]` + 独占的 `extract-grid` postprocess，由 `starter asset-apply` 原子提取、QA 和投影；原创站点也应复用同样的语义顺序与像素 QA，不手工伪造协议状态。
 

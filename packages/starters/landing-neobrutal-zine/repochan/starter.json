@@ -4,7 +4,15 @@
   "name": "REPO酱特刊 · Neo-brutalist Rock Zine",
   "description": "RepoChan's own rock-zine landing page: cover with a jumping die-cut cutout, issue-brief collage, five-panel pipeline comic, draggable sticker wall, ransom-note quote and stamp CTA. zh default locale with a full en edition; every visual is real pipeline output.",
   "style": "neo-brutalist-zine",
-  "tags": ["landing", "zine", "neo-brutalism", "rock", "drag", "gsap", "bilingual"],
+  "tags": [
+    "landing",
+    "zine",
+    "neo-brutalism",
+    "rock",
+    "drag",
+    "gsap",
+    "bilingual"
+  ],
   "previews": {
     "desktop": "repochan/previews/desktop.webp",
     "mobile": "repochan/previews/mobile.webp"
@@ -16,7 +24,10 @@
   },
   "content": {
     "defaultLocale": "zh",
-    "supportedLocales": ["zh", "en"]
+    "supportedLocales": [
+      "zh",
+      "en"
+    ]
   },
   "assets": [
     {
@@ -36,17 +47,36 @@
             "perfectly flat uniform matte background in a color absent from the character",
             "vertical 2:3 framing, character centered"
           ],
-          "avoid": ["text", "letters", "scenery", "shadows on the matte", "cropped limbs or props"],
-          "creativeFreedom": ["character outfit details", "matte color choice"]
+          "avoid": [
+            "text",
+            "letters",
+            "scenery",
+            "shadows on the matte",
+            "cropped limbs or props"
+          ],
+          "creativeFreedom": [
+            "character outfit details",
+            "matte color choice"
+          ]
         },
         "deliverables": [
-          { "name": "cutout-matte", "format": "png", "width": 1024, "height": 1536, "aspectRatio": "2:3" }
+          {
+            "name": "cutout-matte",
+            "format": "png",
+            "width": 1024,
+            "height": 1536,
+            "aspectRatio": "2:3",
+            "genSize": "2048x3072"
+          }
         ]
       },
       "postprocess": [
         {
           "op": "chroma-key",
-          "args": { "matte": "auto", "pipeline": "v2" },
+          "args": {
+            "matte": "auto",
+            "pipeline": "v2"
+          },
           "out": "public/assets/cutout.png"
         }
       ]
@@ -61,18 +91,39 @@
         "assetType": "icon",
         "templateId": "official/icon-single",
         "brief": {
-          "mustInclude": ["one scalable brand mark reading cleanly at 84px", "project motif without any letterforms"],
-          "avoid": ["text", "letters", "watermarks"],
-          "creativeFreedom": ["mark geometry", "accent colors from the project palette"]
+          "mustInclude": [
+            "one scalable brand mark reading cleanly at 84px",
+            "project motif without any letterforms"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "watermarks"
+          ],
+          "creativeFreedom": [
+            "mark geometry",
+            "accent colors from the project palette"
+          ]
         },
         "deliverables": [
-          { "name": "icon", "format": "png", "width": 512, "height": 512, "aspectRatio": "1:1" }
+          {
+            "name": "icon",
+            "format": "png",
+            "width": 512,
+            "height": 512,
+            "aspectRatio": "1:1",
+            "genSize": "1024x1024"
+          }
         ]
       },
       "postprocess": [
         {
           "op": "compress",
-          "args": { "format": "webp", "quality": 90, "maxWidth": 512 },
+          "args": {
+            "format": "webp",
+            "quality": 90,
+            "maxWidth": 512
+          },
           "out": "public/assets/icon.webp"
         }
       ]
@@ -88,18 +139,38 @@
         "templateId": "official/poster-scene",
         "brief": {
           "intent": "Repaint the workbench poster scene for the downstream project's own character.",
-          "mustInclude": ["character working at an illustrator's workbench, 3:2 landscape", "no text or UI baked into the image"],
-          "avoid": ["rendered text", "logos", "UI baked into the image"],
-          "creativeFreedom": ["desk props and lighting that fit the project identity"]
+          "mustInclude": [
+            "character working at an illustrator's workbench, 3:2 landscape",
+            "no text or UI baked into the image"
+          ],
+          "avoid": [
+            "rendered text",
+            "logos",
+            "UI baked into the image"
+          ],
+          "creativeFreedom": [
+            "desk props and lighting that fit the project identity"
+          ]
         },
         "deliverables": [
-          { "name": "poster", "format": "png", "width": 1536, "height": 1024, "aspectRatio": "3:2" }
+          {
+            "name": "poster",
+            "format": "png",
+            "width": 1536,
+            "height": 1024,
+            "aspectRatio": "3:2",
+            "genSize": "2304x1536"
+          }
         ]
       },
       "postprocess": [
         {
           "op": "compress",
-          "args": { "format": "webp", "quality": 82, "maxWidth": 1200 },
+          "args": {
+            "format": "webp",
+            "quality": 82,
+            "maxWidth": 1200
+          },
           "out": "public/assets/poster.webp"
         }
       ]
@@ -115,18 +186,36 @@
         "templateId": "official/readme-banner-21x9",
         "brief": {
           "intent": "Repaint the project README banner for the downstream project, keeping a wide character-plus-logotype composition.",
-          "mustInclude": ["wide banner composition with the project character", "no baked text beyond the project logotype"],
-          "avoid": ["UI screenshots", "watermarks"],
-          "creativeFreedom": ["background scene and props that fit the project identity"]
+          "mustInclude": [
+            "wide banner composition with the project character",
+            "no baked text beyond the project logotype"
+          ],
+          "avoid": [
+            "UI screenshots",
+            "watermarks"
+          ],
+          "creativeFreedom": [
+            "background scene and props that fit the project identity"
+          ]
         },
         "deliverables": [
-          { "name": "banner", "format": "png", "width": 1600, "height": 900, "aspectRatio": "16:9" }
+          {
+            "name": "banner",
+            "format": "png",
+            "width": 1600,
+            "height": 900,
+            "aspectRatio": "16:9"
+          }
         ]
       },
       "postprocess": [
         {
           "op": "compress",
-          "args": { "format": "webp", "quality": 82, "maxWidth": 1600 },
+          "args": {
+            "format": "webp",
+            "quality": 82,
+            "maxWidth": 1600
+          },
           "out": "public/assets/banner.webp"
         }
       ]
@@ -141,18 +230,37 @@
         "assetType": "visual_pattern",
         "templateId": "official/pattern-tile",
         "brief": {
-          "mustInclude": ["one full-bleed seamless square tile", "brand motifs suited to sit as a small decorative corner at ~35% opacity"],
-          "avoid": ["text", "numbers", "frames"],
-          "creativeFreedom": ["motif density and rotation"]
+          "mustInclude": [
+            "one full-bleed seamless square tile",
+            "brand motifs suited to sit as a small decorative corner at ~35% opacity"
+          ],
+          "avoid": [
+            "text",
+            "numbers",
+            "frames"
+          ],
+          "creativeFreedom": [
+            "motif density and rotation"
+          ]
         },
         "deliverables": [
-          { "name": "pattern", "format": "png", "width": 768, "height": 768, "aspectRatio": "1:1" }
+          {
+            "name": "pattern",
+            "format": "png",
+            "width": 768,
+            "height": 768,
+            "aspectRatio": "1:1"
+          }
         ]
       },
       "postprocess": [
         {
           "op": "compress",
-          "args": { "format": "webp", "quality": 86, "maxWidth": 1024 },
+          "args": {
+            "format": "webp",
+            "quality": 86,
+            "maxWidth": 1024
+          },
           "out": "public/assets/pattern.webp"
         }
       ]
@@ -163,15 +271,51 @@
       "required": true,
       "reference": "repochan/references/stickers-grid.png",
       "publications": [
-        { "key": "welcome", "cell": 0, "output": "public/assets/stickers/sticker-0.webp" },
-        { "key": "searching", "cell": 1, "output": "public/assets/stickers/sticker-1.webp" },
-        { "key": "loading", "cell": 2, "output": "public/assets/stickers/sticker-2.webp" },
-        { "key": "empty", "cell": 3, "output": "public/assets/stickers/sticker-3.webp" },
-        { "key": "error", "cell": 4, "output": "public/assets/stickers/sticker-4.webp" },
-        { "key": "success", "cell": 5, "output": "public/assets/stickers/sticker-5.webp" },
-        { "key": "not-found", "cell": 6, "output": "public/assets/stickers/sticker-6.webp" },
-        { "key": "cta", "cell": 7, "output": "public/assets/stickers/sticker-7.webp" },
-        { "key": "cozy", "cell": 8, "output": "public/assets/stickers/sticker-8.webp" }
+        {
+          "key": "welcome",
+          "cell": 0,
+          "output": "public/assets/stickers/sticker-0.webp"
+        },
+        {
+          "key": "searching",
+          "cell": 1,
+          "output": "public/assets/stickers/sticker-1.webp"
+        },
+        {
+          "key": "loading",
+          "cell": 2,
+          "output": "public/assets/stickers/sticker-2.webp"
+        },
+        {
+          "key": "empty",
+          "cell": 3,
+          "output": "public/assets/stickers/sticker-3.webp"
+        },
+        {
+          "key": "error",
+          "cell": 4,
+          "output": "public/assets/stickers/sticker-4.webp"
+        },
+        {
+          "key": "success",
+          "cell": 5,
+          "output": "public/assets/stickers/sticker-5.webp"
+        },
+        {
+          "key": "not-found",
+          "cell": 6,
+          "output": "public/assets/stickers/sticker-6.webp"
+        },
+        {
+          "key": "cta",
+          "cell": 7,
+          "output": "public/assets/stickers/sticker-7.webp"
+        },
+        {
+          "key": "cozy",
+          "cell": 8,
+          "output": "public/assets/stickers/sticker-8.webp"
+        }
       ],
       "description": "Nine die-cut stickers — the cover strip (stickers 2, 5, 7, 8) and the draggable sticker wall (all nine). sticker-N.webp is cell N of the 3×3 grid; the source grid's cell semantics only partially overlap the template's fixed keys, and the keys are the positional replacement contract for downstream regeneration.",
       "order": {
@@ -182,11 +326,29 @@
             "strict 3×3 grid of the project character in the nine fixed web-state poses (template cell semantics)",
             "perfectly flat uniform matte background in a color absent from the character, identical in every pixel outside the stickers"
           ],
-          "avoid": ["text", "letters", "numbers", "borders", "grid lines", "scenery", "shadows on the matte"],
-          "creativeFreedom": ["pose details inside each fixed semantic", "matte color choice"]
+          "avoid": [
+            "text",
+            "letters",
+            "numbers",
+            "borders",
+            "grid lines",
+            "scenery",
+            "shadows on the matte"
+          ],
+          "creativeFreedom": [
+            "pose details inside each fixed semantic",
+            "matte color choice"
+          ]
         },
         "deliverables": [
-          { "name": "sticker-grid", "format": "png", "width": 1024, "height": 1024, "aspectRatio": "1:1" }
+          {
+            "name": "sticker-grid",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "2048x2048"
+          }
         ]
       },
       "postprocess": [
@@ -196,11 +358,35 @@
             "rows": 3,
             "cols": 3,
             "strategy": "chroma-grid",
-            "mapping": { "welcome": 0, "searching": 1, "loading": 2, "empty": 3, "error": 4, "success": 5, "not-found": 6, "cta": 7, "cozy": 8 },
-            "normalize": { "canvasSize": 321, "padding": 10 },
-            "chroma": { "matteColor": "auto", "pipeline": "v2", "matteSelect": "subject-aware" },
-            "geometry": { "mode": "centroid-components" },
-            "qa": { "alphaThreshold": 32, "minForegroundRatio": 0.05, "maxForegroundRatio": 0.9, "maxSheetEdgeTouchRatio": 0.05 },
+            "mapping": {
+              "welcome": 0,
+              "searching": 1,
+              "loading": 2,
+              "empty": 3,
+              "error": 4,
+              "success": 5,
+              "not-found": 6,
+              "cta": 7,
+              "cozy": 8
+            },
+            "normalize": {
+              "canvasSize": 321,
+              "padding": 10
+            },
+            "chroma": {
+              "matteColor": "auto",
+              "pipeline": "v2",
+              "matteSelect": "subject-aware"
+            },
+            "geometry": {
+              "mode": "centroid-components"
+            },
+            "qa": {
+              "alphaThreshold": 32,
+              "minForegroundRatio": 0.05,
+              "maxForegroundRatio": 0.9,
+              "maxSheetEdgeTouchRatio": 0.05
+            },
             "format": "webp",
             "quality": 80
           },
@@ -214,15 +400,51 @@
       "required": true,
       "reference": "repochan/references/webstates-grid.png",
       "publications": [
-        { "key": "welcome", "cell": 0, "output": "public/assets/webstates/state-0.webp" },
-        { "key": "searching", "cell": 1, "output": "public/assets/webstates/state-1.webp" },
-        { "key": "loading", "cell": 2, "output": "public/assets/webstates/state-2.webp" },
-        { "key": "empty", "cell": 3, "output": "public/assets/webstates/state-3.webp" },
-        { "key": "error", "cell": 4, "output": "public/assets/webstates/state-4.webp" },
-        { "key": "success", "cell": 5, "output": "public/assets/webstates/state-5.webp" },
-        { "key": "not-found", "cell": 6, "output": "public/assets/webstates/state-6.webp" },
-        { "key": "cta", "cell": 7, "output": "public/assets/webstates/state-7.webp" },
-        { "key": "cozy", "cell": 8, "output": "public/assets/webstates/state-8.webp" }
+        {
+          "key": "welcome",
+          "cell": 0,
+          "output": "public/assets/webstates/state-0.webp"
+        },
+        {
+          "key": "searching",
+          "cell": 1,
+          "output": "public/assets/webstates/state-1.webp"
+        },
+        {
+          "key": "loading",
+          "cell": 2,
+          "output": "public/assets/webstates/state-2.webp"
+        },
+        {
+          "key": "empty",
+          "cell": 3,
+          "output": "public/assets/webstates/state-3.webp"
+        },
+        {
+          "key": "error",
+          "cell": 4,
+          "output": "public/assets/webstates/state-4.webp"
+        },
+        {
+          "key": "success",
+          "cell": 5,
+          "output": "public/assets/webstates/state-5.webp"
+        },
+        {
+          "key": "not-found",
+          "cell": 6,
+          "output": "public/assets/webstates/state-6.webp"
+        },
+        {
+          "key": "cta",
+          "cell": 7,
+          "output": "public/assets/webstates/state-7.webp"
+        },
+        {
+          "key": "cozy",
+          "cell": 8,
+          "output": "public/assets/webstates/state-8.webp"
+        }
       ],
       "description": "Web-state chibi illustrations; the five pipeline comic panels use cells 0, 1, 2, 3, 7, the remaining cells are published for downstream states. state-N.webp is cell N of the 3×3 grid; the source grid's cell semantics (loading/empty/success/not-found/error/welcome/searching/maintenance/cozy) differ from the template's fixed keys, and the keys are the positional replacement contract for downstream regeneration.",
       "order": {
@@ -233,11 +455,29 @@
             "strict 3×3 grid of the project character in the nine fixed web-state poses (template cell semantics)",
             "perfectly flat uniform matte background in a color absent from the character, identical in every pixel outside the stickers"
           ],
-          "avoid": ["text", "letters", "numbers", "borders", "grid lines", "scenery", "shadows on the matte"],
-          "creativeFreedom": ["pose details inside each fixed semantic", "matte color choice"]
+          "avoid": [
+            "text",
+            "letters",
+            "numbers",
+            "borders",
+            "grid lines",
+            "scenery",
+            "shadows on the matte"
+          ],
+          "creativeFreedom": [
+            "pose details inside each fixed semantic",
+            "matte color choice"
+          ]
         },
         "deliverables": [
-          { "name": "webstate-grid", "format": "png", "width": 1024, "height": 1024, "aspectRatio": "1:1" }
+          {
+            "name": "webstate-grid",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "2048x2048"
+          }
         ]
       },
       "postprocess": [
@@ -247,11 +487,35 @@
             "rows": 3,
             "cols": 3,
             "strategy": "chroma-grid",
-            "mapping": { "welcome": 0, "searching": 1, "loading": 2, "empty": 3, "error": 4, "success": 5, "not-found": 6, "cta": 7, "cozy": 8 },
-            "normalize": { "canvasSize": 317, "padding": 10 },
-            "chroma": { "matteColor": "auto", "pipeline": "v2", "matteSelect": "subject-aware" },
-            "geometry": { "mode": "centroid-components" },
-            "qa": { "alphaThreshold": 32, "minForegroundRatio": 0.05, "maxForegroundRatio": 0.9, "maxSheetEdgeTouchRatio": 0.1 },
+            "mapping": {
+              "welcome": 0,
+              "searching": 1,
+              "loading": 2,
+              "empty": 3,
+              "error": 4,
+              "success": 5,
+              "not-found": 6,
+              "cta": 7,
+              "cozy": 8
+            },
+            "normalize": {
+              "canvasSize": 317,
+              "padding": 10
+            },
+            "chroma": {
+              "matteColor": "auto",
+              "pipeline": "v2",
+              "matteSelect": "subject-aware"
+            },
+            "geometry": {
+              "mode": "centroid-components"
+            },
+            "qa": {
+              "alphaThreshold": 32,
+              "minForegroundRatio": 0.05,
+              "maxForegroundRatio": 0.9,
+              "maxSheetEdgeTouchRatio": 0.1
+            },
             "format": "webp",
             "quality": 80
           },

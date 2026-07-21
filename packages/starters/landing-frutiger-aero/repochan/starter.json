@@ -63,7 +63,8 @@
             "format": "png",
             "width": 1536,
             "height": 1024,
-            "aspectRatio": "3:2"
+            "aspectRatio": "3:2",
+            "genSize": "2304x1536"
           }
         ]
       },
@@ -108,7 +109,8 @@
             "format": "png",
             "width": 1024,
             "height": 1024,
-            "aspectRatio": "1:1"
+            "aspectRatio": "1:1",
+            "genSize": "2048x2048"
           }
         ]
       },
@@ -150,7 +152,8 @@
             "format": "png",
             "width": 1024,
             "height": 1024,
-            "aspectRatio": "1:1"
+            "aspectRatio": "1:1",
+            "genSize": "2048x2048"
           }
         ]
       },
@@ -192,7 +195,8 @@
             "format": "png",
             "width": 1536,
             "height": 1024,
-            "aspectRatio": "3:2"
+            "aspectRatio": "3:2",
+            "genSize": "2304x1536"
           }
         ]
       },
@@ -278,7 +282,8 @@
             "format": "png",
             "width": 1536,
             "height": 1024,
-            "aspectRatio": "3:2"
+            "aspectRatio": "3:2",
+            "genSize": "2304x1536"
           }
         ]
       },
@@ -321,7 +326,8 @@
             "format": "png",
             "width": 1024,
             "height": 1024,
-            "aspectRatio": "1:1"
+            "aspectRatio": "1:1",
+            "genSize": "2048x2048"
           }
         ]
       },
@@ -366,7 +372,8 @@
             "format": "png",
             "width": 512,
             "height": 512,
-            "aspectRatio": "1:1"
+            "aspectRatio": "1:1",
+            "genSize": "1024x1024"
           }
         ]
       },
@@ -462,7 +469,8 @@
             "format": "png",
             "width": 1024,
             "height": 1024,
-            "aspectRatio": "1:1"
+            "aspectRatio": "1:1",
+            "genSize": "2048x2048"
           }
         ]
       },

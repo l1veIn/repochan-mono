@@ -225,6 +225,10 @@ const DeliverableSchema = Type.Object({
   height: Type.Optional(Type.Number()),
   aspectRatio: Type.Optional(Type.String()),
   transparentBackground: Type.Optional(Type.Boolean()),
+  /** Requested generation resolution (WxH), >= the final asset size. The painter
+   *  generates at this size and postprocess downscales, keeping assets crisp on
+   *  high-DPI displays. Defaults to width/height when omitted. */
+  genSize: Type.Optional(Type.String({ pattern: "^\\d+x\\d+$" })),
 }, { additionalProperties: false });
 
 const OrderReferenceSchema = Type.Union([

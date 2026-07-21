@@ -5,17 +5,20 @@
 在调用 `repochan image gen` 前解析输出规格，并映射到 CLI 支持的宽高比和尺寸参数：
 
 1. 如果用户为本次执行给出了明确的尺寸/宽高比指令，使用它（除非不安全或不可能）。
-2. 否则如果有模板，使用模板的 canonical `size`，并采用 `template get` 返回的派生宽高比。
-3. 否则使用任务第一个 deliverable 的 `width`、`height`、`aspectRatio`。
-4. 将解析出的尺寸映射到 `repochan image gen` 参数：
-   - `--size`：精确尺寸字符串，如 `1024x1024`、`1200x800`。
+2. 否则如果任务第一个 deliverable 声明了 `genSize`，**用它作为生成分辨率**——`genSize` ≥ 成品尺寸，后处理负责降采样，保证高 DPI 屏幕上的清晰度。
+3. 否则如果有模板，使用模板的 canonical `size`，并采用 `template get` 返回的派生宽高比。
+4. 否则使用任务第一个 deliverable 的 `width`、`height`、`aspectRatio`。
+5. 将解析出的尺寸映射到 `repochan image gen` 参数：
+   - `--size`：精确尺寸字符串，如 `2048x2048`、`1200x800`；`2K`/`4K` 关键字亦可。
    - `--aspect`：`1:1` 或宽高相等 → `square`；宽大于高 → `landscape`；高大于宽 → `portrait`。
+
+**清晰度纪律**：`genSize` 或模板 size 低于 `1024`（短边）时，除非用户明确要求小图，按短边 ≥ `1024` 生成（网格图按 ≥ `2048` 生成，cell 才有降采样空间）。交付的成品尺寸由 deliverable 的 `width`/`height` 约束，**生成尺寸永远 ≥ 成品尺寸**，不得反向。
 
 **关键：同时传 `--size` 和 `--aspect`。** `--size` 保留目标像素规格，`--aspect` 为只支持粗粒度比例的 provider 提供降级语义。
 
 调用示例：
 ```bash
-repochan image gen --prompt "<组装的 prompt>" --aspect square --size 1024x1024
+repochan image gen --prompt "<组装的 prompt>" --aspect square --size 2048x2048
 ```
 
 不要为设定集封面发明特殊宽高比规则。设定集封面和所有其他任务一样遵循其模板。
