@@ -7,7 +7,8 @@ This changelog records coordinated public package sets.
 ### 清晰度机制（genSize）与 web-designer 微调
 
 - Cutout 资产分类学：通用 cutout 必须完整入画（四边留白、肢体完整）；
-  出血裁切版是设计绑定资产（需 H3/H4 层边界配合），不得进 starter/通用库。
+  出血裁切版是设计绑定资产（需 H3/H4 层边界配合）——**可进 starter/通用库，
+  但必须搭配姿态线稿传递姿态**（姿态线稿的合法场景）。
   `official/character-cutout` 模板与 web-designer skill 已写入该教义；
   ord-cutout-001 v3 重新交付完整入画版 A/B（2048×3072 / 2048×2048），
   替换 4 个 starter 中的出血版；01 swiss-type hero 右侧新增 Fig. 01。
