@@ -54,8 +54,11 @@ import {
   getStarter,
   getStarterDir,
   listStarters,
+  listStartersFromSource,
   readStarterInstance,
+  resolveStarterSource,
   type StarterMeta,
+  type StarterSource,
 } from "../lib/starter-loader.js";
 import { getBuiltinTemplatesDir, loadAllTemplates } from "../lib/template-loader.js";
 import type { TemplateData } from "../lib/template-loader.js";
@@ -126,15 +129,34 @@ async function walkFiles(root: string): Promise<string[]> {
   return found;
 }
 
-export async function runStarterList(_cwd: string, options: StarterOptions) {
-  const all = await listStarters();
+/** Injectable source resolution (tests simulate a fresh install with no cache and no bundled package). */
+type StarterSourceDeps = {
+  resolveSource?: () => Promise<StarterSource | null>;
+};
+
+function sourceLabel(source: StarterSource | null): string {
+  if (!source) return "none";
+  if (source.kind === "cache") return `cached@${source.version ?? "unknown"}`;
+  if (source.kind === "bundled") return "bundled";
+  return source.via === "env" ? `dir (REPOCHAN_STARTERS_DIR)` : `dir (--from)`;
+}
+
+export async function runStarterList(_cwd: string, options: StarterOptions, deps: StarterSourceDeps = {}) {
+  const source = await (deps.resolveSource ?? resolveStarterSource)();
+  const all = source ? await listStartersFromSource(source) : [];
   const starters = options.tag ? all.filter((starter) => starter.tags.includes(options.tag!)) : all;
   const lines = starters.map((starter) => {
     const tags = starter.tags.length ? ` [${starter.tags.join(", ")}]` : "";
     const preview = ` ${dim("•")} preview: ${starter.previews.desktop}`;
     return `  ${starter.id}  ${dim("—")} ${starter.name}${starter.default ? " (default)" : ""}${tags}${preview}`;
   });
-  emitResult(options, `Starters${options.tag ? ` tagged '${options.tag}'` : ""} (${starters.length}):${lines.length ? `\n${lines.join("\n")}` : ""}`, { starters });
+  const header = source
+    ? `Starters${options.tag ? ` tagged '${options.tag}'` : ""} (${starters.length}, source: ${sourceLabel(source)}):`
+    : "Starters: none (run `repochan starter sync` to download @repochan/starters, or pass --from <dir>).";
+  emitResult(options, `${header}${lines.length ? `\n${lines.join("\n")}` : ""}`, {
+    starters,
+    source: source ? { kind: source.kind, dir: source.dir, ...(source.version ? { version: source.version } : {}) } : { kind: "none" },
+  });
 }
 
 export async function runStarterGet(_cwd: string, id: string | undefined, options: StarterOptions) {
@@ -151,10 +173,19 @@ export async function runStarterGet(_cwd: string, id: string | undefined, option
   emitResult(options, lines.join("\n"), starter);
 }
 
-export async function runStarterPull(cwd: string, options: StarterOptions) {
+export async function runStarterPull(cwd: string, options: StarterOptions, deps: StarterSourceDeps = {}) {
   const target = outputDir(cwd, options.outputDir);
   if (options.from && options.starter) throw new UsageError("starter pull accepts either --starter <id> or --from <local-dir>, not both.");
   const localSource = options.from ? path.resolve(cwd, options.from) : undefined;
+  if (!localSource) {
+    const source = await (deps.resolveSource ?? resolveStarterSource)();
+    if (!source) {
+      throw new UsageError(
+        "No starters available: run `repochan starter sync` first.",
+        "starter sync downloads @repochan/starters into ~/.repochan/starters/; alternatively pass --from <dir> or set REPOCHAN_STARTERS_DIR.",
+      );
+    }
+  }
   const starterId = localSource ? (await readStarterInstance(localSource)).id : options.starter ?? await getDefaultStarterId();
   const source = localSource ?? await getStarterDir(starterId);
   if (path.resolve(target) === path.resolve(source)) {

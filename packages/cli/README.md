@@ -99,7 +99,7 @@ repochan image gen --prompt "…" [--reference path] [--reference path2] [--aspe
 - `@repochan/image-edit` — slice / bg-remove / chroma-key / compress / resize / favicon
 - `@repochan/skill` — agent skill markdown
 - `@repochan/templates` — asset YAML templates
-- `@repochan/starters` — landing-page scaffolds (Astro/Tailwind project directories)
+- `@repochan/starters` — landing-page scaffolds (Astro/Tailwind project directories); not bundled with the CLI — `repochan starter sync` downloads them on demand
 
 ## Docs
 

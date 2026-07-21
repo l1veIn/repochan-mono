@@ -109,6 +109,8 @@ CLI 关键参数：`--prompt`、`--reference <path>`（可重复，每个参考�
 
 **`--size` 解析顺序**：用户明确尺寸 > deliverable 的 `genSize`（订单声明的生成分辨率，≥ 成品尺寸）> 模板 `size` > deliverable 的 `width`/`height`。生成尺寸永远 ≥ 成品尺寸，降采样交给后处理——这是高 DPI 清晰度的来源。
 
+**大尺寸注意**：`2K`/`4K` 关键字在部分 endpoint 上会被解释成方形（实测裸 `4K` 产出 2880²）。横/竖版大图要 2K/4K 时必须写显式 `WxH`（如 `3840x2560` 横版、`2048x3072` 竖版），不要只传关键字。
+
 foundation_sheet 本身是锚点，不需要 `--reference`。
 
 ### 步骤 3.5：有参考图时精简 prompt

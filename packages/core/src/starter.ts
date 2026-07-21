@@ -19,6 +19,7 @@ export const StarterPostprocessOpSchema = Type.Union([
   Type.Literal("favicon"),
   Type.Literal("gif-from-frames"),
   Type.Literal("extract-grid"),
+  Type.Literal("iconfont"),
 ]);
 
 const StarterAssetPublicationSchema = Type.Object({
@@ -200,7 +201,7 @@ export const StarterLocaleContentSchema = Type.Object({
   content: Type.Record(Type.String(), Type.Any()),
 }, { additionalProperties: false });
 
-export type StarterPostprocessOp = "compress" | "slice" | "extract-stickers" | "chroma-key" | "bg-remove" | "resize" | "favicon" | "gif-from-frames" | "extract-grid";
+export type StarterPostprocessOp = "compress" | "slice" | "extract-stickers" | "chroma-key" | "bg-remove" | "resize" | "favicon" | "gif-from-frames" | "extract-grid" | "iconfont";
 
 export type StarterPostprocessStep = {
   op: StarterPostprocessOp;
@@ -343,7 +344,7 @@ export function validateStarterManifest(value: unknown): StarterManifest {
     }
     for (const [index, step] of (asset.postprocess ?? []).entries()) {
       assertSafeRelativePath(step.out, `assets.${asset.slot}.postprocess.out`);
-      if (index < (asset.postprocess?.length ?? 0) - 1 && ["slice", "extract-stickers", "resize"].includes(step.op)) {
+      if (index < (asset.postprocess?.length ?? 0) - 1 && ["slice", "extract-stickers", "resize", "iconfont"].includes(step.op)) {
         throw new Error(`assets.${asset.slot}: multi-output postprocess '${step.op}' must be the final step.`);
       }
     }

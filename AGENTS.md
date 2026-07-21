@@ -19,8 +19,10 @@
 ## Dependency direction (must stay acyclic)
 
 ```text
-cli → core | skill | image-gen | image-edit | templates | starters
+cli → core | skill | image-gen | image-edit | templates
 ```
+
+`@repochan/starters` is an independent publishable, not a CLI dependency: `repochan starter sync` downloads it on demand into `~/.repochan/starters/` (resolution: `--from` > `REPOCHAN_STARTERS_DIR` > cache > bundled package when present in dev).
 
 Leaves never import `cli` or each other (except that `cli` alone aggregates).
 

@@ -9,7 +9,7 @@
 
 # RepoChan
 
-**把任何 git 仓库变成有生命力的吉祥物人设和统一的视觉品牌** ——
+**把任何 git 仓库变成仓库娘！** ——
 
 角色设定集、图标、贴纸、海报、落地页——由*你自己的* coding agent 驱动。
 
@@ -36,6 +36,7 @@
 
 ```bash
 npm install -g repochan && repochan setup          # 把 skill 装进你的 agent
+# repochan starter sync        # 按需下载 starter 目录（~/.repochan/starters）
 # repochan image configure       # 配置图像端点凭证
 ```
 

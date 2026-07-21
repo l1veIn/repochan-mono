@@ -9,7 +9,7 @@
 
 # RepoChan
 
-**Turn any git repository into a living mascot persona and a consistent visual brand** —
+**Turn any git repository into a girl!** —
 
 character sheets, icons, stickers, posters, and a landing page — driven by *your* coding agent.
 
@@ -36,6 +36,7 @@ You already use a coding agent (Claude Code, Codex, Pi, Cursor, Hermes, …). Re
 
 ```bash
 npm install -g repochan && repochan setup          # installs skills into your agent
+# repochan starter sync        # downloads the starter catalog on demand (~/.repochan/starters)
 # repochan image configure       # image endpoint credentials configuration
 ```
 

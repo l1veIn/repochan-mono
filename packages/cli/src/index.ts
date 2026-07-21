@@ -13,6 +13,7 @@ import * as ent from "./commands/entities.js";
 import * as setup from "./commands/setup.js";
 import * as template from "./commands/template.js";
 import * as starter from "./commands/starter.js";
+import * as starterSync from "./commands/starter-sync.js";
 import * as image from "./commands/image.js";
 import * as dev from "./commands/dev.js";
 import { recordError, hasRecorded } from "./lib/dev-telemetry.js";
@@ -161,19 +162,21 @@ cli.command("starter <sub>", "Landing-page starters")
   .option("--order <order-id>", "Delivered order to apply (asset-apply)")
   .option("--result-version <version-id>", "Specific delivered result version (asset-apply)")
   .option("--file <path>", "Local source file to import (asset-import)")
+  .option("--force", "Re-download starters even when the cache is current (sync)")
   .action(async (_p: any, opts: any) => {
     const args = cli.args;
     const sub = args[0];
     switch (sub) {
       case "list": return await starter.runStarterList(process.cwd(), opts);
       case "get": return await starter.runStarterGet(process.cwd(), args[1], opts);
+      case "sync": return await starterSync.runStarterSync(process.cwd(), opts);
       case "pull": return await starter.runStarterPull(process.cwd(), opts);
       case "configure": return await starter.runStarterConfigure(process.cwd(), opts);
       case "create-order": return await starter.runStarterCreateOrder(process.cwd(), args[1], opts);
       case "asset-apply": return await starter.runStarterAssetApply(process.cwd(), args[1], opts);
       case "asset-import": return await starter.runStarterAssetImport(process.cwd(), args[1], opts);
       case "validate": return await starter.runStarterValidate(process.cwd(), args[1], opts);
-      default: throw new Error(`Unknown starter subcommand: ${sub}. Use: list | get | pull | configure | create-order | asset-apply | asset-import | validate`);
+      default: throw new Error(`Unknown starter subcommand: ${sub}. Use: list | get | sync | pull | configure | create-order | asset-apply | asset-import | validate`);
     }
   });
 

@@ -12,7 +12,7 @@ import {
   runStarterPull,
   runStarterValidate,
 } from "./starter.js";
-import { getDefaultStarterId, getStarter, readStarterInstance } from "../lib/starter-loader.js";
+import { getBuiltinStartersDir, getDefaultStarterId, getStarter, readStarterInstance } from "../lib/starter-loader.js";
 import { ApplyFailurePrintedError } from "../lib/output.js";
 import { chromaKeyImage, compressImage, extractAssets, ExtractError, type ExtractQaReport } from "@repochan/image-edit";
 
@@ -880,5 +880,47 @@ describe("starter v1 commands", () => {
     await writeFile(manifestPath, JSON.stringify(manifest));
     await expect(runStarterValidate(root, undefined, { outputDir: siteDir, json: true }))
       .rejects.toThrow(/scene-night: missing reference public\/assets\/missing-reference\.webp/);
+  });
+
+  it("tells the user to run starter sync first when no starter source exists", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const root = await projectFixture();
+    const noSource = { resolveSource: async () => null };
+    await expect(runStarterPull(root, { outputDir: path.join(root, "site"), starter: "minimal", json: true }, noSource))
+      .rejects.toThrow(/run `repochan starter sync` first/);
+  });
+
+  it("annotates the starter list with its resolved source", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const bundledDir = await getBuiltinStartersDir();
+    const cacheDir = path.join(await mkdtemp(path.join(os.tmpdir(), "repochan-starter-cache-")), "cache");
+    tempDirs.push(path.dirname(cacheDir));
+    await mkdir(path.join(cacheDir, "cached-one", "repochan"), { recursive: true });
+    await writeFile(path.join(cacheDir, "cached-one", "repochan", "starter.json"), JSON.stringify({
+      schemaVersion: "repochan.starter.v1",
+      id: "cached-one",
+      name: "Cached One",
+      description: "cache annotation fixture",
+      tags: [],
+      previews: { desktop: "repochan/previews/desktop.webp", mobile: "repochan/previews/mobile.webp" },
+      config: { site: "repochan/site.json", assets: "repochan/assets.json", i18nDir: "repochan/i18n" },
+      content: { defaultLocale: "en", supportedLocales: ["en"] },
+      assets: [],
+    }));
+
+    await runStarterList("", {}, { resolveSource: async () => ({ kind: "bundled", dir: bundledDir! }) });
+    expect(String(log.mock.calls.at(-1)?.[0])).toMatch(/source: bundled/);
+
+    log.mockClear();
+    await runStarterList("", {}, { resolveSource: async () => ({ kind: "cache", dir: cacheDir, version: "1.2.3" }) });
+    expect(String(log.mock.calls.at(-1)?.[0])).toMatch(/source: cached@1\.2\.3/);
+
+    log.mockClear();
+    await runStarterList("", {}, { resolveSource: async () => null });
+    expect(String(log.mock.calls.at(-1)?.[0])).toMatch(/Starters: none \(run `repochan starter sync`/);
+
+    log.mockClear();
+    await runStarterList("", { json: true }, { resolveSource: async () => null });
+    expect(JSON.parse(String(log.mock.calls.at(-1)?.[0]))).toMatchObject({ starters: [], source: { kind: "none" } });
   });
 });

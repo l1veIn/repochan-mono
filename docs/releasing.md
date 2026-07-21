@@ -1,8 +1,11 @@
 # Release preflight
 
-RepoChan is released as one dependency-closed package set. The six leaf packages
-must be available before the `repochan` CLI because the packed CLI uses exact
-versions for every local runtime dependency.
+RepoChan is released as one dependency-closed package set. The five runtime
+leaf packages must be available before the `repochan` CLI because the packed
+CLI uses exact versions for every local runtime dependency.
+`@repochan/starters` is an independent publishable in the same coordinated
+set: the CLI no longer bundles it, and downloads it on demand with
+`repochan starter sync` into a user-level cache.
 
 Canonical order:
 
@@ -11,7 +14,7 @@ Canonical order:
 3. `@repochan/image-gen`
 4. `@repochan/skill`
 5. `@repochan/templates`
-6. `@repochan/starters`
+6. `@repochan/starters` (independent artifact; synced on demand, not a CLI dependency)
 7. `repochan`
 
 The candidate versions and their semver rationale are recorded in
@@ -40,8 +43,10 @@ registry exposes the six leaf tarballs while the empty npm project installs only
 the CLI tarball as a top-level dependency. The smoke then runs the packed CLI,
 verifies the complete project-local Codex skill inventory and representative
 skill content, requires the exact canonical 21-template inventory, and exercises
-`template get`. It also requires the canonical Starter inventory with `minimal`
-as the sole default, pulls each Starter from the packed CLI, validates its
+`template get`. It also verifies the fresh install does not bundle
+`@repochan/starters`, syncs the Starter catalog on demand from the registry
+(`starter sync`), requires the canonical Starter inventory with `minimal`
+as the sole default, pulls each Starter from the synced cache, validates its
 Transfer Kit and builds the copied site.
 This command tests
 current worktree changes for development feedback; its artifacts are not
@@ -78,10 +83,10 @@ The preflight installs only the retained candidate CLI tarball into an isolated
 HOME, initially empty npm user config, cache, install prefix, and empty git
 project. It verifies exact installed package versions, project-local Codex setup
 and repeated-setup idempotence, status before and after repeated init, validation
-before and after deterministic analysis, Starter discovery, pull, validation,
-dependency install, and production build. This is CLI/package fresh-install
-evidence only: it does not run a real coding agent or an image endpoint and must
-not be reported as evidence for either flow. Setup evidence is specifically for
+before and after deterministic analysis, on-demand Starter sync, discovery,
+pull, validation, dependency install, and production build. This is CLI/package
+fresh-install evidence only: it does not run a real coding agent or an image
+endpoint and must not be reported as evidence for either flow. Setup evidence is specifically for
 project-local Codex installation; global setup and all other agent targets remain
 outside this preflight's support claim. The JSON report records the resolved
 default Starter and every canonical Starter production build.
@@ -181,6 +186,7 @@ printf 'registry=https://registry.npmjs.org/\n' > "$SMOKE_ROOT/npmrc"
   node "$CLI" status --json
   node "$CLI" init --json
   node "$CLI" setup --agent codex --project --json
+  node "$CLI" starter sync --json
   node "$CLI" starter list --json
   node "$CLI" starter pull --starter minimal --output-dir site --json
   node "$CLI" starter validate --output-dir site --json
@@ -189,8 +195,8 @@ printf 'registry=https://registry.npmjs.org/\n' > "$SMOKE_ROOT/npmrc"
 )
 ```
 
-Confirm the reported CLI identity matches the candidate report and every bundled
-Starter and skill is present,
+Confirm the reported CLI identity matches the candidate report and every synced
+Starter and bundled skill is present,
 setup writes only inside the disposable project/HOME, and the Starter build
 succeeds. This still does not validate a real agent session, deployment, image
 credentials, or a billed image generation request.

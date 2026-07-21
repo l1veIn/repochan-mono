@@ -353,6 +353,14 @@ async function candidateFreshInstallSmoke(entries) {
     throw new Error(`Unexpected fresh-install CLI identity: ${version}`);
   }
   for (const entry of entries) {
+    // @repochan/starters is no longer a CLI dependency: the fresh install must
+    // NOT contain it; the packed CLI syncs it on demand (`starter sync`).
+    if (entry.manifest.name === "@repochan/starters") {
+      if (existsSync(path.join(installRoot, "node_modules", "@repochan", "starters", "package.json"))) {
+        throw new Error("Fresh install must not bundle @repochan/starters; the CLI syncs starters on demand.");
+      }
+      continue;
+    }
     const manifestPath = entry.manifest.name === "repochan"
       ? path.join(installRoot, "node_modules", "repochan", "package.json")
       : path.join(installRoot, "node_modules", ...entry.manifest.name.split("/"), "package.json");
@@ -460,6 +468,14 @@ async function candidateFreshInstallSmoke(entries) {
     throw new Error("Fresh-install template get did not return the complete foundation-sheet contract.");
   }
 
+  const starterSync = parseJsonOutput(
+    run(process.execPath, [cliEntry, "starter", "sync", "--json"], { cwd: hostProject, env: isolatedEnv, replaceEnv: true }),
+    "fresh-install starter sync",
+  );
+  const startersEntry = entries.find((entry) => entry.manifest.name === "@repochan/starters");
+  if (starterSync.version !== startersEntry.manifest.version) {
+    throw new Error(`Fresh-install starter sync resolved ${starterSync.version ?? "no version"}; expected ${startersEntry.manifest.version}.`);
+  }
   const starterList = parseJsonOutput(
     run(process.execPath, [cliEntry, "starter", "list", "--json"], { cwd: hostProject, env: isolatedEnv, replaceEnv: true }),
     "fresh-install starter list",
@@ -505,6 +521,7 @@ async function candidateFreshInstallSmoke(entries) {
     skills: expectedSkills,
     templates: templateIds,
     templateGet: "official/foundation-sheet passed",
+    starterSync: starterSync.version,
     starters: starterIds,
     defaultStarter: canonicalDefaultStarter,
     defaultStarterResolution: "bare starter pull passed",

@@ -204,9 +204,10 @@ cli ──┬──> core
       ├──> skill          # setup 时拷贝 skill 资源
       ├──> image-gen      # repochan image gen / configure
       ├──> image-edit     # repochan image edit …
-      ├──> templates      # repochan template list|get
-      └──> starters       # repochan starter list|get|pull|configure|create-order|asset-apply|validate
+      └──> templates      # repochan template list|get
 
+starters      独立发布物：CLI 不再依赖它；`repochan starter sync` 按需下载到
+              ~/.repochan/starters/，解析顺序 --from > REPOCHAN_STARTERS_DIR > 缓存 > 内嵌包（dev）
 core          叶子：不依赖任何其他 repochan 包
 image-gen     叶子：不写 .repochan/，不知协议
 image-edit    叶子：不写 .repochan/，不知协议

@@ -36,7 +36,7 @@ function validEntries() {
       license: "MIT",
       publishConfig: { access: "public", registry: "https://registry.npmjs.org/" },
       dependencies: name === "repochan"
-        ? Object.fromEntries(releasePackages.slice(0, -1).map(({ name: dependency }) => [dependency, versions.get(dependency)]))
+        ? Object.fromEntries(releasePackages.slice(0, -1).filter(({ name: dependency }) => dependency !== "@repochan/starters").map(({ name: dependency }) => [dependency, versions.get(dependency)]))
         : {},
     },
     files: [{ path: "LICENSE" }, { path: "README.md" }],
@@ -97,8 +97,14 @@ test("rejects a workspace protocol that escaped into a packed manifest", () => {
 
 test("rejects stale local dependency versions", () => {
   const entries = validEntries();
-  entries.at(-1).manifest.dependencies["@repochan/starters"] = "0.0.0";
+  entries.at(-1).manifest.dependencies["@repochan/templates"] = "0.0.0";
   assert.throws(() => validatePackedRelease(entries, validInventory()), /must depend on the packed.*version/);
+});
+
+test("rejects a CLI that bundles starters instead of syncing them on demand", () => {
+  const entries = validEntries();
+  entries.at(-1).manifest.dependencies["@repochan/starters"] = "0.1.5";
+  assert.throws(() => validatePackedRelease(entries, validInventory()), /must not depend on @repochan\/starters/);
 });
 
 test("rejects publishing the CLI before one of its leaves", () => {

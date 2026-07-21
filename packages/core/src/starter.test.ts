@@ -146,6 +146,22 @@ describe("starter v1", () => {
     expect(() => validateStarterManifest(invalid)).toThrow(/multi-output postprocess 'slice' must be the final step/);
   });
 
+  it("accepts iconfont as an op and enforces it as the final step", () => {
+    const valid = structuredClone(manifest);
+    valid.assets[0].postprocess = [
+      { op: "compress", out: "public/assets/intermediate.webp" },
+      { op: "iconfont", out: "public/assets/hero.webp", args: { rows: 4, cols: 4, mapping: ["a", "b"] } },
+    ];
+    expect(() => validateStarterManifest(valid)).not.toThrow();
+
+    const invalid = structuredClone(manifest);
+    invalid.assets[0].postprocess = [
+      { op: "iconfont", out: "public/assets/icons", args: { rows: 4, cols: 4, mapping: ["a", "b"] } },
+      { op: "compress", out: "public/assets/hero.webp" },
+    ];
+    expect(() => validateStarterManifest(invalid)).toThrow(/multi-output postprocess 'iconfont' must be the final step/);
+  });
+
   it("validates named extract-grid publications and their source state", () => {
     const bundle: StarterManifest = {
       ...manifest,

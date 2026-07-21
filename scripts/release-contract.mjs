@@ -299,7 +299,15 @@ export function validatePackedRelease(entries, workspaceManifests) {
   }
 
   const cliDependencies = entries.at(-1).manifest.dependencies ?? {};
+  // @repochan/starters is an independent publishable: the CLI downloads it on
+  // demand (`repochan starter sync`) instead of bundling it as a dependency.
   for (const { name } of releasePackages.slice(0, -1)) {
+    if (name === "@repochan/starters") {
+      if (name in cliDependencies) {
+        throw new Error(`repochan must not depend on ${name}; starters are synced on demand via \`repochan starter sync\`.`);
+      }
+      continue;
+    }
     if (!(name in cliDependencies)) {
       throw new Error(`repochan is missing required runtime dependency ${name}.`);
     }
