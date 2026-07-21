@@ -2,6 +2,7 @@ import { promises as fs } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import {
+  appendOrderDerivedEntry,
   createOrders,
   exists,
   listOrders,
@@ -19,6 +20,8 @@ import {
   validateStarterLocaleStructures,
   validateStarterPresentationColors,
   validateStarterSiteConfig,
+  type OrderDerivedArtifact,
+  type OrderDerivedStep,
   type StarterAssetSlot,
   type StarterLocaleContent,
   type StarterManifest,
@@ -436,6 +439,101 @@ function asExtractError(error: unknown): ExtractError | { message: string; defec
   return undefined;
 }
 
+async function listFilesRecursive(root: string): Promise<string[]> {
+  const found: string[] = [];
+  for (const entry of await fs.readdir(root, { withFileTypes: true })) {
+    const absolute = path.join(root, entry.name);
+    if (entry.isDirectory()) found.push(...await listFilesRecursive(absolute));
+    else if (entry.isFile()) found.push(absolute);
+  }
+  return found.sort();
+}
+
+/**
+ * Copy one postprocess step's output (single file or directory tree) into the
+ * order's derived archive. Directory outputs (slice / resize / extract-stickers)
+ * are archived recursively with one artifact record per file.
+ */
+async function archiveStepOutput(
+  orderRoot: string,
+  archiveDir: string,
+  sourceBase: string,
+  out: string,
+): Promise<OrderDerivedArtifact[]> {
+  const source = sitePath(sourceBase, out);
+  const stat = await fs.stat(source).catch(() => undefined);
+  if (!stat) throw new Error(`Derived archive source is missing: ${out}`);
+  const files = stat.isDirectory() ? await listFilesRecursive(source) : [source];
+  const artifacts: OrderDerivedArtifact[] = [];
+  for (const file of files) {
+    const artifactOut = stat.isDirectory() ? `${out}/${path.relative(source, file).split(path.sep).join("/")}` : out;
+    const stored = `${archiveDir}/${artifactOut}`;
+    const destination = path.join(orderRoot, ...stored.split("/"));
+    await fs.mkdir(path.dirname(destination), { recursive: true });
+    await fs.copyFile(file, destination);
+    artifacts.push({ out: artifactOut, stored });
+  }
+  return artifacts;
+}
+
+/**
+ * Archive a completed asset-apply into the order's derived/ audit copy and
+ * append derived.json. Runs AFTER publishFilesWithRollback, so published
+ * outputs are read back from the site while intermediate step outputs are
+ * still staged in tempRoot. Never touches the immutable versions/ directory.
+ */
+async function archiveDerivedApply(input: {
+  cwd: string;
+  orderId: string;
+  manifest: StarterManifest;
+  slot: StarterAssetSlot;
+  gridStep?: StarterPostprocessStep;
+  versionId: string;
+  tempRoot: string;
+  target: string;
+  publicationOutputs: string[];
+}): Promise<string> {
+  const appliedAt = new Date().toISOString();
+  const archiveDir = `derived/${appliedAt.replace(/[:.]/g, "-")}--${input.slot.slot}`;
+  const orderRoot = path.join(input.cwd, ".repochan", "orders", input.orderId);
+  const published = new Set(input.publicationOutputs);
+  const record = (step: StarterPostprocessStep, artifacts: OrderDerivedArtifact[]): OrderDerivedStep => ({
+    op: step.op,
+    ...(step.args !== undefined ? { args: step.args } : {}),
+    out: step.out,
+    ...(step.keep !== undefined ? { keep: step.keep } : {}),
+    artifacts,
+  });
+  const steps: OrderDerivedStep[] = [];
+  if (input.slot.kind === "bundle" && input.gridStep) {
+    const artifacts: OrderDerivedArtifact[] = [];
+    if (input.gridStep.keep !== false) {
+      for (const publication of input.slot.publications) {
+        artifacts.push(...await archiveStepOutput(orderRoot, archiveDir, input.target, publication.output));
+      }
+    }
+    steps.push(record(input.gridStep, artifacts));
+  } else if (input.slot.kind === "scalar") {
+    for (const step of input.slot.postprocess ?? []) {
+      const artifacts = step.keep === false
+        ? []
+        // Published outputs were renamed out of tempRoot into the site;
+        // intermediate step outputs are still staged in tempRoot.
+        : await archiveStepOutput(orderRoot, archiveDir, published.has(step.out) ? input.target : input.tempRoot, step.out);
+      steps.push(record(step, artifacts));
+    }
+  }
+  await appendOrderDerivedEntry(input.cwd, input.orderId, {
+    slot: input.slot.slot,
+    starter: input.manifest.id,
+    resultVersion: input.versionId,
+    appliedAt,
+    archiveDir,
+    steps,
+  });
+  return archiveDir;
+}
+
 export async function runStarterAssetApply(cwd: string, slotName: string | undefined, options: StarterOptions) {
   const target = outputDir(cwd, options.outputDir);
   await assertNoSymlinkPath(target, "", "Starter target");
@@ -527,12 +625,34 @@ export async function runStarterAssetApply(cwd: string, slotName: string | undef
     await fs.mkdir(path.dirname(stagedAssets), { recursive: true });
     await fs.writeFile(stagedAssets, `${JSON.stringify(assets, null, 2)}\n`);
     await publishFilesWithRollback(target, tempRoot, [...publicationOutputs, manifest.config.assets]);
-    emitResult(options, `Applied ${options.order}/${result.version.versionId} → ${publicationOutputs.join(", ")}`, {
+    // Derived archive (audit bypass): copy kept step artifacts into the order's
+    // derived/ and append derived.json. Archiving is best-effort — a failure
+    // here (e.g. unwritable order dir) must not fail the apply itself.
+    let derivedArchiveDir: string | undefined;
+    let derivedWarning: string | undefined;
+    try {
+      derivedArchiveDir = await archiveDerivedApply({
+        cwd,
+        orderId: options.order,
+        manifest,
+        slot,
+        gridStep,
+        versionId: result.version.versionId,
+        tempRoot,
+        target,
+        publicationOutputs,
+      });
+    } catch (archiveError) {
+      derivedWarning = `derived archive failed: ${archiveError instanceof Error ? archiveError.message : String(archiveError)}`;
+    }
+    emitResult(options, `Applied ${options.order}/${result.version.versionId} → ${publicationOutputs.join(", ")}${derivedWarning ? `\nwarning: ${derivedWarning}` : ""}`, {
       starter: manifest.id,
       slot: slot.slot,
       outputs: publicationOutputs.map((output) => sitePath(target, output)),
       orderId: options.order,
       versionId: result.version.versionId,
+      ...(derivedArchiveDir ? { derived: derivedArchiveDir } : {}),
+      ...(derivedWarning ? { derivedWarning } : {}),
     });
   } catch (err) {
     // Apply failure envelope (design "Structured failure plumbing", PR5): the

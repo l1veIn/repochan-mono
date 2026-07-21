@@ -29,4 +29,14 @@ export {
 
 export { createReview } from "./review.js";
 
+export {
+  appendOrderDerivedEntry,
+  orderDerivedJsonPath,
+  readOrderDerived,
+  type OrderDerivedArtifact,
+  type OrderDerivedEntry,
+  type OrderDerivedIndex,
+  type OrderDerivedStep,
+} from "./order-derived.js";
+
 export { createPersonaReview } from "./persona-review.js";

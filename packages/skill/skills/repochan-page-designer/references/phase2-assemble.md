@@ -18,6 +18,8 @@ repochan starter asset-apply <slot> --order <order-id> [--result-version <versio
 
 `asset-apply` 必须整体成功后才更新 `assets.json`。发生后处理错误时，保留现有站点输出和状态，不要手工拼出半完成状态。只有调试 image-edit 本身时才直接调用 `repochan image edit`。
 
+**派生归档（审计）**：apply 成功后，postprocess 链中每个 `keep` ≠ `false` 的步骤会把产物归档到 `.repochan/orders/<order-id>/derived/<时间戳>--<slot>/`，并向该订单的 `derived.json`（`repochan.order-derived.v1`）追加一条 entry（slot / starter / resultVersion / steps / artifacts）。索引为 append-only，重复 apply 追加而不覆盖。需要回答「这个订单派生出过哪些产物、在哪」时读 `derived.json`，不要去猜 `public/` 的当前状态。归档失败不会阻断 apply（输出里带 `derivedWarning`）。
+
 已经是最终格式的仓库截图或真实 proof 走 `starter asset-import <slot> --file <path>`：CLI 原子复制到声明的 scalar output，并在 `assets.json` 记录 local-file SHA-256 provenance。Bundle/publications 仍必须走 `asset-apply`。
 
 ## Extract QA 失败回流

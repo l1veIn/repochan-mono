@@ -4,6 +4,17 @@ This changelog records coordinated public package sets.
 
 ## Unreleased
 
+### Orders — postprocess 派生归档（审计）
+
+- Starter postprocess 步骤新增 `keep` 字段（默认 `true`）。`starter asset-apply`
+  成功后将 `keep ≠ false` 步骤的产物归档到 `.repochan/orders/<id>/derived/
+  <时间戳>--<slot>/`，并追加订单级索引 `derived.json`
+  （`repochan.order-derived.v1`：slot / starter / resultVersion / steps /
+  artifacts），append-only，重复 apply 不覆盖历史。
+- AGENTS.md 产品不变量 #5 相应修订为受控例外：归档发生在订单级 derived/，
+  订单 `versions/` 目录与 meta.json 仍不可变。归档失败不阻断 apply
+  （输出带 `derivedWarning`）。
+
 ### Cutout / slice stability redesign (design doc rev 4, PR1–PR7)
 
 - `@repochan/image-edit`: unified `extractAssets` entry with strategy enum

@@ -63,6 +63,7 @@ const StarterPostprocessStepSchema = Type.Object({
   op: StarterPostprocessOpSchema,
   args: Type.Optional(Type.Record(Type.String(), Type.Any())),
   out: RelativePathSchema,
+  keep: Type.Optional(Type.Boolean()),
 }, { additionalProperties: false });
 
 const StarterScalarAssetSlotSchema = Type.Object({
@@ -197,6 +198,8 @@ export type StarterPostprocessStep = {
   op: StarterPostprocessOp;
   args?: Record<string, unknown>;
   out: string;
+  /** Archive this step's artifacts into the order's derived/ audit copy. Defaults to true; only an explicit false skips archiving. */
+  keep?: boolean;
 };
 
 export type StarterAssetOrder = {

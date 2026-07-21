@@ -660,4 +660,133 @@ describe("starter v1 commands", () => {
     expect(await readFile(path.join(siteDir, "public/assets/states/welcome.webp"), "utf8")).toBe("welcome");
     expect(await readFile(path.join(siteDir, "public/assets/states/cozy.webp"), "utf8")).toBe("cozy");
   });
+
+  async function scalarChainFixture(postprocess: Array<Record<string, unknown>>) {
+    const root = await projectFixture();
+    const siteDir = path.join(root, "site");
+    await runStarterPull(root, { outputDir: siteDir, json: true });
+    const manifestPath = path.join(siteDir, "repochan/starter.json");
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    manifest.assets[0].postprocess = postprocess;
+    await writeFile(manifestPath, JSON.stringify(manifest));
+    const versionDir = path.join(root, ".repochan/orders/ord-hero-001/versions/v1");
+    await mkdir(versionDir, { recursive: true });
+    await writeFile(path.join(root, ".repochan/orders/ord-hero-001/order.json"), JSON.stringify(canonicalOrder("ord-hero-001", {
+      assetType: manifest.assets[0].order.assetType,
+      templateId: manifest.assets[0].order.templateId,
+    })));
+    await writeFile(path.join(versionDir, "source.webp"), "source");
+    await writeFile(path.join(versionDir, "meta.json"), JSON.stringify({
+      versionId: "v1", createdAt: "2026-01-01T00:00:00.000Z", files: ["source.webp"],
+    }));
+    vi.mocked(compressImage).mockImplementation(async (_source, out) => {
+      await mkdir(path.dirname(out), { recursive: true });
+      await writeFile(out, "intermediate");
+      return {} as never;
+    });
+    vi.mocked(chromaKeyImage).mockImplementation(async (_source, out) => {
+      await mkdir(path.dirname(out), { recursive: true });
+      await writeFile(out, "final");
+      return {} as never;
+    });
+    return { root, siteDir, orderDir: path.join(root, ".repochan/orders/ord-hero-001") };
+  }
+
+  it("archives kept scalar step artifacts into the order derived/ copy and appends on re-apply", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const { root, siteDir, orderDir } = await scalarChainFixture([
+      { op: "compress", out: "public/assets/intermediate.webp" },
+      { op: "chroma-key", out: "public/assets/hero-composite.webp", keep: false },
+    ]);
+
+    await runStarterAssetApply(root, "hero-composite", {
+      outputDir: siteDir, order: "ord-hero-001", overwrite: true, json: true,
+    });
+
+    const derived = JSON.parse(await readFile(path.join(orderDir, "derived.json"), "utf8"));
+    expect(derived.schemaVersion).toBe("repochan.order-derived.v1");
+    expect(derived.orderId).toBe("ord-hero-001");
+    expect(derived.entries).toHaveLength(1);
+    const entry = derived.entries[0];
+    expect(entry.slot).toBe("hero-composite");
+    expect(entry.starter).toBe("minimal");
+    expect(entry.resultVersion).toBe("v1");
+    expect(entry.archiveDir).toMatch(/^derived\/.+--hero-composite$/);
+    expect(entry.steps).toHaveLength(2);
+    // kept intermediate step: archived with its artifact record
+    expect(entry.steps[0]).toMatchObject({ op: "compress", out: "public/assets/intermediate.webp" });
+    expect(entry.steps[0].artifacts).toEqual([{
+      out: "public/assets/intermediate.webp",
+      stored: `${entry.archiveDir}/public/assets/intermediate.webp`,
+    }]);
+    // keep: false final step: recorded but no artifacts
+    expect(entry.steps[1]).toMatchObject({ op: "chroma-key", out: "public/assets/hero-composite.webp", keep: false, artifacts: [] });
+    expect(await readFile(path.join(orderDir, entry.archiveDir, "public/assets/intermediate.webp"), "utf8")).toBe("intermediate");
+    await expect(readFile(path.join(orderDir, entry.archiveDir, "public/assets/hero-composite.webp"))).rejects.toThrow();
+    // the immutable versions/ directory gained nothing
+    expect(await readdir(path.join(orderDir, "versions"))).toEqual(["v1"]);
+    const json = JSON.parse(String(log.mock.calls.at(-1)?.[0]));
+    expect(json.derived).toBe(entry.archiveDir);
+
+    // re-apply appends a second entry without touching the first
+    await runStarterAssetApply(root, "hero-composite", {
+      outputDir: siteDir, order: "ord-hero-001", overwrite: true, json: true,
+    });
+    const after = JSON.parse(await readFile(path.join(orderDir, "derived.json"), "utf8"));
+    expect(after.entries).toHaveLength(2);
+    expect(after.entries[0]).toEqual(entry);
+    expect(after.entries[1].archiveDir).toMatch(/^derived\/.+--hero-composite$/);
+  });
+
+  it("archives grid bundle publications into the order derived/ copy", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const { root, siteDir } = await gridBundleFixture();
+    vi.mocked(extractAssets).mockImplementation(async (_source, outDir, options) => {
+      await mkdir(outDir, { recursive: true });
+      const items = Object.entries(options.mapping as Record<string, number>).map(([key, index]) => ({
+        key, index, file: `${key}.png`, path: path.join(outDir, `${key}.png`),
+        geometry: { cell: { row: 0, col: index, x: index * 10, y: 0, w: 10, h: 10 }, foreground: { x: 1, y: 1, w: 8, h: 8 }, normalized: { x: 2, y: 2, w: 60, h: 60, canvasWidth: 64, canvasHeight: 64, padding: 0 } },
+        qa: { foregroundPixels: 64, foregroundRatio: 0.64, edgeTouchPixels: 0, edgeTouchRatio: 0, alphaThreshold: 16 },
+      }));
+      for (const item of items) await writeFile(item.path, item.key);
+      return { sourceFile: "source.png", rows: 1, cols: 2, matteColor: [0, 255, 0], matteColorSource: "auto-sampled", items, qa: gridQa() };
+    });
+
+    await runStarterAssetApply(root, "web-states", { outputDir: siteDir, order: "ord-grid-001", json: true });
+
+    const orderDir = path.join(root, ".repochan/orders/ord-grid-001");
+    const derived = JSON.parse(await readFile(path.join(orderDir, "derived.json"), "utf8"));
+    expect(derived.entries).toHaveLength(1);
+    const entry = derived.entries[0];
+    expect(entry.slot).toBe("web-states");
+    expect(entry.archiveDir).toMatch(/^derived\/.+--web-states$/);
+    expect(entry.steps).toHaveLength(1);
+    expect(entry.steps[0].op).toBe("extract-grid");
+    expect(entry.steps[0].artifacts).toEqual([
+      { out: "public/assets/states/welcome.png", stored: `${entry.archiveDir}/public/assets/states/welcome.png` },
+      { out: "public/assets/states/empty.png", stored: `${entry.archiveDir}/public/assets/states/empty.png` },
+    ]);
+    expect(await readFile(path.join(orderDir, entry.archiveDir, "public/assets/states/welcome.png"), "utf8")).toBe("welcome");
+    expect(await readFile(path.join(orderDir, entry.archiveDir, "public/assets/states/empty.png"), "utf8")).toBe("empty");
+    expect(await readdir(path.join(orderDir, "versions"))).toEqual(["v1"]);
+  });
+
+  it("warns but does not fail the apply when the derived archive cannot be written", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const { root, siteDir, orderDir } = await scalarChainFixture([
+      { op: "compress", out: "public/assets/intermediate.webp" },
+      { op: "chroma-key", out: "public/assets/hero-composite.webp" },
+    ]);
+    // A directory at the derived.json path makes the append fail deterministically.
+    await mkdir(path.join(orderDir, "derived.json"), { recursive: true });
+
+    await runStarterAssetApply(root, "hero-composite", {
+      outputDir: siteDir, order: "ord-hero-001", overwrite: true, json: true,
+    });
+
+    expect(await readFile(path.join(siteDir, "public/assets/hero-composite.webp"), "utf8")).toBe("final");
+    const json = JSON.parse(String(log.mock.calls.at(-1)?.[0]));
+    expect(json.derived).toBeUndefined();
+    expect(json.derivedWarning).toMatch(/derived archive failed/);
+  });
 });

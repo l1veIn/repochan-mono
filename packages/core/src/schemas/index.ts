@@ -575,6 +575,50 @@ export const PersonaCandidatePromoteParamsSchema = Type.Object({
   slug: Type.String({ pattern: "^[a-z0-9-]+$" }),
 }, { additionalProperties: false });
 
+// ── Order derived archive ──
+
+/** One archived file produced by a postprocess step: its declared output path and where the audit copy lives (relative to the order dir). */
+export const OrderDerivedArtifactSchema = Type.Object({
+  out: Type.String({ minLength: 1 }),
+  stored: Type.String({ minLength: 1 }),
+}, { additionalProperties: false });
+
+/** Audit record of one postprocess step. `keep: false` steps are recorded with empty artifacts. */
+export const OrderDerivedStepSchema = Type.Object({
+  op: Type.Union([
+    Type.Literal("compress"),
+    Type.Literal("slice"),
+    Type.Literal("extract-stickers"),
+    Type.Literal("chroma-key"),
+    Type.Literal("bg-remove"),
+    Type.Literal("resize"),
+    Type.Literal("favicon"),
+    Type.Literal("gif-from-frames"),
+    Type.Literal("extract-grid"),
+  ]),
+  args: Type.Optional(Type.Record(Type.String(), Type.Any())),
+  out: Type.String({ minLength: 1 }),
+  keep: Type.Optional(Type.Boolean()),
+  artifacts: Type.Array(OrderDerivedArtifactSchema),
+}, { additionalProperties: false });
+
+/** One asset-apply run against an order result version. Append-only audit history — re-applies add new entries. */
+export const OrderDerivedEntrySchema = Type.Object({
+  slot: Type.String({ minLength: 1 }),
+  starter: Type.String({ minLength: 1 }),
+  resultVersion: VersionIdSchema,
+  appliedAt: TimestampSchema,
+  archiveDir: Type.String({ minLength: 1, pattern: "^derived/" }),
+  steps: Type.Array(OrderDerivedStepSchema),
+}, { additionalProperties: false });
+
+/** Derived-artifact archive index at `.repochan/orders/<orderId>/derived.json`. */
+export const OrderDerivedIndexSchema = Type.Object({
+  schemaVersion: Type.Literal("repochan.order-derived.v1"),
+  orderId: OrderIdSchema,
+  entries: Type.Array(OrderDerivedEntrySchema),
+}, { additionalProperties: false });
+
 // ---------------------------------------------------------------------------
 // Schema registry (for consumers that need the full list)
 // ---------------------------------------------------------------------------

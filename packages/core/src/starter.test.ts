@@ -82,6 +82,20 @@ describe("starter v1", () => {
     expect(() => validateStarterLocaleContent({ ...locale, meta: { title: "Demo", description: "Demo" }, removedField: true })).toThrow(/additional properties/);
   });
 
+  it("accepts keep on postprocess steps and rejects non-boolean keep", () => {
+    const withKeep = structuredClone(manifest);
+    withKeep.assets[0].postprocess = [
+      { op: "compress", out: "public/assets/intermediate.webp", keep: false },
+      { op: "compress", out: "public/assets/hero.webp", keep: true },
+    ];
+    expect(validateStarterManifest(withKeep).assets[0].postprocess!.map((step) => step.keep)).toEqual([false, true]);
+    const withoutKeep = structuredClone(manifest);
+    expect(validateStarterManifest(withoutKeep).assets[0].postprocess![0].keep).toBeUndefined();
+    const invalid = structuredClone(manifest) as unknown as Record<string, any>;
+    invalid.assets[0].postprocess = [{ op: "compress", out: "public/assets/hero.webp", keep: "yes" }];
+    expect(() => validateStarterManifest(invalid)).toThrow(/starter\.manifest/);
+  });
+
   it("requires final postprocess output to match the slot output", () => {
     const invalid = structuredClone(manifest);
     invalid.assets[0].postprocess![0].out = "public/assets/other.webp";

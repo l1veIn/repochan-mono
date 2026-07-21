@@ -50,7 +50,7 @@ Starter 是一份仍然属于原项目的完整成品：保留项目名、角色
 
 资产 slot 只声明下游真正要替换的内容：
 
-- `scalar`：一个 `output`，可带 order、reference 和确定性 postprocess；
+- `scalar`：一个 `output`，可带 order、reference 和确定性 postprocess；postprocess 步骤可声明 `keep`（默认 `true`）——`keep ≠ false` 的步骤产物在下游 `asset-apply` 时会归档到订单的 `derived/` 并写入 `derived.json` 索引，纯中间态或超大产物可显式 `keep: false` 省略归档；
 - `bundle`：具名 `publications[]` 与唯一 `extract-grid` postprocess，用于 3×3/4×4 等批量角色贴纸。
 
 ### 4. 预览、验证与交付
