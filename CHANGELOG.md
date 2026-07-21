@@ -67,6 +67,12 @@ This changelog records coordinated public package sets.
   （starter.json reference 路径同步）；character-game-page 的 PNG tile/crops
   与 landing-museum 的 studies/props 转 webp（deliverables 母图 format 保持 png）。
 - `official/chibi-grid-3x3` 补 `grid.cell_keys`（9 个表情语义键）。
+- `official/iconfont-grid-4x4` 重写为镂空描边主形态（非白 matte + 16 个 UI
+  语义 cell_keys + chroma-grid 提取契约）：实验证明镂空单色描边在新管线
+  16/16 零残留且 alpha 可作 CSS mask 换色；品牌色填充变体可用但需注意
+  chroma_residue 的 tint 轴误报（sky-blue tint 37 vs 绿 matte fringeDelta 18，
+  主填充色应避开 matte tint 轴，如 sky-blue 用洋红底）并将 maxForegroundRatio
+  放宽到 0.99。实验双表登记 ord-iconfont-001。
 - `scripts/preview-sites.sh` 默认改扫 `packages/starters`（`PREVIEW_SITES_DIR`
   可覆盖）。
 

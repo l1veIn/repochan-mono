@@ -1,39 +1,65 @@
 id: "official/iconfont-grid-4x4"
 asset_type: "icon_font"
-label: "4×4 角色 iconfont"
-description: "16 个角色风格 UI 图标，替代 lucide/outside icon set。涵盖常见网页功能（首页/设置/搜索/下载…），可切片为独立 SVG 风格 PNG。"
-tags: ["icon_font", "iconfont", "ui", "grid", "sliceable"]
-size: "1024x1024"
+label: "4×4 角色 iconfont（镂空描边）"
+description: >
+  16 个角色风格 UI 图标（替代 lucide 等外部图标库），镂空单色描边形态。
+  配合非白 matte + chroma-grid 提取为透明 PNG：alpha 既可直接使用，
+  也可作 CSS mask 以 currentColor 方式换色。填充色变体见 constraints 末条。
+tags: ["icon_font", "iconfont", "ui", "grid", "sliceable", "outline"]
+size: "2048x2048"
 
 grid:
   rows: 4
   cols: 4
   sliceable: true
+  cell_keys:
+    - "home"
+    - "search"
+    - "settings"
+    - "user"
+    - "document"
+    - "download"
+    - "upload"
+    - "link"
+    - "heart"
+    - "star"
+    - "bell"
+    - "mail"
+    - "chart"
+    - "shield"
+    - "code"
+    - "github"
 
 prompt_template: |
-  strict 4x4 icon font sheet for {{repo_name}}, exactly sixteen distinct UI icons in ONE coherent brand family,
-  each icon is a simple flat glyph derived from the character's visual language: {{key_motifs}} and {{color_palette}},
-  every icon uses the same line weight, the same geometric vocabulary, and the same cel-shaded style,
+  strict 4x4 UI icon font sheet for {{repo_name}}, exactly sixteen distinct line icons in ONE coherent brand family,
+  derived from the character's visual language: {{key_motifs}} and {{color_palette}},
+
+  every icon is a pure OUTLINE GLYPH: uniform bold stroke, single dark ink color {{ink_color}},
+  NO fills, NO second color, lucide-style simplicity with subtle character motifs,
+  same stroke width, same corner radius, same geometric vocabulary across all 16,
 
   the 16 icons represent common web UI functions, one per cell, in this fixed order:
 
-  ROW 1 (top): home/house icon, search/magnifier icon, settings/gear icon, user/profile icon,
-  ROW 2: document/file icon, download icon, upload icon, link/chain icon,
-  ROW 3: heart/like icon, star/favorite icon, bell/notification icon, mail/envelope icon,
-  ROW 4: chart/graph icon, shield/lock icon, code/terminal icon, github/logo-mark icon,
+  ROW 1 (top): home/house, search/magnifier, settings/gear, user/profile,
+  ROW 2: document/file, download arrow, upload arrow, link/chain,
+  ROW 3: heart/like, star/favorite, bell/notification, mail/envelope,
+  ROW 4: chart/graph, shield/lock, code brackets, github/logo-mark,
 
-  each icon is centered in its cell with generous padding, bold readable silhouette,
-  flat solid white background (#FFFFFF) in every cell,
-  icons use only {{color_palette}} — predominantly the main color and one accent,
+  each icon is centered in its cell with generous padding, bold readable silhouette at 24px,
+  perfectly flat uniform matte background of pure {{matte_color}}, no gradient, texture, shadow, or off-color,
   no text, no letters, no numbers inside any icon cell,
   consistent gutter and alignment between all cells, no content crossing cell boundaries,
-  readable at small sizes, premium product-icon finish, masterpiece, best quality
+  square 1:1 canvas, evenly aligned 4x4 grid, production-ready chroma-key sheet
 
 constraints:
-  - "strict 4-row × 4-column grid with exactly 16 equal cells"
-  - "row 1: home, search, settings, user  |  row 2: document, download, upload, link  |  row 3: heart, star, bell, mail  |  row 4: chart, shield, code, github"
+  - "strict 4-row × 4-column grid with exactly 16 equal cells in the declared fixed order"
+  - "every icon is a pure outline glyph: uniform stroke, single ink color, no fills, no second color"
   - "every icon must stay fully inside its own cell with generous padding; no content crossing boundaries"
-  - "pure solid white (#FFFFFF) background in every cell"
+  - "perfectly flat uniform matte background of pure {{matte_color}} — identical in every pixel outside the icons"
+  - "matte_color must NOT be white (#FFFFFF) or near-white — icons contain anti-aliased light pixels that a white matte would punch out"
+  - "ink_color must be far from matte_color (dark ink on bright saturated matte: green, magenta, or cyan)"
   - "NO text, letters, numbers, or labels inside any cell"
-  - "consistent line weight and geometric style across all 16 icons — one coherent icon family"
-  - "icons use only the character's color palette"
+  - "consistent stroke weight and geometric style across all 16 icons — one coherent icon family"
+  - "keep a safe margin of about 12% of the cell size inside every cell"
+  - "do not reproduce layout-guide boxes, lines, crosshairs, or cell labels from any reference guide image"
+  - "FILLED variant (only when the page needs rich brand-color icons at >=64px display): solid shapes filled with the brand palette, dominant color + one accent, minimal 2-3 color zones; expect extract QA to need maxForegroundRatio 0.99 and a matte whose tint axis avoids the dominant fill (e.g. sky-blue fills on magenta, never on green)"
