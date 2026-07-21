@@ -4,7 +4,14 @@
   "name": "Character Game Page",
   "description": "RepoChan's mascot character file as a game-style scrollable page: boot sequence, hero cutout, profile with dual-life panels, design index (expressions / states / palette / motifs), pinned day-to-night world, kinetic voice line and fun-facts archive. zh default + en locale, GSAP + ScrollTrigger + Lenis, full prefers-reduced-motion fallback.",
   "style": "game-character-file",
-  "tags": ["character", "persona", "game-page", "scroll-story", "i18n", "gsap"],
+  "tags": [
+    "character",
+    "persona",
+    "game-page",
+    "scroll-story",
+    "i18n",
+    "gsap"
+  ],
   "previews": {
     "desktop": "repochan/previews/desktop.webp",
     "mobile": "repochan/previews/mobile.webp"
@@ -16,7 +23,10 @@
   },
   "content": {
     "defaultLocale": "zh",
-    "supportedLocales": ["zh", "en"]
+    "supportedLocales": [
+      "zh",
+      "en"
+    ]
   },
   "assets": [
     {
@@ -35,16 +45,45 @@
             "2:3 portrait framing with the full silhouette visible and generous matte margin",
             "perfectly flat uniform matte background in a color absent from the character"
           ],
-          "avoid": ["rendered text", "logos", "props or scenery", "character touching any canvas edge"],
-          "creativeFreedom": ["pose details", "lighting inside the character", "outfit details from the project foundation"]
+          "avoid": [
+            "rendered text",
+            "logos",
+            "props or scenery",
+            "character touching any canvas edge"
+          ],
+          "creativeFreedom": [
+            "pose details",
+            "lighting inside the character",
+            "outfit details from the project foundation"
+          ]
         },
         "deliverables": [
-          { "name": "hero-cutout", "format": "png", "width": 1024, "height": 1536, "aspectRatio": "2:3" }
+          {
+            "name": "hero-cutout",
+            "format": "png",
+            "width": 1024,
+            "height": 1536,
+            "aspectRatio": "2:3"
+          }
         ]
       },
       "postprocess": [
-        { "op": "chroma-key", "args": { "matte": "auto", "pipeline": "v2" }, "out": "public/assets/hero-cutout-alpha.png" },
-        { "op": "compress", "args": { "format": "webp", "quality": 88 }, "out": "public/assets/hero-cutout.webp" }
+        {
+          "op": "chroma-key",
+          "args": {
+            "matte": "auto",
+            "pipeline": "v2"
+          },
+          "out": "public/assets/hero-cutout-alpha.png"
+        },
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 88
+          },
+          "out": "public/assets/hero-cutout.webp"
+        }
       ]
     },
     {
@@ -63,15 +102,39 @@
             "clear foreground/background structure and a quiet blank zone that could host live copy",
             "landscape 3:2, edge-to-edge scene, no text, letters, numbers, watermarks or UI anywhere in the image"
           ],
-          "avoid": ["rendered text", "logos", "UI baked into the image"],
-          "creativeFreedom": ["place design", "composition", "lighting", "props that support the project identity", "the downstream character's pose and placement"]
+          "avoid": [
+            "rendered text",
+            "logos",
+            "UI baked into the image"
+          ],
+          "creativeFreedom": [
+            "place design",
+            "composition",
+            "lighting",
+            "props that support the project identity",
+            "the downstream character's pose and placement"
+          ]
         },
         "deliverables": [
-          { "name": "scene-day", "format": "png", "width": 1536, "height": 1024, "aspectRatio": "3:2" }
+          {
+            "name": "scene-day",
+            "format": "png",
+            "width": 1536,
+            "height": 1024,
+            "aspectRatio": "3:2"
+          }
         ]
       },
       "postprocess": [
-        { "op": "compress", "args": { "format": "webp", "quality": 82, "maxWidth": 1536 }, "out": "public/assets/scene-day.webp" }
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 82,
+            "maxWidth": 1536
+          },
+          "out": "public/assets/scene-day.webp"
+        }
       ]
     },
     {
@@ -91,15 +154,36 @@
             "single warm lamp over the workspace in an otherwise dark room",
             "landscape 3:2, edge-to-edge scene, no text, letters, numbers, watermarks or UI anywhere in the image"
           ],
-          "avoid": ["rendered text", "logos", "composition drift from the day scene reference"],
-          "creativeFreedom": ["night lighting details", "deadline clutter that supports the project identity"]
+          "avoid": [
+            "rendered text",
+            "logos",
+            "composition drift from the day scene reference"
+          ],
+          "creativeFreedom": [
+            "night lighting details",
+            "deadline clutter that supports the project identity"
+          ]
         },
         "deliverables": [
-          { "name": "scene-night", "format": "png", "width": 1536, "height": 1024, "aspectRatio": "3:2" }
+          {
+            "name": "scene-night",
+            "format": "png",
+            "width": 1536,
+            "height": 1024,
+            "aspectRatio": "3:2"
+          }
         ]
       },
       "postprocess": [
-        { "op": "compress", "args": { "format": "webp", "quality": 82, "maxWidth": 1536 }, "out": "public/assets/scene-night.webp" }
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 82,
+            "maxWidth": 1536
+          },
+          "out": "public/assets/scene-night.webp"
+        }
       ]
     },
     {
@@ -119,15 +203,36 @@
             "quiet daytime classroom mood",
             "landscape 3:2, edge-to-edge scene, no text, letters, numbers, watermarks or UI anywhere in the image"
           ],
-          "avoid": ["rendered text", "logos", "composition drift from the day scene reference"],
-          "creativeFreedom": ["lighting", "classroom details that support the project identity"]
+          "avoid": [
+            "rendered text",
+            "logos",
+            "composition drift from the day scene reference"
+          ],
+          "creativeFreedom": [
+            "lighting",
+            "classroom details that support the project identity"
+          ]
         },
         "deliverables": [
-          { "name": "scene-school", "format": "png", "width": 1536, "height": 1024, "aspectRatio": "3:2" }
+          {
+            "name": "scene-school",
+            "format": "png",
+            "width": 1536,
+            "height": 1024,
+            "aspectRatio": "3:2"
+          }
         ]
       },
       "postprocess": [
-        { "op": "compress", "args": { "format": "webp", "quality": 82, "maxWidth": 1536 }, "out": "public/assets/scene-school.webp" }
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 82,
+            "maxWidth": 1536
+          },
+          "out": "public/assets/scene-school.webp"
+        }
       ]
     },
     {
@@ -144,15 +249,36 @@
             "one full-bleed seamless square tile",
             "low-contrast project motifs suited to sit behind content at ~5% opacity on a dark ground"
           ],
-          "avoid": ["text", "numbers", "frames", "dense focal illustration"],
-          "creativeFreedom": ["motif geometry and density"]
+          "avoid": [
+            "text",
+            "numbers",
+            "frames",
+            "dense focal illustration"
+          ],
+          "creativeFreedom": [
+            "motif geometry and density"
+          ]
         },
         "deliverables": [
-          { "name": "pattern", "format": "png", "width": 768, "height": 768, "aspectRatio": "1:1" }
+          {
+            "name": "pattern",
+            "format": "png",
+            "width": 768,
+            "height": 768,
+            "aspectRatio": "1:1"
+          }
         ]
       },
       "postprocess": [
-        { "op": "compress", "args": { "format": "webp", "quality": 86, "maxWidth": 1024 }, "out": "public/assets/pattern.webp" }
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 86,
+            "maxWidth": 1024
+          },
+          "out": "public/assets/pattern.webp"
+        }
       ]
     },
     {
@@ -165,16 +291,41 @@
         "assetType": "icon",
         "templateId": "official/icon-single",
         "brief": {
-          "mustInclude": ["one scalable brand mark reading cleanly at 30px", "project motif without any letterforms"],
-          "avoid": ["text", "letters", "watermarks"],
-          "creativeFreedom": ["mark geometry and accent colors from the project palette"]
+          "mustInclude": [
+            "one scalable brand mark reading cleanly at 30px",
+            "project motif without any letterforms"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "watermarks"
+          ],
+          "creativeFreedom": [
+            "mark geometry and accent colors from the project palette"
+          ]
         },
         "deliverables": [
-          { "name": "icon", "format": "png", "width": 512, "height": 512, "aspectRatio": "1:1" }
+          {
+            "name": "icon",
+            "format": "png",
+            "width": 512,
+            "height": 512,
+            "aspectRatio": "1:1"
+          }
         ]
       },
       "postprocess": [
-        { "op": "favicon", "args": { "sizes": [16, 32, 48] }, "out": "public/favicon.ico" }
+        {
+          "op": "favicon",
+          "args": {
+            "sizes": [
+              16,
+              32,
+              48
+            ]
+          },
+          "out": "public/favicon.ico"
+        }
       ]
     },
     {
@@ -184,7 +335,14 @@
       "output": "public/assets/crops/seated-main.webp",
       "description": "Foundation-sheet crop: character at the desk, used as the profile figure. Downstream replaces it with a crop of its own foundation sheet (no dedicated template).",
       "postprocess": [
-        { "op": "compress", "args": { "format": "webp", "quality": 88 }, "out": "public/assets/crops/seated-main.webp" }
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 88
+          },
+          "out": "public/assets/crops/seated-main.webp"
+        }
       ]
     },
     {
@@ -192,56 +350,56 @@
       "slot": "expr-excited",
       "required": true,
       "output": "public/assets/crops/expr-excited.png",
-      "description": "Expression crop (excited) for the Index expression cards; from the foundation sheet."
+      "description": "Expression card (excited) for the Index expression cards — sourced from the sticker sheet (ord-sticker-001, success cell); regenerate via the stickers bundle, not foundation crops."
     },
     {
       "kind": "scalar",
       "slot": "expr-focused",
       "required": true,
       "output": "public/assets/crops/expr-focused.png",
-      "description": "Expression crop (focused) for the Index expression cards; from the foundation sheet."
+      "description": "Expression card (focused) for the Index expression cards — sourced from the sticker sheet (ord-sticker-001, searching cell); regenerate via the stickers bundle."
     },
     {
       "kind": "scalar",
       "slot": "expr-deadpan",
       "required": true,
       "output": "public/assets/crops/expr-deadpan.png",
-      "description": "Expression crop (deadpan) for the Index expression cards; from the foundation sheet."
+      "description": "Expression card (deadpan) for the Index expression cards — sourced from the sticker sheet (ord-sticker-001, confident cell); regenerate via the stickers bundle."
     },
     {
       "kind": "scalar",
       "slot": "motif-clip",
       "required": true,
       "output": "public/assets/crops/motif-clip-alpha.png",
-      "description": "Alpha-cut motif prop: cat-ear hair clip, shown in the Index motif cards."
+      "description": "Alpha-cut motif prop (clip) for the Index motif cards — sourced from the prop sheet (ord-props-001, repochan/references/props-grid.png); regenerate via extract-grid, not foundation crops."
     },
     {
       "kind": "scalar",
       "slot": "motif-earring",
       "required": true,
       "output": "public/assets/crops/motif-earring-alpha.png",
-      "description": "Alpha-cut motif prop: star cursor earring, shown in the Index motif cards."
+      "description": "Alpha-cut motif prop (earring) for the Index motif cards — sourced from the prop sheet (ord-props-001, repochan/references/props-grid.png); regenerate via extract-grid, not foundation crops."
     },
     {
       "kind": "scalar",
       "slot": "motif-pendant",
       "required": true,
       "output": "public/assets/crops/motif-pendant-alpha.png",
-      "description": "Alpha-cut motif prop: stylus pendant, shown in the Index motif cards."
+      "description": "Alpha-cut motif prop (pendant) for the Index motif cards — sourced from the prop sheet (ord-props-001, repochan/references/props-grid.png); regenerate via extract-grid, not foundation crops."
     },
     {
       "kind": "scalar",
       "slot": "motif-headphones",
       "required": true,
       "output": "public/assets/crops/motif-headphones-alpha.png",
-      "description": "Alpha-cut motif prop: over-ear headphones, shown in the Index motif cards."
+      "description": "Alpha-cut motif prop (headphones) for the Index motif cards — sourced from the prop sheet (ord-props-001, repochan/references/props-grid.png); regenerate via extract-grid, not foundation crops."
     },
     {
       "kind": "scalar",
       "slot": "chibi",
       "required": false,
       "output": "public/assets/crops/chibi-full.png",
-      "description": "Chibi variant used in the special-skill archive card; from the sticker sheet family."
+      "description": "Chibi variant used in the special-skill archive card — sourced from the sticker sheet (ord-sticker-001, welcome cell); regenerate via the stickers bundle."
     },
     {
       "kind": "bundle",
@@ -249,15 +407,51 @@
       "required": true,
       "reference": "repochan/references/webstates-grid.png",
       "publications": [
-        { "key": "welcome", "cell": 0, "output": "public/assets/webstates/tile-5.png" },
-        { "key": "searching", "cell": 1, "output": "public/assets/webstates/tile-6.png" },
-        { "key": "loading", "cell": 2, "output": "public/assets/webstates/tile-0.png" },
-        { "key": "empty", "cell": 3, "output": "public/assets/webstates/tile-1.png" },
-        { "key": "error", "cell": 4, "output": "public/assets/webstates/tile-4.png" },
-        { "key": "success", "cell": 5, "output": "public/assets/webstates/tile-2.png" },
-        { "key": "not-found", "cell": 6, "output": "public/assets/webstates/tile-3.png" },
-        { "key": "cta", "cell": 7, "output": "public/assets/webstates/tile-7.png" },
-        { "key": "cozy", "cell": 8, "output": "public/assets/webstates/tile-8.png" }
+        {
+          "key": "welcome",
+          "cell": 0,
+          "output": "public/assets/webstates/tile-5.png"
+        },
+        {
+          "key": "searching",
+          "cell": 1,
+          "output": "public/assets/webstates/tile-6.png"
+        },
+        {
+          "key": "loading",
+          "cell": 2,
+          "output": "public/assets/webstates/tile-0.png"
+        },
+        {
+          "key": "empty",
+          "cell": 3,
+          "output": "public/assets/webstates/tile-1.png"
+        },
+        {
+          "key": "error",
+          "cell": 4,
+          "output": "public/assets/webstates/tile-4.png"
+        },
+        {
+          "key": "success",
+          "cell": 5,
+          "output": "public/assets/webstates/tile-2.png"
+        },
+        {
+          "key": "not-found",
+          "cell": 6,
+          "output": "public/assets/webstates/tile-3.png"
+        },
+        {
+          "key": "cta",
+          "cell": 7,
+          "output": "public/assets/webstates/tile-7.png"
+        },
+        {
+          "key": "cozy",
+          "cell": 8,
+          "output": "public/assets/webstates/tile-8.png"
+        }
       ],
       "description": "3×3 web-state sticker sheet sliced into named tiles. The source sheet (kept read-only at repochan/references/webstates-grid.png) was generated with custom cell semantics, so source tiles were mapped to the nearest template key by content (source cell 7 is a maintenance pose published under 'cta'); the page displays tiles positionally without semantic labels. Publications follow the template cell order so a regenerated official/web-state-grid-3x3 sheet extracts correctly. The states grid shows loading / success / not-found / error / searching / cta.",
       "order": {
@@ -268,11 +462,28 @@
             "strict 3×3 grid of the project character in the nine fixed web-state poses (template cell semantics)",
             "perfectly flat uniform matte background in a color absent from the character, identical in every pixel outside the stickers"
           ],
-          "avoid": ["text", "letters", "numbers", "borders", "grid lines", "scenery", "shadows on the matte"],
-          "creativeFreedom": ["pose details inside each fixed semantic", "matte color choice"]
+          "avoid": [
+            "text",
+            "letters",
+            "numbers",
+            "borders",
+            "grid lines",
+            "scenery",
+            "shadows on the matte"
+          ],
+          "creativeFreedom": [
+            "pose details inside each fixed semantic",
+            "matte color choice"
+          ]
         },
         "deliverables": [
-          { "name": "webstates-grid", "format": "png", "width": 1024, "height": 1024, "aspectRatio": "1:1" }
+          {
+            "name": "webstates-grid",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1"
+          }
         ]
       },
       "postprocess": [
@@ -282,11 +493,35 @@
             "rows": 3,
             "cols": 3,
             "strategy": "chroma-grid",
-            "mapping": { "welcome": 0, "searching": 1, "loading": 2, "empty": 3, "error": 4, "success": 5, "not-found": 6, "cta": 7, "cozy": 8 },
-            "normalize": { "canvasSize": 320, "padding": 10 },
-            "chroma": { "matteColor": "auto", "pipeline": "v2", "matteSelect": "subject-aware" },
-            "geometry": { "mode": "centroid-components" },
-            "qa": { "alphaThreshold": 32, "minForegroundRatio": 0.05, "maxForegroundRatio": 0.9, "maxSheetEdgeTouchRatio": 0.05 },
+            "mapping": {
+              "welcome": 0,
+              "searching": 1,
+              "loading": 2,
+              "empty": 3,
+              "error": 4,
+              "success": 5,
+              "not-found": 6,
+              "cta": 7,
+              "cozy": 8
+            },
+            "normalize": {
+              "canvasSize": 320,
+              "padding": 10
+            },
+            "chroma": {
+              "matteColor": "auto",
+              "pipeline": "v2",
+              "matteSelect": "subject-aware"
+            },
+            "geometry": {
+              "mode": "centroid-components"
+            },
+            "qa": {
+              "alphaThreshold": 32,
+              "minForegroundRatio": 0.05,
+              "maxForegroundRatio": 0.9,
+              "maxSheetEdgeTouchRatio": 0.05
+            },
             "format": "png"
           },
           "out": "public/assets/webstates"
@@ -299,15 +534,51 @@
       "required": true,
       "reference": "repochan/references/stickers-grid.png",
       "publications": [
-        { "key": "welcome", "cell": 0, "output": "public/assets/stickers/tile-0.png" },
-        { "key": "searching", "cell": 1, "output": "public/assets/stickers/tile-1.png" },
-        { "key": "loading", "cell": 2, "output": "public/assets/sticker-2.png" },
-        { "key": "empty", "cell": 3, "output": "public/assets/stickers/tile-3.png" },
-        { "key": "error", "cell": 4, "output": "public/assets/stickers/tile-4.png" },
-        { "key": "success", "cell": 5, "output": "public/assets/sticker-5.png" },
-        { "key": "not-found", "cell": 6, "output": "public/assets/stickers/tile-6.png" },
-        { "key": "cta", "cell": 7, "output": "public/assets/stickers/tile-7.png" },
-        { "key": "cozy", "cell": 8, "output": "public/assets/sticker-8.png" }
+        {
+          "key": "welcome",
+          "cell": 0,
+          "output": "public/assets/stickers/tile-0.png"
+        },
+        {
+          "key": "searching",
+          "cell": 1,
+          "output": "public/assets/stickers/tile-1.png"
+        },
+        {
+          "key": "loading",
+          "cell": 2,
+          "output": "public/assets/sticker-2.png"
+        },
+        {
+          "key": "empty",
+          "cell": 3,
+          "output": "public/assets/stickers/tile-3.png"
+        },
+        {
+          "key": "error",
+          "cell": 4,
+          "output": "public/assets/stickers/tile-4.png"
+        },
+        {
+          "key": "success",
+          "cell": 5,
+          "output": "public/assets/sticker-5.png"
+        },
+        {
+          "key": "not-found",
+          "cell": 6,
+          "output": "public/assets/stickers/tile-6.png"
+        },
+        {
+          "key": "cta",
+          "cell": 7,
+          "output": "public/assets/stickers/tile-7.png"
+        },
+        {
+          "key": "cozy",
+          "cell": 8,
+          "output": "public/assets/sticker-8.png"
+        }
       ],
       "description": "3×3 chibi expression sheet sliced into named tiles. The source sheet (kept read-only at repochan/references/stickers-grid.png) follows official/chibi-grid-3x3 expression semantics; bundles require a cell-keyed template, so publications reuse the official/web-state-grid-3x3 keys with source tiles mapped to the nearest key by content (wave→welcome, curious→searching, celebrating→success, pointing→cta, cozy→cozy; loading/empty/error/not-found hold the remaining expression cells). Cells 2/5/8 are published as background-removed floats (sticker-2/5/8.png) because the hero floats them over the dark scene; the states grid shows searching / not-found / cozy. A regenerated web-state sheet extracts through the same mapping; downstream wanting expression semantics can slice its own chibi sheet to the same outputs.",
       "order": {
@@ -318,11 +589,28 @@
             "strict 3×3 grid of the project character in the nine fixed web-state poses (template cell semantics)",
             "perfectly flat uniform matte background in a color absent from the character, identical in every pixel outside the stickers"
           ],
-          "avoid": ["text", "letters", "numbers", "borders", "grid lines", "scenery", "shadows on the matte"],
-          "creativeFreedom": ["pose details inside each fixed semantic", "matte color choice"]
+          "avoid": [
+            "text",
+            "letters",
+            "numbers",
+            "borders",
+            "grid lines",
+            "scenery",
+            "shadows on the matte"
+          ],
+          "creativeFreedom": [
+            "pose details inside each fixed semantic",
+            "matte color choice"
+          ]
         },
         "deliverables": [
-          { "name": "stickers-grid", "format": "png", "width": 1024, "height": 1024, "aspectRatio": "1:1" }
+          {
+            "name": "stickers-grid",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1"
+          }
         ]
       },
       "postprocess": [
@@ -332,11 +620,35 @@
             "rows": 3,
             "cols": 3,
             "strategy": "chroma-grid",
-            "mapping": { "welcome": 0, "searching": 1, "loading": 2, "empty": 3, "error": 4, "success": 5, "not-found": 6, "cta": 7, "cozy": 8 },
-            "normalize": { "canvasSize": 320, "padding": 10 },
-            "chroma": { "matteColor": "auto", "pipeline": "v2", "matteSelect": "subject-aware" },
-            "geometry": { "mode": "centroid-components" },
-            "qa": { "alphaThreshold": 32, "minForegroundRatio": 0.05, "maxForegroundRatio": 0.9, "maxSheetEdgeTouchRatio": 0.05 },
+            "mapping": {
+              "welcome": 0,
+              "searching": 1,
+              "loading": 2,
+              "empty": 3,
+              "error": 4,
+              "success": 5,
+              "not-found": 6,
+              "cta": 7,
+              "cozy": 8
+            },
+            "normalize": {
+              "canvasSize": 320,
+              "padding": 10
+            },
+            "chroma": {
+              "matteColor": "auto",
+              "pipeline": "v2",
+              "matteSelect": "subject-aware"
+            },
+            "geometry": {
+              "mode": "centroid-components"
+            },
+            "qa": {
+              "alphaThreshold": 32,
+              "minForegroundRatio": 0.05,
+              "maxForegroundRatio": 0.9,
+              "maxSheetEdgeTouchRatio": 0.05
+            },
             "format": "png"
           },
           "out": "public/assets/stickers"

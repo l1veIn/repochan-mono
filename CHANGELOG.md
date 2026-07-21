@@ -6,6 +6,11 @@ This changelog records coordinated public package sets.
 
 ### Dogfood 偏移修复（starter 审计）
 
+- cgp crops 资产可复刻化：motif 道具（clip/earring/pendant/headphones）
+  改由 `ord-props-001` 道具网格（`official/item-prop-grid-3x3` 首次生产使用，
+  蓝底 + chroma-grid + v2）提取；expr/chibi 卡片改从新贴纸表（ord-sticker-001
+  细胞）重映射，不再依赖 foundation 手工裁切。
+
 - Cutout 重新设计：两张更有冲击力的新姿态（A = 仰角大对角线跳跃 2:3，
   B = 前倾开放手掌直指镜头 1:1，均绿底 + chroma v2 抠图），分发至
   character-game-page hero-cutout、frutiger cutout、scrolly
