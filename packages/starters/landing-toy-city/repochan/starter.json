@@ -1,0 +1,428 @@
+{
+  "schemaVersion": "repochan.starter.v1",
+  "id": "landing-toy-city",
+  "name": "资产城 · Isometric Toy City",
+  "description": "RepoChan's own isometric toy-city landing page: the whole pipeline rebuilt as a clickable miniature city — Analysis Tower, Interview Café, Persona Studio, Foundation Hall, Painter Shed, Sticker Shop and Deploy Dock around a central plaza where the chibi walker patrols. Buildings are pure SVG code; every thumbnail, sticker and cutout is real pipeline output. zh default locale with a full en edition.",
+  "style": "isometric-toy-city",
+  "tags": [
+    "landing",
+    "isometric",
+    "toy-city",
+    "map-explorer",
+    "pipeline",
+    "playful",
+    "bilingual"
+  ],
+  "previews": {
+    "desktop": "repochan/previews/desktop.webp",
+    "mobile": "repochan/previews/mobile.webp"
+  },
+  "config": {
+    "site": "repochan/site.json",
+    "assets": "repochan/assets.json",
+    "i18nDir": "repochan/i18n"
+  },
+  "content": {
+    "defaultLocale": "zh",
+    "supportedLocales": [
+      "zh",
+      "en"
+    ]
+  },
+  "assets": [
+    {
+      "kind": "scalar",
+      "slot": "icon",
+      "required": true,
+      "output": "public/assets/icon.webp",
+      "description": "Project icon — nav badge and the gate stage's window display; also the favicon source (favicon.ico / apple-touch-icon.png / icon-192.png / icon-512.png are derived from it offline via compress + favicon + resize).",
+      "order": {
+        "assetType": "icon",
+        "templateId": "official/icon-single",
+        "brief": {
+          "mustInclude": [
+            "one scalable brand mark reading cleanly at 40px",
+            "project motif without any letterforms"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "watermarks"
+          ],
+          "creativeFreedom": [
+            "mark geometry",
+            "accent colors from the project palette"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "icon",
+            "format": "png",
+            "width": 512,
+            "height": 512,
+            "aspectRatio": "1:1",
+            "genSize": "1024x1024"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 90,
+            "maxWidth": 512
+          },
+          "out": "public/assets/icon.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "chibi-walker",
+      "required": true,
+      "reference": "repochan/references/stickers-grid.png",
+      "output": "public/assets/chibi-walker.png",
+      "description": "Full-in-frame chibi patrolling the central plaza — a tight crop of the sticker sheet's welcome cell (ord-sticker-001, repochan/references/stickers-grid.png); regenerate via the stickers bundle, then re-crop the welcome cell full-frame without the sticker padding."
+    },
+    {
+      "kind": "scalar",
+      "slot": "footer-cutout",
+      "required": true,
+      "reference": "repochan/references/cutout-matte.png",
+      "output": "public/assets/cutout-wave.webp",
+      "description": "Die-cut cutout waving from the footer block — transparent webp produced by chroma-key + compress. Reference is the raw matte master (full-in-frame version B, 1:1).",
+      "order": {
+        "assetType": "character_cutout",
+        "templateId": "official/character-cutout",
+        "brief": {
+          "intent": "Regenerate the footer cutout for the downstream project's character: a friendly waving/presenting pose that reads while sitting in front of the footer color block.",
+          "mustInclude": [
+            "one full-body character waving or presenting, fully inside the canvas",
+            "perfectly flat uniform matte background in a color absent from the character",
+            "square 1:1 framing, character centered"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "scenery",
+            "shadows on the matte",
+            "cropped limbs or props"
+          ],
+          "creativeFreedom": [
+            "character outfit details",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "cutout-matte",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "2048x2048"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "chroma-key",
+          "args": {
+            "matte": "auto",
+            "pipeline": "v2"
+          },
+          "out": "public/assets/cutout-wave.png"
+        },
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 88,
+            "maxWidth": 1600
+          },
+          "out": "public/assets/cutout-wave.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "thumb-foundation",
+      "required": true,
+      "reference": "repochan/references/foundation-sheet.png",
+      "output": "public/assets/thumbs/foundation.jpg",
+      "description": "Foundation Hall window display — 640px JPEG thumbnail of the project's foundation sheet. Reference is the full master sheet (1:1).",
+      "order": {
+        "assetType": "foundation_sheet",
+        "templateId": "official/foundation-sheet",
+        "brief": {
+          "intent": "Repaint the foundation sheet for the downstream project: the character reference board that every later commission checks its answers against.",
+          "mustInclude": [
+            "the project character as the sheet's clear protagonist",
+            "a tidy foundation-sheet layout that still reads when scaled down to a 640px thumbnail",
+            "square 1:1 framing"
+          ],
+          "avoid": [
+            "watermarks",
+            "cluttered collage that turns to noise at thumbnail size"
+          ],
+          "creativeFreedom": [
+            "sheet composition and annotation style",
+            "palette within the project identity"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "foundation-sheet",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "2048x2048"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": {
+            "format": "jpeg",
+            "quality": 75,
+            "maxWidth": 640
+          },
+          "out": "public/assets/thumbs/foundation.jpg"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "thumb-poster-studio",
+      "required": true,
+      "reference": "repochan/references/poster-studio.png",
+      "output": "public/assets/thumbs/poster-studio.jpg",
+      "description": "Painter Shed window display — 768px JPEG thumbnail of the risograph-pop character poster. Reference is the full master poster (3:2).",
+      "order": {
+        "assetType": "poster",
+        "templateId": "official/poster-risograph-pop",
+        "brief": {
+          "intent": "Repaint the risograph-pop character poster for the downstream project: grainy overprint texture, limited clashing inks and the project character as the main visual.",
+          "mustInclude": [
+            "risograph-style overprint texture with a limited ink palette",
+            "the project character as the poster's main visual",
+            "landscape 3:2 framing"
+          ],
+          "avoid": [
+            "rendered text",
+            "logos",
+            "watermarks"
+          ],
+          "creativeFreedom": [
+            "ink color rotation within the project identity",
+            "composition and grain density"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "poster",
+            "format": "png",
+            "width": 1536,
+            "height": 1024,
+            "aspectRatio": "3:2",
+            "genSize": "3072x2048"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": {
+            "format": "jpeg",
+            "quality": 72,
+            "maxWidth": 768
+          },
+          "out": "public/assets/thumbs/poster-studio.jpg"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "thumb-poster-memphis",
+      "required": true,
+      "reference": "repochan/references/poster-memphis.png",
+      "output": "public/assets/thumbs/poster-memphis.jpg",
+      "description": "Sticker Shop poster-pole display — 768px JPEG thumbnail of the Memphis geometric poster. Reference is the full master poster (1:1).",
+      "order": {
+        "assetType": "poster",
+        "templateId": "official/poster-memphis",
+        "brief": {
+          "intent": "Repaint the Memphis geometric poster for the downstream project: asymmetrical geometric partitions, clashing optimistic palette and the project character integrated among zigzags, circles, arches and dots.",
+          "mustInclude": [
+            "Memphis-style asymmetrical composition with hard-edge geometric shapes (zigzag, circle, arch, ring, dots)",
+            "the project character integrated among the shapes",
+            "square 1:1 framing"
+          ],
+          "avoid": [
+            "rendered text",
+            "logos",
+            "UI baked into the image",
+            "watermarks"
+          ],
+          "creativeFreedom": [
+            "shape arrangement and palette rotation within the project identity",
+            "selective dimensional shadows"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "poster",
+            "format": "png",
+            "width": 1536,
+            "height": 1536,
+            "aspectRatio": "1:1",
+            "genSize": "3840x3840"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": {
+            "format": "jpeg",
+            "quality": 72,
+            "maxWidth": 768
+          },
+          "out": "public/assets/thumbs/poster-memphis.jpg"
+        }
+      ]
+    },
+    {
+      "kind": "bundle",
+      "slot": "stickers",
+      "required": true,
+      "reference": "repochan/references/stickers-grid.png",
+      "publications": [
+        {
+          "key": "welcome",
+          "cell": 0,
+          "output": "public/assets/stickers/sticker-0.webp"
+        },
+        {
+          "key": "searching",
+          "cell": 1,
+          "output": "public/assets/stickers/sticker-1.webp"
+        },
+        {
+          "key": "loading",
+          "cell": 2,
+          "output": "public/assets/stickers/sticker-2.webp"
+        },
+        {
+          "key": "empty",
+          "cell": 3,
+          "output": "public/assets/stickers/sticker-3.webp"
+        },
+        {
+          "key": "error",
+          "cell": 4,
+          "output": "public/assets/stickers/sticker-4.webp"
+        },
+        {
+          "key": "success",
+          "cell": 5,
+          "output": "public/assets/stickers/sticker-5.webp"
+        },
+        {
+          "key": "not-found",
+          "cell": 6,
+          "output": "public/assets/stickers/sticker-6.webp"
+        },
+        {
+          "key": "cta",
+          "cell": 7,
+          "output": "public/assets/stickers/sticker-7.webp"
+        },
+        {
+          "key": "cozy",
+          "cell": 8,
+          "output": "public/assets/stickers/sticker-8.webp"
+        }
+      ],
+      "description": "Nine die-cut chibi stickers — the stage panels' window displays and the souvenir-strip marquee. sticker-N.webp is cell N of the 3×3 grid; the source grid's cell semantics (chibi expressions) differ from the template's fixed keys, and the keys are the positional replacement contract for downstream regeneration.",
+      "order": {
+        "assetType": "web_state_stickers",
+        "templateId": "official/web-state-grid-3x3",
+        "brief": {
+          "mustInclude": [
+            "strict 3×3 grid of the project character in the nine fixed web-state poses (template cell semantics)",
+            "perfectly flat uniform matte background in a color absent from the character, identical in every pixel outside the stickers"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "numbers",
+            "borders",
+            "grid lines",
+            "scenery",
+            "shadows on the matte"
+          ],
+          "creativeFreedom": [
+            "expression and pose details inside each fixed semantic",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "sticker-grid",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "2048x2048"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "extract-grid",
+          "args": {
+            "rows": 3,
+            "cols": 3,
+            "strategy": "chroma-grid",
+            "mapping": {
+              "welcome": 0,
+              "searching": 1,
+              "loading": 2,
+              "empty": 3,
+              "error": 4,
+              "success": 5,
+              "not-found": 6,
+              "cta": 7,
+              "cozy": 8
+            },
+            "normalize": {
+              "canvasSize": 640,
+              "padding": 10
+            },
+            "chroma": {
+              "matteColor": "auto",
+              "pipeline": "v2",
+              "matteSelect": "subject-aware"
+            },
+            "geometry": {
+              "mode": "centroid-components"
+            },
+            "qa": {
+              "alphaThreshold": 32,
+              "minForegroundRatio": 0.05,
+              "maxForegroundRatio": 0.9,
+              "maxSheetEdgeTouchRatio": 0.05
+            },
+            "format": "webp",
+            "quality": 80
+          },
+          "out": "public/assets/stickers"
+        }
+      ]
+    }
+  ]
+}

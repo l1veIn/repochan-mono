@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "zh",
+  "meta": {
+    "title": "RepoChan · 我们有设计系统（然后把它扔了）",
+    "description": "RepoChan 的实验性皮肤：反设计混乱布告板。药还是那颗药——一条 CLI 把 git 仓库变成品牌资产。"
+  },
+  "content": {
+    "tape": {
+      "items": [
+        "⚠ EXPERIMENTAL SKIN",
+        "这不是你的浏览器坏了",
+        "this is fine 🔥",
+        "实验性皮肤 v0.9.9.9.9",
+        "别把本站当官网",
+        "under construction（永远）"
+      ]
+    },
+    "nav": {
+      "brand": "RepoChan",
+      "tag": "anti-design CHAOS",
+      "newBadge": "NEW!!",
+      "readableOn": "给我正常版",
+      "readableOff": "恢复混乱",
+      "localeSwitch": "EN",
+      "localeSwitchLabel": "切换到 English"
+    },
+    "dialog": {
+      "title": "⚠ 系统错误（并没有）",
+      "body1": "错误 0x000REPO：设计系统未找到。",
+      "body2": "已将【混乱模式】设为默认。点击「行吧」继续。",
+      "ok": "行吧",
+      "close": "关闭"
+    },
+    "hero": {
+      "kicker": "⚠ 站点建设中（从 2026 年开始）",
+      "headlineA": "我们有",
+      "headlineB": "设计系统",
+      "headlineC": "（然后把它扔了）",
+      "sub": "RepoChan：一条 CLI 把你的 git 仓库变成品牌资产——人设、贴纸、海报、落地页。这一页是它的实验性皮肤，药还是那颗药。",
+      "ctaPrimary": "复制安装命令",
+      "ctaPrimaryCommand": "npm install -g repochan",
+      "ctaSecondary": "带我去 GitHub",
+      "copied": "已复制！",
+      "stackTraceTitle": "repochan.exe — 应用程寮错误",
+      "stackTrace": [
+        "RepoChanDesignSystemError: design system not found",
+        "    at ChaosBoard.render (anti-design.js:9:99)",
+        "    at Designer.giveUp (deadline.js:23:59)",
+        "    at Painter.keepDrawing (anyway.js:66:13)",
+        "    at process.processTicksAndRejections (node:internal:1:1)"
+      ],
+      "stackNote": "↑ 假的。但命令是真的。",
+      "marquee": [
+        "NEW!!",
+        "100% FREE",
+        "点击有惊喜（没有）",
+        "最佳分辨率 800×600",
+        "严禁整齐",
+        "格 式 刷 已 丢 失"
+      ],
+      "huoxing": [
+        "莪們洧蔎計係統",
+        "嘫後紦牠扔ㄋ"
+      ],
+      "cutoutAlt": "仓库酱全身立绘，整张图被随意旋转贴在页面上"
+    },
+    "board": {
+      "title": "五张便利贴 = 全部信息架构",
+      "intro": "其他全是噪音。撕下来带走。",
+      "notes": [
+        {
+          "id": "what",
+          "title": "这是什么",
+          "body": "RepoChan = 仓库 → 品牌资产的流水线。分析、人设、约稿、出图、建站，一条 CLI 全包。"
+        },
+        {
+          "id": "loot",
+          "title": "能得到什么",
+          "body": "看板娘人设 / 贴纸 ×9 / 网站状态图 ×9 / 海报 / 落地页（比如你现在踩着的这页）。"
+        },
+        {
+          "id": "start",
+          "title": "怎么开始",
+          "body": "两行命令，装完对它说一句 /repochan。",
+          "command": "npm install -g repochan && repochan setup",
+          "copyLabel": "复制",
+          "copiedLabel": "✓ 已复制"
+        },
+        {
+          "id": "proof",
+          "title": "证据（真图乱贴）",
+          "body": "下面那坨窗口全是真的资产与真的命令，只是贴法违法。",
+          "shots": [
+            { "kind": "terminal", "title": "zsh — repochan order list", "caption": "终端截图（现场画的）" },
+            { "kind": "pr", "title": "Pull Request #404", "caption": "假 PR，真贴纸" },
+            { "kind": "json", "title": "ord-sticker-001 · meta.json", "caption": "订单 JSON，原汁原味" }
+          ]
+        },
+        {
+          "id": "links",
+          "title": "链接",
+          "body": "只有这两个出口，别的门都是画上去的。",
+          "links": [
+            { "label": "GitHub 仓库", "href": "https://github.com/l1veIn/repochan-mono" },
+            { "label": "设计稿 docs/prototypes", "href": "https://github.com/l1veIn/repochan-mono/tree/main/docs/prototypes" }
+          ]
+        }
+      ]
+    },
+    "cta": {
+      "windowTitle": "setup.exe — 正在安装 RepoChan",
+      "progressLabel": "正在安装审美…",
+      "progressValue": "99%",
+      "headline": "玩笑开完了。命令是真的。",
+      "sub": "贴进终端，剩下的交给仓库酱。",
+      "command": "npm install -g repochan && repochan setup",
+      "copy": "复制命令",
+      "copied": "已复制！",
+      "repoLink": "去 GitHub 仓库",
+      "cutoutAlt": "仓库酱挥手立绘，斜靠在安装窗口上"
+    },
+    "footer": {
+      "tagline": "RepoChan · experimental skin",
+      "fake404": "404: design system not found（这一行是故意的）",
+      "badges": ["HTML 3.2", "800×600", "MADE WITH NOTEPAD", "NO GRID NO RULES"],
+      "updated": "!! UPDATED !!",
+      "links": [
+        { "label": "GitHub", "href": "https://github.com/l1veIn/repochan-mono" },
+        { "label": "设计稿", "href": "https://github.com/l1veIn/repochan-mono/tree/main/docs/prototypes" }
+      ],
+      "localeSwitch": "English",
+      "colophon": "anti-design-chaos · repochan protocol v1 · 没有任何像素在本页制作过程中受到伤害"
+    }
+  }
+}

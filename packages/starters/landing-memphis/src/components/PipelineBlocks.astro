@@ -1,0 +1,48 @@
+---
+import Shape from "./Shape.astro";
+import { assets } from "../lib/site";
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["pipeline"] };
+const { content } = Astro.props;
+
+/** 每块积木：徽标底色 + 倾斜角 + 骑边贴纸（sticker 1–6 与步骤一一对应） */
+const skins = [
+  { badge: "pink", tilt: "-2.5deg" },
+  { badge: "cyan", tilt: "2deg" },
+  { badge: "yellow", tilt: "-1.5deg" },
+  { badge: "violet", tilt: "2.5deg" },
+  { badge: "coral", tilt: "-2deg" },
+  { badge: "cyan", tilt: "1.5deg" },
+] as const;
+---
+
+<section class="section" id="pipeline">
+  <div class="wrap">
+    <div class="section-head" data-pop>
+      <h2>{content.title}</h2>
+      <p>{content.intro}</p>
+    </div>
+    <div class="blocks">
+      {content.steps.map((step, i) => (
+        <article class="block" data-pop style={`--tilt:${skins[i].tilt};--d:${(i % 3) * 0.08}s`}>
+          <img
+            class="block-sticker"
+            src={assets.stickers[(i % (assets.stickers.length - 1)) + 1].src}
+            alt=""
+            width="84"
+            height="84"
+            loading="lazy"
+          />
+          <div class="block-badge" style={`--badge:var(--${skins[i].badge})`}>
+            <Shape kind={step.shape} color="ink" size={30} />
+          </div>
+          <div class="block-verb"><em>{String(i + 1).padStart(2, "0")}</em>{step.verb}</div>
+          <div class="block-name">{step.name}</div>
+          <p class="block-desc">{step.desc}</p>
+          <code class="block-cmd">{step.command}</code>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

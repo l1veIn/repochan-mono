@@ -1,0 +1,21 @@
+---
+import Poster from "./Poster.astro";
+import { site } from "../lib/site";
+import type { CtaPosterContent } from "../lib/i18n/types";
+
+type Props = { content: CtaPosterContent };
+const { content } = Astro.props;
+---
+
+<Poster id="p-07" theme="red" variant="cta" content={content} anton>
+  <div class="p-cta__cmdrow">
+    <code class="p-cta__cmd u-mono">{content.cmd}</code>
+    <button class="p-cta__copy" type="button" data-copy={content.cmd} data-copied={content.copiedLabel}>
+      {content.copyLabel}
+    </button>
+  </div>
+  <div class="p-cta__links">
+    <a href={site.project.repositoryUrl}>{content.docsLabel}</a>
+  </div>
+  <p class="p-cta__fine">{content.fine}</p>
+</Poster>

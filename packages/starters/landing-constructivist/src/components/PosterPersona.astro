@@ -1,0 +1,19 @@
+---
+import Poster from "./Poster.astro";
+import { assets } from "../lib/site";
+import type { PosterContent } from "../lib/i18n/types";
+
+type Props = { content: PosterContent };
+const { content } = Astro.props;
+---
+
+<Poster id="p-03" theme="cream" variant="persona" content={content}>
+  <div class="geo geo-ring" slot="geo" aria-hidden="true"></div>
+  <div class="geo geo-ring geo-ring--2" slot="geo" aria-hidden="true"></div>
+  <div
+    class="symbol symbol--black"
+    slot="geo"
+    aria-hidden="true"
+    style={`-webkit-mask-image:url(${assets.symbolB.src});mask-image:url(${assets.symbolB.src})`}
+  ></div>
+</Poster>

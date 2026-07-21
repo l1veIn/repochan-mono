@@ -1,0 +1,19 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import Nav from "../../components/Nav.astro";
+import CityExplorer from "../../components/CityExplorer.astro";
+import SouvenirStrip from "../../components/SouvenirStrip.astro";
+import Footer from "../../components/Footer.astro";
+import { getContent } from "../../lib/site";
+
+const t = getContent("en");
+---
+
+<SiteLayout title={t.meta.title} description={t.meta.description} locale="en">
+  <Nav content={t.nav} locale="en" />
+  <main>
+    <CityExplorer content={t} />
+    <SouvenirStrip content={t.souvenir} />
+  </main>
+  <Footer content={t.footer} />
+</SiteLayout>

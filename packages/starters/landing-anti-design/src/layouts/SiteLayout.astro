@@ -1,0 +1,51 @@
+---
+import "../styles/global.css";
+import { site, assets, alternatePath, buildCssVars, metaThemeColor, type Locale } from "../lib/site";
+
+type Props = {
+  title: string;
+  description: string;
+  locale: Locale;
+};
+
+const { title, description, locale } = Astro.props;
+const htmlLang = locale === "zh" ? "zh-CN" : "en";
+const cssVars = buildCssVars();
+---
+
+<!doctype html>
+<html lang={htmlLang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content={metaThemeColor} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={assets.og.src} />
+    <meta property="og:locale" content={locale === "zh" ? "zh_CN" : "en_US"} />
+    <link rel="alternate" hreflang={htmlLang} href={locale === "zh" ? "/" : "/en/"} />
+    <link rel="alternate" hreflang={locale === "zh" ? "en" : "zh-CN"} href={alternatePath(locale)} />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <style is:inline set:html={cssVars} />
+    <script is:inline>
+      // 尽早恢复「正常版」状态，避免闪烁
+      try {
+        if (localStorage.getItem("chaos-readable") === "1") {
+          document.documentElement.classList.add("readable");
+        }
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <slot />
+    <script>
+      import "../lib/motion";
+    </script>
+  </body>
+</html>

@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "RepoChan — Give the Repo a Soul",
+    "description": "RepoChan is a propaganda machine for creative production: scan the repo, raise a character, deliver the sheet, ship the page. The full brand kit, one pipeline."
+  },
+  "content": {
+    "htmlLang": "en",
+    "masthead": {
+      "wordmark": "REPOCHAN",
+      "protocol": "repochan · protocol v1",
+      "iconAlt": "RepoChan icon",
+      "localeSwitchLabel": "中文"
+    },
+    "posters": {
+      "call": {
+        "index": "01",
+        "vertical": "全套品牌资产",
+        "slogan": [
+          "GIVE THE REPO",
+          "A SOUL."
+        ],
+        "latin": "给仓库一个灵魂",
+        "note": "Persona · foundation sheet · stickers · posters · landing page. One pipeline, the full brand kit."
+      },
+      "analysis": {
+        "index": "02",
+        "slogan": [
+          "SCAN THE REPO.",
+          "EXTRACT TRUTH."
+        ],
+        "latin": "扫描仓库，提取真相",
+        "note": "Source, README, commit history. Deterministic scans first — the machine reads facts, it does not guess.",
+        "command": "repochan analysis"
+      },
+      "persona": {
+        "index": "03",
+        "vertical": "访谈立人设",
+        "slogan": [
+          "THE CHARACTER",
+          "RISES."
+        ],
+        "latin": "角色从协议中站起",
+        "note": "Analysis plus interview raises a mascot: a world, a personality, visual anchors."
+      },
+      "foundation": {
+        "index": "04",
+        "slogan": [
+          "THE SHEET",
+          "IS LAW."
+        ],
+        "latin": "FOUNDATION 即法律",
+        "note": "The foundation sheet ships first. Every downstream order references it — consistency is a dependency, not a prayer.",
+        "command": "ord-foundation-001"
+      },
+      "painter": {
+        "index": "05",
+        "slogan": [
+          "ORDERS ARE",
+          "PRODUCTION."
+        ],
+        "latin": "订单即生产",
+        "note": "Every asset is an order: brief, template, acceptance, versions. Delivered and archived — history is never dropped.",
+        "command": "repochan image gen"
+      },
+      "product": {
+        "index": "06",
+        "slogan": [
+          "THE PAGE IS",
+          "A PRODUCT."
+        ],
+        "latin": "页面也是产物",
+        "note": "This very page is dogfood from the same pipeline. Below: real order evidence, not a decorative gallery.",
+        "figures": [
+          {
+            "tag": "Fig. A",
+            "alt": "RepoChan foundation sheet: key visual, expressions, palette and props",
+            "caption": "Fig. A — foundation sheet · ord-foundation-001 · consistency anchor"
+          },
+          {
+            "tag": "Fig. B",
+            "alt": "Sugar Riff studio poster: RepoChan painting at her desk",
+            "caption": "Fig. B — studio poster · ord-poster-001 · world scene"
+          }
+        ]
+      },
+      "cta": {
+        "index": "07",
+        "slogan": [
+          "REPORT FOR DUTY."
+        ],
+        "latin": "上工",
+        "note": "The install command is the enlistment order. Setup loads the skills into your agent; every step after is one subcommand.",
+        "cmd": "npm install -g repochan && repochan setup",
+        "copyLabel": "Copy command",
+        "copiedLabel": "Copied",
+        "docsLabel": "Docs & source →",
+        "fine": "Node.js ≥ 20 · bring your own coding agent · no embedded runtime"
+      }
+    },
+    "progress": {
+      "label": "POSTER"
+    },
+    "colophon": {
+      "lines": [
+        "Palette: red #C41E3A · black #111111 · cream #F3EDE3 · gray #6B6B6B · blue #1D4ED8 (one poster only).",
+        "Type: Anton / Noto Sans SC. Slogans ≤ 12 characters; explanations live in small-type zones.",
+        "The character serves geometry: full-frame cutouts masked into silhouettes by CSS, no new crops."
+      ],
+      "cutoutAlt": "RepoChan full-frame cutout silhouette",
+      "copyright": "© 2026 RepoChan · MIT"
+    }
+  }
+}

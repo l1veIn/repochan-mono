@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "RepoChan",
+    "description": "Turn a git repository into a full brand kit — mascot persona, illustrations, stickers, posters and a landing page — via a CLI + agent pipeline.",
+    "repositoryUrl": "https://github.com/l1veIn/repochan-mono"
+  },
+  "theme": {
+    "primary": "#39FF14",
+    "base": "#0B0F14",
+    "ink": "#DCE7F2",
+    "accents": ["#121820", "#1C2430", "#2A3646", "#00FF9C", "#FF2A6D", "#05D9E8", "#8CA1B7"]
+  },
+  "brand": {
+    "artStyle": "Glitch OS desktop — a malfunctioning retro computer that renders repos into mascots: CRT-dark desktop with scanlines and dark grid wallpaper, stacked OS windows with title bars, terminal logs and instantaneous RGB chromatic-aberration glitch slices (body text never glitches; glitch stays on aria-hidden decoration layers).",
+    "motifs": ["OS window", "title bar", "terminal log", "desktop icon", "taskbar", "RGB split", "fake BSOD"],
+    "patterns": ["dark grid wallpaper", "scanline overlay", "chromatic aberration offset", "checkerboard transparency"]
+  },
+  "locales": {
+    "default": "zh",
+    "supported": ["zh", "en"]
+  }
+}

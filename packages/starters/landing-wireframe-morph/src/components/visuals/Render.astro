@@ -1,0 +1,28 @@
+---
+import { assets } from "../../lib/site";
+
+// Stage 5 · RENDER — 全彩角色 + Sugar Riff 工作室场景
+type Props = { alt: string };
+const { alt } = Astro.props;
+---
+
+<div class="v-render">
+  <img
+    class="studio-img lyr-color"
+    src={assets.studio.src}
+    width={assets.studio.width}
+    height={assets.studio.height}
+    alt=""
+    loading="lazy"
+    decoding="async"
+  />
+  <img
+    class="render-img lyr-color"
+    src={assets.cutout.src}
+    width={assets.cutout.width}
+    height={assets.cutout.height}
+    alt={alt}
+    loading="lazy"
+    decoding="async"
+  />
+</div>

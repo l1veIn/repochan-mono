@@ -1,0 +1,12 @@
+---
+import Poster from "./Poster.astro";
+import type { PosterContent } from "../lib/i18n/types";
+
+type Props = { content: PosterContent };
+const { content } = Astro.props;
+---
+
+<Poster id="p-05" theme="black" variant="painter" content={content} outlineIndex halftone="normal">
+  <div class="geo geo-triangle" slot="geo" aria-hidden="true"></div>
+  <div class="geo geo-bar geo-bar--thin" slot="geo" aria-hidden="true"></div>
+</Poster>

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "repochan.starter-assets.v1",
+  "assets": {
+    "hero-scene": {
+      "kind": "scalar",
+      "src": "/assets/hero-orchard.webp",
+      "status": "source",
+      "orderId": "ord-solarpunk-hero-001"
+    },
+    "cutout-gardener": {
+      "kind": "scalar",
+      "src": "/assets/cutout-gardener.webp",
+      "status": "source",
+      "orderId": "ord-solarpunk-cutout-001"
+    },
+    "foundation-plaque": {
+      "kind": "scalar",
+      "src": "/assets/foundation-plaque.webp",
+      "status": "source",
+      "orderId": "ord-foundation-001"
+    },
+    "icon": {
+      "kind": "scalar",
+      "src": "/assets/icon.webp",
+      "status": "source",
+      "orderId": "ord-icon-001"
+    },
+    "cta-cutout": {
+      "kind": "scalar",
+      "src": "/assets/cutout-wave.webp",
+      "status": "source",
+      "orderId": "ord-cutout-001"
+    },
+    "stickers": {
+      "kind": "bundle",
+      "status": "source",
+      "items": {
+        "welcome": {
+          "src": "/assets/stickers/sticker-0.webp",
+          "status": "source"
+        },
+        "searching": {
+          "src": "/assets/stickers/sticker-1.webp",
+          "status": "source"
+        },
+        "loading": {
+          "src": "/assets/stickers/sticker-2.webp",
+          "status": "source"
+        },
+        "empty": {
+          "src": "/assets/stickers/sticker-3.webp",
+          "status": "source"
+        },
+        "error": {
+          "src": "/assets/stickers/sticker-4.webp",
+          "status": "source"
+        },
+        "success": {
+          "src": "/assets/stickers/sticker-5.webp",
+          "status": "source"
+        },
+        "not-found": {
+          "src": "/assets/stickers/sticker-6.webp",
+          "status": "source"
+        },
+        "cta": {
+          "src": "/assets/stickers/sticker-7.webp",
+          "status": "source"
+        },
+        "cozy": {
+          "src": "/assets/stickers/sticker-8.webp",
+          "status": "source"
+        }
+      },
+      "orderId": "ord-sticker-001"
+    }
+  }
+}

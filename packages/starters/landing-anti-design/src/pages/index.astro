@@ -1,0 +1,23 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import ChaosNav from "../components/ChaosNav.astro";
+import ErrorDialog from "../components/ErrorDialog.astro";
+import ChaosHero from "../components/ChaosHero.astro";
+import StickyBoard from "../components/StickyBoard.astro";
+import ChaosCta from "../components/ChaosCta.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import { getContent } from "../lib/site";
+
+const t = getContent("zh");
+---
+
+<SiteLayout title={t.meta.title} description={t.meta.description} locale="zh">
+  <ChaosNav tape={t.tape} nav={t.nav} locale="zh" />
+  <main>
+    <ChaosHero content={t.hero} />
+    <StickyBoard content={t.board} />
+    <ChaosCta content={t.cta} />
+  </main>
+  <SiteFooter content={t.footer} locale="zh" />
+  <ErrorDialog content={t.dialog} />
+</SiteLayout>

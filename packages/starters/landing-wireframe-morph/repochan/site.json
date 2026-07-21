@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "RepoChan",
+    "description": "Turn a git repository into a full brand kit — mascot persona, illustrations, stickers, posters and a landing page — via a CLI + agent pipeline.",
+    "repositoryUrl": "https://github.com/l1veIn/repochan-mono"
+  },
+  "theme": {
+    "primary": "#38BDF8",
+    "base": "#0B0F19",
+    "ink": "#E5E7EB",
+    "accents": ["#34D399", "#F9A8D4", "#A78BFA", "#FACC15"]
+  },
+  "brand": {
+    "artStyle": "Wireframe metamorphosis — 线框羽化：同一构图骨架从 ASCII 线框与灰模逐层物化为全彩品牌世界；深夜蓝底 + 单色亮线的工程图纸美学，等宽字体标注协议字段，滚动驱动颜色通道逐个打开（不切换版式、不换底色）。",
+    "motifs": ["wireframe outline", "ASCII type", "dimension annotation", "layer toggles", "progress rail"],
+    "patterns": ["dashed slot frame", "diagonal cross guides", "mono field annotations", "crossfade materialization"]
+  },
+  "locales": {
+    "default": "zh",
+    "supported": ["zh", "en"]
+  }
+}

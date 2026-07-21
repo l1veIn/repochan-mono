@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "RepoChan",
+    "description": "Turn a git repository into a full brand kit — mascot persona, illustrations, stickers, posters and a landing page — via a CLI + agent pipeline.",
+    "repositoryUrl": "https://github.com/l1veIn/repochan-mono"
+  },
+  "theme": {
+    "primary": "#38BDF8",
+    "base": "#B8E0F7",
+    "ink": "#1E293B",
+    "accents": [
+      "#D8EEFB",
+      "#E8F0E3",
+      "#D9DDE5",
+      "#B4BBC9",
+      "#5B6B80",
+      "#FFFFFF",
+      "#E3F4FD",
+      "#F5DB84",
+      "#8FCFF0",
+      "#F6BEDC",
+      "#C6B3F2",
+      "#9ADFC2",
+      "#7FC4EC",
+      "#F4A9CF",
+      "#7FD3AE"
+    ]
+  },
+  "brand": {
+    "artStyle": "Isometric toy city — the whole pipeline as a clickable miniature city of rounded toy-block buildings under a soft sky: slightly desaturated pastel plastic surfaces, rounded block edges, uniform soft shadows, gentle toy-like optimism.",
+    "motifs": ["isometric toy-block building", "dashed dependency road", "central plaza with patrol walker", "building window display", "cloud"],
+    "patterns": ["flat color block faces", "soft uniform shadow", "rounded plastic edges", "dashed road lines"]
+  },
+  "locales": {
+    "default": "zh",
+    "supported": ["zh", "en"]
+  }
+}

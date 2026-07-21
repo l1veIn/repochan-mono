@@ -1,0 +1,18 @@
+---
+import { assetSrc } from "../lib/site";
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["footer"] };
+const { content } = Astro.props;
+---
+
+<footer class="footer">
+  <div class="footer-inner">
+    <img class="footer-cutout" src={assetSrc("footer-cutout")} alt="" width="170" height="170" loading="lazy" />
+    <div class="footer-text">
+      <strong>{content.line}</strong>
+      <p class="proto">{content.protocol}</p>
+      <p>{content.credits}</p>
+    </div>
+  </div>
+</footer>

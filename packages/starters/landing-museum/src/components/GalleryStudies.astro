@@ -1,0 +1,125 @@
+---
+import { assets } from "../lib/site";
+import Exhibit from "./Exhibit.astro";
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["galleryB"] };
+const { content } = Astro.props;
+
+const studyImgs = [
+  assets.studies.exprExcited,
+  assets.studies.exprFocused,
+  assets.studies.exprDeadpan,
+  assets.studies.chibiFull,
+];
+const propImgs = [assets.props.clip, assets.props.earring, assets.props.headphones, assets.props.pendant];
+---
+
+<section class="room" id="gallery-b">
+  <p class="room-kicker" data-reveal>{content.kicker}</p>
+  <h2 class="room-title" data-reveal style="--d:60ms">{content.title}</h2>
+  <p class="room-intro" data-reveal style="--d:120ms">{content.intro}</p>
+
+  <div class="studies-grid">
+    <Exhibit
+      class="studies-main"
+      ex={content.main}
+      src={assets.cutoutWave.src}
+      width={assets.cutoutWave.width}
+      height={assets.cutoutWave.height}
+      alt={content.main.title}
+      delay={140}
+    />
+    <div class="studies-wall">
+      {
+        content.studies.map((ex, i) => (
+          <Exhibit
+            ex={ex}
+            src={studyImgs[i].src}
+            width={studyImgs[i].width}
+            height={studyImgs[i].height}
+            alt={ex.title}
+            thin
+            delay={180 + i * 60}
+          />
+        ))
+      }
+    </div>
+  </div>
+
+  <h3 class="props-title" data-reveal>{content.propsTitle}</h3>
+  <div class="props-wall">
+    {
+      content.props.map((ex, i) => (
+        <Exhibit
+          ex={ex}
+          src={propImgs[i].src}
+          width={propImgs[i].width}
+          height={propImgs[i].height}
+          alt={ex.title}
+          thin
+          delay={i * 60}
+        />
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  /* 双联节奏：一件主研究 + 小幅研究墙 */
+  .studies-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: clamp(40px, 6vw, 88px);
+    align-items: start;
+  }
+
+  .studies-wall {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(24px, 3.5vw, 48px);
+  }
+
+  .studies-wall :global(.label-title) {
+    font-size: 15px;
+  }
+
+  .props-title {
+    font-family: "Newsreader", "Noto Serif SC", serif;
+    font-size: clamp(20px, 2.4vw, 28px);
+    font-weight: 400;
+    letter-spacing: 0.03em;
+    margin-top: clamp(64px, 9vh, 110px);
+    margin-bottom: clamp(32px, 5vh, 56px);
+  }
+
+  .props-wall {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(20px, 3vw, 40px);
+  }
+
+  .props-wall :global(.label-title) {
+    font-size: 14px;
+  }
+
+  @media (max-width: 900px) {
+    .studies-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .studies-main {
+      max-width: 440px;
+    }
+
+    .props-wall {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 520px) {
+    .studies-wall {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

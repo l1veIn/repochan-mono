@@ -1,0 +1,8 @@
+---
+type Props = { count: number; label: string };
+const { count, label } = Astro.props;
+---
+
+<nav class="progress" data-progress aria-label={label}>
+  {Array.from({ length: count }, (_, i) => <span class="progress__seg" data-segment data-i={i} />)}
+</nav>

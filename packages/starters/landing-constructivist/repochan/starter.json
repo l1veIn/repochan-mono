@@ -1,0 +1,300 @@
+{
+  "schemaVersion": "repochan.starter.v1",
+  "id": "landing-constructivist",
+  "name": "宣传机器 · Constructivist Propaganda",
+  "description": "RepoChan's own constructivist propaganda poster wall: seven full-bleed posters (call / analysis / persona / foundation / painter / product / CTA) in a strict red-black-cream palette with diagonal bands, rings, halftone dots and bilingual stacked slogans. The character is subordinated to geometry — full-body cutouts are silhouetted at runtime via CSS mask (never re-cropped), and real order evidence anchors the product poster. zh default locale with a full en edition.",
+  "style": "constructivist-propaganda",
+  "tags": [
+    "landing",
+    "constructivist",
+    "propaganda",
+    "poster-wall",
+    "diagonal",
+    "halftone",
+    "bilingual"
+  ],
+  "previews": {
+    "desktop": "repochan/previews/desktop.webp",
+    "mobile": "repochan/previews/mobile.webp"
+  },
+  "config": {
+    "site": "repochan/site.json",
+    "assets": "repochan/assets.json",
+    "i18nDir": "repochan/i18n"
+  },
+  "content": {
+    "defaultLocale": "zh",
+    "supportedLocales": [
+      "zh",
+      "en"
+    ]
+  },
+  "assets": [
+    {
+      "kind": "scalar",
+      "slot": "icon",
+      "required": true,
+      "output": "public/assets/icon.webp",
+      "description": "Project icon — masthead badge and og:image; also the favicon source (favicon.ico / apple-touch-icon.png / icon-192.png / icon-512.png are derived from it offline via compress + favicon + resize).",
+      "order": {
+        "assetType": "icon",
+        "templateId": "official/icon-single",
+        "brief": {
+          "mustInclude": [
+            "one scalable brand mark reading cleanly at 30px (masthead badge size)",
+            "project motif without any letterforms, seal-stamp simplicity"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "watermarks"
+          ],
+          "creativeFreedom": [
+            "mark geometry",
+            "accent colors from the project palette"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "icon",
+            "format": "png",
+            "width": 512,
+            "height": 512,
+            "aspectRatio": "1:1",
+            "genSize": "1024x1024"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 90,
+            "maxWidth": 512
+          },
+          "out": "public/assets/icon.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "symbol-cutout-a",
+      "required": true,
+      "reference": "repochan/references/cutout-a-matte.png",
+      "output": "public/assets/cutout-a-full.webp",
+      "description": "Full-body die-cut cutout A (dynamic full-frame pose) — the poster 01 symbol, silhouetted at runtime by CSS mask (red/halftone), never re-cropped. Slot declares the complete in-frame cutout; transparent webp produced by chroma-key + compress. Reference is the raw matte master (2:3).",
+      "order": {
+        "assetType": "character_cutout",
+        "templateId": "official/character-cutout",
+        "brief": {
+          "intent": "Regenerate cutout A for the downstream project's character: a dynamic full-body pose that stays readable when reduced to a flat silhouette by CSS mask.",
+          "mustInclude": [
+            "one full-body character in a dynamic pose, fully inside the canvas",
+            "bold uncluttered silhouette readable as a flat single-color shape",
+            "perfectly flat uniform matte background in a color absent from the character",
+            "vertical 2:3 framing, character centered"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "scenery",
+            "shadows on the matte",
+            "cropped limbs or props",
+            "fine wispy details that vanish in silhouette"
+          ],
+          "creativeFreedom": [
+            "character outfit details",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "cutout-matte",
+            "format": "png",
+            "width": 1024,
+            "height": 1536,
+            "aspectRatio": "2:3",
+            "genSize": "2048x3072"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "chroma-key",
+          "args": {
+            "matte": "auto",
+            "pipeline": "v2"
+          },
+          "out": "public/assets/cutout-a-full.png"
+        },
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 88,
+            "maxWidth": 2048
+          },
+          "out": "public/assets/cutout-a-full.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "symbol-cutout-b",
+      "required": true,
+      "reference": "repochan/references/cutout-b-matte.png",
+      "output": "public/assets/cutout-b-full.webp",
+      "description": "Full-body die-cut cutout B (forward-leaning open-palm pose) — the poster 03 symbol and the colophon seal stamp, silhouetted at runtime by CSS mask (black/red), never re-cropped. Slot declares the complete in-frame cutout; transparent webp produced by chroma-key + compress. Reference is the raw matte master (1:1).",
+      "order": {
+        "assetType": "character_cutout",
+        "templateId": "official/character-cutout",
+        "brief": {
+          "intent": "Regenerate cutout B for the downstream project's character: a forward-leaning presenting/open-palm pose that stays readable as a small seal-stamp silhouette in the colophon.",
+          "mustInclude": [
+            "one full-body character leaning forward with an open presenting palm, fully inside the canvas",
+            "bold uncluttered silhouette readable as a flat single-color shape at ≤120px",
+            "perfectly flat uniform matte background in a color absent from the character",
+            "square 1:1 framing, character centered"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "scenery",
+            "shadows on the matte",
+            "cropped limbs or props",
+            "fine wispy details that vanish in silhouette"
+          ],
+          "creativeFreedom": [
+            "character outfit details",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "cutout-matte",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "2048x2048"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "chroma-key",
+          "args": {
+            "matte": "auto",
+            "pipeline": "v2"
+          },
+          "out": "public/assets/cutout-b-full.png"
+        },
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 88,
+            "maxWidth": 2048
+          },
+          "out": "public/assets/cutout-b-full.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "evidence-foundation",
+      "required": true,
+      "reference": "repochan/references/foundation-sheet.png",
+      "output": "public/assets/evidence/foundation-sheet.jpg",
+      "description": "Foundation sheet — Fig. A of the product poster (screen 06), real pipeline evidence in a hard-offset frame. Reference is the source sheet master (1:1); the page asset is a JPEG q85 compress of it.",
+      "order": {
+        "assetType": "foundation_sheet",
+        "templateId": "official/foundation-sheet",
+        "brief": {
+          "intent": "Regenerate the downstream project's foundation sheet (the consistency anchor every downstream order references) for display as order evidence Fig. A.",
+          "mustInclude": [
+            "character key visual plus turnaround/expressions, palette and key props on one sheet",
+            "square 1:1 framing readable at ≤440px display size"
+          ],
+          "avoid": [
+            "watermarks",
+            "busy scenery behind the sheet cells"
+          ],
+          "creativeFreedom": [
+            "sheet layout and cell arrangement",
+            "expression and prop selection within the project identity"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "foundation-sheet",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "1024x1024"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": {
+            "format": "jpeg",
+            "quality": 85
+          },
+          "out": "public/assets/evidence/foundation-sheet.jpg"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "evidence-poster",
+      "required": true,
+      "reference": "repochan/references/studio-poster.png",
+      "output": "public/assets/evidence/studio-poster.jpg",
+      "description": "Studio scene poster — Fig. B of the product poster (screen 06), real pipeline evidence in a hard-offset frame. Reference is the source poster master (3:2); the page asset is a JPEG q82 compress of it.",
+      "order": {
+        "assetType": "poster",
+        "templateId": "official/poster-risograph-pop",
+        "brief": {
+          "intent": "Repaint the world-scene studio poster for the downstream project: the character at work in its own world, shown as order evidence Fig. B.",
+          "mustInclude": [
+            "the project character in a workspace/studio scene true to its world",
+            "landscape 3:2 framing readable at ≤440px display size"
+          ],
+          "avoid": [
+            "rendered text",
+            "logos",
+            "watermarks"
+          ],
+          "creativeFreedom": [
+            "scene props and composition within the project world",
+            "palette rotation within the project identity"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "studio-poster",
+            "format": "png",
+            "width": 1536,
+            "height": 1024,
+            "aspectRatio": "3:2",
+            "genSize": "1536x1024"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": {
+            "format": "jpeg",
+            "quality": 82
+          },
+          "out": "public/assets/evidence/studio-poster.jpg"
+        }
+      ]
+    }
+  ]
+}

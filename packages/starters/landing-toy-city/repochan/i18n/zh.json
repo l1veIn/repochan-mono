@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "zh",
+  "meta": {
+    "title": "RepoChan 资产城 · 等距玩具城管线沙盘",
+    "description": "欢迎来到资产城：把 RepoChan 的整条流水线做成一座可点击的等距微缩城市——从扫描塔到部署码头，点一栋建筑，看一个阶段。"
+  },
+  "content": {
+    "nav": {
+      "brand": "资产城",
+      "brandSub": "RepoChan Toy City",
+      "localeSwitch": "EN",
+      "github": "GitHub"
+    },
+    "hero": {
+      "kicker": "导览开始",
+      "title": "欢迎来到资产城。",
+      "lead": "整条 RepoChan 流水线在这里变成了一座微缩城市：分析塔、访谈咖啡、人设工坊、法典馆、画师棚、贴纸铺，一直排到部署码头。仓库酱在中央广场巡逻——点任意一栋建筑，看看里面在做什么。",
+      "hint": "点建筑逛城市 · 虚线路是依赖方向 · 先从扫描塔开始"
+    },
+    "plaza": {
+      "caption": "中央广场 · 仓库酱巡逻中"
+    },
+    "panel": {
+      "inputLabel": "输入",
+      "outputLabel": "输出",
+      "commandLabel": "示例命令",
+      "assetsLabel": "橱窗资产",
+      "nextLabel": "下一站",
+      "copyLabel": "复制",
+      "copiedLabel": "已复制",
+      "ariaLabel": "建筑详情面板"
+    },
+    "stages": {
+      "gate": {
+        "code": "入口",
+        "name": "城门车站",
+        "product": "install",
+        "tagline": "所有旅程从这里进站：装好 CLI，把技能包装进你的 agent。",
+        "input": "一个 git 仓库 + 你常用的 agent",
+        "output": "全局 repochan 命令与已安装的技能包",
+        "command": "npm install -g repochan && repochan setup",
+        "thumbs": [
+          "icon"
+        ],
+        "next": "tower",
+        "nextLabel": "去扫描塔"
+      },
+      "tower": {
+        "code": "STAGE A",
+        "name": "扫描塔",
+        "product": "analysis",
+        "tagline": "塔顶的雷达把仓库从头到尾扫一遍：技术栈、结构、文档语气，全部变成确定性报告。",
+        "input": "仓库源码与文档",
+        "output": ".repochan/analysis 分析报告",
+        "command": "repochan analysis run",
+        "thumbs": [
+          "sticker-1"
+        ],
+        "next": "cafe",
+        "nextLabel": "去访谈咖啡"
+      },
+      "cafe": {
+        "code": "STAGE B",
+        "name": "访谈咖啡",
+        "product": "interview",
+        "tagline": "坐下来喝杯东西，回答几个问题：语气、受众、分量、世界观——机器扫不到的，聊出来。",
+        "input": "分析报告 + 你的回答",
+        "output": ".repochan/interview 访谈报告",
+        "command": "repochan interview create --data-file interview.json",
+        "thumbs": [
+          "sticker-8"
+        ],
+        "next": "studio",
+        "nextLabel": "去人设工坊"
+      },
+      "studio": {
+        "code": "STAGE C",
+        "name": "人设工坊",
+        "product": "persona",
+        "tagline": "世界架构师、角色设计师、一致性守护者三班倒，把报告捏成一个有生命力的看板娘。",
+        "input": "分析 + 访谈报告",
+        "output": ".repochan/persona 人设档案",
+        "command": "repochan persona create --data-file persona.json",
+        "thumbs": [
+          "sticker-3"
+        ],
+        "next": "hall",
+        "nextLabel": "去法典馆"
+      },
+      "hall": {
+        "code": "STAGE D",
+        "name": "法典馆",
+        "product": "foundation",
+        "tagline": "城里最重要的图书馆：设定集先定稿，之后每一笔约稿都要回到这里对答案。",
+        "input": "人设档案 + 视觉约束",
+        "output": "foundation 设定集订单与版本",
+        "command": "repochan order create --data-file foundation-order.json",
+        "thumbs": [
+          "thumb-foundation"
+        ],
+        "next": "shed",
+        "nextLabel": "去画师棚"
+      },
+      "shed": {
+        "code": "STAGE E",
+        "name": "画师棚",
+        "product": "image orders",
+        "tagline": "订单挂墙、参考图钉好、matte 底色铺平——画师按依赖顺序出图，不满意就无限重画。",
+        "input": "foundation + 资产订单",
+        "output": "贴纸、海报、cutout 等版本化结果",
+        "command": "repochan image gen --prompt \"…\" --size 4K",
+        "thumbs": [
+          "thumb-poster-studio",
+          "sticker-5"
+        ],
+        "next": "shop",
+        "nextLabel": "去贴纸铺"
+      },
+      "shop": {
+        "code": "STAGE F",
+        "name": "贴纸铺 · 海报柱",
+        "product": "stickers & posters",
+        "tagline": "橱窗里永远有新货：表情包贴纸一排九格，海报柱上贴着最新一版——全部来自真实订单。",
+        "input": "画师棚交付的母图",
+        "output": "网格裁切 tile、衍生件与海报版本",
+        "command": "repochan order list-results ord-sticker-001",
+        "thumbs": [
+          "sticker-2",
+          "thumb-poster-memphis"
+        ],
+        "next": "dock",
+        "nextLabel": "去部署码头"
+      },
+      "dock": {
+        "code": "STAGE G",
+        "name": "部署码头",
+        "product": "landing & starter",
+        "tagline": "资产装箱、页面装配、本地化验收——船一离岸，你的项目就有了一座自己的城市。",
+        "input": "资产 + starter 脚手架",
+        "output": "可构建的双语 Astro 站点",
+        "command": "repochan starter pull --starter <id>",
+        "thumbs": [
+          "sticker-7"
+        ],
+        "next": "gate",
+        "nextLabel": "回到车站"
+      }
+    },
+    "souvenir": {
+      "title": "贴纸铺橱窗",
+      "lead": "九宫格贴纸全员到岗——它们从一张 2K 母图上裁下来，现在归你差遣。"
+    },
+    "footer": {
+      "line": "资产城由 RepoChan 流水线实地建造",
+      "protocol": "repochan · protocol v1",
+      "credits": "角色：仓库酱（Sugar Riff）· 建筑：SVG 积木 · 资产：真实订单产物"
+    }
+  }
+}

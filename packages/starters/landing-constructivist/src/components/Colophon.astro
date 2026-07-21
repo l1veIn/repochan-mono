@@ -1,0 +1,25 @@
+---
+import { assets } from "../lib/site";
+import type { ColophonContent } from "../lib/i18n/types";
+
+type Props = { content: ColophonContent };
+const { content } = Astro.props;
+---
+
+<footer class="colophon">
+  <ul class="colophon__lines">
+    {content.lines.map((line) => <li>{line}</li>)}
+  </ul>
+  <div class="colophon__foot">
+    <div>
+      <p class="colophon__mark">REPOCHAN</p>
+      <p>{content.copyright}</p>
+    </div>
+    <div
+      class="colophon__symbol"
+      role="img"
+      aria-label={content.cutoutAlt}
+      style={`-webkit-mask-image:url(${assets.symbolB.src});mask-image:url(${assets.symbolB.src})`}
+    ></div>
+  </div>
+</footer>

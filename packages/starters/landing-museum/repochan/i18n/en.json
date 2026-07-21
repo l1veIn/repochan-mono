@@ -1,0 +1,293 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "The RepoChan Museum · White Cube Exhibition",
+    "description": "A repository walks in, a collection of exhibitable brand assets walks out. Every exhibit is a real deliverable of the RepoChan pipeline."
+  },
+  "content": {
+    "nav": {
+      "brand": "RepoChan",
+      "tag": "White Cube",
+      "links": [
+        {
+          "label": "Foundation",
+          "href": "#gallery-a"
+        },
+        {
+          "label": "Studies",
+          "href": "#gallery-b"
+        },
+        {
+          "label": "Editions",
+          "href": "#gallery-c"
+        },
+        {
+          "label": "Posters",
+          "href": "#gallery-d"
+        },
+        {
+          "label": "Notes",
+          "href": "#notes"
+        }
+      ],
+      "cta": "Install CLI",
+      "localeSwitch": "中文"
+    },
+    "lobby": {
+      "kicker": "The RepoChan Museum · Permanent Collection",
+      "headlineA": "A repository walks in,",
+      "headlineB": "a collection walks out.",
+      "manifesto": "RepoChan turns a git repository into a complete set of brand assets: persona, foundation sheet, stickers, posters, landing pages. This museum is arranged not by theme but by delivery order — everything you see is a real artifact you can look up in the order system.",
+      "portrait": {
+        "no": "Work 00",
+        "title": "Opening Portrait · RepoChan",
+        "material": "character cutout / complete-in-frame 2048×3072",
+        "orderId": "ord-cutout-001",
+        "year": "2026",
+        "note": "Silver hair with pink-and-mint streaks, heterochromia. The character appears only here in the lobby; the rest of the museum belongs to the work."
+      },
+      "noteTitle": "Exhibition Notes",
+      "noteBody": "Every exhibit comes out of the .repochan/ order pipeline. The collection number on each label is the order id — verify it on the spot with repochan order get. There are no placeholder images in this museum.",
+      "ctaPrimary": "Copy install command",
+      "ctaPrimaryCommand": "npm install -g repochan",
+      "ctaSecondary": "Enter the galleries ↓",
+      "copied": "Copied"
+    },
+    "galleryA": {
+      "kicker": "Gallery A",
+      "title": "Foundation",
+      "intro": "The visual anchor for every downstream asset. Character, expressions, palette and key motifs agree on a single sheet first — only then are they allowed into production.",
+      "exhibit": {
+        "no": "Work 01",
+        "title": "Foundation Sheet",
+        "material": "foundation sheet / official/foundation-sheet",
+        "orderId": "ord-foundation-001",
+        "year": "2026",
+        "note": "Every downstream order in this museum cites this sheet as its consistency baseline — stickers, posters, cutouts all shipped with its signature."
+      }
+    },
+    "galleryB": {
+      "kicker": "Gallery B",
+      "title": "Character Studies",
+      "intro": "From foundation sheet to production: complete-in-frame, full-margin general-purpose cutouts, plus expression studies extracted from the sticker master grids.",
+      "main": {
+        "no": "Work 02",
+        "title": "Cutout B · Wave",
+        "material": "character cutout / complete-in-frame 2048×2048",
+        "orderId": "ord-cutout-001",
+        "year": "2026",
+        "note": "The discipline of a general-purpose cutout: whole body in frame, margins on all four sides, placeable in any composition."
+      },
+      "studies": [
+        {
+          "no": "Work 03a",
+          "title": "Expression Study · Excited",
+          "material": "expression tile / 640px",
+          "orderId": "ord-sticker-001",
+          "year": "2026"
+        },
+        {
+          "no": "Work 03b",
+          "title": "Expression Study · Focused",
+          "material": "expression tile / 640px",
+          "orderId": "ord-sticker-001",
+          "year": "2026"
+        },
+        {
+          "no": "Work 03c",
+          "title": "Expression Study · Deadpan",
+          "material": "expression tile / 640px",
+          "orderId": "ord-sticker-001",
+          "year": "2026"
+        },
+        {
+          "no": "Work 03d",
+          "title": "Full-body Chibi",
+          "material": "chibi tile / 640px",
+          "orderId": "ord-sticker-001",
+          "year": "2026"
+        }
+      ],
+      "propsTitle": "Object Studies",
+      "props": [
+        {
+          "no": "Work 04a",
+          "title": "Triangle Hair Clip",
+          "material": "item prop / 640px",
+          "orderId": "ord-props-001",
+          "year": "2026"
+        },
+        {
+          "no": "Work 04b",
+          "title": "Star Cursor Earring",
+          "material": "item prop / 640px",
+          "orderId": "ord-props-001",
+          "year": "2026"
+        },
+        {
+          "no": "Work 04c",
+          "title": "Over-ear Headphones",
+          "material": "item prop / 640px",
+          "orderId": "ord-props-001",
+          "year": "2026"
+        },
+        {
+          "no": "Work 04d",
+          "title": "Stylus Pendant",
+          "material": "item prop / 640px",
+          "orderId": "ord-props-001",
+          "year": "2026"
+        }
+      ]
+    },
+    "galleryC": {
+      "kicker": "Gallery C",
+      "title": "Editions",
+      "intro": "Eighteen small works sliced from two 3×3 master grids: one set of mood stickers, one set of web states. Same character, same foundation sheet — holding up eighteen times over.",
+      "stickers": {
+        "no": "Work 05",
+        "title": "Sticker Sheet · Nine Panels",
+        "material": "sticker tiles / 640px × 9",
+        "orderId": "ord-sticker-001",
+        "year": "2026"
+      },
+      "webstates": {
+        "no": "Work 06",
+        "title": "Webstates · Nine Panels",
+        "material": "web-state tiles / 640px × 9",
+        "orderId": "ord-webstates-001",
+        "year": "2026"
+      }
+    },
+    "galleryD": {
+      "kicker": "Gallery D",
+      "title": "Posters & Patterns",
+      "intro": "The print room. A risograph poster of the studio scene, a Memphis poster, and a seamless pattern.",
+      "main": {
+        "no": "Work 07",
+        "title": "Sugar Riff Studio",
+        "material": "poster / official/poster-risograph-pop / 1536×1024",
+        "orderId": "ord-poster-001",
+        "year": "2026",
+        "note": "Risograph texture: halftone dots, slight misregistration, paper grain. The character, in her own studio."
+      },
+      "pair": [
+        {
+          "no": "Work 08",
+          "title": "Memphis Poster",
+          "material": "poster / official/poster-memphis",
+          "orderId": "ord-poster-memphis-001",
+          "year": "2026"
+        },
+        {
+          "no": "Work 09",
+          "title": "Cursors & Notes · Seamless Pattern",
+          "material": "visual pattern / seamless tile",
+          "orderId": "ord-pattern-001",
+          "year": "2026"
+        }
+      ]
+    },
+    "notes": {
+      "kicker": "Studio Notes",
+      "title": "Pipeline Notes",
+      "intro": "Behind every exhibit runs the same six-step pipeline. The commands are the wall text.",
+      "steps": [
+        {
+          "title": "Analyze the repo",
+          "desc": "README, code structure and commit history, all turned into design evidence.",
+          "command": "repochan analysis"
+        },
+        {
+          "title": "Interview",
+          "desc": "Structured questions that draw out the project's tone, audience and weight.",
+          "command": "repochan interview create"
+        },
+        {
+          "title": "Create the persona",
+          "desc": "Three collaborating agents sculpt a living mascot.",
+          "command": "repochan persona create"
+        },
+        {
+          "title": "Open asset orders",
+          "desc": "The art director opens every Asset Order at once, foundation sheet first.",
+          "command": "repochan order create"
+        },
+        {
+          "title": "Paint",
+          "desc": "Sheets, stickers and posters generated per order; repaint if not satisfied — old versions become history.",
+          "command": "repochan image gen"
+        },
+        {
+          "title": "Assemble the site",
+          "desc": "Assets mounted into a landing page, doors open — like the museum you are standing in.",
+          "command": "repochan starter pull"
+        }
+      ]
+    },
+    "shop": {
+      "kicker": "Museum Shop",
+      "title": "Take the Pipeline Home",
+      "intro": "The exhibits are not for sale. The tools that produced them are.",
+      "copyLabel": "Copy",
+      "copiedLabel": "Copied",
+      "cards": [
+        {
+          "title": "Install the CLI",
+          "desc": "One command turns the museum into a studio.",
+          "command": "npm install -g repochan"
+        },
+        {
+          "title": "Install the skill",
+          "desc": "Put the wizard inside your agent, then just say /repochan.",
+          "command": "repochan setup"
+        },
+        {
+          "title": "Look up a work",
+          "desc": "Every exhibit here is traceable — start from the collection number on its label.",
+          "command": "repochan order list"
+        }
+      ]
+    },
+    "colophon": {
+      "title": "Colophon",
+      "built": "This site was produced by RepoChan's own pipeline: persona, foundation sheet, stickers, posters and icons all come from real .repochan/ orders. Not a single placeholder image.",
+      "credits": [
+        {
+          "label": "Typefaces",
+          "value": "Newsreader · Noto Serif SC · Noto Sans SC · JetBrains Mono"
+        },
+        {
+          "label": "Pipeline",
+          "value": "gpt-image-2 · repochan image gen / image edit"
+        },
+        {
+          "label": "Collection",
+          "value": "ord-foundation-001 · ord-cutout-001 · ord-sticker-001 · ord-webstates-001 · ord-poster-001 · ord-poster-memphis-001 · ord-pattern-001 · ord-props-001 · ord-icon-001"
+        },
+        {
+          "label": "Locale",
+          "value": "zh-CN · en"
+        }
+      ],
+      "links": [
+        {
+          "label": "GitHub",
+          "href": "https://github.com/l1veIn/repochan-mono"
+        },
+        {
+          "label": "Design doc",
+          "href": "https://github.com/l1veIn/repochan-mono/tree/main/docs/prototypes"
+        }
+      ],
+      "localeSwitch": "中文",
+      "protocol": "museum-white-cube · repochan protocol v1"
+    },
+    "lightbox": {
+      "close": "Close",
+      "prev": "← Prev",
+      "next": "Next →"
+    }
+  }
+}

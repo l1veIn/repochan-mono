@@ -1,0 +1,185 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "RepoChan — Wireframe Metamorphosis",
+    "description": "Protocol first, then skin. Scroll to watch a git repository rendered layer by layer from ASCII wireframe into a full brand world."
+  },
+  "content": {
+    "rail": {
+      "renderLabel": "RENDER",
+      "brandAlt": "RepoChan icon",
+      "localeSwitch": "中文",
+      "stages": [
+        "WIRE",
+        "SCHEMA",
+        "LINEART",
+        "FLAT",
+        "TEXTURE",
+        "RENDER",
+        "LIVE",
+        "WORLD"
+      ]
+    },
+    "toggles": {
+      "title": "Layer switches",
+      "items": [
+        {
+          "key": "protocol",
+          "label": "Protocol"
+        },
+        {
+          "key": "line",
+          "label": "Line"
+        },
+        {
+          "key": "color",
+          "label": "Color"
+        },
+        {
+          "key": "texture",
+          "label": "Texture"
+        },
+        {
+          "key": "motion",
+          "label": "Motion"
+        }
+      ]
+    },
+    "snapshots": {
+      "title": "Stage snapshots",
+      "hint": " reduced-motion: four static completion anchors",
+      "items": [
+        {
+          "label": "0% wire",
+          "target": "stage-0"
+        },
+        {
+          "label": "30% lineart",
+          "target": "stage-2"
+        },
+        {
+          "label": "60% texture",
+          "target": "stage-4"
+        },
+        {
+          "label": "100% world",
+          "target": "stage-7"
+        }
+      ]
+    },
+    "stages": [
+      {
+        "id": "stage-0",
+        "pct": "0%",
+        "kicker": "00 · WIREFRAME — schema / CLI",
+        "title": "Protocol first, then skin.",
+        "body": "RepoChan renders a git repository into a complete brand world. It all starts with a schema: analysis is the skeleton, the CLI is the only write path, and the agent is bring-your-own.",
+        "note": "$ repochan analysis → .repochan/analysis/",
+        "figLabel": "CHARACTER_SLOT · 640×960 · empty",
+        "imgAlt": "Wireframe stage: empty character slot"
+      },
+      {
+        "id": "stage-1",
+        "pct": "15%",
+        "kicker": "01 · SCHEMA — analysis fields",
+        "title": "Gray boxes first, fields before paint.",
+        "body": "A deterministic scan reads the repo's languages, dependencies, commands and tone. Before a single drop of color there are techStack, commands and readmeTone — they decide what she will grow into.",
+        "note": "analysis.json · schema repochan.analysis.v1",
+        "figLabel": "GRAY_BOX · annotated",
+        "fields": [
+          {
+            "key": "techStack[0]",
+            "value": "\"TypeScript\""
+          },
+          {
+            "key": "commands.build",
+            "value": "\"pnpm build\""
+          },
+          {
+            "key": "readmeTone",
+            "value": "\"precise, playful\""
+          },
+          {
+            "key": "persona.primaryColor",
+            "value": "pending…"
+          }
+        ],
+        "imgAlt": "Gray-model stage: annotated gray boxes"
+      },
+      {
+        "id": "stage-2",
+        "pct": "30%",
+        "kicker": "02 · LINEART — persona",
+        "title": "RENDERING PERSONA…",
+        "body": "Interview answers are distilled into a character: silver hair, heterochromia, a triangle hair clip, big headphones around her neck. The lineart fixes pose and silhouette — she has no color yet, but she is already here.",
+        "note": "persona create → .repochan/persona/current.json",
+        "figLabel": "LINEART · ord-lineart-001",
+        "imgAlt": "RepoChan character lineart: black ink on white, jumping pose"
+      },
+      {
+        "id": "stage-3",
+        "pct": "45%",
+        "kicker": "03 · FLAT — foundation palette",
+        "title": "Five flat colors, personality on stage.",
+        "body": "The foundation sheet compresses the whole world into a handful of hex codes: lake blue, sakura pink, purple, mint, warm yellow and ink. Every downstream stroke picks from this table — consistency is not a constraint, it is her taste.",
+        "note": "ord-foundation-001 · palette locked",
+        "figLabel": "FLAT_COLOR · foundation sheet",
+        "imgAlt": "Flat-color stage: character being painted, foundation palette beside"
+      },
+      {
+        "id": "stage-4",
+        "pct": "60%",
+        "kicker": "04 · TEXTURE — stickers & patterns",
+        "title": "Stickers and halftones, texture grows.",
+        "body": "Stickers, seamless patterns and pixel stars are applied layer by layer — a language she learned from her zine and washi-tape collection. Flat color starts to gain a tactile feel.",
+        "note": "ord-sticker-001 / ord-pattern-001 · 3×3 grid extract",
+        "figLabel": "TEXTURE · stickers + pattern",
+        "imgAlt": "Texture stage: stickers and pattern around the character"
+      },
+      {
+        "id": "stage-5",
+        "pct": "75%",
+        "kicker": "05 · RENDER — painter delivery",
+        "title": "Light and shadow land, the scene focuses.",
+        "body": "The painter delivers in dependency order: foundation sheet first, then cutouts, then posters and scenes. Every stroke traces back to an order id — that is what the protocol is for.",
+        "note": "image gen → order create-result → versions/",
+        "figLabel": "FULL_RENDER · Sugar Riff studio",
+        "imgAlt": "Full-render stage: Sugar Riff studio scene with the finished character"
+      },
+      {
+        "id": "stage-6",
+        "pct": "90%",
+        "kicker": "06 · LIVE — page / starter",
+        "title": "Controls light up, the page powers on.",
+        "body": "Wireframe buttons become real buttons, cards gain focus states. The page grants life — the page you are looking at right now is the protocol's final state.",
+        "note": "starter pull → asset-apply → pnpm build",
+        "figLabel": "LIVE_UI · interactive",
+        "ctaPrimary": "Click me — I'm a real button",
+        "ctaSecondary": "Read the protocol source",
+        "imgAlt": "Live stage: wireframe button turns into a clickable colored button"
+      },
+      {
+        "id": "stage-7",
+        "pct": "100%",
+        "kicker": "07 · WORLD — install",
+        "title": "The protocol grew flesh.",
+        "body": "From one schema to a breathing brand world: persona, foundation sheet, stickers, posters, landing pages. Hand her your repository.",
+        "note": "RENDER COMPLETE · 100%",
+        "figLabel": "BRAND_WORLD · live",
+        "installLabel": "Install and render your repo",
+        "installCmd": "npm install -g repochan",
+        "copyLabel": "Copy",
+        "copiedLabel": "Copied",
+        "repoLink": "GitHub repository",
+        "imgAlt": "Complete brand world: full-color character, pattern and stickers"
+      }
+    ],
+    "colophon": {
+      "line1": "RepoChan — core is pure protocol, skill grants the soul, paint grants the skin, page grants life.",
+      "line2": "This page is its own evidence: schema → lineart → flat → texture → render → live.",
+      "designNote": "Design doc 08 · Wireframe Metamorphosis",
+      "backTop": "Back to 0%"
+    }
+  }
+}

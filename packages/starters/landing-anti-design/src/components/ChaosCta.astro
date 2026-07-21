@@ -1,0 +1,57 @@
+---
+import { assets, site } from "../lib/site";
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["cta"] };
+const { content } = Astro.props;
+---
+
+<section class="cta-section" id="install">
+  <div class="wrap">
+    <div class="win cta-window">
+      <div class="win-titlebar">
+        <span class="win-title">{content.windowTitle}</span>
+        <span class="win-x" aria-hidden="true">✕</span>
+      </div>
+      <div class="win-body">
+        <div class="cta-progress-label">
+          <span>{content.progressLabel}</span>
+          <span>{content.progressValue}</span>
+        </div>
+        <div
+          class="progress"
+          role="progressbar"
+          aria-valuenow={99}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={content.progressLabel}
+        >
+          <div class="progress-bar"></div>
+        </div>
+        <div class="cta-grid" style="margin-top:22px">
+          <div class="cta-copy">
+            <h2>{content.headline}</h2>
+            <p>{content.sub}</p>
+            <div class="cta-cmdbar">
+              <code>{content.command}</code>
+              <button class="win-btn" type="button" data-copy={content.command} data-copied={content.copied}>
+                {content.copy}
+              </button>
+            </div>
+            <a class="cta-repo" href={site.project.repositoryUrl} target="_blank" rel="noopener">
+              → {content.repoLink}
+            </a>
+          </div>
+          <img
+            class="cta-cutout"
+            src={assets.ctaCutout.src}
+            alt={content.cutoutAlt}
+            width={assets.ctaCutout.width}
+            height={assets.ctaCutout.height}
+            loading="lazy"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

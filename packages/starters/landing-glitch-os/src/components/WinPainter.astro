@@ -1,0 +1,27 @@
+---
+import Window from "./Window.astro";
+import { assets } from "../lib/site";
+import type { WinPainterContent } from "../lib/i18n/types";
+
+type Props = { content: WinPainterContent };
+const { content } = Astro.props;
+---
+
+<Window id="win-painter" title={content.title} badge={content.badge} variant="l">
+  <p class="painter__cap">{content.stickerCap}</p>
+  <div class="painter__grid">
+    {assets.stickers.map((s, i) => (
+      <figure>
+        <img src={s.src} width={s.width} height={s.height} alt={`${content.stickerAlt} #${i}`} loading="lazy" />
+      </figure>
+    ))}
+  </div>
+  <p class="painter__cap">{content.stateCap}</p>
+  <div class="painter__strip">
+    {assets.webstates.map((s, i) => (
+      <figure>
+        <img src={s.src} width={s.width} height={s.height} alt={`${content.stateAlt} #${i}`} loading="lazy" />
+      </figure>
+    ))}
+  </div>
+</Window>

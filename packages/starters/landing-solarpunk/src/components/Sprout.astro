@@ -1,0 +1,130 @@
+---
+import { assets } from "../lib/site";
+import type { SproutContent } from "../lib/i18n/types";
+
+type Props = { content: SproutContent };
+const { content } = Astro.props;
+---
+
+<section class="section sprout" id="sprout">
+  <div class="shell sprout-grid">
+    <div class="persona">
+      <p class="stage-label" data-grow>{content.stage}</p>
+      <h2 class="section-title display" data-grow data-grow-delay="1">{content.title}</h2>
+      <p class="section-note" data-grow data-grow-delay="2">{content.note}</p>
+
+      <div class="card" data-grow data-grow-delay="2">
+        <p class="name display">{content.name}</p>
+        <p class="role">{content.role}</p>
+        <p class="catchphrase">{content.catchphrase}</p>
+        <ul class="traits">
+          {content.traits.map((t) => (
+            <li>
+              <span class="leaf-dot" aria-hidden="true">❧</span>
+              <strong>{t.term}</strong>
+              <span class="trait-desc">{t.desc}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+
+    <figure class="cutout" data-grow data-grow-delay="3">
+      <div class="blob" aria-hidden="true"></div>
+      <img src={assets.cutoutGardener.src} alt={content.cutoutAlt} width={assets.cutoutGardener.width} height={assets.cutoutGardener.height} loading="lazy" />
+      <figcaption class="mono">{content.cutoutCaption}</figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .sprout {
+    background: var(--moss-soft);
+    border-radius: clamp(32px, 6vw, 64px) clamp(32px, 6vw, 64px) 0 0;
+  }
+  .sprout-grid {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: center;
+  }
+  .card {
+    background: var(--paper);
+    border-radius: 16px;
+    padding: 1.8rem 1.9rem;
+    box-shadow: 0 3px 0 color-mix(in srgb, var(--leaf) 22%, transparent);
+  }
+  .name {
+    font-size: 1.6rem;
+    margin: 0 0 0.25rem;
+    color: var(--ink);
+  }
+  .role {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    margin: 0 0 1rem;
+  }
+  .catchphrase {
+    display: inline-block;
+    font-size: 1rem;
+    color: var(--leaf-deep);
+    background: var(--moss-soft);
+    border-radius: 999px;
+    padding: 0.4em 1.1em;
+    margin: 0 0 1.3rem;
+  }
+  .traits {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.7rem;
+  }
+  .traits li {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    align-items: baseline;
+    gap: 0.55rem;
+    font-size: 0.94rem;
+  }
+  .leaf-dot { color: var(--leaf); }
+  .traits strong { color: var(--ink); }
+  .trait-desc { color: var(--ink-soft); }
+  .cutout {
+    position: relative;
+    margin: 0;
+    text-align: center;
+  }
+  .blob {
+    position: absolute;
+    inset: 12% -4% 6%;
+    background:
+      radial-gradient(60% 55% at 50% 62%, var(--moss) 0%, transparent 72%),
+      radial-gradient(40% 34% at 68% 30%, color-mix(in srgb, var(--sun) 55%, transparent) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: 0;
+  }
+  .cutout img {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 380px);
+    margin-inline: auto;
+    filter: drop-shadow(0 14px 18px color-mix(in srgb, var(--leaf-deep) 26%, transparent));
+  }
+  .cutout figcaption {
+    position: relative;
+    z-index: 1;
+    margin-top: 0.8rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--leaf-deep);
+  }
+  @media (max-width: 860px) {
+    .sprout-grid { grid-template-columns: 1fr; }
+    .cutout { order: -1; }
+    .cutout img { width: min(78%, 320px); }
+    .traits li { grid-template-columns: auto 1fr; }
+    .trait-desc { grid-column: 2; }
+  }
+</style>

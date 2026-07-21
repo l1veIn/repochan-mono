@@ -1,0 +1,160 @@
+---
+import { assets } from "../lib/site";
+import Exhibit from "./Exhibit.astro";
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["lobby"] };
+const { content } = Astro.props;
+---
+
+<section class="room lobby" id="top">
+  <div class="lobby-grid">
+    <div class="lobby-copy">
+      <p class="room-kicker" data-reveal>{content.kicker}</p>
+      <h1 class="lobby-title" data-reveal style="--d:80ms">
+        {content.headlineA}
+        <br />
+        {content.headlineB}
+      </h1>
+      <p class="lobby-manifesto" data-reveal style="--d:160ms">{content.manifesto}</p>
+
+      <div class="lobby-ctas" data-reveal style="--d:240ms">
+        <button
+          class="cta-primary"
+          type="button"
+          data-copy={content.ctaPrimaryCommand}
+          data-copied={content.copied}
+        >
+          {content.ctaPrimary}
+        </button>
+        <a class="cta-secondary" href="#gallery-a">{content.ctaSecondary}</a>
+      </div>
+
+      <aside class="lobby-note" data-reveal style="--d:320ms">
+        <h2 class="lobby-note-title">{content.noteTitle}</h2>
+        <p class="lobby-note-body">{content.noteBody}</p>
+      </aside>
+    </div>
+
+    <div class="lobby-portrait">
+      <Exhibit
+        ex={content.portrait}
+        src={assets.openingPortrait.src}
+        width={assets.openingPortrait.width}
+        height={assets.openingPortrait.height}
+        alt={content.portrait.title}
+        delay={200}
+      />
+    </div>
+  </div>
+  <div class="lobby-floor" aria-hidden="true"></div>
+</section>
+
+<style>
+  .lobby {
+    position: relative;
+    padding-top: clamp(64px, 9vh, 120px);
+    /* 顶部暗角：聚光灯暗示 */
+    background:
+      radial-gradient(120% 46% at 50% -18%, color-mix(in srgb, var(--ink) 7%, transparent), transparent 70%),
+      var(--wall);
+  }
+
+  .lobby-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: clamp(40px, 6vw, 96px);
+    align-items: center;
+  }
+
+  .lobby-title {
+    font-family: "Newsreader", "Noto Serif SC", serif;
+    font-weight: 300;
+    font-size: clamp(40px, 5.6vw, 76px);
+    line-height: 1.16;
+    letter-spacing: 0.04em;
+    margin-top: 8px;
+  }
+
+  .lobby-manifesto {
+    margin-top: 28px;
+    max-width: 46ch;
+    font-size: clamp(15px, 1.3vw, 17px);
+    color: var(--muted);
+  }
+
+  .lobby-ctas {
+    margin-top: 36px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .cta-primary {
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    border: 1px solid var(--ink);
+    padding: 12px 22px;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .cta-primary:hover,
+  .cta-primary.is-copied {
+    background: var(--ink);
+    color: var(--wall);
+  }
+
+  .cta-secondary {
+    font-size: 14px;
+    color: var(--ink);
+    letter-spacing: 0.06em;
+  }
+
+  .lobby-note {
+    margin-top: clamp(40px, 6vh, 72px);
+    border-top: 1px solid var(--hairline);
+    padding-top: 24px;
+    max-width: 52ch;
+  }
+
+  .lobby-note-title {
+    font-family: "Newsreader", "Noto Serif SC", serif;
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+  }
+
+  .lobby-note-body {
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .lobby-portrait :global(.frame img) {
+    max-height: min(66vh, 640px);
+    object-fit: contain;
+    background: var(--mat);
+  }
+
+  /* 地面暗示：展厅底部渐变 */
+  .lobby-floor {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: clamp(72px, 12vh, 140px);
+    background: linear-gradient(to bottom, transparent, var(--floor));
+    pointer-events: none;
+  }
+
+  @media (max-width: 900px) {
+    .lobby-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .lobby-portrait {
+      max-width: 420px;
+    }
+  }
+</style>

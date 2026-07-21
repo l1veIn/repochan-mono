@@ -1,0 +1,36 @@
+---
+import type { PosterContent } from "../lib/i18n/types";
+
+type Props = {
+  id: string;
+  theme: "cream" | "black" | "red";
+  variant: string;
+  content: PosterContent;
+  /** 拉丁口号屏用 Anton 渲染主口号 */
+  anton?: boolean;
+  outlineIndex?: boolean;
+  halftone?: "normal" | "dense";
+};
+
+const { id, theme, variant, content, anton = false, outlineIndex = false, halftone } = Astro.props;
+
+let slam = 0;
+const next = () => `${(slam += 1) * 0.12 + 0.15}s`;
+---
+
+<section class={`poster p-theme-${theme} p-${variant}`} id={id} data-poster>
+  <div class="wipe" aria-hidden="true"></div>
+  {halftone && <div class={`halftone${halftone === "dense" ? " halftone--dense" : ""}`} aria-hidden="true"></div>}
+  <slot name="geo" />
+  {content.vertical && <p class="p-vertical" data-slam style={`--d:${next()}`}>{content.vertical}</p>}
+  <div class="poster__inner">
+    <p class={`p-index${outlineIndex ? " p-index--outline" : ""}`} data-slam style={`--d:${next()}`}>{content.index}</p>
+    <h2 class={`p-slogan${anton ? " p-slogan--anton" : ""}`}>
+      {content.slogan.map((line) => <span class="p-line" data-slam style={`--d:${next()}`}>{line}</span>)}
+    </h2>
+    <p class={`p-latin${/[\u4e00-\u9fff]/.test(content.latin) ? " p-latin--zh" : ""}`} data-slam style={`--d:${next()}`}>{content.latin}</p>
+    <p class="p-note" data-slam style={`--d:${next()}`}>{content.note}</p>
+    {content.command && <code class="p-command u-mono" data-slam style={`--d:${next()}`}>{content.command}</code>}
+    <slot />
+  </div>
+</section>

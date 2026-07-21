@@ -1,0 +1,129 @@
+---
+import { assets } from "../lib/site";
+import type { SiteContent, BoardNote } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["board"] };
+const { content } = Astro.props;
+
+const noteStyles = ["note--yellow", "note--pink", "note--blue", "note--yellow", "note--pink"];
+const noteTilts = ["-2.2deg", "1.6deg", "-1.2deg", "0.8deg", "2.4deg"];
+/** 压在便利贴上的贴纸（index → assets.stickers / webstates） */
+const noteStickers: { src: string; cls: string }[] = [
+  { src: assets.stickers[0].src, cls: "a" },
+  { src: assets.webstates[2].src, cls: "b" },
+  { src: assets.stickers[6].src, cls: "a" },
+  { src: assets.webstates[5].src, cls: "b" },
+  { src: assets.stickers[8].src, cls: "a" },
+];
+
+const termLines = [
+  "$ repochan order list",
+  "  ord-foundation-001   approved   设定集",
+  "  ord-sticker-001      approved   sticker ×9",
+  "  ord-webstates-001    approved   webstates ×9",
+  "  ord-poster-001       approved   poster",
+  "$ repochan image gen --order ord-sticker-001",
+  "  ✓ done. 9 tiles extracted.",
+];
+
+const jsonLines = [
+  "{",
+  '  "orderId": "ord-sticker-001",',
+  '  "template": "official/sticker-grid",',
+  '  "status": "approved",',
+  '  "tiles": 9,',
+  '  "chaos": false  // ← 本页忽略此字段',
+  "}",
+];
+
+function noteClass(note: BoardNote, i: number): string {
+  return `note ${noteStyles[i % noteStyles.length]}`;
+}
+---
+
+<section class="board" id="board">
+  <div class="wrap">
+    <div class="board-head">
+      <h2>{content.title}</h2>
+      <p>{content.intro}</p>
+    </div>
+    <div class="notes">
+      {
+        content.notes.map((note, i) => (
+          <article
+            class={noteClass(note, i)}
+            style={`--tilt:${noteTilts[i % noteTilts.length]}`}
+            id={`note-${note.id}`}
+          >
+            <img
+              class={`note-sticker ${noteStickers[i % noteStickers.length].cls}`}
+              src={noteStickers[i % noteStickers.length].src}
+              alt=""
+              width="84"
+              height="84"
+              loading="lazy"
+            />
+            <h3>{note.title}</h3>
+            <p class="note-body">{note.body}</p>
+
+            {note.command && (
+              <div class="note-cmd">
+                <code>{note.command}</code>
+                <button
+                  class="win-btn"
+                  type="button"
+                  data-copy={note.command}
+                  data-copied={note.copiedLabel}
+                >
+                  {note.copyLabel}
+                </button>
+              </div>
+            )}
+
+            {note.links && (
+              <div class="note-links">
+                {note.links.map((link) => (
+                  <a href={link.href} target="_blank" rel="noopener">
+                    → {link.label}
+                  </a>
+                ))}
+              </div>
+            )}
+
+            {note.shots && (
+              <div class="shotpile">
+                {note.shots.map((shot) => (
+                  <figure class="shot" style="margin:0">
+                    <div class="win">
+                      <div class="win-titlebar">
+                        <span class="win-title">{shot.title}</span>
+                        <span class="win-x" aria-hidden="true">
+                          ✕
+                        </span>
+                      </div>
+                      <div class="win-body">
+                        {shot.kind === "terminal" && <pre class="shot-term">{termLines.join("\n")}</pre>}
+                        {shot.kind === "pr" && (
+                          <div class="shot-pr">
+                            <img src={assets.stickers[1].src} alt="" width="64" height="64" loading="lazy" />
+                            <span>
+                              LGTM :shipit:
+                              <br />
+                              chaos-board → main
+                            </span>
+                          </div>
+                        )}
+                        {shot.kind === "json" && <pre class="shot-json">{jsonLines.join("\n")}</pre>}
+                      </div>
+                    </div>
+                    <figcaption class="shot-cap">{shot.caption}</figcaption>
+                  </figure>
+                ))}
+              </div>
+            )}
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>

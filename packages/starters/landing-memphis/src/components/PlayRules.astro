@@ -1,0 +1,35 @@
+---
+import Shape from "./Shape.astro";
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["rules"] };
+const { content } = Astro.props;
+
+const tilts = ["-2deg", "1.5deg", "-1deg"] as const;
+const shapeColors = { circle: "violet", triangle: "coral", square: "bg" } as const;
+---
+
+<section class="section" id="rules">
+  <div class="wrap">
+    <div class="section-head" data-pop>
+      <h2>{content.title}</h2>
+      <p>{content.intro}</p>
+    </div>
+    <div class="rules-grid">
+      {content.cards.map((card, i) => (
+        <article class="rule-card" data-pop style={`--tilt:${tilts[i]};--d:${i * 0.09}s`}>
+          <span class="rule-num" aria-hidden="true">{i + 1}</span>
+          <div class="rule-shape">
+            <Shape kind={card.shape} color={shapeColors[card.shape]} size={44} />
+          </div>
+          <h3>{card.title}</h3>
+          <p>{card.desc}</p>
+          <div class="rule-cmd">
+            <code>{card.command}</code>
+            <button class="copy-btn" type="button" data-copy={card.command} data-copied-label={content.copiedLabel}>{content.copyLabel}</button>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

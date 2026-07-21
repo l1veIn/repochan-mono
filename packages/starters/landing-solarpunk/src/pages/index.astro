@@ -1,0 +1,29 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import Nav from "../components/Nav.astro";
+import Hero from "../components/Hero.astro";
+import SoilSample from "../components/SoilSample.astro";
+import SeedJournal from "../components/SeedJournal.astro";
+import Sprout from "../components/Sprout.astro";
+import Sunframe from "../components/Sunframe.astro";
+import Harvest from "../components/Harvest.astro";
+import ShareTable from "../components/ShareTable.astro";
+import GreenhouseNotes from "../components/GreenhouseNotes.astro";
+import { getContent } from "../lib/site";
+
+const t = getContent("zh");
+---
+
+<SiteLayout title={t.meta.title} description={t.meta.description} locale="zh">
+  <Nav content={t.nav} locale="zh" />
+  <main>
+    <Hero content={t.hero} />
+    <SoilSample content={t.soil} />
+    <SeedJournal content={t.seed} />
+    <Sprout content={t.sprout} />
+    <Sunframe content={t.sunframe} />
+    <Harvest content={t.harvest} />
+    <ShareTable content={t.share} />
+  </main>
+  <GreenhouseNotes content={t.footer} locale="zh" />
+</SiteLayout>

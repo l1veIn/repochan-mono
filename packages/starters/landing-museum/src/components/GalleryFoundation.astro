@@ -1,0 +1,32 @@
+---
+import { assets } from "../lib/site";
+import Exhibit from "./Exhibit.astro";
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["galleryA"] };
+const { content } = Astro.props;
+---
+
+<section class="room" id="gallery-a">
+  <p class="room-kicker" data-reveal>{content.kicker}</p>
+  <h2 class="room-title" data-reveal style="--d:60ms">{content.title}</h2>
+  <p class="room-intro" data-reveal style="--d:120ms">{content.intro}</p>
+
+  <Exhibit
+    class="foundation-exhibit"
+    ex={content.exhibit}
+    src={assets.exhibits.foundation.src}
+    width={assets.exhibits.foundation.width}
+    height={assets.exhibits.foundation.height}
+    alt={content.exhibit.title}
+    delay={160}
+  />
+</section>
+
+<style>
+  /* 单件全幅：主展品占据整面墙 */
+  .foundation-exhibit {
+    max-width: 880px;
+    margin-inline: auto;
+  }
+</style>

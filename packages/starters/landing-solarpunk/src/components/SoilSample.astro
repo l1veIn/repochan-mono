@@ -1,0 +1,98 @@
+---
+import type { SoilContent } from "../lib/i18n/types";
+
+type Props = { content: SoilContent };
+const { content } = Astro.props;
+---
+
+<section class="section soil" id="soil">
+  <div class="shell">
+    <p class="stage-label" data-grow>{content.stage}</p>
+    <h2 class="section-title display" data-grow data-grow-delay="1">{content.title}</h2>
+    <p class="section-note" data-grow data-grow-delay="2">{content.note}</p>
+
+    <div class="grid">
+      {content.cards.map((card, i) => (
+        <article class="card" data-grow data-grow-delay={String(i + 1)}>
+          <div class="strata" aria-hidden="true"><span /><span /><span /></div>
+          <h3 class="term">{card.term}</h3>
+          <p class="value display">{card.value}</p>
+          <p class="desc">{card.desc}</p>
+        </article>
+      ))}
+    </div>
+
+    <p class="verdict" data-grow>
+      <span class="dot" aria-hidden="true"></span>{content.verdict}
+    </p>
+  </div>
+</section>
+
+<style>
+  .soil { background: var(--paper); }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.1rem;
+  }
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--clay-soft);
+    border-radius: 14px;
+    padding: 0 1.3rem 1.3rem;
+    overflow: hidden;
+    box-shadow: 0 2px 0 color-mix(in srgb, var(--clay) 30%, transparent);
+  }
+  /* 土壤剖面层 */
+  .strata {
+    display: flex;
+    height: 10px;
+    margin: 0 -1.3rem 1.1rem;
+  }
+  .strata span:nth-child(1) { flex: 5; background: var(--clay); }
+  .strata span:nth-child(2) { flex: 3; background: var(--moss); }
+  .strata span:nth-child(3) { flex: 2; background: var(--leaf); }
+  .term {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    margin: 0 0 0.35rem;
+  }
+  .value {
+    font-size: 1.35rem;
+    color: var(--leaf-deep);
+    margin: 0 0 0.5rem;
+  }
+  .desc {
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.65;
+  }
+  .verdict {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6em;
+    margin: 2.2rem 0 0;
+    padding: 1rem 1.3rem;
+    background: var(--moss-soft);
+    border-radius: 12px;
+    font-size: 0.95rem;
+    color: var(--ink);
+  }
+  .dot {
+    flex: none;
+    width: 0.6em;
+    height: 0.6em;
+    border-radius: 50%;
+    background: var(--leaf);
+    transform: translateY(0.05em);
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 540px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>

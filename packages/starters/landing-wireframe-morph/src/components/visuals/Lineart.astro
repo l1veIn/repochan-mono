@@ -1,0 +1,19 @@
+---
+import { assets } from "../../lib/site";
+
+// Stage 2 · LINEART — 角色线稿（CSS invert → 深色底亮线），--lp 驱动扫入
+type Props = { alt: string };
+const { alt } = Astro.props;
+---
+
+<div class="v-lineart">
+  <img
+    class="lineart-img lyr-line"
+    src={assets.lineart.src}
+    width={assets.lineart.width}
+    height={assets.lineart.height}
+    alt={alt}
+    loading="lazy"
+    decoding="async"
+  />
+</div>

@@ -1,0 +1,438 @@
+{
+  "schemaVersion": "repochan.starter.v1",
+  "id": "landing-solarpunk",
+  "name": "品牌果园 · Solarpunk Orchard",
+  "description": "RepoChan's own solarpunk-orchard landing page: a sunrise orchard hero scene (baked L1+L2 with a live-text safe zone), a gardener cutout watering a sapling, six growth-stage sections (soil/seed/sprout/sunframe/harvest/share), a foundation plaque and a harvest basket of nine die-cut stickers. zh default locale with a full en edition; every visual is real pipeline output.",
+  "style": "solarpunk-orchard",
+  "tags": [
+    "landing",
+    "solarpunk",
+    "orchard",
+    "growth-narrative",
+    "organic",
+    "daylight",
+    "bilingual"
+  ],
+  "previews": {
+    "desktop": "repochan/previews/desktop.webp",
+    "mobile": "repochan/previews/mobile.webp"
+  },
+  "config": {
+    "site": "repochan/site.json",
+    "assets": "repochan/assets.json",
+    "i18nDir": "repochan/i18n"
+  },
+  "content": {
+    "defaultLocale": "zh",
+    "supportedLocales": [
+      "zh",
+      "en"
+    ]
+  },
+  "assets": [
+    {
+      "kind": "scalar",
+      "slot": "hero-scene",
+      "required": true,
+      "reference": "repochan/references/hero-orchard-scene.png",
+      "output": "public/assets/hero-orchard.webp",
+      "description": "Sunrise orchard hero scene with the project character gardening among young trees — baked L1+L2 landscape poster (3:2) with a soft morning-sky safe zone on the left/top for live title text. Reference is the raw 4K-class scene master.",
+      "order": {
+        "assetType": "poster_scene",
+        "templateId": "official/poster-scene",
+        "brief": {
+          "intent": "Repaint the sunrise-orchard hero scene for the downstream project: the project character as a gardener tending a young tree in a warm daylight orchard, with a continuous soft sky/morning-light safe zone on the left and top for live headline text.",
+          "mustInclude": [
+            "a sunrise orchard scene: warm golden morning light, gentle grassy slopes, a few trees with glowing fruit, simplified solar geometry (low photovoltaic flowers / a small windmill) on the horizon",
+            "the project character in a gardener pose (crouching and watering a sapling, or picking fruit on a ladder), fully inside the canvas with no cropped limbs",
+            "natural materials: light watercolor edges, paper-fiber feel, risograph green tones",
+            "a continuous soft sky/morning-light safe zone covering roughly the left 40% and top 30% — no high-frequency detail, no faces, able to carry headline text",
+            "a daylight-ecology palette led by warm gold, leaf green, moss and sky blue from the project identity"
+          ],
+          "avoid": [
+            "text, letters, watermarks, UI, screens, piles of electronic devices",
+            "night scenes, neon, cyber-apocalypse, glassmorphism",
+            "heavy black neo-brutal outlines, scanlines",
+            "the character's face inside the left safe zone",
+            "hard grid composition"
+          ],
+          "creativeFreedom": [
+            "tree species and fruit shapes (fruit may subtly hint at brand assets)",
+            "the exact form of the horizon solar geometry",
+            "treatment of morning mist and light beams"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "hero-orchard-scene",
+            "format": "png",
+            "width": 1536,
+            "height": 1024,
+            "aspectRatio": "3:2",
+            "genSize": "3840x2560"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 82,
+            "maxWidth": 2400
+          },
+          "out": "public/assets/hero-orchard.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "cutout-gardener",
+      "required": true,
+      "reference": "repochan/references/gardener-cutout-matte.png",
+      "output": "public/assets/cutout-gardener.webp",
+      "description": "Full-body die-cut cutout of the character as a gardener watering a small sapling — the Sprout section's independent L2, transparent webp produced by chroma-key + compress. Reference is the raw matte master (2:3).",
+      "order": {
+        "assetType": "character_cutout",
+        "templateId": "official/character-cutout",
+        "brief": {
+          "intent": "Regenerate the gardener cutout for the downstream project's character: holding a watering can and leaning slightly forward to water a small sapling, readable as a standalone die-cut layer beside live text.",
+          "mustInclude": [
+            "one full-body character watering a small sapling with a watering can, fully inside the canvas with margins on all four sides — head to shoes, can and water arc complete, nothing cropped",
+            "perfectly flat uniform matte background in a color absent from the character, no shadows or gradients on the matte",
+            "single centered subject, front or slight 3/4 view, a caring expression",
+            "single-focus pose: the main hand holds the watering can, the other hand rests naturally — no complex two-handed action",
+            "vertical 2:3 framing, character centered"
+          ],
+          "avoid": [
+            "text",
+            "scenery",
+            "ground shadows",
+            "shadows on the matte",
+            "cropped limbs or props",
+            "complex background elements or a second character"
+          ],
+          "creativeFreedom": [
+            "watering-can design (a small brand-color detail is welcome)",
+            "the sapling's exact shape",
+            "small gardener outfit variations (e.g. rolled-up sleeves) as long as core identity markers stay intact",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "cutout-gardener-matte",
+            "format": "png",
+            "width": 1024,
+            "height": 1536,
+            "aspectRatio": "2:3",
+            "genSize": "1024x1536"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "chroma-key",
+          "args": {
+            "matte": "auto",
+            "pipeline": "v2"
+          },
+          "out": "public/assets/cutout-gardener.png"
+        },
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 88,
+            "maxWidth": 1600
+          },
+          "out": "public/assets/cutout-gardener.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "foundation-plaque",
+      "required": true,
+      "output": "public/assets/foundation-plaque.webp",
+      "description": "Foundation sheet shown as a wooden plaque nailed to the tree in the Sunframe section — square 1:1, compressed to 1024px webp.",
+      "order": {
+        "assetType": "foundation_sheet",
+        "templateId": "official/foundation-sheet",
+        "brief": {
+          "intent": "Regenerate the foundation sheet cover for the downstream project's character: palette, three views and signature accessories locked in one frame, presented as the orchard's sun-frame plaque.",
+          "mustInclude": [
+            "the project character's foundation sheet: three views, palette swatches and signature accessories in one composition",
+            "square 1:1 framing that reads cleanly inside a wooden plaque frame"
+          ],
+          "avoid": [
+            "rendered paragraphs of text",
+            "watermarks",
+            "cluttered backgrounds outside the sheet"
+          ],
+          "creativeFreedom": [
+            "sheet layout and swatch arrangement",
+            "plaque-friendly border treatment"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "foundation-sheet",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "1024x1024"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 85,
+            "maxWidth": 1024
+          },
+          "out": "public/assets/foundation-plaque.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "icon",
+      "required": true,
+      "output": "public/assets/icon.webp",
+      "description": "Project icon — nav badge; also the favicon source (favicon.ico / apple-touch-icon.png / icon-192.png / icon-512.png are derived from it offline via compress + favicon + resize).",
+      "order": {
+        "assetType": "icon",
+        "templateId": "official/icon-single",
+        "brief": {
+          "mustInclude": [
+            "one scalable brand mark reading cleanly at 38px",
+            "project motif without any letterforms"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "watermarks"
+          ],
+          "creativeFreedom": [
+            "mark geometry",
+            "accent colors from the project palette"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "icon",
+            "format": "png",
+            "width": 512,
+            "height": 512,
+            "aspectRatio": "1:1",
+            "genSize": "1024x1024"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 90,
+            "maxWidth": 512
+          },
+          "out": "public/assets/icon.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "cta-cutout",
+      "required": true,
+      "reference": "repochan/references/cta-cutout-matte.png",
+      "output": "public/assets/cutout-wave.webp",
+      "description": "Waving cutout cameo on the Share Table CTA — transparent webp produced by chroma-key + compress. Reference is the raw matte master (1:1).",
+      "order": {
+        "assetType": "character_cutout",
+        "templateId": "official/character-cutout",
+        "brief": {
+          "intent": "Regenerate the closing-CTA cutout for the downstream project's character: a friendly waving/presenting pose that reads while perched beside the share-table command card.",
+          "mustInclude": [
+            "one full-body character waving or presenting, fully inside the canvas",
+            "perfectly flat uniform matte background in a color absent from the character",
+            "square 1:1 framing, character centered"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "scenery",
+            "shadows on the matte",
+            "cropped limbs or props"
+          ],
+          "creativeFreedom": [
+            "character outfit details",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "cutout-matte",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "2048x2048"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "chroma-key",
+          "args": {
+            "matte": "auto",
+            "pipeline": "v2"
+          },
+          "out": "public/assets/cutout-wave.png"
+        },
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 88,
+            "maxWidth": 2048
+          },
+          "out": "public/assets/cutout-wave.webp"
+        }
+      ]
+    },
+    {
+      "kind": "bundle",
+      "slot": "stickers",
+      "required": true,
+      "reference": "repochan/references/stickers-grid.png",
+      "publications": [
+        {
+          "key": "welcome",
+          "cell": 0,
+          "output": "public/assets/stickers/sticker-0.webp"
+        },
+        {
+          "key": "searching",
+          "cell": 1,
+          "output": "public/assets/stickers/sticker-1.webp"
+        },
+        {
+          "key": "loading",
+          "cell": 2,
+          "output": "public/assets/stickers/sticker-2.webp"
+        },
+        {
+          "key": "empty",
+          "cell": 3,
+          "output": "public/assets/stickers/sticker-3.webp"
+        },
+        {
+          "key": "error",
+          "cell": 4,
+          "output": "public/assets/stickers/sticker-4.webp"
+        },
+        {
+          "key": "success",
+          "cell": 5,
+          "output": "public/assets/stickers/sticker-5.webp"
+        },
+        {
+          "key": "not-found",
+          "cell": 6,
+          "output": "public/assets/stickers/sticker-6.webp"
+        },
+        {
+          "key": "cta",
+          "cell": 7,
+          "output": "public/assets/stickers/sticker-7.webp"
+        },
+        {
+          "key": "cozy",
+          "cell": 8,
+          "output": "public/assets/stickers/sticker-8.webp"
+        }
+      ],
+      "description": "Nine die-cut stickers — all nine cells run as the fruit in the Harvest section's basket (round fruit plates with stems and a hover sway). sticker-N.webp is cell N of the 3×3 grid; the source grid's cell semantics (chibi expressions) differ from the template's fixed keys, and the keys are the positional replacement contract for downstream regeneration.",
+      "order": {
+        "assetType": "web_state_stickers",
+        "templateId": "official/web-state-grid-3x3",
+        "brief": {
+          "mustInclude": [
+            "strict 3×3 grid of the project character in the nine fixed web-state poses (template cell semantics)",
+            "perfectly flat uniform matte background in a color absent from the character, identical in every pixel outside the stickers"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "numbers",
+            "borders",
+            "grid lines",
+            "scenery",
+            "shadows on the matte"
+          ],
+          "creativeFreedom": [
+            "expression and pose details inside each fixed semantic",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "sticker-grid",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "2048x2048"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "extract-grid",
+          "args": {
+            "rows": 3,
+            "cols": 3,
+            "strategy": "chroma-grid",
+            "mapping": {
+              "welcome": 0,
+              "searching": 1,
+              "loading": 2,
+              "empty": 3,
+              "error": 4,
+              "success": 5,
+              "not-found": 6,
+              "cta": 7,
+              "cozy": 8
+            },
+            "normalize": {
+              "canvasSize": 640,
+              "padding": 10
+            },
+            "chroma": {
+              "matteColor": "auto",
+              "pipeline": "v2",
+              "matteSelect": "subject-aware"
+            },
+            "geometry": {
+              "mode": "centroid-components"
+            },
+            "qa": {
+              "alphaThreshold": 32,
+              "minForegroundRatio": 0.05,
+              "maxForegroundRatio": 0.9,
+              "maxSheetEdgeTouchRatio": 0.05
+            },
+            "format": "webp",
+            "quality": 80
+          },
+          "out": "public/assets/stickers"
+        }
+      ]
+    }
+  ]
+}

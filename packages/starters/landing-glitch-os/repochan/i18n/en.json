@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "RepoChan — REPOCHAN OS · Rendering repos into mascots",
+    "description": "REPOCHAN OS: a glitching computer that renders your git repo into a mascot. Scan, analyze, persona, paint, deploy — every window on this page runs real dogfood orders."
+  },
+  "content": {
+    "boot": {
+      "lines": [
+        "REPOCHAN OS v0.1.0 — booting…",
+        "mounting .repochan/ … OK",
+        "loading persona … RepoChan booted",
+        "starting window manager … OK"
+      ]
+    },
+    "desktop": {
+      "brand": "REPOCHAN OS",
+      "version": "v0.1.0 · glitch build",
+      "tagline": "A computer that is busy rendering your repo into a mascot.",
+      "sub": "Scan a git repo → generate a persona → commission the art → ship the landing page. Every window below runs a real production order.",
+      "hint": "Double-click (or single-click) an icon to open its window ↓",
+      "heroAlt": "RepoChan full-body cutout: silver hair with pink and mint streaks, heterochromia, black REPO hoodie, handing you a stylus",
+      "icons": [
+        { "id": "win-analysis", "label": "Analysis.app" },
+        { "id": "win-persona", "label": "Persona.app" },
+        { "id": "win-painter", "label": "Painter.app" },
+        { "id": "win-deploy", "label": "Deploy.app" },
+        { "id": "trash", "label": "Trash", "note": "Empty — no failed sketches today." }
+      ]
+    },
+    "winAnalysis": {
+      "title": "ord-analysis — .repochan/analysis/report.json",
+      "badge": "running",
+      "lines": [
+        { "t": "cmd", "text": "$ repochan analysis ." },
+        { "t": "ok", "text": "[ok] git log parsed · tech stack: typescript / pnpm / turbo" },
+        { "t": "ok", "text": "[ok] bilingual README detected · project tone: dev_tool · medium weight" },
+        { "t": "ok", "text": "[ok] writing .repochan/analysis/report.json" },
+        { "t": "cmd", "text": "$ repochan persona create" },
+        { "t": "err", "text": "[FATAL] no mascot found — generating…" },
+        { "t": "ok", "text": "[ok] persona schema repochan.persona.v2 → RepoChan booted" },
+        { "t": "ok", "text": "[ok] .repochan/persona/current.json" },
+        { "t": "cmd", "text": "$ repochan order create --kind foundation" },
+        { "t": "ok", "text": "[ok] ord-foundation-001 → v2026-07-19T13-53-01-958Z" },
+        { "t": "info", "text": "[..] generated-2026-07-19T13-48-41.png · 1024×1024" },
+        { "t": "cmd", "text": "$ repochan image gen ord-sticker-001" },
+        { "t": "ok", "text": "[ok] 3×3 sticker grid → extract → sticker-0..8.webp" },
+        { "t": "cmd", "text": "$ repochan starter pull --starter landing-glitch-os" },
+        { "t": "ok", "text": "[ok] rendering repo → persona … done in 0.42s" }
+      ],
+      "prompt": "guest@repochan:~$"
+    },
+    "winPersona": {
+      "title": "repochan.persona.v2 — .repochan/persona/current.json",
+      "badge": "OK",
+      "avatarAlt": "RepoChan avatar: reaching-out pose with RGB-split glitch decoration",
+      "glitchNote": "signal unstable — three offset slices of the same frame",
+      "fields": [
+        { "k": "name", "v": "RepoChan (仓库酱)" },
+        { "k": "age", "v": "16 · high-school freshman · freelance illustrator" },
+        { "k": "world", "v": "Sugar Riff — a tiny studio on the art-district corner" },
+        { "k": "eyes", "v": "heterochromia · lake blue #38BDF8 + violet pink #A78BFA" },
+        { "k": "hair", "v": "long silver hair · pink + mint streaks" },
+        { "k": "gear", "v": "triangle hair clip · big headphones · REPO hoodie · stylus" },
+        { "k": "motto", "v": "“Brush in hand, skill wherever I stand.”" },
+        { "k": "rule", "v": "No commissions she can't feel — “the lines would die”" }
+      ]
+    },
+    "winPainter": {
+      "title": "ord-sticker-001 + ord-webstates-001 — versions/",
+      "badge": "9 files",
+      "stickerCap": "stickers/ · 640×640 transparent tiles · extracted from the ord-sticker-001 grid master",
+      "stateCap": "webstates/ · state grid · extracted from ord-webstates-001",
+      "stickerAlt": "RepoChan chibi sticker",
+      "stateAlt": "RepoChan state tile"
+    },
+    "winFoundation": {
+      "title": "ord-foundation-001 / v2026-07-19T13-53-01-958Z",
+      "badge": "FILE OK",
+      "imageAlt": "RepoChan character foundation sheet: key visual, expression set, color palette, key props and app icon mockup",
+      "status": [
+        { "k": "checksum", "v": "generated-2026-07-19T13-48-41.png" },
+        { "k": "size", "v": "1024×1024 · cel-shading · six-color system" },
+        { "k": "downstream", "v": "ord-sticker-001 / ord-webstates-001 / ord-cutout-001 all reference this version" },
+        { "k": "verify", "v": "FILE OK — consistency baseline locked" }
+      ]
+    },
+    "modal": {
+      "title": "FATAL_SUCCESS.EXE",
+      "face": ":)",
+      "heading": "Your repo has been successfully rendered into a mascot.",
+      "body": "This is not a blue screen. It's a ship-it screen. Install REPOCHAN OS into your own repo and three minutes later you'll have a window like this too.",
+      "stopCode": "STOP 0x00000000 EVERYTHING_FINE",
+      "cmd": "npm install -g repochan",
+      "copyLabel": "Copy command",
+      "copiedLabel": "Copied ✓",
+      "docsLabel": "GitHub README",
+      "foot": "Press any key to continue — or just keep scrolling; this OS never locks."
+    },
+    "taskbar": {
+      "start": "repochan.exe",
+      "progressLabel": "pipeline:",
+      "stages": [
+        { "name": "scan", "state": "OK" },
+        { "name": "analysis", "state": "OK" },
+        { "name": "persona", "state": "OK" },
+        { "name": "paint", "state": "OK" },
+        { "name": "deploy", "state": "READY" }
+      ],
+      "clockFallback": "SYS·READY",
+      "cmd": "npm install -g repochan",
+      "copyLabel": "Copy install command",
+      "copiedLabel": "Copied ✓",
+      "localeLabel": "LANG",
+      "localeSwitch": "中文"
+    }
+  }
+}

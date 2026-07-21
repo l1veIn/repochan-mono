@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "RepoChan",
+    "description": "Turn a git repository into a full brand kit — mascot persona, illustrations, stickers, posters and a landing page — via a CLI + agent pipeline.",
+    "repositoryUrl": "https://github.com/l1veIn/repochan-mono"
+  },
+  "theme": {
+    "primary": "#FFE600",
+    "base": "#FFFFFF",
+    "ink": "#111111",
+    "accents": ["#0000EE", "#551A8B", "#C0C0C0", "#008080", "#000080", "#FF0000", "#00FF00", "#FFF3A1", "#FFC6DE", "#C9E7FF"]
+  },
+  "brand": {
+    "artStyle": "Anti-design chaos board — deliberate rule-breaking on a controlled-chaos baseline: yellow-black warning tape, default blue links, system chrome (ButtonFace gray, Win95 teal, select blue), clashing pure red/green accents, overlapping layers and random-seeded rotations, 5+ mismatched fonts per page, web 1.0 nostalgia (marquee, blink, stuck 99% progress bar). Always ships with a「正常版」readable-mode escape hatch and reduced-motion fallbacks.",
+    "motifs": ["sticky note", "warning tape", "error dialog", "fake stack trace", "marquee", "stuck progress bar", "fake screenshot window"],
+    "patterns": ["yellow-black hazard stripes", "default browser chrome", "clashing pure colors", "random-seeded tilt -4deg~12deg", "no grid no rules overlap"]
+  },
+  "locales": {
+    "default": "zh",
+    "supported": ["zh", "en"]
+  }
+}

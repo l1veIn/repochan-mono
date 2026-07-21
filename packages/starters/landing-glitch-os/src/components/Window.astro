@@ -1,0 +1,23 @@
+---
+type Props = {
+  id: string;
+  title: string;
+  badge?: string;
+  warn?: boolean;
+  variant?: "r" | "l";
+  class?: string;
+};
+
+const { id, title, badge, warn = false, variant, class: extra } = Astro.props;
+---
+
+<section class:list={["win", variant && `win--${variant}`, extra]} id={id}>
+  <header class="win__bar">
+    <span class="win__dots" aria-hidden="true"><span></span><span></span><span></span></span>
+    <span class="win__title">{title}</span>
+    {badge && <span class:list={["win__badge", warn && "win__badge--warn"]}>{badge}</span>}
+  </header>
+  <div class="win__body">
+    <slot />
+  </div>
+</section>

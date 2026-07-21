@@ -1,0 +1,56 @@
+---
+import Shape from "./Shape.astro";
+import { assets, site } from "../lib/site";
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["cta"] };
+const { content } = Astro.props;
+
+/** 静态 confetti：大色块上散落的孟菲斯小形状（位置/颜色/旋转有意排布） */
+const confetti = [
+  { kind: "triangle", color: "yellow", size: 34, top: "12%", left: "58%", rot: "14deg" },
+  { kind: "circle", color: "cyan", size: 22, top: "20%", left: "68%", rot: "0deg" },
+  { kind: "ring", color: "pink", size: 30, top: "8%", left: "78%", rot: "0deg" },
+  { kind: "zigzag", color: "violet", size: 44, top: "70%", left: "62%", rot: "-8deg" },
+  { kind: "semicircle", color: "cyan", size: 36, top: "78%", left: "48%", rot: "24deg" },
+  { kind: "plus", color: "yellow", size: 20, top: "34%", left: "52%", rot: "10deg" },
+  { kind: "dots", color: "pink", size: 52, top: "52%", left: "72%", rot: "0deg" },
+  { kind: "wave", color: "bg", size: 40, top: "10%", left: "6%", rot: "-6deg" },
+  { kind: "ring", color: "yellow", size: 24, top: "80%", left: "10%", rot: "0deg" },
+  { kind: "triangle", color: "violet", size: 24, top: "64%", left: "4%", rot: "-18deg" },
+] as const;
+---
+
+<section class="section" id="cta">
+  <div class="wrap">
+    <div class="cta-block" data-confetti-zone data-pop>
+      {confetti.map((c) => (
+        <span
+          class="confetti-shape"
+          style={`top:${c.top};left:${c.left};transform:rotate(${c.rot})`}
+        >
+          <Shape kind={c.kind} color={c.color} size={c.size} />
+        </span>
+      ))}
+      <div class="cta-inner">
+        <h2>{content.headline}</h2>
+        <p class="cta-sub">{content.sub}</p>
+        <div class="cta-cmdbar">
+          <code>{content.command}</code>
+          <button class="btn btn--small" type="button" data-copy={content.command} data-copied={content.copied}>
+            {content.copy}
+          </button>
+        </div>
+        <a class="cta-repo" href={site.project.repositoryUrl} rel="noopener">{content.repoLink} →</a>
+      </div>
+      <img
+        class="cta-cutout"
+        src={assets.ctaCutout.src}
+        alt="仓库酱摘下一只耳机，伸手邀请你加入"
+        width={assets.ctaCutout.width}
+        height={assets.ctaCutout.height}
+        loading="lazy"
+      />
+    </div>
+  </div>
+</section>

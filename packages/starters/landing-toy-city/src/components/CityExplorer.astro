@@ -1,0 +1,370 @@
+---
+import { assetSrc } from "../lib/site";
+import type { SiteContent, StageId } from "../lib/i18n/types";
+
+type Props = { content: SiteContent };
+const { content } = Astro.props;
+
+/* ---------------- 等距几何 ----------------
+   投影：ground (i,j) → screen (x + i - j, y + (i + j) / 2)
+   建筑为积木盒：top/left/right 三面 + 圆角描边（塑料边缘）。 */
+
+type Pt = [number, number];
+
+interface Bldg {
+  id: StageId;
+  x: number;
+  y: number;
+  a: number; // 半宽（iso X 轴）
+  b: number; // 半深（iso Y 轴）
+  h: number; // 高度
+  token: string; // site.json theme token 名
+  extra?: "antenna" | "roofslab" | "plinth" | "awning" | "chimney" | "pole" | "flag" | "crane";
+}
+
+interface BldgGeom extends Bldg {
+  F: Pt;
+  R: Pt;
+  B: Pt;
+  L: Pt;
+  Ft: Pt;
+  Rt: Pt;
+  Bt: Pt;
+  Lt: Pt;
+  depth: number;
+}
+
+const rawBldgs: Bldg[] = [
+  { id: "tower", x: 330, y: 310, a: 46, b: 46, h: 170, token: "buildingTower", extra: "antenna" },
+  { id: "studio", x: 590, y: 250, a: 62, b: 50, h: 92, token: "buildingStudio", extra: "roofslab" },
+  { id: "hall", x: 850, y: 310, a: 66, b: 52, h: 80, token: "buildingHall", extra: "plinth" },
+  { id: "cafe", x: 250, y: 450, a: 58, b: 46, h: 66, token: "buildingCafe", extra: "awning" },
+  { id: "shed", x: 950, y: 450, a: 58, b: 46, h: 64, token: "buildingShed", extra: "chimney" },
+  { id: "shop", x: 390, y: 578, a: 54, b: 44, h: 58, token: "buildingShop", extra: "pole" },
+  { id: "dock", x: 880, y: 588, a: 64, b: 48, h: 60, token: "buildingDock", extra: "crane" },
+  { id: "gate", x: 620, y: 618, a: 72, b: 48, h: 56, token: "buildingGate", extra: "flag" },
+];
+
+function buildGeom(b: Bldg): BldgGeom {
+  const { x, y, a, b: bb, h } = b;
+  return {
+    ...b,
+    F: [x + a - bb, y + (a + bb) / 2],
+    R: [x + a + bb, y + (a - bb) / 2],
+    L: [x - a - bb, y + (-a + bb) / 2],
+    B: [x - a + bb, y - (a + bb) / 2],
+    Ft: [x + a - bb, y + (a + bb) / 2 - h],
+    Rt: [x + a + bb, y + (a - bb) / 2 - h],
+    Lt: [x - a - bb, y + (-a + bb) / 2 - h],
+    Bt: [x - a + bb, y - (a + bb) / 2 - h],
+    depth: y + (a + bb) / 2,
+  };
+}
+
+const bldgs = rawBldgs.map(buildGeom);
+const bldgById = Object.fromEntries(bldgs.map((b) => [b.id, b])) as Record<StageId, BldgGeom>;
+
+function poly(...pts: Pt[]): string {
+  return pts.map(([px, py]) => `${px.toFixed(1)},${py.toFixed(1)}`).join(" ");
+}
+
+function lerp(p: Pt, q: Pt, t: number): Pt {
+  return [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t];
+}
+
+/** 侧面窗：face 由顶边 (t1,t2) 与底边 (b1,b2) 定义，t 列位置、u 宽、vb 离底高度、vh 窗高 */
+function winFace(t1: Pt, t2: Pt, b1: Pt, b2: Pt, t: number, u: number, vb: number, vh: number): string {
+  const q1 = lerp(t1, t2, t);
+  const q2 = lerp(t1, t2, t + u);
+  const q3raw = lerp(b1, b2, t + u);
+  const q4raw = lerp(b1, b2, t);
+  return poly(q1, q2, [q3raw[0], q3raw[1] - vh - vb], [q4raw[0], q4raw[1] - vh - vb]);
+}
+
+/* 门窗规格：右脸两列窗（够高时），左脸靠前一扇门 */
+function windowsFor(b: BldgGeom): string[] {
+  const polys: string[] = [];
+  if (b.h >= 56) {
+    const rows = Math.min(3, Math.floor((b.h - 20) / 44));
+    for (let r = 0; r < rows; r++) {
+      const vb = 16 + r * 42;
+      polys.push(winFace(b.Ft, b.Rt, b.F, b.R, 0.16, 0.2, vb, 22));
+      polys.push(winFace(b.Ft, b.Rt, b.F, b.R, 0.56, 0.2, vb, 22));
+    }
+  }
+  return polys;
+}
+
+function doorFor(b: BldgGeom): string {
+  return winFace(b.Lt, b.Ft, b.L, b.F, 0.62, 0.24, 0, 30);
+}
+
+/* ---------------- 场景装配（painter's algorithm） ---------------- */
+
+const plaza = { x: 600, y: 445, rx: 112, ry: 56, depth: 445 + 52 };
+
+const trees: { x: number; y: number; depth: number }[] = [
+  { x: 170, y: 372, depth: 372 },
+  { x: 1080, y: 402, depth: 402 },
+  { x: 770, y: 545, depth: 545 },
+  { x: 180, y: 585, depth: 585 },
+  { x: 470, y: 688, depth: 688 },
+];
+
+type Drawable =
+  | { kind: "bldg"; depth: number; b: BldgGeom }
+  | { kind: "plaza"; depth: number }
+  | { kind: "tree"; depth: number; x: number; y: number };
+
+const drawables: Drawable[] = [
+  ...bldgs.map((b) => ({ kind: "bldg", depth: b.depth, b }) as Drawable),
+  { kind: "plaza", depth: plaza.depth },
+  ...trees.map((t) => ({ kind: "tree", depth: t.depth, x: t.x, y: t.y }) as Drawable),
+].sort((p, q) => p.depth - q.depth);
+
+const stageIds: StageId[] = ["gate", "tower", "cafe", "studio", "hall", "shed", "shop", "dock"];
+
+/* 码头栈桥平台（dock 的 plinth 额外画一块大平台） */
+const dock = bldgById.dock;
+const pierPts = poly(
+  [dock.x + dock.a + 26 - (dock.b + 20), dock.y + (dock.a + 26 + dock.b + 20) / 2],
+  [dock.x + dock.a + 26 + (dock.b + 20), dock.y + (dock.a + 26 - (dock.b + 20)) / 2],
+  [dock.x - (dock.a + 26) + (dock.b + 20), dock.y - (dock.a + 26 + dock.b + 20) / 2],
+  [dock.x - (dock.a + 26) - (dock.b + 20), dock.y + (-(dock.a + 26) + dock.b + 20) / 2]
+);
+---
+
+<section class="explorer" aria-labelledby="explorer-title">
+  <div class="explorer-head">
+    <p class="explorer-kicker">{content.hero.kicker}</p>
+    <h1 class="explorer-title" id="explorer-title">{content.hero.title}</h1>
+    <p class="explorer-lead">{content.hero.lead}</p>
+    <p class="explorer-hint">{content.hero.hint}</p>
+  </div>
+
+  <div class="explorer-grid">
+    <div>
+      <div class="map-frame">
+        <div class="map-scroll">
+          <svg id="citySvg" viewBox="0 0 1200 760" role="img" aria-label={content.meta.title}>
+            {/* 云 */}
+            <g class="cloud">
+              <ellipse cx="240" cy="104" rx="52" ry="20"></ellipse>
+              <ellipse cx="282" cy="92" rx="40" ry="17"></ellipse>
+              <ellipse cx="205" cy="94" rx="30" ry="13"></ellipse>
+            </g>
+            <g class="cloud">
+              <ellipse cx="960" cy="140" rx="58" ry="21"></ellipse>
+              <ellipse cx="1008" cy="128" rx="38" ry="15"></ellipse>
+              <ellipse cx="925" cy="128" rx="30" ry="13"></ellipse>
+            </g>
+
+            <g id="cityCamera">
+              {/* 地面（rim 底层 + 顶层，塑料包边） */}
+              <ellipse class="city-ground-rim" cx="600" cy="436" rx="566" ry="272"></ellipse>
+              <ellipse class="city-ground" cx="600" cy="428" rx="566" ry="272"></ellipse>
+
+              {/* 依赖道路：广场 → 各建筑（虚线） */}
+              {bldgs.map((b) => (
+                <path
+                  class:list={["road", { "is-active": b.id === "gate" }]}
+                  data-stage={b.id}
+                  d={`M ${plaza.x} ${plaza.y} L ${b.x} ${b.y + 8}`}
+                />
+              ))}
+
+              {/* 码头栈桥 */}
+              <polygon points={pierPts} style="fill: var(--road); stroke: var(--panel);" stroke-width="4" stroke-linejoin="round"></polygon>
+
+              {/* 深度排序绘制 */}
+              {drawables.map((d) =>
+                d.kind === "tree" ? (
+                  <g>
+                    <rect class="tree-trunk" x={d.x - 4} y={d.y - 26} width="8" height="26" rx="3"></rect>
+                    <circle class="tree-crown" cx={d.x} cy={d.y - 38} r="18"></circle>
+                    <circle class="tree-crown" cx={d.x} cy={d.y - 52} r="12"></circle>
+                  </g>
+                ) : d.kind === "plaza" ? (
+                  <g>
+                    <ellipse class="plaza-disc" cx={plaza.x} cy={plaza.y} rx={plaza.rx} ry={plaza.ry}></ellipse>
+                    <ellipse class="plaza-ring" cx={plaza.x} cy={plaza.y} rx="84" ry="41"></ellipse>
+                    <image class="walker" href={assetSrc("chibi-walker")} x="558" y="380" width="84" height="84"></image>
+                  </g>
+                ) : (
+                  <a
+                    class:list={["bldg", { "is-active": d.b.id === "gate" }]}
+                    href={`#panel-${d.b.id}`}
+                    data-goto={d.b.id}
+                    data-stage={d.b.id}
+                    data-cx={d.b.F[0].toFixed(0)}
+                    data-cy={(d.b.F[1] - d.b.h / 2).toFixed(0)}
+                    style={`--b: var(--${d.b.token})`}
+                    aria-label={content.stages[d.b.id].name}
+                  >
+                    <ellipse
+                      class="bldg-shadow"
+                      cx={d.b.x}
+                      cy={d.b.y + 8}
+                      rx={(d.b.a + d.b.b) * 0.82}
+                      ry={(d.b.a + d.b.b) * 0.4}
+                    ></ellipse>
+                    <g class="bldg-body">
+                      {d.b.extra === "plinth" && (
+                        <polygon
+                          class="face-right"
+                          points={poly(
+                            [d.b.x + d.b.a + 16 - (d.b.b + 14), d.b.y + (d.b.a + 16 + d.b.b + 14) / 2 - 8],
+                            [d.b.x + d.b.a + 16 + (d.b.b + 14), d.b.y + (d.b.a + 16 - (d.b.b + 14)) / 2 - 8],
+                            [d.b.x - (d.b.a + 16) + (d.b.b + 14), d.b.y - (d.b.a + 16 + d.b.b + 14) / 2 - 8],
+                            [d.b.x - (d.b.a + 16) - (d.b.b + 14), d.b.y + (-(d.b.a + 16) + d.b.b + 14) / 2 - 8]
+                          )}
+                        ></polygon>
+                      )}
+                      <polygon class="face-left" points={poly(d.b.L, d.b.F, d.b.Ft, d.b.Lt)}></polygon>
+                      <polygon class="face-right" points={poly(d.b.F, d.b.R, d.b.Rt, d.b.Ft)}></polygon>
+                      <polygon class="face-top" points={poly(d.b.Bt, d.b.Rt, d.b.Ft, d.b.Lt)}></polygon>
+                      {windowsFor(d.b).map((w) => (
+                        <polygon class="bldg-window" points={w}></polygon>
+                      ))}
+                      <polygon class="bldg-roof-detail" points={doorFor(d.b)} style="fill: color-mix(in srgb, var(--b) 45%, var(--ink));"></polygon>
+                      {d.b.extra === "antenna" && (
+                        <g>
+                          <line class="bldg-fixture" x1={d.b.Bt[0]} y1={d.b.Bt[1]} x2={d.b.Bt[0]} y2={d.b.Bt[1] - 34}></line>
+                          <circle cx={d.b.Bt[0]} cy={d.b.Bt[1] - 40} r="7" style="fill: var(--accent);"></circle>
+                        </g>
+                      )}
+                      {d.b.extra === "roofslab" && (
+                        <polygon
+                          class="bldg-window"
+                          points={poly(
+                            lerp(d.b.Bt, d.b.Rt, 0.2),
+                            lerp(d.b.Bt, d.b.Rt, 0.8),
+                            lerp(d.b.Lt, d.b.Ft, 0.8),
+                            lerp(d.b.Lt, d.b.Ft, 0.2)
+                          )}
+                        ></polygon>
+                      )}
+                      {d.b.extra === "awning" && (
+                        <polygon
+                          points={poly(d.b.Ft, d.b.Rt, [d.b.Rt[0], d.b.Rt[1] + 18], [d.b.Ft[0], d.b.Ft[1] + 18])}
+                          style="fill: var(--panel);"
+                          opacity="0.95"
+                        ></polygon>
+                      )}
+                      {d.b.extra === "chimney" && (
+                        <polygon
+                          class="face-left"
+                          points={poly(
+                            [d.b.Bt[0] + 8, d.b.Bt[1] + 14],
+                            [d.b.Bt[0] + 20, d.b.Bt[1] + 20],
+                            [d.b.Bt[0] + 20, d.b.Bt[1] - 12],
+                            [d.b.Bt[0] + 8, d.b.Bt[1] - 18]
+                          )}
+                        ></polygon>
+                      )}
+                      {d.b.extra === "pole" && (
+                        <g>
+                          <line class="bldg-fixture" x1={d.b.R[0] + 26} y1={d.b.R[1] + 26} x2={d.b.R[0] + 26} y2={d.b.R[1] - 40}></line>
+                          <circle cx={d.b.R[0] + 26} cy={d.b.R[1] - 48} r="12" style="fill: var(--panel); stroke: var(--b);" stroke-width="5"></circle>
+                        </g>
+                      )}
+                      {d.b.extra === "flag" && (
+                        <g>
+                          <line class="bldg-fixture" x1={d.b.Bt[0]} y1={d.b.Bt[1]} x2={d.b.Bt[0]} y2={d.b.Bt[1] - 38}></line>
+                          <polygon points={poly([d.b.Bt[0], d.b.Bt[1] - 38], [d.b.Bt[0] + 26, d.b.Bt[1] - 30], [d.b.Bt[0], d.b.Bt[1] - 20])} style="fill: var(--accent);"></polygon>
+                        </g>
+                      )}
+                      {d.b.extra === "crane" && (
+                        <g>
+                          <line class="bldg-fixture" x1={d.b.L[0] - 8} y1={d.b.L[1] + 4} x2={d.b.L[0] - 8} y2={d.b.L[1] - 96}></line>
+                          <line class="bldg-fixture" x1={d.b.L[0] - 8} y1={d.b.L[1] - 96} x2={d.b.L[0] + 62} y2={d.b.L[1] - 72}></line>
+                          <line class="bldg-fixture" x1={d.b.L[0] + 62} y1={d.b.L[1] - 72} x2={d.b.L[0] + 62} y2={d.b.L[1] - 42} stroke-width="3"></line>
+                          <rect x={d.b.L[0] + 54} y={d.b.L[1] - 42} width="16" height="14" rx="3" style="fill: var(--accent);"></rect>
+                        </g>
+                      )}
+                    </g>
+                  </a>
+                )
+              )}
+
+              {/* 地名标签顶层：始终在建筑之上，白描边保证可读（验收：标签始终可读） */}
+              <g class="city-labels" aria-hidden="true">
+                <text class="plaza-caption" x="465" y="418" text-anchor="middle">
+                  {content.plaza.caption}
+                </text>
+                {bldgs.map((b) => (
+                  <text
+                    class:list={["city-label", { "is-active": b.id === "gate" }]}
+                    data-stage={b.id}
+                    x={b.F[0]}
+                    y={b.F[1] + 34}
+                    text-anchor="middle"
+                  >
+                    {content.stages[b.id].name}
+                  </text>
+                ))}
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      {/* 站点 chips：移动端列表兜底 + 快捷导览 */}
+      <div class="stop-chips" role="group" aria-label={content.panel.ariaLabel}>
+        {stageIds.map((id) => (
+          <button type="button" data-goto={id} data-stage={id} class:list={[{ "is-active": id === "gate" }]}>
+            {content.stages[id].name}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    {/* 详情面板（无 JS 时全部顺序堆叠可读；有 JS 时按选中切换） */}
+    <div class="panel-stack" aria-live="polite">
+      {stageIds.map((id) => {
+        const s = content.stages[id];
+        return (
+          <article
+            class="stage-panel"
+            id={`panel-${id}`}
+            data-panel={id}
+            tabindex="-1"
+            style={`--b: var(--${bldgById[id].token})`}
+          >
+            <span class="stage-code">{s.code}</span>
+            <h2 class="stage-name">{s.name}</h2>
+            <span class="stage-product">{s.product}</span>
+            <p class="stage-tagline">{s.tagline}</p>
+            <dl class="stage-io">
+              <div>
+                <dt>{content.panel.inputLabel}</dt>
+                <dd>{s.input}</dd>
+              </div>
+              <span class="io-arrow" aria-hidden="true">→</span>
+              <div>
+                <dt>{content.panel.outputLabel}</dt>
+                <dd>{s.output}</dd>
+              </div>
+            </dl>
+            <p class="stage-cmd-label">{content.panel.commandLabel}</p>
+            <div class="stage-cmd">
+              <code>{s.command}</code>
+              <button type="button" data-copy={s.command} data-copied={content.panel.copiedLabel}>
+                <span>{content.panel.copyLabel}</span>
+              </button>
+            </div>
+            <p class="stage-assets-label">{content.panel.assetsLabel}</p>
+            <div class="stage-thumbs">
+              {s.thumbs.map((key) => (
+                <img src={assetSrc(key)} alt="" width="84" height="84" loading="lazy" />
+              ))}
+            </div>
+            <button class="stage-next" type="button" data-goto={s.next} data-goto-focus="true">
+              {content.panel.nextLabel} · {s.nextLabel} →
+            </button>
+          </article>
+        );
+      })}
+    </div>
+  </div>
+</section>

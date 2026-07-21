@@ -1,0 +1,581 @@
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+/* ── 派生 token：4 桶主题（SiteLayout 注入 --wire-bg/--wire-line/--sky 等）+ 字体栈内联 ── */
+:root {
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-brand: 'Inter Tight', 'Noto Sans SC', system-ui, sans-serif;
+  --wire-bg-soft: color-mix(in srgb, var(--wire-bg) 96%, var(--wire-line));
+  --wire-dim: color-mix(in srgb, var(--wire-line) 45%, var(--wire-bg));
+  --wire-faint: color-mix(in srgb, var(--wire-line) 22%, var(--wire-bg));
+}
+body {
+  margin: 0;
+  background: var(--wire-bg);
+  color: var(--wire-line);
+  font-family: var(--font-brand);
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: var(--sky); }
+code, pre, .mono { font-family: var(--font-mono); }
+:focus-visible { outline: 2px solid var(--sky); outline-offset: 3px; }
+
+/* ── 顶部 RENDER 进度轨 ── */
+.rail {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.55rem 1rem;
+  background: color-mix(in srgb, var(--wire-bg) 88%, transparent);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--wire-faint);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+.rail-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--wire-line);
+  text-decoration: none;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+.rail-icon { position: relative; width: 24px; height: 24px; display: inline-block; }
+.rail-icon svg, .rail-icon img {
+  position: absolute;
+  inset: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  transition: opacity 0.5s;
+}
+.rail-icon-wire { color: var(--wire-line); }
+.rail-icon-color { opacity: 0; }
+body.is-live .rail-icon-wire { opacity: 0; }
+body.is-live .rail-icon-color { opacity: 1; }
+
+.rail-stages { display: flex; gap: 0.9rem; flex: 1; justify-content: center; }
+.rail-dot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: var(--wire-dim);
+  text-decoration: none;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  transition: color 0.3s;
+}
+.rail-dot-tick {
+  width: 6px;
+  height: 6px;
+  border: 1px solid currentColor;
+  transform: rotate(45deg);
+  transition: background 0.3s;
+}
+.rail-dot.is-active { color: var(--sky); }
+.rail-dot.is-active .rail-dot-tick { background: var(--sky); }
+
+.rail-status { display: flex; align-items: center; gap: 0.6rem; }
+.rail-render { color: var(--emerald); letter-spacing: 0.1em; }
+.rail-pct { color: var(--wire-line); min-width: 3.2ch; text-align: right; }
+.rail-locale {
+  color: var(--wire-dim);
+  text-decoration: none;
+  border: 1px solid var(--wire-faint);
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+}
+.rail-locale:hover { color: var(--wire-line); border-color: var(--wire-dim); }
+
+.rail-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--wire-faint);
+}
+.rail-bar-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--emerald), var(--sky), var(--pink));
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+/* ── 图层开关（桌面加分项） ── */
+.toggles {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--wire-faint);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--wire-bg) 90%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+}
+.toggles-title { color: var(--wire-dim); letter-spacing: 0.1em; margin-bottom: 0.15rem; }
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: none;
+  border: none;
+  color: var(--wire-line);
+  font: inherit;
+  cursor: pointer;
+  padding: 0.15rem 0;
+  text-align: left;
+}
+.toggle-led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--emerald);
+  box-shadow: 0 0 6px var(--emerald);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.toggle[aria-pressed="false"] { color: var(--wire-dim); }
+.toggle[aria-pressed="false"] .toggle-led { background: var(--wire-faint); box-shadow: none; }
+
+/* 图层关闭状态 */
+body.lyr-off-protocol .lyr-protocol,
+body.lyr-off-line .lyr-line,
+body.lyr-off-texture .lyr-texture { opacity: 0.07 !important; }
+body.lyr-off-color .lyr-color { opacity: 0.12 !important; filter: grayscale(1) !important; }
+body.lyr-off-motion * { animation-play-state: paused !important; }
+body.lyr-off-motion .lyr-motion { opacity: 0.25 !important; }
+
+/* ── 阶段快照（reduced-motion 导航，默认隐藏） ── */
+.snapshots {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 40;
+  display: none;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--wire-faint);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--wire-bg) 90%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+}
+.snapshots-title { color: var(--wire-dim); margin-right: 0.25rem; }
+.snapshot-link { color: var(--sky); text-decoration: none; }
+.snapshot-link:hover { text-decoration: underline; }
+
+/* ── 阶段舞台：同一构图骨架，只变完成度 ── */
+.morph {
+  --lp: 1; /* no-JS / reduced-motion 兜底：终态完整可见 */
+  height: 260vh;
+  position: relative;
+}
+.stage-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+.stage-grid {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: 4.5rem 2rem 2rem;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: 3rem;
+  align-items: center;
+}
+
+.copy { max-width: 46ch; }
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  color: var(--emerald);
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+}
+.kicker-pct { color: var(--wire-dim); }
+.title {
+  font-size: clamp(1.9rem, 4.2vw, 3.4rem);
+  line-height: 1.12;
+  margin: 0.6rem 0 1rem;
+  font-weight: 800;
+}
+/* Wire 阶段：等宽；Live 阶段：品牌字体实心。
+   空心描边只对拉丁字形使用——中文描边可读性差，zh 用实心 + 等宽。 */
+.phase-wire .title {
+  font-family: var(--font-mono);
+}
+html[lang="en"] .phase-wire .title {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--wire-line);
+}
+html[lang="zh-CN"] .phase-wire .title { color: var(--wire-line); }
+.phase-brand .title { color: var(--wire-line); }
+#stage-6 .title, #stage-7 .title { color: var(--sky); }
+.body {
+  color: var(--wire-dim);
+  line-height: 1.85;
+  font-size: 0.98rem;
+  margin: 0 0 1.1rem;
+}
+.note {
+  font-size: 0.72rem;
+  color: var(--emerald);
+  border-left: 2px solid var(--wire-faint);
+  padding-left: 0.8rem;
+  margin: 1.2rem 0 0;
+}
+.note code { color: inherit; }
+
+/* copy 恒可见（首屏 lp=0 时也必须可读）；阶段切换本身提供节奏 */
+
+/* ── 视觉槽位：所有阶段同一位置同一比例 ── */
+.visual { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
+.slot-frame {
+  position: relative;
+  width: min(100%, 460px);
+  aspect-ratio: 3 / 4;
+}
+.fig-label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  color: var(--wire-dim);
+}
+
+/* 角色图在槽位内统一放置 */
+.lineart-img, .flat-img, .render-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Stage 0 · WIREFRAME */
+.v-wire { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 1rem; }
+.ascii {
+  margin: 0;
+  font-size: clamp(0.5rem, 1.15vw, 0.78rem);
+  line-height: 1.2;
+  color: var(--wire-line);
+  overflow: hidden;
+}
+.wire-slot {
+  position: relative;
+  flex: 1;
+  border: 1.5px dashed var(--wire-dim);
+}
+.wire-cross {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top right, transparent calc(50% - 0.5px), var(--wire-faint) calc(50% - 0.5px), var(--wire-faint) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+    linear-gradient(to bottom right, transparent calc(50% - 0.5px), var(--wire-faint) calc(50% - 0.5px), var(--wire-faint) calc(50% + 0.5px), transparent calc(50% + 0.5px));
+}
+.wire-tick { position: absolute; width: 10px; height: 10px; border: 1.5px solid var(--wire-line); }
+.wire-tick-tl { top: -5px; left: -5px; border-right: none; border-bottom: none; }
+.wire-tick-tr { top: -5px; right: -5px; border-left: none; border-bottom: none; }
+.wire-tick-bl { bottom: -5px; left: -5px; border-right: none; border-top: none; }
+.wire-tick-br { bottom: -5px; right: -5px; border-left: none; border-top: none; }
+.wire-dim {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--emerald);
+}
+.wire-dim-w { top: -1.1rem; left: 50%; transform: translateX(-50%); }
+.wire-dim-h { right: -1.8rem; top: 50%; transform: translateY(-50%) rotate(90deg); }
+
+/* Stage 1 · SCHEMA */
+.v-schema { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+.gray-slot { position: relative; border: 1.5px solid var(--wire-dim); }
+.gray-slot .wire-dim-h { right: 0.4rem; }
+.gray-fill {
+  position: absolute;
+  inset: 12% 18%;
+  background: var(--wire-faint);
+  border-radius: 40% 40% 12% 12%;
+  opacity: calc(0.35 + var(--lp) * 0.65);
+}
+.schema-fields {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: clamp(0.55rem, 1vw, 0.7rem);
+  line-height: 2.1;
+}
+.field-key { color: var(--emerald); }
+.field-sep { color: var(--wire-dim); }
+.field-value { color: var(--sky); }
+
+/* Stage 2 · LINEART — 透明线稿 invert 成亮线，--lp 扫入 */
+.v-lineart { position: absolute; inset: 0; }
+.lineart-img {
+  filter: invert(0.92) drop-shadow(0 0 6px color-mix(in srgb, var(--sky) 35%, transparent));
+  -webkit-mask-image: linear-gradient(to bottom, black calc(var(--lp) * 118%), transparent calc(var(--lp) * 118% + 12%));
+  mask-image: linear-gradient(to bottom, black calc(var(--lp) * 118%), transparent calc(var(--lp) * 118% + 12%));
+}
+
+/* Stage 3 · FLAT — 灰模 → 颜色通道打开（同一张图，CSS filter 模拟平涂） */
+.v-flat { position: absolute; inset: 0; }
+.flat-img {
+  filter: grayscale(calc(1 - var(--lp))) saturate(calc(1 + var(--lp) * 1.6)) contrast(calc(1 + var(--lp) * 0.3)) brightness(1.04);
+}
+.swatches {
+  position: absolute;
+  left: -0.5rem;
+  bottom: 4%;
+  list-style: none;
+  margin: 0;
+  padding: 0.6rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  background: color-mix(in srgb, var(--wire-bg) 82%, transparent);
+  border: 1px solid var(--wire-faint);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: var(--wire-dim);
+}
+.swatches li { display: flex; align-items: center; gap: 0.45rem; }
+.swatch-chip {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: var(--chip);
+  border: 1px solid var(--wire-faint);
+}
+.foundation-thumb {
+  position: absolute;
+  right: -0.5rem;
+  top: 4%;
+  width: 26%;
+  border: 1px solid var(--wire-faint);
+  border-radius: 6px;
+  opacity: min(1, calc(var(--lp) * 2));
+}
+
+/* Stage 4 · TEXTURE */
+.v-texture { position: absolute; inset: 0; }
+.texture-bg {
+  position: absolute;
+  inset: -6%;
+  background-size: 220px;
+  border-radius: 12px;
+  opacity: calc(var(--lp) * 0.5);
+}
+.sticker {
+  position: absolute;
+  width: 22%;
+  filter: drop-shadow(0 4px 10px color-mix(in srgb, var(--wire-bg) 45%, transparent));
+  transform: scale(min(1, calc(var(--lp) * 2.5))) rotate(var(--rot, 0deg));
+}
+.sticker-a { left: -4%; top: 8%; --rot: -8deg; }
+.sticker-b { right: -5%; top: 40%; --rot: 6deg; }
+.sticker-c { left: 2%; bottom: 4%; --rot: -4deg; }
+
+/* Stage 5 · RENDER */
+.v-render { position: absolute; inset: 0; }
+.studio-img {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 128%;
+  transform: translateX(-50%);
+  border: 1px solid var(--wire-faint);
+  border-radius: 10px;
+  filter: blur(calc((1 - var(--lp)) * 10px)) saturate(calc(0.2 + var(--lp) * 0.8));
+}
+.render-img {
+  filter: grayscale(calc(1 - var(--lp))) drop-shadow(0 10px 30px color-mix(in srgb, var(--wire-bg) 50%, transparent));
+}
+
+/* Stage 6 · LIVE */
+.v-live { position: absolute; inset: 0; }
+.live-halo {
+  position: absolute;
+  inset: 12% 8%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--sky) 26%, transparent), transparent);
+  animation: halo-pulse 3.2s ease-in-out infinite;
+}
+@keyframes halo-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(0.96); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+/* live 交互演示（copy 区） */
+.live-demo { margin: 1rem 0; display: flex; flex-direction: column; gap: 0.8rem; align-items: flex-start; }
+.live-btn-wrap { position: relative; }
+.live-btn-wire {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px dashed var(--wire-dim);
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--wire-dim);
+  opacity: calc(1 - var(--lp));
+  pointer-events: none;
+  white-space: nowrap;
+  padding: 0.75rem 1.4rem;
+}
+.live-btn-solid {
+  display: inline-block;
+  background: var(--sky);
+  color: var(--wire-bg);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.75rem 1.4rem;
+  border-radius: 8px;
+  text-decoration: none;
+  box-shadow: 0 0 0 transparent;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.live-btn-solid:hover { transform: translateY(-2px); box-shadow: 0 6px 18px color-mix(in srgb, var(--sky) 45%, transparent); }
+.live-link {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--emerald);
+  text-decoration: none;
+}
+.live-link:hover { text-decoration: underline; }
+
+/* Stage 7 · WORLD */
+.v-world { position: absolute; inset: 0; }
+.world-glow {
+  position: absolute;
+  inset: 8% 4%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--purple) 24%, transparent), transparent);
+  animation: halo-pulse 4s ease-in-out infinite;
+}
+.world-icon {
+  position: absolute;
+  right: 4%;
+  bottom: 6%;
+  width: 15%;
+  border-radius: 18%;
+  border: 1px solid var(--wire-faint);
+}
+
+/* install CTA（copy 区） */
+.install { margin-top: 1.2rem; display: flex; flex-direction: column; gap: 0.7rem; align-items: flex-start; }
+.install-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  color: var(--yellow);
+  margin: 0;
+}
+.install-cmd {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--wire-faint);
+  border-radius: 8px;
+  overflow: hidden;
+  max-width: 100%;
+}
+.install-cmd code {
+  padding: 0.7rem 1rem;
+  font-size: 0.8rem;
+  color: var(--wire-line);
+  background: var(--wire-bg-soft);
+  white-space: nowrap;
+  overflow-x: auto;
+}
+.copy-btn {
+  border: none;
+  border-left: 1px solid var(--wire-faint);
+  background: var(--wire-bg-soft);
+  color: var(--sky);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 0 0.9rem;
+  cursor: pointer;
+}
+.copy-btn:hover { background: var(--wire-faint); color: var(--wire-line); }
+
+/* ── Colophon ── */
+.colophon {
+  border-top: 1px solid var(--wire-faint);
+  padding: 3rem 2rem 4.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-size: 0.8rem;
+  line-height: 1.9;
+}
+.colophon-line { margin: 0; color: var(--wire-line); }
+.colophon-dim { color: var(--wire-dim); }
+.colophon-meta {
+  margin: 1.4rem 0 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--wire-dim);
+}
+.colophon-meta a { color: var(--sky); text-decoration: none; }
+
+/* ── 响应式：移动端重新构图（视觉在上，copy 在下） ── */
+@media (max-width: 860px) {
+  .rail-stages .rail-dot-label { display: none; }
+  .rail-stages { gap: 0.55rem; }
+  .toggles { display: none; }
+  .morph { height: 220vh; }
+  .stage-grid {
+    grid-template-columns: 1fr;
+    gap: 1.2rem;
+    padding: 4rem 1.2rem 1.5rem;
+    align-content: start;
+  }
+  .visual { order: -1; }
+  .slot-frame { width: min(64vw, 280px); }
+  .copy { max-width: none; }
+  .title { font-size: clamp(1.6rem, 7vw, 2.2rem); }
+  .v-schema { grid-template-columns: 1fr; grid-template-rows: 1fr auto; gap: 0.6rem; }
+  .schema-fields { font-size: 0.6rem; line-height: 1.9; overflow-wrap: anywhere; }
+  .wire-dim { display: none; }
+  .swatches { left: 0; font-size: 0.52rem; padding: 0.45rem 0.5rem; }
+  .foundation-thumb { right: 0; }
+}
+
+/* ── reduced-motion：全部终态静态 + 快照导航接管 ── */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .morph { height: auto; min-height: 100vh; --lp: 1 !important; }
+  .stage-sticky { position: static; height: auto; min-height: 100vh; }
+  .live-halo, .world-glow { animation: none; }
+  .snapshots { display: flex; }
+  .rail-bar-fill { transition: none; }
+}

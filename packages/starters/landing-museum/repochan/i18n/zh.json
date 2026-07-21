@@ -1,0 +1,293 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "zh",
+  "meta": {
+    "title": "RepoChan 美术馆 · 白盒子特展",
+    "description": "一个仓库进入，一组可展出的品牌资产离开。本馆展品均为 RepoChan 流水线的真实交付物。"
+  },
+  "content": {
+    "nav": {
+      "brand": "RepoChan",
+      "tag": "白盒子特展",
+      "links": [
+        {
+          "label": "设定集",
+          "href": "#gallery-a"
+        },
+        {
+          "label": "角色研究",
+          "href": "#gallery-b"
+        },
+        {
+          "label": "版数",
+          "href": "#gallery-c"
+        },
+        {
+          "label": "海报",
+          "href": "#gallery-d"
+        },
+        {
+          "label": "笔记",
+          "href": "#notes"
+        }
+      ],
+      "cta": "安装 CLI",
+      "localeSwitch": "EN"
+    },
+    "lobby": {
+      "kicker": "The RepoChan Museum · 常设展",
+      "headlineA": "一个仓库进入，",
+      "headlineB": "一组展品离开。",
+      "manifesto": "RepoChan 把 git 仓库变成完整的品牌资产：人设、设定集、贴纸、海报、落地页。本馆不按主题布展，只按交付顺序陈列——你看到的每一件，都是订单系统里可查的真实产物。",
+      "portrait": {
+        "no": "作品 00",
+        "title": "开幕肖像 · 仓库酱",
+        "material": "character cutout / 完整入画版 2048×3072",
+        "orderId": "ord-cutout-001",
+        "year": "2026",
+        "note": "银发，粉与薄荷的挑染，异色瞳。角色仅在序厅出现一次，其余展厅属于作品。"
+      },
+      "noteTitle": "展览说明",
+      "noteBody": "全部展品出自 .repochan/ 订单流水线。展签上的藏品号即订单号，可用 repochan order get 当场查证——本馆没有示意图。",
+      "ctaPrimary": "复制安装命令",
+      "ctaPrimaryCommand": "npm install -g repochan",
+      "ctaSecondary": "进入展厅 ↓",
+      "copied": "已复制"
+    },
+    "galleryA": {
+      "kicker": "Gallery A",
+      "title": "设定集",
+      "intro": "一切下游资产的视觉锚点。人物、表情、色板与关键母题，先在一张纸上达成一致，然后才被允许进入生产。",
+      "exhibit": {
+        "no": "作品 01",
+        "title": "Foundation Sheet",
+        "material": "foundation sheet / official/foundation-sheet",
+        "orderId": "ord-foundation-001",
+        "year": "2026",
+        "note": "本馆全部下游订单均以这张设定集为一致性基准——贴纸、海报、cutout，都由它签字放行。"
+      }
+    },
+    "galleryB": {
+      "kicker": "Gallery B",
+      "title": "角色研究",
+      "intro": "从设定集走向生产：完整入画、四边留白的通用 cutout，与从贴纸母图提取的表情研究。",
+      "main": {
+        "no": "作品 02",
+        "title": "Cutout B · 挥手",
+        "material": "character cutout / 完整入画版 2048×2048",
+        "orderId": "ord-cutout-001",
+        "year": "2026",
+        "note": "通用 cutout 的纪律：全身完整、四边留白，可被放置在任何构图里。"
+      },
+      "studies": [
+        {
+          "no": "作品 03a",
+          "title": "表情研究 · Excited",
+          "material": "expression tile / 640px",
+          "orderId": "ord-sticker-001",
+          "year": "2026"
+        },
+        {
+          "no": "作品 03b",
+          "title": "表情研究 · Focused",
+          "material": "expression tile / 640px",
+          "orderId": "ord-sticker-001",
+          "year": "2026"
+        },
+        {
+          "no": "作品 03c",
+          "title": "表情研究 · Deadpan",
+          "material": "expression tile / 640px",
+          "orderId": "ord-sticker-001",
+          "year": "2026"
+        },
+        {
+          "no": "作品 03d",
+          "title": "Q 版全身 · Chibi",
+          "material": "chibi tile / 640px",
+          "orderId": "ord-sticker-001",
+          "year": "2026"
+        }
+      ],
+      "propsTitle": "器物研究",
+      "props": [
+        {
+          "no": "作品 04a",
+          "title": "三角发夹",
+          "material": "item prop / 640px",
+          "orderId": "ord-props-001",
+          "year": "2026"
+        },
+        {
+          "no": "作品 04b",
+          "title": "星形光标耳坠",
+          "material": "item prop / 640px",
+          "orderId": "ord-props-001",
+          "year": "2026"
+        },
+        {
+          "no": "作品 04c",
+          "title": "头戴耳机",
+          "material": "item prop / 640px",
+          "orderId": "ord-props-001",
+          "year": "2026"
+        },
+        {
+          "no": "作品 04d",
+          "title": "触控笔吊坠",
+          "material": "item prop / 640px",
+          "orderId": "ord-props-001",
+          "year": "2026"
+        }
+      ]
+    },
+    "galleryC": {
+      "kicker": "Gallery C",
+      "title": "版数",
+      "intro": "两张 3×3 网格母图切片出的十八件小作：一套情绪贴纸，一套网站状态。同一角色，同一设定集，十八次仍然成立。",
+      "stickers": {
+        "no": "作品 05",
+        "title": "Sticker Sheet · 九联",
+        "material": "sticker tiles / 640px × 9",
+        "orderId": "ord-sticker-001",
+        "year": "2026"
+      },
+      "webstates": {
+        "no": "作品 06",
+        "title": "Webstates · 九联",
+        "material": "web-state tiles / 640px × 9",
+        "orderId": "ord-webstates-001",
+        "year": "2026"
+      }
+    },
+    "galleryD": {
+      "kicker": "Gallery D",
+      "title": "海报与纹样",
+      "intro": "平面厅。一张工作室场景的孔版海报，一张孟菲斯海报，以及一方连续纹样。",
+      "main": {
+        "no": "作品 07",
+        "title": "Sugar Riff 工作室",
+        "material": "poster / official/poster-risograph-pop / 1536×1024",
+        "orderId": "ord-poster-001",
+        "year": "2026",
+        "note": "孔版印刷质感：半调网点、轻微套色偏移、纸纹。角色在自己的工作室里。"
+      },
+      "pair": [
+        {
+          "no": "作品 08",
+          "title": "孟菲斯海报",
+          "material": "poster / official/poster-memphis",
+          "orderId": "ord-poster-memphis-001",
+          "year": "2026"
+        },
+        {
+          "no": "作品 09",
+          "title": "光标与音符 · 连续纹样",
+          "material": "visual pattern / seamless tile",
+          "orderId": "ord-pattern-001",
+          "year": "2026"
+        }
+      ]
+    },
+    "notes": {
+      "kicker": "Studio Notes",
+      "title": "流水线笔记",
+      "intro": "每一件展品背后是同一条六步流水线。命令即展品说明。",
+      "steps": [
+        {
+          "title": "分析仓库",
+          "desc": "README、代码结构、提交历史，全部翻成设计证据。",
+          "command": "repochan analysis"
+        },
+        {
+          "title": "灵魂访谈",
+          "desc": "结构化问题，问出项目的语气、受众与分量。",
+          "command": "repochan interview create"
+        },
+        {
+          "title": "生成人设",
+          "desc": "三个智能体协作，捏出有生命力的看板娘。",
+          "command": "repochan persona create"
+        },
+        {
+          "title": "开创作订单",
+          "desc": "美术总监一次开齐全部 Asset Orders，设定集优先。",
+          "command": "repochan order create"
+        },
+        {
+          "title": "画师出图",
+          "desc": "按订单生成设定集、贴纸、海报；不满意就重画，旧版自动成为历史。",
+          "command": "repochan image gen"
+        },
+        {
+          "title": "装配成站",
+          "desc": "资产装进落地页，开幕——就像你现在站着的这间美术馆。",
+          "command": "repochan starter pull"
+        }
+      ]
+    },
+    "shop": {
+      "kicker": "Museum Shop",
+      "title": "把流水线带回家",
+      "intro": "展品不出售。生产展品的工具，可以带走。",
+      "copyLabel": "复制",
+      "copiedLabel": "已复制",
+      "cards": [
+        {
+          "title": "安装 CLI",
+          "desc": "一条命令，美术馆变工作室。",
+          "command": "npm install -g repochan"
+        },
+        {
+          "title": "装上 skill",
+          "desc": "把向导装进你的 agent，然后说一句 /repochan。",
+          "command": "repochan setup"
+        },
+        {
+          "title": "查一件藏品",
+          "desc": "本馆全部展品可溯源——从展签上的藏品号开始。",
+          "command": "repochan order list"
+        }
+      ]
+    },
+    "colophon": {
+      "title": "Colophon",
+      "built": "本站由 RepoChan 自己的管线产出：人设、设定集、贴纸、海报、图标均来自 .repochan/ 真实订单，无一张示意图。",
+      "credits": [
+        {
+          "label": "字体",
+          "value": "Newsreader · Noto Serif SC · Noto Sans SC · JetBrains Mono"
+        },
+        {
+          "label": "生成管线",
+          "value": "gpt-image-2 · repochan image gen / image edit"
+        },
+        {
+          "label": "藏品",
+          "value": "ord-foundation-001 · ord-cutout-001 · ord-sticker-001 · ord-webstates-001 · ord-poster-001 · ord-poster-memphis-001 · ord-pattern-001 · ord-props-001 · ord-icon-001"
+        },
+        {
+          "label": "Locale",
+          "value": "zh-CN · en"
+        }
+      ],
+      "links": [
+        {
+          "label": "GitHub",
+          "href": "https://github.com/l1veIn/repochan-mono"
+        },
+        {
+          "label": "设计稿",
+          "href": "https://github.com/l1veIn/repochan-mono/tree/main/docs/prototypes"
+        }
+      ],
+      "localeSwitch": "English",
+      "protocol": "museum-white-cube · repochan protocol v1"
+    },
+    "lightbox": {
+      "close": "关闭",
+      "prev": "← 上一件",
+      "next": "下一件 →"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+---
+import { site, assetSrc, alternatePath, type Locale } from "../lib/site";
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = {
+  content: SiteContent["nav"];
+  locale: Locale;
+};
+
+const { content, locale } = Astro.props;
+---
+
+<header class="nav">
+  <a class="nav-brand" href={locale === "zh" ? "/" : "/en/"}>
+    <img src={assetSrc("icon")} alt="" width="40" height="40" />
+    <span>
+      <strong>{content.brand}</strong>
+      <small>{content.brandSub}</small>
+    </span>
+  </a>
+  <nav class="nav-links" aria-label="site">
+    <a href={alternatePath(locale)} hreflang={locale === "zh" ? "en" : "zh-CN"}>{content.localeSwitch}</a>
+    <a href={site.project.repositoryUrl} rel="noopener noreferrer">{content.github}</a>
+  </nav>
+</header>

@@ -1,0 +1,25 @@
+---
+import Window from "./Window.astro";
+import { assets } from "../lib/site";
+import type { WinFoundationContent } from "../lib/i18n/types";
+
+type Props = { content: WinFoundationContent };
+const { content } = Astro.props;
+---
+
+<Window id="win-foundation" title={content.title} badge={content.badge} variant="r">
+  <div class="foundation">
+    <figure class="foundation__img">
+      <img src={assets.foundation.src} width={assets.foundation.width} height={assets.foundation.height} alt={content.imageAlt} loading="lazy" />
+      <span class="foundation__stamp" aria-hidden="true">{content.badge}</span>
+    </figure>
+    <dl>
+      {content.status.map((s) => (
+        <div>
+          <dt>{s.k}</dt>
+          <dd>{s.v}</dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</Window>

@@ -1,0 +1,90 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro";
+import MorphSection from "./MorphSection.astro";
+import Wire from "./visuals/Wire.astro";
+import Schema from "./visuals/Schema.astro";
+import Lineart from "./visuals/Lineart.astro";
+import Flat from "./visuals/Flat.astro";
+import Texture from "./visuals/Texture.astro";
+import Render from "./visuals/Render.astro";
+import Live from "./visuals/Live.astro";
+import World from "./visuals/World.astro";
+import type { SiteContent } from "../lib/i18n/types";
+import type { Locale } from "../lib/i18n/types";
+
+type Props = {
+  content: SiteContent;
+  locale: Locale;
+  repoUrl: string;
+};
+
+const { content, locale, repoUrl } = Astro.props;
+const s = content.stages;
+---
+
+<SiteLayout title={content.meta.title} description={content.meta.description} locale={locale} content={content}>
+  <main>
+    <MorphSection stage={s[0]} index={0}>
+      <Wire />
+    </MorphSection>
+
+    <MorphSection stage={s[1]} index={1}>
+      <Schema fields={s[1].fields ?? []} />
+    </MorphSection>
+
+    <MorphSection stage={s[2]} index={2}>
+      <Lineart alt={s[2].imgAlt} />
+    </MorphSection>
+
+    <MorphSection stage={s[3]} index={3}>
+      <Flat alt={s[3].imgAlt} />
+    </MorphSection>
+
+    <MorphSection stage={s[4]} index={4}>
+      <Texture alt={s[4].imgAlt} />
+    </MorphSection>
+
+    <MorphSection stage={s[5]} index={5}>
+      <Render alt={s[5].imgAlt} />
+    </MorphSection>
+
+    <MorphSection stage={s[6]} index={6}>
+      <Live alt={s[6].imgAlt} />
+      <div class="live-demo" slot="copy-extra">
+        <div class="live-btn-wrap">
+          <span class="live-btn-wire lyr-line" aria-hidden="true">{s[6].ctaPrimary}</span>
+          <a class="live-btn-solid lyr-color" href={repoUrl} target="_blank" rel="noopener">{s[6].ctaPrimary}</a>
+        </div>
+        <a class="live-link lyr-protocol" href={repoUrl} target="_blank" rel="noopener">{s[6].ctaSecondary} →</a>
+      </div>
+    </MorphSection>
+
+    <MorphSection stage={s[7]} index={7}>
+      <World alt={s[7].imgAlt} />
+      <div class="install" slot="copy-extra">
+        <p class="install-label">{s[7].installLabel}</p>
+        <div class="install-cmd">
+          <code>{s[7].installCmd}</code>
+          <button
+            type="button"
+            class="copy-btn"
+            data-copy={s[7].installCmd}
+            data-copied={s[7].copiedLabel}
+          >
+            <span data-copy-label>{s[7].copyLabel}</span>
+          </button>
+        </div>
+        <a class="live-link lyr-protocol" href={repoUrl} target="_blank" rel="noopener">{s[7].repoLink} →</a>
+      </div>
+    </MorphSection>
+  </main>
+
+  <footer class="colophon">
+    <p class="colophon-line">{content.colophon.line1}</p>
+    <p class="colophon-line colophon-dim">{content.colophon.line2}</p>
+    <p class="colophon-meta">
+      <span>{content.colophon.designNote}</span>
+      <a href="#stage-0">{content.colophon.backTop} ↑</a>
+    </p>
+  </footer>
+</SiteLayout>

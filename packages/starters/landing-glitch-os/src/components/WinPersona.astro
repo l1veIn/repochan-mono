@@ -1,0 +1,31 @@
+---
+import Window from "./Window.astro";
+import { assets } from "../lib/site";
+import type { WinPersonaContent } from "../lib/i18n/types";
+
+type Props = { content: WinPersonaContent };
+const { content } = Astro.props;
+---
+
+<Window id="win-persona" title={content.title} badge={content.badge} variant="r">
+  <div class="persona">
+    <figure class="persona__fig glitch-fig">
+      <img src={assets.cutoutB.src} width={assets.cutoutB.width} height={assets.cutoutB.height} alt={content.avatarAlt} loading="lazy" />
+      <span class="glitch-fig__slice glitch-fig__slice--hot" aria-hidden="true">
+        <img src={assets.cutoutB.src} alt="" loading="lazy" />
+      </span>
+      <span class="glitch-fig__slice glitch-fig__slice--cyan" aria-hidden="true">
+        <img src={assets.cutoutB.src} alt="" loading="lazy" />
+      </span>
+      <figcaption class="mono">{content.glitchNote}</figcaption>
+    </figure>
+    <dl>
+      {content.fields.map((f) => (
+        <>
+          <dt>{f.k}</dt>
+          <dd>{f.v}</dd>
+        </>
+      ))}
+    </dl>
+  </div>
+</Window>

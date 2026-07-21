@@ -1,0 +1,64 @@
+---
+import { assets } from "../lib/site";
+import Exhibit from "./Exhibit.astro";
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["galleryD"] };
+const { content } = Astro.props;
+
+const pairImgs = [assets.exhibits.posterMemphis, assets.exhibits.patternTile];
+---
+
+<section class="room" id="gallery-d">
+  <p class="room-kicker" data-reveal>{content.kicker}</p>
+  <h2 class="room-title" data-reveal style="--d:60ms">{content.title}</h2>
+  <p class="room-intro" data-reveal style="--d:120ms">{content.intro}</p>
+
+  <Exhibit
+    class="poster-main"
+    ex={content.main}
+    src={assets.exhibits.posterRiso.src}
+    width={assets.exhibits.posterRiso.width}
+    height={assets.exhibits.posterRiso.height}
+    alt={content.main.title}
+    delay={140}
+  />
+
+  <div class="poster-pair">
+    {
+      content.pair.map((ex, i) => (
+        <Exhibit
+          ex={ex}
+          src={pairImgs[i].src}
+          width={pairImgs[i].width}
+          height={pairImgs[i].height}
+          alt={ex.title}
+          delay={160 + i * 80}
+        />
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  /* 节奏收束：再次单件全幅，然后双联 */
+  .poster-main {
+    max-width: 960px;
+    margin-inline: auto;
+  }
+
+  .poster-pair {
+    margin-top: clamp(72px, 11vh, 130px);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(32px, 5vw, 80px);
+    max-width: 880px;
+    margin-inline: auto;
+  }
+
+  @media (max-width: 640px) {
+    .poster-pair {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

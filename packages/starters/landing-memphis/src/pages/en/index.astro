@@ -1,0 +1,25 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import ShapeNav from "../../components/ShapeNav.astro";
+import HeroStage from "../../components/HeroStage.astro";
+import PipelineBlocks from "../../components/PipelineBlocks.astro";
+import AssetCarousel from "../../components/AssetCarousel.astro";
+import PlayRules from "../../components/PlayRules.astro";
+import CtaConfetti from "../../components/CtaConfetti.astro";
+import SiteFooter from "../../components/SiteFooter.astro";
+import { getContent } from "../../lib/site";
+
+const t = getContent("en");
+---
+
+<SiteLayout title={t.meta.title} description={t.meta.description} locale="en">
+  <ShapeNav content={t.nav} locale="en" />
+  <main>
+    <HeroStage content={t.hero} />
+    <PipelineBlocks content={t.pipeline} />
+    <AssetCarousel content={t.carousel} />
+    <PlayRules content={t.rules} />
+    <CtaConfetti content={t.cta} />
+  </main>
+  <SiteFooter content={t.footer} locale="en" />
+</SiteLayout>

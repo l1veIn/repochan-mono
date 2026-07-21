@@ -1,0 +1,14 @@
+---
+import type { BootContent } from "../lib/i18n/types";
+
+type Props = { content: BootContent };
+const { content } = Astro.props;
+---
+
+<!-- 装饰性 boot splash：默认 hidden，仅 JS + 非 reduced-motion 时播放一次 -->
+<div class="boot" data-boot hidden aria-hidden="true">
+  <div class="boot__panel">
+    {content.lines.map((line) => <p>{line}</p>)}
+    <span class="boot__cursor"></span>
+  </div>
+</div>

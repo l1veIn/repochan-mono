@@ -1,0 +1,14 @@
+---
+import Window from "./Window.astro";
+import type { WinAnalysisContent } from "../lib/i18n/types";
+
+type Props = { content: WinAnalysisContent };
+const { content } = Astro.props;
+---
+
+<Window id="win-analysis" title={content.title} badge={content.badge} warn>
+  <div class="term" role="log" aria-label={content.title}>
+    {content.lines.map((l) => <p class={`t-${l.t}`}>{l.text}</p>)}
+    <p class="term__prompt">{content.prompt}</p>
+  </div>
+</Window>

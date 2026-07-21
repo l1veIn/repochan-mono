@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "zh",
+  "meta": {
+    "title": "RepoChan · 把仓库丢进形状乐园",
+    "description": "RepoChan 把 git 仓库变成完整的品牌资产：人设、插画、贴纸、落地页。六块积木，拼出你的品牌。"
+  },
+  "content": {
+    "nav": {
+      "brand": "RepoChan",
+      "tag": "形状乐园",
+      "links": [
+        {
+          "shape": "circle",
+          "label": "积木管线",
+          "href": "#pipeline"
+        },
+        {
+          "shape": "triangle",
+          "label": "贴纸转盘",
+          "href": "#carousel"
+        },
+        {
+          "shape": "square",
+          "label": "玩法规则",
+          "href": "#rules"
+        }
+      ],
+      "cta": "开始拼装",
+      "localeSwitch": "EN"
+    },
+    "hero": {
+      "kicker": "RepoChan · 仓库酱的品牌玩具厂",
+      "headlineA": "把仓库丢进",
+      "headlineB": "形状乐园",
+      "sub": "一条 CLI，六个步骤：人设、插画、贴纸、落地页——像拼积木一样，拼出你的品牌。",
+      "ctaPrimary": "开始拼装",
+      "ctaPrimaryCommand": "npm install -g repochan",
+      "ctaSecondary": "先看看怎么玩",
+      "stageNote": "仓库酱，Sugar Riff 主理人 · 已在 9 张贴纸里待命",
+      "copied": "已复制！"
+    },
+    "pipeline": {
+      "title": "六块积木，一条管线",
+      "intro": "每一步都是一块玩具几何积木——按顺序拼，也可以随时回炉重拼。",
+      "steps": [
+        {
+          "verb": "拆开",
+          "name": "分析仓库",
+          "desc": "README、代码结构、提交历史，全部翻成设计证据。",
+          "command": "repochan analysis",
+          "shape": "zigzag"
+        },
+        {
+          "verb": "聊聊",
+          "name": "灵魂访谈",
+          "desc": "7–14 个结构化问题，问出项目的「灵魂画像」。",
+          "command": "repochan interview create",
+          "shape": "semicircle"
+        },
+        {
+          "verb": "捏人",
+          "name": "生成人设",
+          "desc": "三个智能体协作，捏出有生命力的看板娘。",
+          "command": "repochan persona create",
+          "shape": "circle"
+        },
+        {
+          "verb": "下单",
+          "name": "创作任务",
+          "desc": "美术总监一次开齐全部 Asset Orders，设定集优先。",
+          "command": "repochan order create",
+          "shape": "arch"
+        },
+        {
+          "verb": "涂色",
+          "name": "画师出图",
+          "desc": "按订单生成贴纸、海报、状态图，不满意就重画。",
+          "command": "repochan image gen",
+          "shape": "wave"
+        },
+        {
+          "verb": "展览",
+          "name": "拼成网站",
+          "desc": "资产装进落地页，开门营业——就像你现在看到的。",
+          "command": "repochan starter pull",
+          "shape": "ring"
+        }
+      ]
+    },
+    "carousel": {
+      "title": "贴纸转盘",
+      "intro": "9 张贴纸 + 9 张网站状态图，都是同一只仓库酱——设定集优先，所以每张都长得对。",
+      "orbitCaption": " sticker 系列 · ord-sticker-001",
+      "statesCaption": "webstates 系列 · ord-webstates-001",
+      "posterCaption": "孟菲斯海报 · ord-poster-memphis-001"
+    },
+    "rules": {
+      "title": "怎么玩",
+      "intro": "三条规则，比拼装玩具还简单。",
+      "copyLabel": "复制",
+      "copiedLabel": "✓ 已复制",
+      "cards": [
+        {
+          "title": "装上 CLI",
+          "desc": "一行命令，把玩具厂搬回家。",
+          "command": "npm install -g repochan",
+          "shape": "circle"
+        },
+        {
+          "title": "跑起 skill",
+          "desc": "setup 把技能装进你的 agent，然后说一句 /repochan。",
+          "command": "repochan setup",
+          "shape": "triangle"
+        },
+        {
+          "title": "拿走资产",
+          "desc": "人设、贴纸、海报都在 .repochan/ 里，随取随用。",
+          "command": "repochan order list",
+          "shape": "square"
+        }
+      ]
+    },
+    "cta": {
+      "headline": "准备好开拼了吗？",
+      "sub": "把这条命令贴进终端，剩下的交给仓库酱。",
+      "command": "npm install -g repochan && repochan setup",
+      "copy": "复制命令",
+      "copied": "已复制！",
+      "repoLink": "去 GitHub 看看"
+    },
+    "footer": {
+      "tagline": "RepoChan · 把 git 仓库变成品牌资产",
+      "built": "本站由 RepoChan 自己的管线产出：人设、贴纸、海报均来自 .repochan/ 订单。",
+      "links": [
+        {
+          "label": "GitHub",
+          "href": "https://github.com/l1veIn/repochan-mono"
+        },
+        {
+          "label": "设计稿",
+          "href": "https://github.com/l1veIn/repochan-mono/tree/main/docs/prototypes"
+        }
+      ],
+      "localeSwitch": "English",
+      "colophon": "memphis-playground · repochan protocol v1"
+    }
+  }
+}

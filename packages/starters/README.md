@@ -64,8 +64,20 @@ Starter Designer works in a creator-owned directory or repository. Official incl
 | ID | Original project site | Default |
 |---|---|---|
 | `caddy` | Caddy architectural automatic-HTTPS landing page | no |
+| `character-game-page` | RepoChan game-HUD character profile page | no |
+| `landing-anti-design` | RepoChan anti-design chaos bulletin board (experimental) | no |
+| `landing-constructivist` | RepoChan constructivist poster-wall sequence | no |
+| `landing-frutiger-aero` | RepoChan Frutiger Aero / Y2K glass landing page | no |
+| `landing-glitch-os` | RepoChan glitch-art fake desktop OS | no |
+| `landing-memphis` | RepoChan Memphis geometric playground landing page | no |
+| `landing-museum` | RepoChan museum white-cube asset exhibition | no |
+| `landing-neobrutal-zine` | RepoChan neo-brutal rock zine landing page | no |
+| `landing-scrollytelling` | RepoChan dark-terminal scrollytelling theatre | no |
+| `landing-solarpunk` | RepoChan solarpunk orchard growth narrative | no |
+| `landing-toy-city` | RepoChan isometric toy-city pipeline sandbox | no |
+| `landing-wireframe-morph` | RepoChan wireframe-to-render metamorphosis narrative | no |
 | `marktext` | MarkText midnight Art Deco editorial landing page | no |
 | `minimal` | RepoChan single-screen editorial Hero | yes |
-| `repochan-harbor` | RepoChan bilingual continuous-harbor landing page | no |
 | `redis` | Redis kinetic real-time signal-relay landing page | no |
+| `repochan-harbor` | RepoChan bilingual continuous-harbor landing page | no |
 | `sealed-scroll` | RepoChan continuous risograph seal-workshop landing page | no |

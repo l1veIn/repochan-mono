@@ -1,0 +1,55 @@
+---
+import Shape from "./Shape.astro";
+import { assets } from "../lib/site";
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["hero"] };
+const { content } = Astro.props;
+---
+
+<section class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="hero-kicker" data-pop style="--d:0s">{content.kicker}</span>
+      <h1 data-pop style="--d:0.08s">
+        {content.headlineA}<br />
+        <span class="hero-hl">{content.headlineB}</span>
+      </h1>
+      <p class="hero-sub" data-pop style="--d:0.16s">{content.sub}</p>
+      <div class="hero-ctas" data-pop style="--d:0.24s">
+        <button class="btn" type="button" data-copy={content.ctaPrimaryCommand} data-copied={content.copied}>
+          {content.ctaPrimary}
+        </button>
+        <a class="btn btn--ghost" href="#rules">{content.ctaSecondary}</a>
+      </div>
+      <div class="hero-cmd" data-pop style="--d:0.32s">
+        <code>{content.ctaPrimaryCommand}</code>
+      </div>
+    </div>
+
+    <div class="stage" aria-hidden="false">
+      <div class="stage-block stage-circle" data-pop style="--d:0.1s"></div>
+      <div class="stage-block stage-arch" data-pop style="--d:0.22s"></div>
+      <div class="stage-block stage-semi" data-pop style="--d:0.3s"></div>
+      <div class="stage-block stage-ring" data-pop style="--d:0.38s"></div>
+      <div class="stage-block stage-dots" data-pop style="--d:0.44s"></div>
+      <div class="stage-block stage-zigzag" data-pop style="--d:0.5s">
+        <Shape kind="zigzag" color="coral" size={120} />
+      </div>
+      <img
+        class="stage-cutout"
+        src={assets.heroCutout.src}
+        alt="RepoChan 看板娘仓库酱：银发粉薄荷挑染、异色瞳、黑色 REPO hoodie，手拿数位笔跃起"
+        width={assets.heroCutout.width}
+        height={assets.heroCutout.height}
+        loading="eager"
+        data-pop
+        style="--d:0.56s"
+      />
+      <div class="stage-note" data-pop style="--d:0.7s">
+        <img src={assets.stickers[0].src} alt="" width="44" height="44" />
+        <span>{content.stageNote}</span>
+      </div>
+    </div>
+  </div>
+</section>

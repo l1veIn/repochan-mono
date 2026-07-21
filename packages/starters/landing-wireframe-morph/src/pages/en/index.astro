@@ -1,0 +1,8 @@
+---
+import MorphPage from "../../components/MorphPage.astro";
+import { getContent, site } from "../../lib/site";
+
+const repoUrl = site.project.repositoryUrl ?? "/";
+---
+
+<MorphPage content={getContent("en")} locale="en" repoUrl={repoUrl} />

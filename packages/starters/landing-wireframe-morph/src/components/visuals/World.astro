@@ -1,0 +1,24 @@
+---
+import { assets } from "../../lib/site";
+
+// Stage 7 · WORLD — 完整品牌世界：纹样 + 全彩角色 + 贴纸 + 彩色 icon
+type Props = { alt: string };
+const { alt } = Astro.props;
+---
+
+<div class="v-world">
+  <span class="texture-bg lyr-texture" style={`background-image:url(${assets.pattern.src})`} aria-hidden="true" />
+  <span class="world-glow lyr-motion" aria-hidden="true" />
+  <img
+    class="render-img lyr-color"
+    src={assets.cutout.src}
+    width={assets.cutout.width}
+    height={assets.cutout.height}
+    alt={alt}
+    decoding="async"
+  />
+  <img class="sticker sticker-a lyr-texture" src={assets.sticker0.src} width="640" height="640" alt="" loading="lazy" decoding="async" />
+  <img class="sticker sticker-b lyr-texture" src={assets.sticker3.src} width="640" height="640" alt="" loading="lazy" decoding="async" />
+  <img class="sticker sticker-c lyr-texture" src={assets.sticker6.src} width="640" height="640" alt="" loading="lazy" decoding="async" />
+  <img class="world-icon lyr-color" src={assets.icon.src} width="512" height="512" alt="" loading="lazy" decoding="async" />
+</div>

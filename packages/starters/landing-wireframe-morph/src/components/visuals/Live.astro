@@ -1,0 +1,20 @@
+---
+import { assets } from "../../lib/site";
+
+// Stage 6 · LIVE — 全彩角色常驻；交互演示在 copy 区（线框按钮 → 实体按钮）
+type Props = { alt: string };
+const { alt } = Astro.props;
+---
+
+<div class="v-live">
+  <span class="live-halo lyr-motion" aria-hidden="true" />
+  <img
+    class="render-img lyr-color"
+    src={assets.cutout.src}
+    width={assets.cutout.width}
+    height={assets.cutout.height}
+    alt={alt}
+    loading="lazy"
+    decoding="async"
+  />
+</div>

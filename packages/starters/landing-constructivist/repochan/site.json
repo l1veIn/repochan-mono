@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "RepoChan",
+    "description": "Turn a git repository into a full brand kit — mascot persona, illustrations, stickers, posters and a landing page — via a CLI + agent pipeline.",
+    "repositoryUrl": "https://github.com/l1veIn/repochan-mono"
+  },
+  "theme": {
+    "primary": "#C41E3A",
+    "base": "#F3EDE3",
+    "ink": "#111111",
+    "accents": ["#6B6B6B", "#1D4ED8"]
+  },
+  "brand": {
+    "artStyle": "Constructivist propaganda poster wall — industrial geometry, a strictly limited red/black/cream palette (gray secondary, blue on exactly one poster), full-bleed posters with hard cuts between screens, slogans as composition, and the character subordinated to geometry as a flat silhouette symbol.",
+    "motifs": ["diagonal band", "concentric ring", "rotated square", "triangle", "vertical CJK block", "character silhouette seal"],
+    "patterns": ["halftone dots", "flat color blocks", "print offset frames", "hard-cut poster transitions"]
+  },
+  "locales": {
+    "default": "zh",
+    "supported": ["zh", "en"]
+  }
+}

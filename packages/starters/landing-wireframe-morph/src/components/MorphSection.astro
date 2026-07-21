@@ -1,0 +1,30 @@
+---
+import type { StageContent } from "../lib/i18n/types";
+
+type Props = {
+  stage: StageContent;
+  index: number;
+};
+
+const { stage, index } = Astro.props;
+---
+
+<section class:list={["morph", index < 3 ? "phase-wire" : "phase-brand"]} id={stage.id} style={`--i:${index}`}>
+  <div class="stage-sticky">
+    <div class="stage-grid">
+      <div class="copy">
+        <p class="kicker"><span class="kicker-pct">{stage.pct}</span>{stage.kicker}</p>
+        <h2 class="title">{stage.title}</h2>
+        <p class="body">{stage.body}</p>
+        <slot name="copy-extra" />
+        <p class="note"><code>{stage.note}</code></p>
+      </div>
+      <figure class="visual">
+        <div class="slot-frame">
+          <slot />
+        </div>
+        <figcaption class="fig-label">{stage.figLabel} · {stage.pct}</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>

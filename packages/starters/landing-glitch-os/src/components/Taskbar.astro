@@ -1,0 +1,31 @@
+---
+import { assets, alternatePath, type Locale } from "../lib/site";
+import type { TaskbarContent } from "../lib/i18n/types";
+
+type Props = { content: TaskbarContent; locale: Locale };
+const { content, locale } = Astro.props;
+---
+
+<footer class="taskbar">
+  <span class="taskbar__start">
+    <img src={assets.icon.src} width="512" height="512" alt="" />
+    ▶ {content.start}
+  </span>
+  <span class="taskbar__pipe" aria-label={content.progressLabel}>
+    <span>{content.progressLabel}</span>
+    {content.stages.map((s) => (
+      <span class:list={["taskbar__chip", s.state === "READY" && "taskbar__chip--ready"]}>
+        <i aria-hidden="true"></i>{s.name}·{s.state}
+      </span>
+    ))}
+  </span>
+  <span class="taskbar__right">
+    <button class="btn btn--cyan" type="button" data-copy={content.cmd} data-copied={content.copiedLabel}>
+      {content.copyLabel}
+    </button>
+    <span class="taskbar__clock" data-clock>{content.clockFallback}</span>
+    <a class="taskbar__locale" href={alternatePath(locale)} hreflang={locale === "zh" ? "en" : "zh-CN"}>
+      [{content.localeLabel}: {content.localeSwitch}]
+    </a>
+  </span>
+</footer>

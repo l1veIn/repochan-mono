@@ -1,0 +1,160 @@
+---
+import { assets } from "../lib/site";
+import type { HeroContent } from "../lib/i18n/types";
+
+type Props = { content: HeroContent };
+const { content } = Astro.props;
+---
+
+<section class="hero" id="top">
+  <div class="scene" data-parallax="-0.1" aria-hidden="true">
+    <img src={assets.heroScene.src} alt={content.sceneAlt} width={assets.heroScene.width} height={assets.heroScene.height} fetchpriority="high" />
+  </div>
+  <div class="hero-haze" aria-hidden="true"></div>
+
+  <div class="shell hero-inner">
+    <div class="hero-copy">
+      <p class="kicker mono" data-grow>{content.kicker}</p>
+      <h1 class="display" data-grow data-grow-delay="1">
+        {content.titleLines.map((line) => <span class="line">{line}</span>)}
+      </h1>
+      <p class="sub" data-grow data-grow-delay="2">{content.sub}</p>
+      <div class="cmd-row" data-grow data-grow-delay="3">
+        <code>{content.installCmd}</code>
+        <button type="button" data-copy={content.installCmd} data-copied={content.copiedLabel}>
+          {content.copyLabel}
+        </button>
+      </div>
+      <a class="secondary" href="#soil" data-grow data-grow-delay="4">{content.secondaryLabel} ↓</a>
+    </div>
+  </div>
+
+  <p class="scroll-hint mono" aria-hidden="true">{content.scrollHint} ↓</p>
+
+  <svg class="hero-curve" viewBox="0 0 1440 110" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0,64 C240,110 480,20 760,44 C1040,68 1240,104 1440,60 L1440,110 L0,110 Z"></path>
+  </svg>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: clamp(620px, 92vh, 880px);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .scene {
+    position: absolute;
+    inset: -6% 0;
+    z-index: -2;
+  }
+  .scene img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 68% 38%;
+  }
+  /* 晨光薄雾：safe zone 上的文字衬底（非玻璃面板，是日光雾） */
+  .hero-haze {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(58% 62% at 26% 42%, color-mix(in srgb, var(--paper) 72%, transparent) 0%, transparent 70%),
+      linear-gradient(to bottom, transparent 62%, color-mix(in srgb, var(--paper) 30%, transparent) 88%);
+  }
+  .hero-inner {
+    padding-block: 6rem 8rem;
+  }
+  .hero-copy {
+    max-width: 34rem;
+  }
+  .kicker {
+    font-size: 0.74rem;
+    letter-spacing: 0.3em;
+    color: var(--leaf-deep);
+    margin: 0 0 1.2rem;
+  }
+  h1 {
+    font-size: clamp(2.6rem, 6.2vw, 4.6rem);
+    margin: 0 0 1.4rem;
+    color: var(--ink);
+  }
+  h1 .line { display: block; }
+  .sub {
+    font-size: clamp(1rem, 1.5vw, 1.12rem);
+    color: var(--ink-soft);
+    margin: 0 0 1.8rem;
+    max-width: 30rem;
+  }
+  .cmd-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.4rem;
+  }
+  .cmd-row code {
+    font-size: 0.84rem;
+    padding: 0.7em 1em;
+    background: var(--ink);
+    color: var(--moss-soft);
+    border-radius: 10px;
+    word-break: break-all;
+    display: inline-flex;
+    align-items: center;
+  }
+  .cmd-row button {
+    font-family: inherit;
+    font-size: 0.84rem;
+    font-weight: 700;
+    padding: 0.55em 1.3em;
+    border: none;
+    border-radius: 10px;
+    background: var(--sun);
+    color: var(--ink);
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+  .cmd-row button:hover { background: var(--sun-soft); transform: translateY(-1px); }
+  .cmd-row button.is-copied { background: var(--moss); }
+  .secondary {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--leaf-deep);
+  }
+  .scroll-hint {
+    position: absolute;
+    right: clamp(1.2rem, 4vw, 3rem);
+    bottom: 6.5rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--leaf-deep);
+    writing-mode: vertical-rl;
+    margin: 0;
+  }
+  .hero-curve {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    width: 100%;
+    height: clamp(48px, 8vw, 110px);
+  }
+  .hero-curve path {
+    fill: var(--paper);
+  }
+  @media (max-width: 720px) {
+    .hero { min-height: clamp(560px, 100svh, 820px); align-items: flex-end; }
+    .scene img { object-position: 72% 30%; }
+    .hero-haze {
+      background:
+        linear-gradient(to bottom, transparent 30%, color-mix(in srgb, var(--paper) 82%, transparent) 68%, var(--paper) 92%);
+    }
+    .hero-inner { padding-block: 5rem 7rem; }
+    .scroll-hint { display: none; }
+  }
+</style>

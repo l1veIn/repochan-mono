@@ -1,0 +1,25 @@
+---
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["dialog"] };
+const { content } = Astro.props;
+---
+
+<!-- 假错误弹窗：默认 hidden，仅 JS 存在时显示；可关、可 Esc、不劫持 -->
+<div class="dialog-overlay" data-dialog hidden>
+  <div class="win dialog-window" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+    <div class="win-titlebar">
+      <span class="win-title" id="dialog-title">{content.title}</span>
+      <button class="win-x" type="button" data-dialog-close aria-label={content.close}>✕</button>
+    </div>
+    <div class="win-body">
+      <div class="dialog-body">
+        <p>{content.body1}</p>
+        <p>{content.body2}</p>
+      </div>
+      <div class="dialog-actions">
+        <button class="win-btn" type="button" data-dialog-close>{content.ok}</button>
+      </div>
+    </div>
+  </div>
+</div>

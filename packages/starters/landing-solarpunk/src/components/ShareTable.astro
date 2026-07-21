@@ -1,0 +1,123 @@
+---
+import { assets, site } from "../lib/site";
+import type { ShareContent } from "../lib/i18n/types";
+
+type Props = { content: ShareContent };
+const { content } = Astro.props;
+---
+
+<section class="section share" id="share">
+  <div class="shell">
+    <div class="table-card" data-grow>
+      <div class="table-main">
+        <p class="stage-label">{content.stage}</p>
+        <h2 class="section-title display">{content.title}</h2>
+        <p class="share-sub">{content.sub}</p>
+        <div class="cmd-row">
+          <code>{content.cmd}</code>
+          <button type="button" data-copy={content.cmd} data-copied={content.copiedLabel}>
+            {content.copyLabel}
+          </button>
+        </div>
+        <div class="links">
+          <a class="docs" href={site.project.repositoryUrl} rel="noopener">{content.docsLabel} →</a>
+        </div>
+        <p class="fine">{content.fine}</p>
+      </div>
+      <img class="cameo" src={assets.ctaCutout.src} alt={content.cutoutAlt} width={assets.ctaCutout.width} height={assets.ctaCutout.height} loading="lazy" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .share {
+    background: var(--clay-soft);
+    border-radius: clamp(32px, 6vw, 64px) clamp(32px, 6vw, 64px) 0 0;
+  }
+  .table-card {
+    position: relative;
+    background: var(--paper);
+    border: 1px solid var(--clay-soft);
+    border-radius: 22px;
+    padding: clamp(2rem, 5vw, 3.5rem) clamp(1.6rem, 5vw, 3.2rem);
+    box-shadow: 0 4px 0 color-mix(in srgb, var(--clay) 45%, transparent);
+    overflow: hidden;
+  }
+  /* 长桌木纹沿口 */
+  .table-card::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 12px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--clay) 0 46px,
+      color-mix(in srgb, var(--clay) 78%, var(--ink)) 46px 48px
+    );
+    opacity: 0.55;
+  }
+  .table-main { max-width: 34rem; }
+  .share-sub {
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    margin: 0 0 1.6rem;
+  }
+  .cmd-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.3rem;
+  }
+  .cmd-row code {
+    font-size: 0.86rem;
+    padding: 0.75em 1.1em;
+    background: var(--ink);
+    color: var(--moss-soft);
+    border-radius: 10px;
+    word-break: break-all;
+    display: inline-flex;
+    align-items: center;
+  }
+  .cmd-row button {
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 700;
+    padding: 0.6em 1.5em;
+    border: none;
+    border-radius: 10px;
+    background: var(--sun);
+    color: var(--ink);
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+  .cmd-row button:hover { background: var(--sun-soft); transform: translateY(-1px); }
+  .cmd-row button.is-copied { background: var(--moss); }
+  .links { margin-bottom: 1.2rem; }
+  .docs {
+    font-weight: 700;
+    color: var(--leaf-deep);
+  }
+  .fine {
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .cameo {
+    position: absolute;
+    right: clamp(0.5rem, 4vw, 3rem);
+    bottom: -12px;
+    width: clamp(150px, 22vw, 250px);
+    filter: drop-shadow(0 10px 14px color-mix(in srgb, var(--clay) 55%, transparent));
+  }
+  @media (max-width: 760px) {
+    .table-card { padding-bottom: 11rem; }
+    .cameo {
+      right: 50%;
+      transform: translateX(50%);
+      width: 160px;
+    }
+  }
+</style>

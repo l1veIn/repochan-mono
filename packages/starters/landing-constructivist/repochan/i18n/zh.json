@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "zh",
+  "meta": {
+    "title": "RepoChan — 给仓库一个灵魂",
+    "description": "RepoChan 是一台创意生产的宣传机器：扫描仓库、立起角色、交付设定集、生产页面。全套品牌资产，一条流水线。"
+  },
+  "content": {
+    "htmlLang": "zh-CN",
+    "masthead": {
+      "wordmark": "REPOCHAN",
+      "protocol": "repochan · protocol v1",
+      "iconAlt": "RepoChan 图标",
+      "localeSwitchLabel": "EN"
+    },
+    "posters": {
+      "call": {
+        "index": "01",
+        "vertical": "全套品牌资产",
+        "slogan": [
+          "给仓库",
+          "一个灵魂。"
+        ],
+        "latin": "GIVE THE REPO A SOUL",
+        "note": "人设 · 设定集 · 贴纸 · 海报 · 落地页。一条流水线，全套品牌资产。"
+      },
+      "analysis": {
+        "index": "02",
+        "slogan": [
+          "扫描仓库，",
+          "提取真相。"
+        ],
+        "latin": "SCAN THE REPO",
+        "note": "源码、README、提交史。确定性扫描在前，机器不猜，只读事实。",
+        "command": "repochan analysis"
+      },
+      "persona": {
+        "index": "03",
+        "vertical": "访谈立人设",
+        "slogan": [
+          "角色从协议中",
+          "站起。"
+        ],
+        "latin": "THE CHARACTER RISES",
+        "note": "分析加访谈，站起一个吉祥物：有世界、有性格、有视觉锚点。"
+      },
+      "foundation": {
+        "index": "04",
+        "slogan": [
+          "FOUNDATION",
+          "即法律。"
+        ],
+        "latin": "THE SHEET IS LAW",
+        "note": "设定集先行。下游订单全部引用它——一致性不是祈祷，是依赖。",
+        "command": "ord-foundation-001"
+      },
+      "painter": {
+        "index": "05",
+        "slogan": [
+          "订单",
+          "即生产。"
+        ],
+        "latin": "ORDERS ARE PRODUCTION",
+        "note": "每个资产一张订单：简报、模板、验收、版本。画完归档，永不丢史。",
+        "command": "repochan image gen"
+      },
+      "product": {
+        "index": "06",
+        "slogan": [
+          "页面",
+          "也是产物。"
+        ],
+        "latin": "THE PAGE IS A PRODUCT",
+        "note": "本页由同一条流水线 dogfood 产出。以下是真实订单证据，非装饰图库。",
+        "figures": [
+          {
+            "tag": "Fig. A",
+            "alt": "RepoChan 角色设定集：主视觉、表情、色板与关键道具",
+            "caption": "Fig. A — foundation sheet · ord-foundation-001 · 一致性锚点"
+          },
+          {
+            "tag": "Fig. B",
+            "alt": "Sugar Riff 工作室场景海报：仓库酱在数位板前作画",
+            "caption": "Fig. B — studio poster · ord-poster-001 · 世界观场景"
+          }
+        ]
+      },
+      "cta": {
+        "index": "07",
+        "slogan": [
+          "上工。"
+        ],
+        "latin": "REPORT FOR DUTY",
+        "note": "安装命令就是入伍令。setup 把技能装进你的 agent，之后每一步都是一条子命令。",
+        "cmd": "npm install -g repochan && repochan setup",
+        "copyLabel": "复制命令",
+        "copiedLabel": "已复制",
+        "docsLabel": "文档与源码 →",
+        "fine": "Node.js ≥ 20 · 自带 coding agent · 无内嵌运行时"
+      }
+    },
+    "progress": {
+      "label": "海报"
+    },
+    "colophon": {
+      "lines": [
+        "色板：红 #C41E3A · 黑 #111111 · 米 #F3EDE3 · 灰 #6B6B6B · 蓝 #1D4ED8（仅一屏）。",
+        "字体：Anton / Noto Sans SC。口号 ≤ 12 字，说明另设小字区。",
+        "角色服务几何：完整入画 cutout 经 CSS mask 剪影化，无新裁切。"
+      ],
+      "cutoutAlt": "仓库酱完整入画立绘剪影",
+      "copyright": "© 2026 RepoChan · MIT"
+    }
+  }
+}

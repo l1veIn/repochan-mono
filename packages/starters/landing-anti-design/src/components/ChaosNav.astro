@@ -1,0 +1,38 @@
+---
+import { assets, alternatePath, type Locale } from "../lib/site";
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { tape: SiteContent["tape"]; nav: SiteContent["nav"]; locale: Locale };
+const { tape, nav, locale } = Astro.props;
+const tapeItems = [...tape.items, ...tape.items, ...tape.items, ...tape.items];
+---
+
+<div class="tape" aria-hidden="true">
+  <div class="tape-track">
+    {tapeItems.map((item) => <span>{item}</span>)}
+  </div>
+</div>
+<nav class="nav" aria-label="site">
+  <div class="wrap nav-inner">
+    <a class="nav-brand" href={locale === "zh" ? "/" : "/en/"}>
+      <img src={assets.icon.src} alt="" width="30" height="30" />
+      {nav.brand}
+    </a>
+    <span class="nav-tag">{nav.tag}</span>
+    <span class="nav-new" aria-hidden="true">{nav.newBadge}</span>
+    <span class="nav-spacer"></span>
+    <button
+      class="win-btn"
+      type="button"
+      data-readable-toggle
+      data-label-on={nav.readableOn}
+      data-label-off={nav.readableOff}
+      aria-pressed="false"
+    >
+      {nav.readableOn}
+    </button>
+    <a class="win-btn nav-locale" href={alternatePath(locale)} aria-label={nav.localeSwitchLabel}>
+      {nav.localeSwitch}
+    </a>
+  </div>
+</nav>

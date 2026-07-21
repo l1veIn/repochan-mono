@@ -49,6 +49,22 @@ This changelog records coordinated public package sets.
   apply 被引用方。character-game-page 的 scene-* 已改造为该模式（线稿删除，
   scene-day 自由构图）。
 
+### Web-designer E2E 与 starter 批量迁移
+
+- `docs/prototypes/` 十个方向设计稿中的 02–10 已由 web-designer 流程全部落地
+  （swiss-type 为首个 pilot）；全部 Astro + 集中式 i18n + token 化 + Gate 记录。
+- 前两个 batch 的 8 个站点已按 starter-designer 教义批量迁移为官方 source
+  starter（landing-memphis / glitch-os / constructivist / solarpunk / toy-city /
+  museum / wireframe-morph / anti-design）：补齐 starter.json manifest（slot
+  声明、bundle publications、extract-grid postprocess、genSize）、site.json
+  收缩至 starter-site.v1 4 桶 theme + brand 三节、assets.json 协议化、
+  references 母图回收、canonical 预览；全部通过 `starter validate` 与
+  pull smoke（临时目录 validate + build）。wireframe-morph 的 lineart-full
+  是 `slot:` 资产间引用的首个生产用例。
+- `official/chibi-grid-3x3` 补 `grid.cell_keys`（9 个表情语义键）。
+- `scripts/preview-sites.sh` 默认改扫 `packages/starters`（`PREVIEW_SITES_DIR`
+  可覆盖）。
+
 ### Orders — postprocess 派生归档（审计）
 
 - Starter postprocess 步骤新增 `keep` 字段（默认 `true`）。`starter asset-apply`

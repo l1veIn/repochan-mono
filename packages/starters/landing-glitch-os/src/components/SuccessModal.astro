@@ -1,0 +1,27 @@
+---
+import Window from "./Window.astro";
+import { site } from "../lib/site";
+import type { ModalContent } from "../lib/i18n/types";
+
+type Props = { content: ModalContent };
+const { content } = Astro.props;
+---
+
+<div class="modal-wrap">
+  <Window id="win-deploy" title={content.title} badge={content.stopCode} warn class="modal">
+    <p class="modal__face" aria-hidden="true">{content.face}</p>
+    <h2 class="modal__heading">{content.heading}</h2>
+    <p class="modal__body">{content.body}</p>
+    <p class="modal__stop">{content.stopCode}</p>
+    <div class="modal__cmd">
+      <code>{content.cmd}</code>
+      <button class="btn" type="button" data-copy={content.cmd} data-copied={content.copiedLabel}>
+        {content.copyLabel}
+      </button>
+    </div>
+    <p class="modal__links">
+      <a class="mono" href={site.project.repositoryUrl} rel="noopener">{content.docsLabel} ↗</a>
+    </p>
+    <p class="modal__foot">{content.foot}</p>
+  </Window>
+</div>

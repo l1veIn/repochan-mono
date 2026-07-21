@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "RepoChan Asset City · Isometric Toy-City Pipeline",
+    "description": "Welcome to Asset City: the whole RepoChan pipeline rebuilt as a clickable isometric miniature city — from the Analysis Tower to the Deploy Dock. Pick a building, meet a stage."
+  },
+  "content": {
+    "nav": {
+      "brand": "Asset City",
+      "brandSub": "RepoChan Toy City",
+      "localeSwitch": "中文",
+      "github": "GitHub"
+    },
+    "hero": {
+      "kicker": "Tour starts here",
+      "title": "Welcome to Asset City.",
+      "lead": "The entire RepoChan pipeline lives here as a miniature city: Analysis Tower, Interview Café, Persona Studio, Foundation Hall, Painter Shed, Sticker Shop, and the Deploy Dock at the far pier. RepoChan herself patrols the central plaza — click any building to see what happens inside.",
+      "hint": "Click buildings to explore · dashed roads show dependencies · start at the tower"
+    },
+    "plaza": {
+      "caption": "Central Plaza · RepoChan on patrol"
+    },
+    "panel": {
+      "inputLabel": "Input",
+      "outputLabel": "Output",
+      "commandLabel": "Example command",
+      "assetsLabel": "Window display",
+      "nextLabel": "Next stop",
+      "copyLabel": "Copy",
+      "copiedLabel": "Copied",
+      "ariaLabel": "Building detail panel"
+    },
+    "stages": {
+      "gate": {
+        "code": "GATE",
+        "name": "City Gate Station",
+        "product": "install",
+        "tagline": "Every tour starts at the station: install the CLI and let it set up the skill packs for your agent.",
+        "input": "A git repo + your favorite agent",
+        "output": "A global repochan command with skills installed",
+        "command": "npm install -g repochan && repochan setup",
+        "thumbs": [
+          "icon"
+        ],
+        "next": "tower",
+        "nextLabel": "To the Tower"
+      },
+      "tower": {
+        "code": "STAGE A",
+        "name": "Analysis Tower",
+        "product": "analysis",
+        "tagline": "The radar on the roof sweeps your repo end to end: stack, structure, doc tone — all pinned into a deterministic report.",
+        "input": "Repository source and docs",
+        "output": ".repochan/analysis report",
+        "command": "repochan analysis run",
+        "thumbs": [
+          "sticker-1"
+        ],
+        "next": "cafe",
+        "nextLabel": "To the Café"
+      },
+      "cafe": {
+        "code": "STAGE B",
+        "name": "Interview Café",
+        "product": "interview",
+        "tagline": "Sit down, grab a drink, answer a few questions: tone, audience, weight, world. What the scanner can't read, conversation can.",
+        "input": "Analysis report + your answers",
+        "output": ".repochan/interview report",
+        "command": "repochan interview create --data-file interview.json",
+        "thumbs": [
+          "sticker-8"
+        ],
+        "next": "studio",
+        "nextLabel": "To the Studio"
+      },
+      "studio": {
+        "code": "STAGE C",
+        "name": "Persona Studio",
+        "product": "persona",
+        "tagline": "A world architect, a character designer, and a consistency guardian work in shifts to knead the reports into a living mascot.",
+        "input": "Analysis + interview reports",
+        "output": ".repochan/persona profile",
+        "command": "repochan persona create --data-file persona.json",
+        "thumbs": [
+          "sticker-3"
+        ],
+        "next": "hall",
+        "nextLabel": "To the Hall"
+      },
+      "hall": {
+        "code": "STAGE D",
+        "name": "Foundation Hall",
+        "product": "foundation",
+        "tagline": "The most important library in town: the foundation sheet is settled here first, and every later commission comes back to check its answers.",
+        "input": "Persona profile + visual constraints",
+        "output": "Foundation sheet order and versions",
+        "command": "repochan order create --data-file foundation-order.json",
+        "thumbs": [
+          "thumb-foundation"
+        ],
+        "next": "shed",
+        "nextLabel": "To the Shed"
+      },
+      "shed": {
+        "code": "STAGE E",
+        "name": "Painter Shed",
+        "product": "image orders",
+        "tagline": "Orders on the wall, references pinned, matte backgrounds laid — the painter ships in dependency order, and repaints are unlimited.",
+        "input": "Foundation + asset orders",
+        "output": "Versioned stickers, posters, cutouts",
+        "command": "repochan image gen --prompt \"…\" --size 4K",
+        "thumbs": [
+          "thumb-poster-studio",
+          "sticker-5"
+        ],
+        "next": "shop",
+        "nextLabel": "To the Shop"
+      },
+      "shop": {
+        "code": "STAGE F",
+        "name": "Sticker Shop · Poster Pole",
+        "product": "stickers & posters",
+        "tagline": "The window is always stocked: a nine-grid of reaction stickers, the freshest poster on the pole — every piece from a real order.",
+        "input": "Master sheets from the Painter Shed",
+        "output": "Cut grid tiles, derivatives, poster versions",
+        "command": "repochan order list-results ord-sticker-001",
+        "thumbs": [
+          "sticker-2",
+          "thumb-poster-memphis"
+        ],
+        "next": "dock",
+        "nextLabel": "To the Dock"
+      },
+      "dock": {
+        "code": "STAGE G",
+        "name": "Deploy Dock",
+        "product": "landing & starter",
+        "tagline": "Assets crated, pages assembled, localization checked — once the ship leaves, your project owns a city of its own.",
+        "input": "Assets + starter scaffold",
+        "output": "A buildable bilingual Astro site",
+        "command": "repochan starter pull --starter <id>",
+        "thumbs": [
+          "sticker-7"
+        ],
+        "next": "gate",
+        "nextLabel": "Back to the Station"
+      }
+    },
+    "souvenir": {
+      "title": "Sticker Shop Window",
+      "lead": "All nine sticker tiles on duty — sliced from a single 2K master sheet, now at your service."
+    },
+    "footer": {
+      "line": "Asset City was built by the actual RepoChan pipeline",
+      "protocol": "repochan · protocol v1",
+      "credits": "Character: RepoChan (Sugar Riff) · Buildings: SVG blocks · Assets: real order outputs"
+    }
+  }
+}

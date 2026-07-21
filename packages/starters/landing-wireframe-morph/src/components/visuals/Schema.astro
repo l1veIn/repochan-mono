@@ -1,0 +1,24 @@
+---
+import type { StageField } from "../../lib/i18n/types";
+
+// Stage 1 · SCHEMA — 灰模块 + 尺寸标注 + 协议字段
+type Props = { fields: StageField[] };
+const { fields } = Astro.props;
+---
+
+<div class="v-schema">
+  <div class="gray-slot lyr-line">
+    <span class="gray-fill" aria-hidden="true" />
+    <span class="wire-dim wire-dim-w lyr-protocol" aria-hidden="true">640</span>
+    <span class="wire-dim wire-dim-h lyr-protocol" aria-hidden="true">960</span>
+  </div>
+  <ul class="schema-fields lyr-protocol">
+    {fields.map((f) => (
+      <li>
+        <span class="field-key">{f.key}</span>
+        <span class="field-sep">:</span>
+        <span class="field-value">{f.value}</span>
+      </li>
+    ))}
+  </ul>
+</div>

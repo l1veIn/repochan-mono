@@ -1,0 +1,240 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "zh",
+  "meta": {
+    "title": "RepoChan · 品牌果园 — 播下一行 git，收成一套品牌",
+    "description": "RepoChan 把 git 仓库养成完整的品牌资产：验土、育种、发芽、日照，直到采摘与分享。太阳朋克果园主题落地页。"
+  },
+  "content": {
+    "htmlLang": "zh-CN",
+    "nav": {
+      "brand": "RepoChan 果园",
+      "tagline": "solarpunk orchard",
+      "stages": [
+        {
+          "id": "soil",
+          "label": "验土"
+        },
+        {
+          "id": "seed",
+          "label": "育种"
+        },
+        {
+          "id": "sprout",
+          "label": "发芽"
+        },
+        {
+          "id": "sunframe",
+          "label": "日照"
+        },
+        {
+          "id": "harvest",
+          "label": "采摘"
+        },
+        {
+          "id": "share",
+          "label": "分享"
+        }
+      ],
+      "localeSwitchLabel": "EN",
+      "iconAlt": "RepoChan 果园标志"
+    },
+    "hero": {
+      "kicker": "REPOCHAN · 品牌果园",
+      "titleLines": [
+        "播下一行 git",
+        "收成一套品牌。"
+      ],
+      "sub": "RepoChan 是一套 CLI + 技能：它读懂你的仓库，再一点点养成看板娘、设定集、贴纸与落地页——像园丁照料一座果园。",
+      "installCmd": "npm install -g repochan && repochan setup",
+      "copyLabel": "复制",
+      "copiedLabel": "已复制 ✓",
+      "secondaryLabel": "去果园里看看",
+      "sceneAlt": "日出果园：仓库酱蹲在发光树苗旁浇水，远处是风车和光伏花",
+      "scrollHint": "跟随日轨向下"
+    },
+    "soil": {
+      "stage": "STAGE 01 · 验土",
+      "title": "先看看这块地",
+      "note": "repochan analysis 先做确定性扫描，再叠加 LLM 预分析——像播种前的土壤检测：成分、墒情、围栏，一份报告写进 .repochan/analysis/。",
+      "cards": [
+        {
+          "term": "语言构成",
+          "value": "TypeScript 主壤",
+          "desc": "语言与文件分布决定这块地适合种什么。"
+        },
+        {
+          "term": "依赖生态",
+          "value": "pnpm monorepo",
+          "desc": "包、框架与工具链自动归类，共生关系一目了然。"
+        },
+        {
+          "term": "提交节律",
+          "value": "持续生长",
+          "desc": "提交频率与活跃周期，是仓库的墒情。"
+        },
+        {
+          "term": "社区围栏",
+          "value": "双语 README",
+          "desc": "文档、协议与行为准则，决定果园对外开放的方式。"
+        }
+      ],
+      "verdict": "土壤报告先落地，之后每一步——人设、约稿、出图、建站——都引用它。"
+    },
+    "seed": {
+      "stage": "STAGE 02 · 育种",
+      "title": "把偏好一粒粒挑出来",
+      "note": "访谈不是问卷，是选种。Interviewer 沿 8 个维度提问，把你的回答晒成一份访谈报告，育成接下来一切的种子。",
+      "entries": [
+        {
+          "dim": "气质 TONE",
+          "q": "这个项目是什么性格？",
+          "a": "热情但靠谱的工程伙伴"
+        },
+        {
+          "dim": "受众 AUDIENCE",
+          "q": "给谁用？在什么场景？",
+          "a": "开源维护者的品牌冲刺周"
+        },
+        {
+          "dim": "分量 WEIGHT",
+          "q": "角色应该多抢戏？",
+          "a": "medium——有陪伴感，不盖过产品"
+        },
+        {
+          "dim": "世界 WORLD",
+          "q": "它住在什么样的地方？",
+          "a": "街角的小工作室 Sugar Riff"
+        },
+        {
+          "dim": "风格 STYLE",
+          "q": "视觉上像什么？",
+          "a": "赛璐璐 + 温暖日常"
+        },
+        {
+          "dim": "命名 NAMING",
+          "q": "名字从哪来？",
+          "a": "RepoChan → 仓库酱"
+        }
+      ]
+    },
+    "sprout": {
+      "stage": "STAGE 03 · 发芽",
+      "title": "种子破土，长成她",
+      "note": "世界架构师、角色设计师、一致性守护者三方协作——从仓库分析和访谈报告里，养出一个有生命力的看板娘。",
+      "name": "仓库酱 · RepoChan",
+      "role": "16 岁自由插画师 · Sugar Riff 主理人",
+      "catchphrase": "「只要手里画笔在，到哪都是实力派。」",
+      "traits": [
+        {
+          "term": "银发粉薄荷挑染",
+          "desc": "发尾渐变樱粉与薄荷青，是她自己染的"
+        },
+        {
+          "term": "异色瞳",
+          "desc": "左湖蓝、右紫粉——招牌配色"
+        },
+        {
+          "term": "猫耳发夹",
+          "desc": "视觉签名，没有为什么，就是喜欢"
+        },
+        {
+          "term": "耳机不离身",
+          "desc": "摇滚是创作燃料，也是结界"
+        }
+      ],
+      "cutoutAlt": "园丁形态的仓库酱：手持浇水壶给盆栽小树苗浇水",
+      "cutoutCaption": "园丁形态 · 照料每一棵品牌树"
+    },
+    "sunframe": {
+      "stage": "STAGE 04 · 日照",
+      "title": "设定集是日照框架",
+      "note": "Foundation sheet 像钉在树干上的铭牌：色板、姿态、画风一次锁定。之后每一笔约稿都在同一束光下生长，不会长歪。",
+      "plaqueAlt": "仓库酱设定集封面：三视图、色板与签名配饰",
+      "plaqueCaption": "ord-foundation-001 · 设定集铭牌",
+      "points": [
+        {
+          "term": "色板锁定",
+          "desc": "六色方案写进协议，全链路引用"
+        },
+        {
+          "term": "签名锚点",
+          "desc": "姿态、配饰、keyMotifs 登记在册"
+        },
+        {
+          "term": "画风一致",
+          "desc": "artStyle 锚定：赛璐璐 + 温暖日常"
+        },
+        {
+          "term": "下游引用",
+          "desc": "所有资产订单都带回溯引用"
+        }
+      ]
+    },
+    "harvest": {
+      "stage": "STAGE 05 · 采摘",
+      "title": "果实成熟一批，采摘一批",
+      "note": "美术总监统一开出资产订单，Painter 按依赖顺序逐单交付。贴纸、web 状态、icon、海报——每一颗果实都能用订单编号溯源。",
+      "items": [
+        {
+          "name": "挥手问好",
+          "alt": "贴纸：挥手打招呼"
+        },
+        {
+          "name": "仔细找找",
+          "alt": "贴纸：举着放大镜找东西"
+        },
+        {
+          "name": "比耶心动",
+          "alt": "贴纸：比耶配爱心"
+        },
+        {
+          "name": "灵光一闪",
+          "alt": "贴纸：顶着灯泡思考"
+        },
+        {
+          "name": "不为所动",
+          "alt": "贴纸：抱臂闭眼面无表情"
+        },
+        {
+          "name": "发现灵魂",
+          "alt": "贴纸：举手欢呼眼睛发光"
+        },
+        {
+          "name": "困到趴桌",
+          "alt": "贴纸：趴在桌上睡觉"
+        },
+        {
+          "name": "快看这个",
+          "alt": "贴纸：兴奋地指向一边"
+        },
+        {
+          "name": "小憩热饮",
+          "alt": "贴纸：捧着热饮休息"
+        }
+      ],
+      "basketNote": "ord-sticker-001 · 3×3 表情包网格提取，640px 透明 tile"
+    },
+    "share": {
+      "stage": "STAGE 06 · 分享",
+      "title": "长桌已摆好",
+      "sub": "把你的仓库种子带来，收成自己的品牌果园。",
+      "cmd": "npm install -g repochan && repochan setup",
+      "copyLabel": "复制",
+      "copiedLabel": "已复制 ✓",
+      "docsLabel": "阅读文档",
+      "cutoutAlt": "仓库酱挥手邀请",
+      "fine": "MIT 开源 · 需要一枚能跑命令的 agent 与一点阳光"
+    },
+    "footer": {
+      "lines": [
+        "温室备忘 · Greenhouse Notes",
+        "设计稿 05-solarpunk-orchard",
+        "资产溯源 .repochan/orders/"
+      ],
+      "localeSwitchLabel": "English",
+      "copyright": "© 2026 RepoChan · MIT",
+      "note": "本站由 RepoChan 流程自己产出——狗粮，现摘现吃。"
+    }
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "zh",
+  "meta": {
+    "title": "RepoChan — REPOCHAN OS · 把仓库渲染成人设",
+    "description": "REPOCHAN OS：一台正在把你的 git 仓库渲染成看板娘的故障电脑。扫描、分析、人设、画师、部署——全程 dogfood 真实订单产物。"
+  },
+  "content": {
+    "boot": {
+      "lines": [
+        "REPOCHAN OS v0.1.0 — booting…",
+        "mounting .repochan/ … OK",
+        "loading persona … 仓库酱 booted",
+        "starting window manager … OK"
+      ]
+    },
+    "desktop": {
+      "brand": "REPOCHAN OS",
+      "version": "v0.1.0 · glitch build",
+      "tagline": "一台正在把你的仓库渲染成人设的电脑。",
+      "sub": "扫描 git 仓库 → 生成人设 → 约稿出图 → 落地页部署。本页每一扇窗口都在跑真实订单。",
+      "hint": "双击图标（或单击）打开对应窗口 ↓",
+      "heroAlt": "仓库酱完整立绘：银发粉薄荷挑染、异色瞳、黑色 REPO 连帽衫，递出数位笔",
+      "icons": [
+        { "id": "win-analysis", "label": "Analysis.app" },
+        { "id": "win-persona", "label": "Persona.app" },
+        { "id": "win-painter", "label": "Painter.app" },
+        { "id": "win-deploy", "label": "Deploy.app" },
+        { "id": "trash", "label": "Trash", "note": "空的——今天没有画崩的稿子。" }
+      ]
+    },
+    "winAnalysis": {
+      "title": "ord-analysis — .repochan/analysis/report.json",
+      "badge": "running",
+      "lines": [
+        { "t": "cmd", "text": "$ repochan analysis ." },
+        { "t": "ok", "text": "[ok] git log parsed · tech stack: typescript / pnpm / turbo" },
+        { "t": "ok", "text": "[ok] README 双语检测 · 项目气质: dev_tool · medium weight" },
+        { "t": "ok", "text": "[ok] writing .repochan/analysis/report.json" },
+        { "t": "cmd", "text": "$ repochan persona create" },
+        { "t": "err", "text": "[FATAL] no mascot found — generating…" },
+        { "t": "ok", "text": "[ok] persona schema repochan.persona.v2 → 仓库酱 booted" },
+        { "t": "ok", "text": "[ok] .repochan/persona/current.json" },
+        { "t": "cmd", "text": "$ repochan order create --kind foundation" },
+        { "t": "ok", "text": "[ok] ord-foundation-001 → v2026-07-19T13-53-01-958Z" },
+        { "t": "info", "text": "[..] generated-2026-07-19T13-48-41.png · 1024×1024" },
+        { "t": "cmd", "text": "$ repochan image gen ord-sticker-001" },
+        { "t": "ok", "text": "[ok] 3×3 sticker grid → extract → sticker-0..8.webp" },
+        { "t": "cmd", "text": "$ repochan starter pull --starter landing-glitch-os" },
+        { "t": "ok", "text": "[ok] rendering repo → persona … done in 0.42s" }
+      ],
+      "prompt": "guest@repochan:~$"
+    },
+    "winPersona": {
+      "title": "repochan.persona.v2 — .repochan/persona/current.json",
+      "badge": "OK",
+      "avatarAlt": "仓库酱头像：伸手邀约姿态，带 RGB 错位故障装饰",
+      "glitchNote": "signal unstable — 同一帧的三个 offset 切片",
+      "fields": [
+        { "k": "name", "v": "仓库酱 / RepoChan" },
+        { "k": "age", "v": "16 · 高一 · 自由插画师" },
+        { "k": "world", "v": "Sugar Riff — 创意街区转角的小工作室" },
+        { "k": "eyes", "v": "异色瞳 · 湖蓝 #38BDF8 + 紫粉 #A78BFA" },
+        { "k": "hair", "v": "浅银长发 · 粉 + 薄荷挑染" },
+        { "k": "gear", "v": "三角发夹 · 大耳机 · REPO hoodie · 数位笔" },
+        { "k": "motto", "v": "「只要手里画笔在，到哪都是实力派。」" },
+        { "k": "rule", "v": "没感觉的不接——「线条会死掉」" }
+      ]
+    },
+    "winPainter": {
+      "title": "ord-sticker-001 + ord-webstates-001 — versions/",
+      "badge": "9 files",
+      "stickerCap": "stickers/ · 640×640 透明 tile · extract 自 ord-sticker-001 网格母图",
+      "stateCap": "webstates/ · 状态网格 · extract 自 ord-webstates-001",
+      "stickerAlt": "仓库酱 Q 版贴纸",
+      "stateAlt": "仓库酱状态图"
+    },
+    "winFoundation": {
+      "title": "ord-foundation-001 / v2026-07-19T13-53-01-958Z",
+      "badge": "FILE OK",
+      "imageAlt": "RepoChan 角色设定集：主视觉、表情组、色板、关键道具与 app icon mockup",
+      "status": [
+        { "k": "checksum", "v": "generated-2026-07-19T13-48-41.png" },
+        { "k": "size", "v": "1024×1024 · cel-shading · 六色系" },
+        { "k": "downstream", "v": "ord-sticker-001 / ord-webstates-001 / ord-cutout-001 均引用此版本" },
+        { "k": "verify", "v": "FILE OK — 一致性基准已锁定" }
+      ]
+    },
+    "modal": {
+      "title": "FATAL_SUCCESS.EXE",
+      "face": ":)",
+      "heading": "你的仓库已被成功渲染成看板娘。",
+      "body": "这不是蓝屏。这是部署成功屏。把 REPOCHAN OS 装进你自己的仓库，三分钟后你也会得到一扇这样的窗口。",
+      "stopCode": "STOP 0x00000000 EVERYTHING_FINE",
+      "cmd": "npm install -g repochan",
+      "copyLabel": "复制命令",
+      "copiedLabel": "已复制 ✓",
+      "docsLabel": "GitHub README",
+      "foot": "按任意键继续——或者直接滚动，本系统不锁屏。"
+    },
+    "taskbar": {
+      "start": "repochan.exe",
+      "progressLabel": "pipeline:",
+      "stages": [
+        { "name": "scan", "state": "OK" },
+        { "name": "analysis", "state": "OK" },
+        { "name": "persona", "state": "OK" },
+        { "name": "paint", "state": "OK" },
+        { "name": "deploy", "state": "READY" }
+      ],
+      "clockFallback": "SYS·READY",
+      "cmd": "npm install -g repochan",
+      "copyLabel": "复制安装命令",
+      "copiedLabel": "已复制 ✓",
+      "localeLabel": "语言",
+      "localeSwitch": "EN"
+    }
+  }
+}

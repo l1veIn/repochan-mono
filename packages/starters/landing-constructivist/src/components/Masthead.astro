@@ -1,0 +1,16 @@
+---
+import { site, alternatePath, assets, type Locale } from "../lib/site";
+import type { MastheadContent } from "../lib/i18n/types";
+
+type Props = { content: MastheadContent; locale: Locale };
+const { content, locale } = Astro.props;
+---
+
+<header class="masthead">
+  <img class="masthead__icon" src={assets.icon.src} alt={content.iconAlt} width="30" height="30" />
+  <span class="masthead__wordmark">{content.wordmark}</span>
+  <span class="masthead__protocol">{content.protocol}</span>
+  <a class="masthead__locale" href={alternatePath(locale)} hreflang={locale === "zh" ? "en" : "zh-CN"}>
+    {content.localeSwitchLabel}
+  </a>
+</header>

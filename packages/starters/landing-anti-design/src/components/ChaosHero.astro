@@ -1,0 +1,89 @@
+---
+import { assets, site } from "../lib/site";
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["hero"] };
+const { content } = Astro.props;
+const marqueeItems = [...content.marquee, ...content.marquee, ...content.marquee, ...content.marquee];
+---
+
+<header class="hero">
+  <div class="huoxing" aria-hidden="true">
+    {content.huoxing.map((line) => <span>{line}</span>)}
+  </div>
+  <div class="wrap hero-inner">
+    <div>
+      <span class="hero-kicker">{content.kicker}</span>
+      <h1>
+        <span class="h-a">{content.headlineA}</span>
+        <span class="h-b">{content.headlineB}</span>
+        <span class="h-c">{content.headlineC}</span>
+      </h1>
+      <p class="readable-strip">{content.sub}</p>
+      <div class="hero-ctas">
+        <button
+          class="win-btn"
+          type="button"
+          data-copy={content.ctaPrimaryCommand}
+          data-copied={content.copied}
+        >
+          {content.ctaPrimary}
+        </button>
+        <code class="hero-cmd-text">{content.ctaPrimaryCommand}</code>
+        <a class="hero-link" href={site.project.repositoryUrl} target="_blank" rel="noopener">
+          {content.ctaSecondary}
+        </a>
+      </div>
+      <div class="win stack-window">
+        <div class="win-titlebar">
+          <span class="win-title">{content.stackTraceTitle}</span>
+          <span class="win-x" aria-hidden="true">✕</span>
+        </div>
+        <div class="stack-body">
+          <pre>{content.stackTrace.join("\n")}</pre>
+        </div>
+      </div>
+      <p class="stack-note">{content.stackNote}</p>
+    </div>
+    <div class="hero-pile">
+      <span class="pile-new" aria-hidden="true">{content.marquee[0]}</span>
+      <img
+        class="pile-sticker s1"
+        src={assets.stickers[3].src}
+        alt=""
+        width="218"
+        height="218"
+        loading="lazy"
+      />
+      <img
+        class="pile-sticker s2"
+        src={assets.stickers[5].src}
+        alt=""
+        width="166"
+        height="166"
+        loading="lazy"
+      />
+      <div class="pile-cutout">
+        <img
+          src={assets.heroCutout.src}
+          alt={content.cutoutAlt}
+          width={assets.heroCutout.width}
+          height={assets.heroCutout.height}
+        />
+      </div>
+      <img
+        class="pile-sticker s3"
+        src={assets.stickers[7].src}
+        alt=""
+        width="154"
+        height="154"
+        loading="lazy"
+      />
+    </div>
+  </div>
+</header>
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    {marqueeItems.map((item) => <span>{item}</span>)}
+  </div>
+</div>

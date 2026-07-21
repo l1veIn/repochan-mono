@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "RepoChan",
+    "description": "Turn a git repository into a full brand kit — mascot persona, illustrations, stickers, posters and a landing page — via a CLI + agent pipeline.",
+    "repositoryUrl": "https://github.com/l1veIn/repochan-mono"
+  },
+  "theme": {
+    "primary": "#FF6B9D",
+    "base": "#FFF8F0",
+    "ink": "#1A1A1A",
+    "accents": ["#2EE6D6", "#FFE566", "#8B7CFF", "#FF8A5B"]
+  },
+  "brand": {
+    "artStyle": "Memphis playground — 80s postmodern geometric toy blocks: hard-edge flat shapes, optimistic high-saturation clashing colors, tilted modules and selective soft dimensional shadows (never neo-brutal hard offset shadows).",
+    "motifs": ["zigzag", "semicircle", "arch", "ring", "triangle", "wave"],
+    "patterns": ["dot grid", "flat color blocks", "confetti shapes", "zigzag divider"]
+  },
+  "locales": {
+    "default": "zh",
+    "supported": ["zh", "en"]
+  }
+}

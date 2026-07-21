@@ -9,6 +9,16 @@ grid:
   rows: 3
   cols: 3
   sliceable: true
+  cell_keys:
+    - "wave"
+    - "curious"
+    - "surprised"
+    - "thinking"
+    - "confident"
+    - "celebrating"
+    - "sleepy"
+    - "pointing"
+    - "cozy"
 
 prompt_template: |
   strict 3x3 chibi sticker sheet with exactly nine stickers of the same {{character_visual}},

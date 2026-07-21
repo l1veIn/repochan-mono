@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "RepoChan · We had a design system (we threw it away)",
+    "description": "RepoChan's experimental skin: an anti-design chaos board. Same medicine, worse packaging — one CLI turns your git repo into brand assets."
+  },
+  "content": {
+    "tape": {
+      "items": [
+        "⚠ EXPERIMENTAL SKIN",
+        "your browser is fine",
+        "this is fine 🔥",
+        "experimental skin v0.9.9.9.9",
+        "not the official site",
+        "under construction (forever)"
+      ]
+    },
+    "nav": {
+      "brand": "RepoChan",
+      "tag": "anti-design CHAOS",
+      "newBadge": "NEW!!",
+      "readableOn": "Give me the normal version",
+      "readableOff": "Back to chaos",
+      "localeSwitch": "中文",
+      "localeSwitchLabel": "Switch to 中文"
+    },
+    "dialog": {
+      "title": "⚠ System Error (not really)",
+      "body1": "Error 0x000REPO: design system not found.",
+      "body2": "Chaos mode has been set as default. Click “whatever” to continue.",
+      "ok": "whatever",
+      "close": "Close"
+    },
+    "hero": {
+      "kicker": "⚠ under construction (since 2026)",
+      "headlineA": "We had a",
+      "headlineB": "design system",
+      "headlineC": "(we threw it away)",
+      "sub": "RepoChan: one CLI that turns your git repo into brand assets — persona, stickers, posters, landing pages. This page is its experimental skin. Same medicine, worse packaging.",
+      "ctaPrimary": "Copy install command",
+      "ctaPrimaryCommand": "npm install -g repochan",
+      "ctaSecondary": "Take me to GitHub",
+      "copied": "Copied!",
+      "stackTraceTitle": "repochan.exe — Application Error",
+      "stackTrace": [
+        "RepoChanDesignSystemError: design system not found",
+        "    at ChaosBoard.render (anti-design.js:9:99)",
+        "    at Designer.giveUp (deadline.js:23:59)",
+        "    at Painter.keepDrawing (anyway.js:66:13)",
+        "    at process.processTicksAndRejections (node:internal:1:1)"
+      ],
+      "stackNote": "↑ fake. The command below is real.",
+      "marquee": [
+        "NEW!!",
+        "100% FREE",
+        "click for surprise (none)",
+        "best viewed at 800×600",
+        "no grids allowed",
+        "FORMAT PAINTER LOST"
+      ],
+      "huoxing": [
+        "W3 H4D 4 D3S1GN SYST3M",
+        "TH3N W3 THR3W 1T 4W4Y"
+      ],
+      "cutoutAlt": "Full-body RepoChan artwork, the whole image casually rotated and slapped onto the page"
+    },
+    "board": {
+      "title": "Five sticky notes = the entire information architecture",
+      "intro": "Everything else is noise. Tear them off and take them home.",
+      "notes": [
+        {
+          "id": "what",
+          "title": "What is this",
+          "body": "RepoChan = a repo → brand-asset pipeline. Analysis, persona, asset orders, painting, site building — one CLI does it all."
+        },
+        {
+          "id": "loot",
+          "title": "What you get",
+          "body": "A mascot persona / 9 stickers / 9 web-state tiles / posters / landing pages (like the one you're standing on)."
+        },
+        {
+          "id": "start",
+          "title": "How to start",
+          "body": "Two lines. Then just say /repochan to your agent.",
+          "command": "npm install -g repochan && repochan setup",
+          "copyLabel": "Copy",
+          "copiedLabel": "✓ Copied"
+        },
+        {
+          "id": "proof",
+          "title": "Evidence (real assets, illegally pasted)",
+          "body": "The pile of windows below is real assets and real commands, just pasted in a legally questionable way.",
+          "shots": [
+            { "kind": "terminal", "title": "zsh — repochan order list", "caption": "terminal screenshot (drawn live)" },
+            { "kind": "pr", "title": "Pull Request #404", "caption": "fake PR, real sticker" },
+            { "kind": "json", "title": "ord-sticker-001 · meta.json", "caption": "order JSON, unfiltered" }
+          ]
+        },
+        {
+          "id": "links",
+          "title": "Links",
+          "body": "Only these two exits. Every other door is painted on the wall.",
+          "links": [
+            { "label": "GitHub repo", "href": "https://github.com/l1veIn/repochan-mono" },
+            { "label": "Design docs /prototypes", "href": "https://github.com/l1veIn/repochan-mono/tree/main/docs/prototypes" }
+          ]
+        }
+      ]
+    },
+    "cta": {
+      "windowTitle": "setup.exe — Installing RepoChan",
+      "progressLabel": "Installing good taste…",
+      "progressValue": "99%",
+      "headline": "Jokes over. The command is real.",
+      "sub": "Paste it into your terminal. RepoChan handles the rest.",
+      "command": "npm install -g repochan && repochan setup",
+      "copy": "Copy command",
+      "copied": "Copied!",
+      "repoLink": "Go to the GitHub repo",
+      "cutoutAlt": "Waving RepoChan artwork leaning against the installer window"
+    },
+    "footer": {
+      "tagline": "RepoChan · experimental skin",
+      "fake404": "404: design system not found (this line is intentional)",
+      "badges": ["HTML 3.2", "800×600", "MADE WITH NOTEPAD", "NO GRID NO RULES"],
+      "updated": "!! UPDATED !!",
+      "links": [
+        { "label": "GitHub", "href": "https://github.com/l1veIn/repochan-mono" },
+        { "label": "Design docs", "href": "https://github.com/l1veIn/repochan-mono/tree/main/docs/prototypes" }
+      ],
+      "localeSwitch": "中文",
+      "colophon": "anti-design-chaos · repochan protocol v1 · no pixels were harmed in the making of this page"
+    }
+  }
+}

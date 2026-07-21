@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "RepoChan",
+    "description": "Turn a git repository into a full brand kit — mascot persona, illustrations, stickers, posters and a landing page — via a CLI + agent pipeline.",
+    "repositoryUrl": "https://github.com/l1veIn/repochan-mono"
+  },
+  "theme": {
+    "primary": "#3F8F5A",
+    "base": "#F7F3E8",
+    "ink": "#1F2A24",
+    "accents": [
+      "#F4C15D",
+      "#F9D98A",
+      "#2F6F4E",
+      "#A8C686",
+      "#DCEAC8",
+      "#C4A574",
+      "#EBDFC8",
+      "#87C5E8",
+      "#D9EEF9",
+      "#4A5A50",
+      "#F9A8D4",
+      "#A78BFA"
+    ]
+  },
+  "brand": {
+    "artStyle": "Solarpunk orchard — a growth-narrative daylight ecology: paper-fiber texture, watercolor edges and light risograph greens; organic curved color sections instead of hard grids; sunlight, plants and solar geometry (never glassmorphism, scanlines or neo-brutal heavy black frames).",
+    "motifs": ["sapling", "glowing fruit", "watering can", "sun arc", "leaf frame", "solar flower", "windmill"],
+    "patterns": ["paper fiber texture", "watercolor edges", "organic rounded color sections", "curved SVG dividers"]
+  },
+  "locales": {
+    "default": "zh",
+    "supported": ["zh", "en"]
+  }
+}

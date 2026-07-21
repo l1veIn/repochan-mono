@@ -1,0 +1,66 @@
+---
+import Shape from "./Shape.astro";
+import { assets } from "../lib/site";
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["carousel"] };
+const { content } = Astro.props;
+
+/** 转盘：8 张贴纸均布圆周（index 0–7），中心拱框放 memphis 海报 */
+const orbitStickers = assets.stickers.slice(0, 8);
+/** 跑马灯：9 张 webstates 复制一遍实现无缝滚动 */
+const strip = [...assets.webstates, ...assets.webstates];
+---
+
+<section class="section" id="carousel">
+  <div class="wrap">
+    <div class="carousel-band" data-confetti-zone>
+      <div class="section-head" data-pop>
+        <h2>{content.title}</h2>
+        <p>{content.intro}</p>
+      </div>
+      <div class="orbit-zone">
+        <div class="orbit" data-pop>
+          <div class="orbit-ring"></div>
+          <div class="orbit-spin" aria-hidden="true">
+            {orbitStickers.map((st, i) => (
+              <span class="orbit-item" style={`transform: rotate(${i * 45}deg) translateX(195%) rotate(${-i * 45}deg)`}>
+                <img src={st.src} alt="" width={st.width} height={st.height} loading="lazy" />
+              </span>
+            ))}
+          </div>
+          <div class="orbit-center">
+            <img
+              src={assets.memphisPoster.src}
+              alt="RepoChan 孟菲斯几何撞色海报：仓库酱穿行于锯齿、圆环、三角与点阵之间"
+              width={assets.memphisPoster.width}
+              height={assets.memphisPoster.height}
+              loading="lazy"
+            />
+          </div>
+        </div>
+        <div class="carousel-captions">
+          <div class="carousel-cap" data-pop style="--d:0.05s">
+            <Shape kind="circle" color="yellow" size={26} />
+            <span>{content.orbitCaption}</span>
+          </div>
+          <div class="carousel-cap" data-pop style="--d:0.12s">
+            <Shape kind="triangle" color="cyan" size={26} />
+            <span>{content.statesCaption}</span>
+          </div>
+          <div class="carousel-cap" data-pop style="--d:0.19s">
+            <Shape kind="square" color="coral" size={26} />
+            <span>{content.posterCaption}</span>
+          </div>
+        </div>
+      </div>
+      <div class="states-strip" aria-hidden="true">
+        <div class="states-track">
+          {strip.map((st) => (
+            <img src={st.src} alt="" width={st.width} height={st.height} loading="lazy" />
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

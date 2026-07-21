@@ -1,0 +1,240 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "RepoChan · Brand Orchard — Sow a line of git, reap a brand",
+    "description": "RepoChan grows your git repository into a full brand kit: soil check, seed selection, sprout, sunlight, harvest and share. A solarpunk orchard landing page."
+  },
+  "content": {
+    "htmlLang": "en",
+    "nav": {
+      "brand": "RepoChan Orchard",
+      "tagline": "solarpunk orchard",
+      "stages": [
+        {
+          "id": "soil",
+          "label": "Soil"
+        },
+        {
+          "id": "seed",
+          "label": "Seed"
+        },
+        {
+          "id": "sprout",
+          "label": "Sprout"
+        },
+        {
+          "id": "sunframe",
+          "label": "Sun"
+        },
+        {
+          "id": "harvest",
+          "label": "Harvest"
+        },
+        {
+          "id": "share",
+          "label": "Share"
+        }
+      ],
+      "localeSwitchLabel": "中文",
+      "iconAlt": "RepoChan orchard mark"
+    },
+    "hero": {
+      "kicker": "REPOCHAN · BRAND ORCHARD",
+      "titleLines": [
+        "Sow a line of git,",
+        "reap a whole brand."
+      ],
+      "sub": "RepoChan is a CLI plus agent skills: it reads your repository, then grows a mascot, a foundation sheet, stickers and a landing page — the way a gardener tends an orchard.",
+      "installCmd": "npm install -g repochan && repochan setup",
+      "copyLabel": "Copy",
+      "copiedLabel": "Copied ✓",
+      "secondaryLabel": "Walk the orchard",
+      "sceneAlt": "Orchard at sunrise: RepoChan crouches watering a glowing sapling, a windmill and solar flowers in the distance",
+      "scrollHint": "Follow the sun downward"
+    },
+    "soil": {
+      "stage": "STAGE 01 · SOIL SAMPLE",
+      "title": "Test the soil first",
+      "note": "repochan analysis runs a deterministic scan, then layers an LLM pre-analysis on top — like a soil test before sowing. The report lands in .repochan/analysis/.",
+      "cards": [
+        {
+          "term": "Language strata",
+          "value": "TypeScript loam",
+          "desc": "Language and file distribution decide what this plot can grow."
+        },
+        {
+          "term": "Dependency ecology",
+          "value": "pnpm monorepo",
+          "desc": "Packages, frameworks and toolchains, classified automatically."
+        },
+        {
+          "term": "Commit rhythm",
+          "value": "Ever growing",
+          "desc": "Commit cadence and active periods are the moisture of a repo."
+        },
+        {
+          "term": "Community fence",
+          "value": "Bilingual README",
+          "desc": "Docs, license and conduct files shape how the orchard opens up."
+        }
+      ],
+      "verdict": "The soil report comes first; persona, commissions, painting and the site itself all cite it afterwards."
+    },
+    "seed": {
+      "stage": "STAGE 02 · SEED JOURNAL",
+      "title": "Picking preferences, seed by seed",
+      "note": "The interview is not a form — it is seed selection. The Interviewer asks across 8 dimensions and dries your answers into a report that seeds everything after.",
+      "entries": [
+        {
+          "dim": "TONE",
+          "q": "What is this project's temper?",
+          "a": "A warm but reliable engineering companion"
+        },
+        {
+          "dim": "AUDIENCE",
+          "q": "Who uses it, and when?",
+          "a": "OSS maintainers on a brand sprint"
+        },
+        {
+          "dim": "WEIGHT",
+          "q": "How loud should the mascot be?",
+          "a": "Medium — present, never louder than the product"
+        },
+        {
+          "dim": "WORLD",
+          "q": "Where does it live?",
+          "a": "A corner studio named Sugar Riff"
+        },
+        {
+          "dim": "STYLE",
+          "q": "What does it look like?",
+          "a": "Cel shading with warm everyday light"
+        },
+        {
+          "dim": "NAMING",
+          "q": "Where does the name come from?",
+          "a": "RepoChan, straight from the repo"
+        }
+      ]
+    },
+    "sprout": {
+      "stage": "STAGE 03 · SPROUT",
+      "title": "The seed breaks ground — and becomes her",
+      "note": "World architect, character designer and consistency keeper work together, raising a living mascot out of the analysis and interview reports.",
+      "name": "RepoChan, the Repo Keeper",
+      "role": "16-year-old freelance illustrator · runs Sugar Riff",
+      "catchphrase": "\"With a brush in hand, anywhere is my stage.\"",
+      "traits": [
+        {
+          "term": "Silver hair, pink-mint tips",
+          "desc": "A gradient she dyed herself — unexpectedly great"
+        },
+        {
+          "term": "Heterochromia",
+          "desc": "Lake blue left, violet-pink right — her signature pair"
+        },
+        {
+          "term": "Cat-ear clip",
+          "desc": "Her visual signature. No reason, just love"
+        },
+        {
+          "term": "Headphones always on",
+          "desc": "Rock is fuel for drawing — and a force field"
+        }
+      ],
+      "cutoutAlt": "RepoChan as a gardener, watering a small potted sapling",
+      "cutoutCaption": "Gardener form · tending every brand tree"
+    },
+    "sunframe": {
+      "stage": "STAGE 04 · SUNFRAME",
+      "title": "The foundation sheet is the sunframe",
+      "note": "The foundation sheet is a plaque nailed to the trunk: palette, poses and art style locked once. Every later commission grows under the same light and never warps.",
+      "plaqueAlt": "RepoChan foundation sheet: three views, palette and signature accessories",
+      "plaqueCaption": "ord-foundation-001 · foundation plaque",
+      "points": [
+        {
+          "term": "Palette locked",
+          "desc": "Six colors written into the protocol, cited everywhere"
+        },
+        {
+          "term": "Signature anchors",
+          "desc": "Poses, accessories and keyMotifs on record"
+        },
+        {
+          "term": "Consistent style",
+          "desc": "artStyle anchored: cel shading, warm everyday"
+        },
+        {
+          "term": "Downstream references",
+          "desc": "Every asset order traces back to it"
+        }
+      ]
+    },
+    "harvest": {
+      "stage": "STAGE 05 · HARVEST",
+      "title": "Ripe in batches, picked in batches",
+      "note": "The art director issues every asset order up front; the Painter delivers them in dependency order. Stickers, web states, icons, posters — each fruit traceable by order id.",
+      "items": [
+        {
+          "name": "Welcome Wave",
+          "alt": "Sticker: waving hello"
+        },
+        {
+          "name": "Look Closer",
+          "alt": "Sticker: searching with a magnifier"
+        },
+        {
+          "name": "Hearts & Peace",
+          "alt": "Sticker: peace sign with hearts"
+        },
+        {
+          "name": "Bright Idea",
+          "alt": "Sticker: thinking under a lightbulb"
+        },
+        {
+          "name": "Unmoved",
+          "alt": "Sticker: arms crossed, eyes closed, deadpan"
+        },
+        {
+          "name": "Soul Found",
+          "alt": "Sticker: cheering with sparkling eyes"
+        },
+        {
+          "name": "Desk Nap",
+          "alt": "Sticker: asleep on the desk"
+        },
+        {
+          "name": "Check This",
+          "alt": "Sticker: pointing aside excitedly"
+        },
+        {
+          "name": "Cozy Break",
+          "alt": "Sticker: sipping a hot drink"
+        }
+      ],
+      "basketNote": "ord-sticker-001 · extracted from a 3×3 grid into 640px transparent tiles"
+    },
+    "share": {
+      "stage": "STAGE 06 · SHARE TABLE",
+      "title": "The long table is set",
+      "sub": "Bring your repository seed; reap a brand orchard of your own.",
+      "cmd": "npm install -g repochan && repochan setup",
+      "copyLabel": "Copy",
+      "copiedLabel": "Copied ✓",
+      "docsLabel": "Read the docs",
+      "cutoutAlt": "RepoChan waving an invitation",
+      "fine": "MIT open source · needs one command-running agent and a little sunlight"
+    },
+    "footer": {
+      "lines": [
+        "Greenhouse Notes",
+        "Design doc 05-solarpunk-orchard",
+        "Asset provenance .repochan/orders/"
+      ],
+      "localeSwitchLabel": "中文",
+      "copyright": "© 2026 RepoChan · MIT",
+      "note": "This site was produced by the RepoChan pipeline itself — dogfood, freshly picked."
+    }
+  }
+}

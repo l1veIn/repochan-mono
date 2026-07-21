@@ -1,0 +1,180 @@
+/* 全局样式 —— 颜色一律引用 var(--*)，token 由 SiteLayout 从 repochan/site.json 注入 */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: var(--ink);
+  background-color: var(--paper);
+  /* 轻纸质纤维纹理（固定附着，不随滚动产生摩尔纹） */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.55 0 0 0 0 0.5 0 0 0 0 0.4 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23f)'/%3E%3C/svg%3E");
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+a {
+  color: var(--leaf-deep);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--leaf);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+code,
+.mono {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+.display {
+  font-family: "Fraunces", "Noto Serif SC", serif;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+}
+
+/* ── 页面骨架 ─────────────────────────── */
+
+.shell {
+  width: min(1120px, 100% - 2.5rem);
+  margin-inline: auto;
+}
+
+.section {
+  position: relative;
+  padding-block: clamp(4.5rem, 9vw, 7.5rem);
+}
+
+.stage-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--leaf-deep);
+  margin: 0 0 1.1rem;
+}
+
+.stage-label::before {
+  content: "";
+  width: 1.6em;
+  height: 2px;
+  background: var(--leaf);
+  border-radius: 2px;
+}
+
+.section-title {
+  font-size: clamp(1.9rem, 4.2vw, 3rem);
+  margin: 0 0 1rem;
+  color: var(--ink);
+}
+
+.section-note {
+  max-width: 62ch;
+  margin: 0 0 2.75rem;
+  color: var(--ink-soft);
+  font-size: clamp(0.98rem, 1.4vw, 1.08rem);
+}
+
+/* ── 签名动效：枝叶展开（滚动 reveal） ─── */
+
+[data-grow] {
+  opacity: 0;
+  transform: translateY(30px) scale(0.98);
+  transform-origin: bottom center;
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 0.9, 0.3, 1),
+    transform 0.9s cubic-bezier(0.22, 0.9, 0.3, 1);
+}
+
+[data-grow].is-grown {
+  opacity: 1;
+  transform: none;
+}
+
+[data-grow-delay="1"] { transition-delay: 0.12s; }
+[data-grow-delay="2"] { transition-delay: 0.24s; }
+[data-grow-delay="3"] { transition-delay: 0.36s; }
+[data-grow-delay="4"] { transition-delay: 0.48s; }
+[data-grow-delay="5"] { transition-delay: 0.6s; }
+
+/* ── 日轨：缓慢漂移的日光 ─────────────── */
+
+.sun-arc {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.sun-arc::before {
+  content: "";
+  position: absolute;
+  top: -12vmax;
+  left: -8vmax;
+  width: 42vmax;
+  height: 42vmax;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--sun) 0%, transparent 62%);
+  opacity: 0.22;
+  animation: sun-track 110s ease-in-out infinite alternate;
+}
+
+@keyframes sun-track {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(38vw, 9vh) scale(1.12); }
+}
+
+main,
+footer {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── reduced-motion：静态全展开 ───────── */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  [data-grow] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .sun-arc::before {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

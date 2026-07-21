@@ -1,0 +1,317 @@
+/* ============================================================
+   Museum White Cube — global foundation
+   颜色一律来自 --* token（repochan/site.json 注入），
+   派生色用 color-mix，不出现颜色字面量。
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--wall);
+  color: var(--ink);
+  font-family: "Noto Sans SC", "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+/* ---------- 展厅尺度 ---------- */
+
+.room {
+  max-width: 1344px;
+  margin-inline: auto;
+  padding-inline: clamp(24px, 7vw, 96px); /* 桌面边距 ≥ 80px */
+  padding-block: clamp(88px, 13vh, 168px);
+}
+
+.room + .room {
+  border-top: 1px solid var(--hairline);
+}
+
+.room-kicker {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.room-title {
+  font-family: "Newsreader", "Noto Serif SC", serif;
+  font-weight: 400;
+  font-size: clamp(30px, 4.2vw, 52px);
+  line-height: 1.18;
+  letter-spacing: 0.01em;
+  margin-bottom: 16px;
+}
+
+.room-intro {
+  max-width: 56ch;
+  color: var(--muted);
+  font-size: 15px;
+  margin-bottom: clamp(48px, 7vh, 88px);
+}
+
+/* ---------- 装裱：画框 + 聚光 ---------- */
+
+.exhibit {
+  margin: 0;
+}
+
+.frame {
+  background: var(--mat);
+  border: 1px solid var(--frame);
+  padding: clamp(10px, 1.6vw, 20px);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--ink) 4%, transparent),
+    0 24px 48px -24px color-mix(in srgb, var(--ink) 22%, transparent);
+}
+
+.frame--thin {
+  border-color: var(--hairline);
+  padding: clamp(8px, 1.2vw, 14px);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--ink) 3%, transparent),
+    0 16px 32px -20px color-mix(in srgb, var(--ink) 16%, transparent);
+}
+
+.frame img {
+  width: 100%;
+}
+
+/* 作品下方椭圆光晕（spot） */
+.spot {
+  position: relative;
+}
+
+.spot::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -26px;
+  height: 34px;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--ink) 14%, transparent), transparent 68%);
+  pointer-events: none;
+}
+
+/* ---------- 展签 ---------- */
+
+.label {
+  margin-top: clamp(20px, 3vw, 32px);
+  max-width: 46ch;
+}
+
+.label-no {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.label-title {
+  font-family: "Newsreader", "Noto Serif SC", serif;
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 500;
+  margin-top: 6px;
+}
+
+.label-meta {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.label-order {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.label-note {
+  font-size: 14px;
+  color: var(--ink);
+  margin-top: 10px;
+  max-width: 52ch;
+}
+
+/* ---------- 入场 fade（签名动效，克制） ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .js [data-reveal] {
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+      opacity 0.7s ease-out,
+      transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+    transition-delay: var(--d, 0ms);
+  }
+
+  .js [data-reveal].revealed {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* ---------- Lightbox ---------- */
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--ink) 88%, transparent);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.28s ease,
+    visibility 0.28s;
+}
+
+.lightbox.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.lightbox-figure {
+  max-width: min(1080px, 88vw);
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.lightbox-figure img {
+  max-height: 68vh;
+  width: auto;
+  max-width: 100%;
+  margin-inline: auto;
+  background: var(--mat);
+  border: 1px solid var(--hairline);
+  padding: clamp(8px, 1.4vw, 18px);
+}
+
+.lightbox-caption {
+  color: var(--wall);
+  font-size: 14px;
+  text-align: center;
+}
+
+.lightbox-caption .lb-order {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  color: color-mix(in srgb, var(--wall) 62%, transparent);
+  display: block;
+  margin-top: 2px;
+}
+
+.lightbox-btn {
+  position: absolute;
+  color: var(--wall);
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  padding: 12px 16px;
+  border: 1px solid color-mix(in srgb, var(--wall) 32%, transparent);
+  background: color-mix(in srgb, var(--ink) 40%, transparent);
+}
+
+.lightbox-btn:hover {
+  background: color-mix(in srgb, var(--wall) 14%, transparent);
+}
+
+.lightbox-close {
+  top: 20px;
+  right: 20px;
+}
+
+.lightbox-prev {
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.lightbox-next {
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+@media (max-width: 640px) {
+  .lightbox-prev,
+  .lightbox-next {
+    top: auto;
+    bottom: 18px;
+    transform: none;
+  }
+}

@@ -1,0 +1,51 @@
+---
+/**
+ * 孟菲斯形状元件：纯 SVG，颜色只引用 token 变量。
+ * kind: 形状；color: token 名；size: 像素；stroke: ring 类形状的描边宽
+ */
+type Props = {
+  kind: "circle" | "triangle" | "square" | "zigzag" | "semicircle" | "arch" | "wave" | "ring" | "dots" | "plus";
+  color: "pink" | "cyan" | "yellow" | "violet" | "coral" | "ink" | "bg";
+  size?: number;
+};
+
+const { kind, color, size = 24 } = Astro.props;
+const fill = `var(--${color})`;
+---
+
+<span class="shape" style={`width:${size}px;height:${size}px;color:${fill}`} aria-hidden="true">
+  {kind === "circle" && (
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill={fill} /></svg>
+  )}
+  {kind === "triangle" && (
+    <svg viewBox="0 0 24 24"><path d="M12 2 L23 22 L1 22 Z" fill={fill} /></svg>
+  )}
+  {kind === "square" && (
+    <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" fill={fill} /></svg>
+  )}
+  {kind === "zigzag" && (
+    <svg viewBox="0 0 24 24"><path d="M1 16 L6 7 L11 16 L16 7 L21 16 L23 13" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+  )}
+  {kind === "semicircle" && (
+    <svg viewBox="0 0 24 24"><path d="M2 20 A10 10 0 0 1 22 20 Z" fill={fill} /></svg>
+  )}
+  {kind === "arch" && (
+    <svg viewBox="0 0 24 24"><path d="M4 22 V12 A8 8 0 0 1 20 12 V22 Z" fill={fill} /></svg>
+  )}
+  {kind === "wave" && (
+    <svg viewBox="0 0 24 24"><path d="M1 12 Q4 5 7 12 T13 12 T19 12 T25 12" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" /></svg>
+  )}
+  {kind === "ring" && (
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke={fill} stroke-width="5" /></svg>
+  )}
+  {kind === "dots" && (
+    <svg viewBox="0 0 24 24">
+      <circle cx="5" cy="5" r="2.2" fill={fill} /><circle cx="12" cy="5" r="2.2" fill={fill} /><circle cx="19" cy="5" r="2.2" fill={fill} />
+      <circle cx="5" cy="12" r="2.2" fill={fill} /><circle cx="12" cy="12" r="2.2" fill={fill} /><circle cx="19" cy="12" r="2.2" fill={fill} />
+      <circle cx="5" cy="19" r="2.2" fill={fill} /><circle cx="12" cy="19" r="2.2" fill={fill} /><circle cx="19" cy="19" r="2.2" fill={fill} />
+    </svg>
+  )}
+  {kind === "plus" && (
+    <svg viewBox="0 0 24 24"><path d="M10 2 h4 v8 h8 v4 h-8 v8 h-4 v-8 h-8 v-4 h8 Z" fill={fill} /></svg>
+  )}
+</span>

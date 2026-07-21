@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "repochan.starter-assets.v1",
+  "assets": {
+    "icon": {
+      "kind": "scalar",
+      "src": "/assets/icon.webp",
+      "status": "source",
+      "orderId": "ord-icon-001"
+    },
+    "chibi-walker": {
+      "kind": "scalar",
+      "src": "/assets/chibi-walker.png",
+      "status": "source",
+      "orderId": "ord-sticker-001"
+    },
+    "footer-cutout": {
+      "kind": "scalar",
+      "src": "/assets/cutout-wave.webp",
+      "status": "source",
+      "orderId": "ord-cutout-001"
+    },
+    "thumb-foundation": {
+      "kind": "scalar",
+      "src": "/assets/thumbs/foundation.jpg",
+      "status": "source",
+      "orderId": "ord-foundation-001"
+    },
+    "thumb-poster-studio": {
+      "kind": "scalar",
+      "src": "/assets/thumbs/poster-studio.jpg",
+      "status": "source",
+      "orderId": "ord-poster-001"
+    },
+    "thumb-poster-memphis": {
+      "kind": "scalar",
+      "src": "/assets/thumbs/poster-memphis.jpg",
+      "status": "source",
+      "orderId": "ord-poster-memphis-001"
+    },
+    "stickers": {
+      "kind": "bundle",
+      "status": "source",
+      "items": {
+        "welcome": {
+          "src": "/assets/stickers/sticker-0.webp",
+          "status": "source"
+        },
+        "searching": {
+          "src": "/assets/stickers/sticker-1.webp",
+          "status": "source"
+        },
+        "loading": {
+          "src": "/assets/stickers/sticker-2.webp",
+          "status": "source"
+        },
+        "empty": {
+          "src": "/assets/stickers/sticker-3.webp",
+          "status": "source"
+        },
+        "error": {
+          "src": "/assets/stickers/sticker-4.webp",
+          "status": "source"
+        },
+        "success": {
+          "src": "/assets/stickers/sticker-5.webp",
+          "status": "source"
+        },
+        "not-found": {
+          "src": "/assets/stickers/sticker-6.webp",
+          "status": "source"
+        },
+        "cta": {
+          "src": "/assets/stickers/sticker-7.webp",
+          "status": "source"
+        },
+        "cozy": {
+          "src": "/assets/stickers/sticker-8.webp",
+          "status": "source"
+        }
+      },
+      "orderId": "ord-sticker-001"
+    }
+  }
+}

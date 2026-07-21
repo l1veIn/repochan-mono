@@ -1,0 +1,23 @@
+---
+import { assetSrc } from "../lib/site";
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["souvenir"] };
+const { content } = Astro.props;
+
+const stickers = Array.from({ length: 9 }, (_, i) => `sticker-${i}`);
+---
+
+<section class="souvenir" aria-labelledby="souvenir-title">
+  <div class="souvenir-head">
+    <h2 id="souvenir-title">{content.title}</h2>
+    <p>{content.lead}</p>
+  </div>
+  <div class="marquee">
+    <div class="marquee-track">
+      {[...stickers, ...stickers].map((key) => (
+        <img src={assetSrc(key)} alt="" width="148" height="148" loading="lazy" />
+      ))}
+    </div>
+  </div>
+</section>

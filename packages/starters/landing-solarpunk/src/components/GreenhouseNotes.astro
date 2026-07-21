@@ -1,0 +1,81 @@
+---
+import { assets, alternatePath, site, type Locale } from "../lib/site";
+import type { FooterContent } from "../lib/i18n/types";
+
+type Props = { content: FooterContent; locale: Locale };
+const { content, locale } = Astro.props;
+---
+
+<footer class="greenhouse">
+  <div class="shell">
+    <div class="row">
+      <img class="mark" src={assets.icon.src} alt="" width="34" height="34" />
+      <ul class="lines">
+        {content.lines.map((line, i) => (
+          <li class={i === 0 ? "head" : ""}>{line}</li>
+        ))}
+      </ul>
+      <div class="foot-right">
+        <a href={site.project.repositoryUrl} rel="noopener">GitHub</a>
+        <a href={alternatePath(locale)} hreflang={locale === "zh" ? "en" : "zh-CN"}>{content.localeSwitchLabel}</a>
+      </div>
+    </div>
+    <div class="base">
+      <span>{content.copyright}</span>
+      <span class="note">{content.note}</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .greenhouse {
+    background: var(--leaf-deep);
+    color: var(--moss-soft);
+    padding-block: 3rem 2rem;
+    border-radius: clamp(32px, 6vw, 64px) clamp(32px, 6vw, 64px) 0 0;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 1.4rem;
+    flex-wrap: wrap;
+  }
+  .mark { border-radius: 50%; }
+  .lines {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.82rem;
+    color: color-mix(in srgb, var(--moss-soft) 82%, transparent);
+    display: grid;
+    gap: 0.15rem;
+  }
+  .lines .head {
+    font-weight: 700;
+    color: var(--paper);
+    letter-spacing: 0.06em;
+  }
+  .foot-right {
+    margin-left: auto;
+    display: flex;
+    gap: 1.4rem;
+  }
+  .foot-right a {
+    color: var(--sun-soft);
+    font-size: 0.9rem;
+  }
+  .base {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 2.2rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid color-mix(in srgb, var(--moss-soft) 25%, transparent);
+    font-size: 0.76rem;
+    color: color-mix(in srgb, var(--moss-soft) 75%, transparent);
+  }
+  @media (max-width: 640px) {
+    .foot-right { margin-left: 0; }
+  }
+</style>

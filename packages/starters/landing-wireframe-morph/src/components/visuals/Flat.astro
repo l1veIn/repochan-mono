@@ -1,0 +1,46 @@
+---
+import { assets, palette } from "../../lib/site";
+
+// Stage 3 · FLAT — 平涂模拟（filter 海报化）+ foundation 色板
+type Props = { alt: string };
+const { alt } = Astro.props;
+
+const p = palette();
+const swatches = [
+  { name: "sky", hex: p.sky },
+  { name: "pink", hex: p.pink },
+  { name: "purple", hex: p.purple },
+  { name: "emerald", hex: p.emerald },
+  { name: "yellow", hex: p.yellow },
+  { name: "ink", hex: p.ink },
+];
+---
+
+<div class="v-flat">
+  <img
+    class="flat-img lyr-color"
+    src={assets.cutout.src}
+    width={assets.cutout.width}
+    height={assets.cutout.height}
+    alt={alt}
+    loading="lazy"
+    decoding="async"
+  />
+  <ul class="swatches lyr-color" aria-label="foundation palette">
+    {swatches.map((s) => (
+      <li>
+        <span class="swatch-chip" style={`--chip:${s.hex}`} aria-hidden="true" />
+        <span class="swatch-hex">{s.hex}</span>
+      </li>
+    ))}
+  </ul>
+  <img
+    class="foundation-thumb lyr-color"
+    src={assets.foundation.src}
+    width={assets.foundation.width}
+    height={assets.foundation.height}
+    alt=""
+    loading="lazy"
+    decoding="async"
+  />
+</div>

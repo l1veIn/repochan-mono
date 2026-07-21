@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "en",
+  "meta": {
+    "title": "RepoChan · Toss your repo into the shape playground",
+    "description": "RepoChan turns a git repository into a full brand kit: persona, illustrations, stickers, landing pages. Six blocks, endless play."
+  },
+  "content": {
+    "nav": {
+      "brand": "RepoChan",
+      "tag": "shape playground",
+      "links": [
+        {
+          "shape": "circle",
+          "label": "Pipeline",
+          "href": "#pipeline"
+        },
+        {
+          "shape": "triangle",
+          "label": "Carousel",
+          "href": "#carousel"
+        },
+        {
+          "shape": "square",
+          "label": "How to play",
+          "href": "#rules"
+        }
+      ],
+      "cta": "Start building",
+      "localeSwitch": "中文"
+    },
+    "hero": {
+      "kicker": "RepoChan · the brand toy factory",
+      "headlineA": "Toss your repo into the",
+      "headlineB": "Shape Playground",
+      "sub": "One CLI, six steps: persona, illustrations, stickers, landing pages — snap your brand together like toy blocks.",
+      "ctaPrimary": "Start building",
+      "ctaPrimaryCommand": "npm install -g repochan",
+      "ctaSecondary": "See how it plays",
+      "stageNote": "Repo-chan, keeper of Sugar Riff · standing by in 9 stickers",
+      "copied": "Copied!"
+    },
+    "pipeline": {
+      "title": "Six blocks, one pipeline",
+      "intro": "Every step is a toy geometry block — snap them in order, or rebuild any time.",
+      "steps": [
+        {
+          "verb": "Unpack",
+          "name": "Analyze the repo",
+          "desc": "README, code structure, commit history — all turned into design evidence.",
+          "command": "repochan analysis",
+          "shape": "zigzag"
+        },
+        {
+          "verb": "Chat",
+          "name": "Soul interview",
+          "desc": "7–14 structured questions that draw out the project's soul portrait.",
+          "command": "repochan interview create",
+          "shape": "semicircle"
+        },
+        {
+          "verb": "Sculpt",
+          "name": "Create the persona",
+          "desc": "Three collaborating agents sculpt a mascot that feels alive.",
+          "command": "repochan persona create",
+          "shape": "circle"
+        },
+        {
+          "verb": "Order",
+          "name": "Commission assets",
+          "desc": "The art director files every asset order at once, foundation first.",
+          "command": "repochan order create",
+          "shape": "arch"
+        },
+        {
+          "verb": "Paint",
+          "name": "Painter delivers",
+          "desc": "Stickers, posters, web states generated per order — redrawn until right.",
+          "command": "repochan image gen",
+          "shape": "wave"
+        },
+        {
+          "verb": "Exhibit",
+          "name": "Assemble the site",
+          "desc": "Assets snap into a landing page and open for business — like this one.",
+          "command": "repochan starter pull",
+          "shape": "ring"
+        }
+      ]
+    },
+    "carousel": {
+      "title": "The sticker carousel",
+      "intro": "9 stickers + 9 web states, all the same Repo-chan — foundation-first, so every tile is on-model.",
+      "orbitCaption": " sticker series · ord-sticker-001",
+      "statesCaption": "webstates series · ord-webstates-001",
+      "posterCaption": "Memphis poster · ord-poster-memphis-001"
+    },
+    "rules": {
+      "title": "How to play",
+      "intro": "Three rules. Easier than a toy kit.",
+      "copyLabel": "Copy",
+      "copiedLabel": "✓ Copied",
+      "cards": [
+        {
+          "title": "Install the CLI",
+          "desc": "One command brings the toy factory home.",
+          "command": "npm install -g repochan",
+          "shape": "circle"
+        },
+        {
+          "title": "Run the skill",
+          "desc": "setup installs the skills into your agent — then just say /repochan.",
+          "command": "repochan setup",
+          "shape": "triangle"
+        },
+        {
+          "title": "Take the assets",
+          "desc": "Persona, stickers, posters all live in .repochan/ — help yourself.",
+          "command": "repochan order list",
+          "shape": "square"
+        }
+      ]
+    },
+    "cta": {
+      "headline": "Ready to play?",
+      "sub": "Paste this into your terminal — Repo-chan handles the rest.",
+      "command": "npm install -g repochan && repochan setup",
+      "copy": "Copy command",
+      "copied": "Copied!",
+      "repoLink": "Visit GitHub"
+    },
+    "footer": {
+      "tagline": "RepoChan · turn git repos into brand assets",
+      "built": "This site is dogfooded by the RepoChan pipeline: persona, stickers and poster all come from .repochan/ orders.",
+      "links": [
+        {
+          "label": "GitHub",
+          "href": "https://github.com/l1veIn/repochan-mono"
+        },
+        {
+          "label": "Design spec",
+          "href": "https://github.com/l1veIn/repochan-mono/tree/main/docs/prototypes"
+        }
+      ],
+      "localeSwitch": "中文",
+      "colophon": "memphis-playground · repochan protocol v1"
+    }
+  }
+}

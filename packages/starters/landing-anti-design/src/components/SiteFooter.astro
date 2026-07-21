@@ -1,0 +1,23 @@
+---
+import { alternatePath, type Locale } from "../lib/site";
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["footer"]; locale: Locale };
+const { content, locale } = Astro.props;
+---
+
+<footer class="footer">
+  <div class="wrap">
+    <p class="footer-tag">{content.tagline}</p>
+    <p class="footer-404">{content.fake404}</p>
+    <span class="footer-updated" aria-hidden="true">{content.updated}</span>
+    <div class="footer-badges" aria-hidden="true">
+      {content.badges.map((badge) => <span class="badge-88">{badge}</span>)}
+    </div>
+    <nav class="footer-links" aria-label="footer">
+      {content.links.map((link) => <a href={link.href} target="_blank" rel="noopener">{link.label}</a>)}
+      <a href={alternatePath(locale)}>{content.localeSwitch}</a>
+    </nav>
+    <p class="footer-colophon">{content.colophon}</p>
+  </div>
+</footer>

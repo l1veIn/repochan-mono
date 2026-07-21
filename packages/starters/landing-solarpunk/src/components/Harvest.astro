@@ -1,0 +1,104 @@
+---
+import { assets } from "../lib/site";
+import type { HarvestContent } from "../lib/i18n/types";
+
+type Props = { content: HarvestContent };
+const { content } = Astro.props;
+---
+
+<section class="section harvest" id="harvest">
+  <div class="shell">
+    <p class="stage-label" data-grow>{content.stage}</p>
+    <h2 class="section-title display" data-grow data-grow-delay="1">{content.title}</h2>
+    <p class="section-note" data-grow data-grow-delay="2">{content.note}</p>
+
+    <ul class="fruits">
+      {content.items.map((item, i) => (
+        <li class="fruit" data-grow data-grow-delay={String((i % 3) + 1)}>
+          <div class="fruit-badge">
+            <img src={assets.stickers[i].src} alt={item.alt} width={assets.stickers[i].width} height={assets.stickers[i].height} loading="lazy" />
+          </div>
+          <p class="fruit-name">{item.name}</p>
+        </li>
+      ))}
+    </ul>
+
+    <p class="basket-note mono" data-grow>🧺 {content.basketNote}</p>
+  </div>
+</section>
+
+<style>
+  .harvest {
+    background: var(--sky-soft);
+    border-radius: clamp(32px, 6vw, 64px) clamp(32px, 6vw, 64px) 0 0;
+  }
+  .fruits {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem 1.5rem;
+  }
+  .fruit { text-align: center; }
+  .fruit:nth-child(3n + 2) { transform: translateY(1.4rem); }
+  .fruit-badge {
+    position: relative;
+    width: min(100%, 200px);
+    aspect-ratio: 1;
+    margin-inline: auto;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 32% 28%, var(--paper) 0%, var(--moss-soft) 78%);
+    border: 1px solid color-mix(in srgb, var(--leaf) 25%, transparent);
+    display: grid;
+    place-items: center;
+    transition: transform 0.3s ease;
+  }
+  /* 果柄 */
+  .fruit-badge::before {
+    content: "";
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    width: 3px;
+    height: 12px;
+    background: var(--leaf-deep);
+    border-radius: 2px;
+    transform: translateX(-50%) rotate(6deg);
+  }
+  .fruit-badge img {
+    width: 82%;
+    height: 82%;
+    object-fit: contain;
+  }
+  /* 果实 hover 轻晃 */
+  .fruit:hover .fruit-badge {
+    animation: fruit-sway 0.9s ease-in-out;
+  }
+  @keyframes fruit-sway {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(3.2deg) translateY(-3px); }
+    55% { transform: rotate(-2.6deg); }
+    80% { transform: rotate(1.2deg); }
+    100% { transform: rotate(0deg); }
+  }
+  .fruit-name {
+    margin: 0.7rem 0 0;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .basket-note {
+    margin: 3rem 0 0;
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+  @media (max-width: 640px) {
+    .fruits { grid-template-columns: repeat(2, 1fr); gap: 1.4rem 1rem; }
+    .fruit:nth-child(3n + 2) { transform: none; }
+    .fruit:nth-child(2n) { transform: translateY(1rem); }
+  }
+</style>

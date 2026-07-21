@@ -1,0 +1,49 @@
+---
+import "../styles/global.css";
+import { site, assetSrc, alternatePath, buildCssVars, type Locale } from "../lib/site";
+
+type Props = {
+  title: string;
+  description: string;
+  locale: Locale;
+};
+
+const { title, description, locale } = Astro.props;
+const htmlLang = locale === "zh" ? "zh-CN" : "en";
+const cssVars = buildCssVars();
+---
+
+<!doctype html>
+<html lang={htmlLang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content={site.theme.base} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={assetSrc("icon")} />
+    <meta property="og:locale" content={locale === "zh" ? "zh_CN" : "en_US"} />
+    <link rel="alternate" hreflang={htmlLang} href={locale === "zh" ? "/" : "/en/"} />
+    <link rel="alternate" hreflang={locale === "zh" ? "en" : "zh-CN"} href={alternatePath(locale)} />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=M+PLUS+Rounded+1c:wght@500;700;800&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style is:inline set:html={cssVars} />
+  </head>
+  <body>
+    <slot />
+    <script>
+      import "../lib/motion";
+    </script>
+  </body>
+</html>

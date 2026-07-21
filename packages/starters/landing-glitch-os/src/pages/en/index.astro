@@ -1,0 +1,27 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import BootSplash from "../../components/BootSplash.astro";
+import Desktop from "../../components/Desktop.astro";
+import WinAnalysis from "../../components/WinAnalysis.astro";
+import WinPersona from "../../components/WinPersona.astro";
+import WinPainter from "../../components/WinPainter.astro";
+import WinFoundation from "../../components/WinFoundation.astro";
+import SuccessModal from "../../components/SuccessModal.astro";
+import Taskbar from "../../components/Taskbar.astro";
+import { getContent } from "../../lib/site";
+
+const t = getContent("en");
+---
+
+<SiteLayout title={t.meta.title} description={t.meta.description} locale="en">
+  <BootSplash content={t.boot} />
+  <Desktop content={t.desktop} />
+  <main class="stage">
+    <WinAnalysis content={t.winAnalysis} />
+    <WinPersona content={t.winPersona} />
+    <WinPainter content={t.winPainter} />
+    <WinFoundation content={t.winFoundation} />
+  </main>
+  <SuccessModal content={t.modal} />
+  <Taskbar content={t.taskbar} locale="en" />
+</SiteLayout>

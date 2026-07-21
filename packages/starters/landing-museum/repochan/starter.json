@@ -1,0 +1,658 @@
+{
+  "schemaVersion": "repochan.starter.v1",
+  "id": "landing-museum",
+  "name": "白盒子美术馆 · Museum White Cube",
+  "description": "RepoChan's own museum white-cube landing page: a quiet gallery that hangs the pipeline's real deliverables as framed exhibits — opening portrait, foundation sheet, character studies, two 3×3 edition walls, posters and a pattern tile — each with a curator caption carrying its real order id. zh default locale with a full en edition; every visual is real pipeline output.",
+  "style": "museum-white-cube",
+  "tags": [
+    "landing",
+    "museum",
+    "white-cube",
+    "gallery",
+    "minimal",
+    "curated",
+    "bilingual"
+  ],
+  "previews": {
+    "desktop": "repochan/previews/desktop.webp",
+    "mobile": "repochan/previews/mobile.webp"
+  },
+  "config": {
+    "site": "repochan/site.json",
+    "assets": "repochan/assets.json",
+    "i18nDir": "repochan/i18n"
+  },
+  "content": {
+    "defaultLocale": "zh",
+    "supportedLocales": [
+      "zh",
+      "en"
+    ]
+  },
+  "assets": [
+    {
+      "kind": "scalar",
+      "slot": "opening-portrait",
+      "required": true,
+      "reference": "repochan/references/opening-portrait-matte.png",
+      "output": "public/assets/opening-portrait.webp",
+      "description": "Opening portrait in the lobby — the only room where the character itself appears; full-body complete-in-frame cutout, transparent webp produced by chroma-key + compress. Reference is the raw matte master (2:3).",
+      "order": {
+        "assetType": "character_cutout",
+        "templateId": "official/character-cutout",
+        "brief": {
+          "intent": "Regenerate the lobby opening portrait for the downstream project's character: a full-body, complete-in-frame cutout with museum-label dignity — calm, frontal, ready to be hung like a portrait.",
+          "mustInclude": [
+            "one full-body character, fully inside the canvas with margin on all four sides",
+            "perfectly flat uniform matte background in a color absent from the character",
+            "vertical 2:3 framing, character centered"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "scenery",
+            "shadows on the matte",
+            "cropped limbs or props"
+          ],
+          "creativeFreedom": [
+            "character outfit details",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "cutout-matte",
+            "format": "png",
+            "width": 1024,
+            "height": 1536,
+            "aspectRatio": "2:3",
+            "genSize": "2048x3072"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "chroma-key",
+          "args": {
+            "matte": "auto",
+            "pipeline": "v2"
+          },
+          "out": "public/assets/opening-portrait.png"
+        },
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 88,
+            "maxWidth": 1600
+          },
+          "out": "public/assets/opening-portrait.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "exhibit-cutout",
+      "required": true,
+      "reference": "repochan/references/exhibit-cutout-matte.png",
+      "output": "public/assets/cutout-wave.webp",
+      "description": "Second complete-in-frame cutout — the main study of Gallery B, waving; transparent webp produced by chroma-key + compress. Reference is the raw matte master (1:1).",
+      "order": {
+        "assetType": "character_cutout",
+        "templateId": "official/character-cutout",
+        "brief": {
+          "intent": "Regenerate the Gallery B main-study cutout for the downstream project's character: a friendly waving pose, full body complete in frame, ready to be framed as an editioned study.",
+          "mustInclude": [
+            "one full-body character waving, fully inside the canvas with margin on all four sides",
+            "perfectly flat uniform matte background in a color absent from the character",
+            "square 1:1 framing, character centered"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "scenery",
+            "shadows on the matte",
+            "cropped limbs or props"
+          ],
+          "creativeFreedom": [
+            "character outfit details",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "cutout-matte",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "2048x2048"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "chroma-key",
+          "args": {
+            "matte": "auto",
+            "pipeline": "v2"
+          },
+          "out": "public/assets/cutout-wave.png"
+        },
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 88,
+            "maxWidth": 1600
+          },
+          "out": "public/assets/cutout-wave.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "exhibit-foundation",
+      "required": true,
+      "output": "public/assets/exhibits/foundation-sheet.jpg",
+      "description": "Foundation sheet — the single full-width centerpiece of Gallery A and the consistency anchor every other exhibit cites; square JPEG compressed to 1600px.",
+      "order": {
+        "assetType": "foundation_sheet",
+        "templateId": "official/foundation-sheet",
+        "brief": {
+          "intent": "Repaint the downstream project's foundation sheet: character front view, key expressions, palette and signature motifs agreed on one sheet — the visual anchor all downstream orders reference.",
+          "mustInclude": [
+            "the project character front view plus expression and detail studies on one sheet",
+            "the project palette and key motifs called out on the sheet",
+            "square 1:1 framing"
+          ],
+          "avoid": [
+            "rendered paragraphs of text",
+            "logos",
+            "watermarks"
+          ],
+          "creativeFreedom": [
+            "sheet layout and annotation style",
+            "which details get close-up studies"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "foundation-sheet",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "2048x2048"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": {
+            "format": "jpeg",
+            "quality": 88,
+            "maxWidth": 1600
+          },
+          "out": "public/assets/exhibits/foundation-sheet.jpg"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "exhibit-poster-riso",
+      "required": true,
+      "output": "public/assets/exhibits/poster-riso.jpg",
+      "description": "Risograph-pop poster — Gallery D's single large piece: the character in its own studio scene; 3:2 JPEG compressed to 1600px.",
+      "order": {
+        "assetType": "poster",
+        "templateId": "official/poster-risograph-pop",
+        "brief": {
+          "intent": "Repaint the risograph-pop studio poster for the downstream project: the project character in its own workshop scene, halftone dots, slight misregistration and paper grain.",
+          "mustInclude": [
+            "risograph print texture: halftone dots, slight color misregistration, paper grain",
+            "the project character inside its studio/workspace scene",
+            "landscape 3:2 framing"
+          ],
+          "avoid": [
+            "rendered text",
+            "logos",
+            "UI baked into the image",
+            "watermarks"
+          ],
+          "creativeFreedom": [
+            "scene contents and palette rotation within the project identity",
+            "print-defect intensity"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "poster",
+            "format": "png",
+            "width": 1536,
+            "height": 1024,
+            "aspectRatio": "3:2",
+            "genSize": "3072x2048"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": {
+            "format": "jpeg",
+            "quality": 88,
+            "maxWidth": 1600
+          },
+          "out": "public/assets/exhibits/poster-riso.jpg"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "exhibit-poster-memphis",
+      "required": true,
+      "output": "public/assets/exhibits/poster-memphis.webp",
+      "description": "Memphis geometric poster — the first half of Gallery D's diptych; square 1:1, generated at 4K-class resolution and compressed to 1536px webp.",
+      "order": {
+        "assetType": "poster",
+        "templateId": "official/poster-memphis",
+        "brief": {
+          "intent": "Repaint the Memphis geometric poster for the downstream project: asymmetrical geometric partitions, clashing optimistic palette and the project character integrated among zigzags, circles, arches and dots.",
+          "mustInclude": [
+            "Memphis-style asymmetrical composition with hard-edge geometric shapes (zigzag, circle, arch, ring, dots)",
+            "the project character integrated among the shapes",
+            "square 1:1 framing"
+          ],
+          "avoid": [
+            "rendered text",
+            "logos",
+            "UI baked into the image",
+            "watermarks"
+          ],
+          "creativeFreedom": [
+            "shape arrangement and palette rotation within the project identity",
+            "selective dimensional shadows"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "poster",
+            "format": "png",
+            "width": 1536,
+            "height": 1536,
+            "aspectRatio": "1:1",
+            "genSize": "3840x3840"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 82,
+            "maxWidth": 1536
+          },
+          "out": "public/assets/exhibits/poster-memphis.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "exhibit-pattern",
+      "required": true,
+      "output": "public/assets/exhibits/pattern-tile.jpg",
+      "description": "Seamless pattern tile of the project motifs — the second half of Gallery D's diptych; square JPEG at 1024px.",
+      "order": {
+        "assetType": "pattern",
+        "templateId": "official/pattern-tile",
+        "brief": {
+          "intent": "Repaint the seamless pattern tile for the downstream project: the project's signature motifs repeating in a flat, perfectly tileable pattern.",
+          "mustInclude": [
+            "perfectly seamless tileable repetition of the project motifs",
+            "flat color, no gradients or shadows that would break tiling",
+            "square 1:1 framing"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "logos",
+            "watermarks"
+          ],
+          "creativeFreedom": [
+            "motif spacing, scale and rotation rhythm",
+            "palette rotation within the project identity"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "pattern-tile",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "2048x2048"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": {
+            "format": "jpeg",
+            "quality": 88,
+            "maxWidth": 1024
+          },
+          "out": "public/assets/exhibits/pattern-tile.jpg"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "icon",
+      "required": true,
+      "output": "public/assets/icon.webp",
+      "description": "Project icon — nav badge; also the favicon source (favicon.ico / apple-touch-icon.png / icon-192.png / icon-512.png are derived from it offline via compress + favicon + resize).",
+      "order": {
+        "assetType": "icon",
+        "templateId": "official/icon-single",
+        "brief": {
+          "mustInclude": [
+            "one scalable brand mark reading cleanly at 38px",
+            "project motif without any letterforms"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "watermarks"
+          ],
+          "creativeFreedom": [
+            "mark geometry",
+            "accent colors from the project palette"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "icon",
+            "format": "png",
+            "width": 512,
+            "height": 512,
+            "aspectRatio": "1:1",
+            "genSize": "1024x1024"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 90,
+            "maxWidth": 512
+          },
+          "out": "public/assets/icon.webp"
+        }
+      ]
+    },
+    {
+      "kind": "bundle",
+      "slot": "stickers",
+      "required": true,
+      "reference": "repochan/references/stickers-grid.png",
+      "publications": [
+        {
+          "key": "welcome",
+          "cell": 0,
+          "output": "public/assets/stickers/sticker-0.webp"
+        },
+        {
+          "key": "searching",
+          "cell": 1,
+          "output": "public/assets/stickers/sticker-1.webp"
+        },
+        {
+          "key": "loading",
+          "cell": 2,
+          "output": "public/assets/stickers/sticker-2.webp"
+        },
+        {
+          "key": "empty",
+          "cell": 3,
+          "output": "public/assets/stickers/sticker-3.webp"
+        },
+        {
+          "key": "error",
+          "cell": 4,
+          "output": "public/assets/stickers/sticker-4.webp"
+        },
+        {
+          "key": "success",
+          "cell": 5,
+          "output": "public/assets/stickers/sticker-5.webp"
+        },
+        {
+          "key": "not-found",
+          "cell": 6,
+          "output": "public/assets/stickers/sticker-6.webp"
+        },
+        {
+          "key": "cta",
+          "cell": 7,
+          "output": "public/assets/stickers/sticker-7.webp"
+        },
+        {
+          "key": "cozy",
+          "cell": 8,
+          "output": "public/assets/stickers/sticker-8.webp"
+        }
+      ],
+      "description": "Nine die-cut chibi stickers — Gallery C's first 3×3 edition wall. sticker-N.webp is cell N of the 3×3 grid; the source grid's cell semantics (chibi expressions) differ from the template's fixed keys, and the keys are the positional replacement contract for downstream regeneration.",
+      "order": {
+        "assetType": "web_state_stickers",
+        "templateId": "official/web-state-grid-3x3",
+        "brief": {
+          "mustInclude": [
+            "strict 3×3 grid of the project character in the nine fixed web-state poses (template cell semantics)",
+            "perfectly flat uniform matte background in a color absent from the character, identical in every pixel outside the stickers"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "numbers",
+            "borders",
+            "grid lines",
+            "scenery",
+            "shadows on the matte"
+          ],
+          "creativeFreedom": [
+            "expression and pose details inside each fixed semantic",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "sticker-grid",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "2048x2048"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "extract-grid",
+          "args": {
+            "rows": 3,
+            "cols": 3,
+            "strategy": "chroma-grid",
+            "mapping": {
+              "welcome": 0,
+              "searching": 1,
+              "loading": 2,
+              "empty": 3,
+              "error": 4,
+              "success": 5,
+              "not-found": 6,
+              "cta": 7,
+              "cozy": 8
+            },
+            "normalize": {
+              "canvasSize": 640,
+              "padding": 10
+            },
+            "chroma": {
+              "matteColor": "auto",
+              "pipeline": "v2",
+              "matteSelect": "subject-aware"
+            },
+            "geometry": {
+              "mode": "centroid-components"
+            },
+            "qa": {
+              "alphaThreshold": 32,
+              "minForegroundRatio": 0.05,
+              "maxForegroundRatio": 0.9,
+              "maxSheetEdgeTouchRatio": 0.05
+            },
+            "format": "webp",
+            "quality": 80
+          },
+          "out": "public/assets/stickers"
+        }
+      ]
+    },
+    {
+      "kind": "bundle",
+      "slot": "webstates",
+      "required": true,
+      "reference": "repochan/references/webstates-grid.png",
+      "publications": [
+        {
+          "key": "welcome",
+          "cell": 0,
+          "output": "public/assets/webstates/state-0.webp"
+        },
+        {
+          "key": "searching",
+          "cell": 1,
+          "output": "public/assets/webstates/state-1.webp"
+        },
+        {
+          "key": "loading",
+          "cell": 2,
+          "output": "public/assets/webstates/state-2.webp"
+        },
+        {
+          "key": "empty",
+          "cell": 3,
+          "output": "public/assets/webstates/state-3.webp"
+        },
+        {
+          "key": "error",
+          "cell": 4,
+          "output": "public/assets/webstates/state-4.webp"
+        },
+        {
+          "key": "success",
+          "cell": 5,
+          "output": "public/assets/webstates/state-5.webp"
+        },
+        {
+          "key": "not-found",
+          "cell": 6,
+          "output": "public/assets/webstates/state-6.webp"
+        },
+        {
+          "key": "cta",
+          "cell": 7,
+          "output": "public/assets/webstates/state-7.webp"
+        },
+        {
+          "key": "cozy",
+          "cell": 8,
+          "output": "public/assets/webstates/state-8.webp"
+        }
+      ],
+      "description": "Web-state chibi illustrations — Gallery C's second 3×3 edition wall. state-N.webp is cell N of the 3×3 grid; the source grid's cell semantics (loading/empty/success/not-found/error/welcome/searching/maintenance/cozy) differ from the template's fixed keys, and the keys are the positional replacement contract for downstream regeneration.",
+      "order": {
+        "assetType": "web_state_stickers",
+        "templateId": "official/web-state-grid-3x3",
+        "brief": {
+          "mustInclude": [
+            "strict 3×3 grid of the project character in the nine fixed web-state poses (template cell semantics)",
+            "perfectly flat uniform matte background in a color absent from the character, identical in every pixel outside the stickers"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "numbers",
+            "borders",
+            "grid lines",
+            "scenery",
+            "shadows on the matte"
+          ],
+          "creativeFreedom": [
+            "pose details inside each fixed semantic",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "webstate-grid",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "2048x2048"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "extract-grid",
+          "args": {
+            "rows": 3,
+            "cols": 3,
+            "strategy": "chroma-grid",
+            "mapping": {
+              "welcome": 0,
+              "searching": 1,
+              "loading": 2,
+              "empty": 3,
+              "error": 4,
+              "success": 5,
+              "not-found": 6,
+              "cta": 7,
+              "cozy": 8
+            },
+            "normalize": {
+              "canvasSize": 640,
+              "padding": 10
+            },
+            "chroma": {
+              "matteColor": "auto",
+              "pipeline": "v2",
+              "matteSelect": "subject-aware"
+            },
+            "geometry": {
+              "mode": "centroid-components"
+            },
+            "qa": {
+              "alphaThreshold": 32,
+              "minForegroundRatio": 0.05,
+              "maxForegroundRatio": 0.9,
+              "maxSheetEdgeTouchRatio": 0.1
+            },
+            "format": "webp",
+            "quality": 80
+          },
+          "out": "public/assets/webstates"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+---
+import { assets, alternatePath, site, type Locale } from "../lib/site";
+import type { NavContent } from "../lib/i18n/types";
+
+type Props = { content: NavContent; locale: Locale };
+const { content, locale } = Astro.props;
+---
+
+<header class="nav">
+  <div class="shell nav-inner">
+    <a class="brand" href="#top">
+      <img src={assets.icon.src} alt={content.iconAlt} width="28" height="28" />
+      <span class="brand-name display">{content.brand}</span>
+      <span class="brand-tag mono">{content.tagline}</span>
+    </a>
+    <nav class="stages" aria-label="stages">
+      {content.stages.map((s) => <a href={`#${s.id}`}>{s.label}</a>)}
+    </nav>
+    <div class="nav-right">
+      <a class="repo mono" href={site.project.repositoryUrl} rel="noopener">GitHub</a>
+      <a class="locale mono" href={alternatePath(locale)} hreflang={locale === "zh" ? "en" : "zh-CN"}>
+        {content.localeSwitchLabel}
+      </a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--paper);
+    border-bottom: 1px solid var(--clay-soft);
+  }
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    height: 3.6rem;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--ink);
+  }
+  .brand:hover { text-decoration: none; }
+  .brand img { border-radius: 50%; }
+  .brand-name { font-size: 1.02rem; }
+  .brand-tag {
+    font-size: 0.66rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .stages {
+    display: flex;
+    gap: 1.15rem;
+    margin-left: auto;
+  }
+  .stages a {
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+  }
+  .stages a:hover { color: var(--leaf-deep); }
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+  .repo,
+  .locale {
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    padding: 0.32em 0.75em;
+    border: 1px solid var(--clay);
+    border-radius: 999px;
+    color: var(--leaf-deep);
+  }
+  .repo:hover,
+  .locale:hover {
+    background: var(--moss-soft);
+    text-decoration: none;
+  }
+  @media (max-width: 860px) {
+    .stages { display: none; }
+    .brand-tag { display: none; }
+    .nav-right { margin-left: auto; }
+  }
+</style>

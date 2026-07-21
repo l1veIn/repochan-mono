@@ -1,0 +1,84 @@
+---
+import type { SeedContent } from "../lib/i18n/types";
+
+type Props = { content: SeedContent };
+const { content } = Astro.props;
+---
+
+<section class="section seed" id="seed">
+  <div class="shell">
+    <p class="stage-label" data-grow>{content.stage}</p>
+    <h2 class="section-title display" data-grow data-grow-delay="1">{content.title}</h2>
+    <p class="section-note" data-grow data-grow-delay="2">{content.note}</p>
+
+    <ol class="journal">
+      {content.entries.map((entry, i) => (
+        <li class="entry" data-grow data-grow-delay={String((i % 3) + 1)}>
+          <span class="tape" aria-hidden="true"></span>
+          <p class="dim mono">{entry.dim}</p>
+          <p class="q">{entry.q}</p>
+          <p class="a display">{entry.a}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .seed {
+    background: var(--clay-soft);
+    border-radius: clamp(32px, 6vw, 64px) clamp(32px, 6vw, 64px) 0 0;
+  }
+  .journal {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.2rem;
+  }
+  .entry {
+    position: relative;
+    background: var(--paper);
+    border-radius: 4px 14px 14px 14px;
+    padding: 1.5rem 1.4rem 1.3rem;
+    box-shadow: 0 3px 0 color-mix(in srgb, var(--clay) 40%, transparent);
+  }
+  /* 和纸胶带角 */
+  .tape {
+    position: absolute;
+    top: -10px;
+    left: 1.2rem;
+    width: 64px;
+    height: 20px;
+    background: color-mix(in srgb, var(--sun) 55%, var(--paper));
+    opacity: 0.85;
+    transform: rotate(-3deg);
+    border-radius: 2px;
+  }
+  .entry:nth-child(2n) .tape { transform: rotate(2.5deg); background: color-mix(in srgb, var(--moss) 60%, var(--paper)); }
+  .entry:nth-child(3n) .tape { transform: rotate(-1.5deg); background: color-mix(in srgb, var(--sky) 50%, var(--paper)); }
+  .dim {
+    font-size: 0.66rem;
+    letter-spacing: 0.2em;
+    color: var(--clay);
+    margin: 0 0 0.7rem;
+    font-weight: 700;
+  }
+  .q {
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    margin: 0 0 0.55rem;
+  }
+  .a {
+    font-size: 1.12rem;
+    color: var(--leaf-deep);
+    margin: 0;
+  }
+  @media (max-width: 900px) {
+    .journal { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .journal { grid-template-columns: 1fr; }
+  }
+</style>

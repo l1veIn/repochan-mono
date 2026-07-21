@@ -1,0 +1,23 @@
+---
+import { assets } from "../../lib/site";
+
+// Stage 4 · TEXTURE — 平涂角色 + 纹样底 + 贴纸附着
+type Props = { alt: string };
+const { alt } = Astro.props;
+---
+
+<div class="v-texture">
+  <span class="texture-bg lyr-texture" style={`background-image:url(${assets.pattern.src})`} aria-hidden="true" />
+  <img
+    class="flat-img lyr-color"
+    src={assets.cutout.src}
+    width={assets.cutout.width}
+    height={assets.cutout.height}
+    alt={alt}
+    loading="lazy"
+    decoding="async"
+  />
+  <img class="sticker sticker-a lyr-texture" src={assets.sticker0.src} width="640" height="640" alt="" loading="lazy" decoding="async" />
+  <img class="sticker sticker-b lyr-texture" src={assets.sticker3.src} width="640" height="640" alt="" loading="lazy" decoding="async" />
+  <img class="sticker sticker-c lyr-texture" src={assets.sticker6.src} width="640" height="640" alt="" loading="lazy" decoding="async" />
+</div>

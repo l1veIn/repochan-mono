@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# preview-sites.sh — 批量启动 web-design/sites 下全部站点的本地预览并在浏览器打开
+# preview-sites.sh — 批量启动站点本地预览并在浏览器打开
+# 默认服务 packages/starters 下全部 starter；用 PREVIEW_SITES_DIR 环境变量覆盖
+# （例如 PREVIEW_SITES_DIR=web-design/sites 预览原型站）。
 #
 # 用法:
 #   scripts/preview-sites.sh            # 服务全部站点并打开浏览器标签
@@ -10,7 +12,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SITES_DIR="$ROOT/web-design/sites"
+SITES_DIR="${PREVIEW_SITES_DIR:-$ROOT/packages/starters}"
 BASE_PORT=4410
 OPEN_BROWSER=1
 FORCE_BUILD=0

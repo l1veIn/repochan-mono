@@ -1,0 +1,185 @@
+{
+  "schemaVersion": "repochan.starter-content.v1",
+  "locale": "zh",
+  "meta": {
+    "title": "RepoChan — 线框羽化 · 协议长出血肉",
+    "description": "先有协议，才有皮肤。滚动见证一个 git 仓库从 ASCII 线框被逐层渲染成完整的品牌世界。"
+  },
+  "content": {
+    "rail": {
+      "renderLabel": "RENDER",
+      "brandAlt": "RepoChan 图标",
+      "localeSwitch": "EN",
+      "stages": [
+        "WIRE",
+        "SCHEMA",
+        "LINEART",
+        "FLAT",
+        "TEXTURE",
+        "RENDER",
+        "LIVE",
+        "WORLD"
+      ]
+    },
+    "toggles": {
+      "title": "图层开关",
+      "items": [
+        {
+          "key": "protocol",
+          "label": "Protocol"
+        },
+        {
+          "key": "line",
+          "label": "Line"
+        },
+        {
+          "key": "color",
+          "label": "Color"
+        },
+        {
+          "key": "texture",
+          "label": "Texture"
+        },
+        {
+          "key": "motion",
+          "label": "Motion"
+        }
+      ]
+    },
+    "snapshots": {
+      "title": "阶段快照",
+      "hint": " reduced-motion：四个完成度静态锚点",
+      "items": [
+        {
+          "label": "0% 线框",
+          "target": "stage-0"
+        },
+        {
+          "label": "30% 线稿",
+          "target": "stage-2"
+        },
+        {
+          "label": "60% 材质",
+          "target": "stage-4"
+        },
+        {
+          "label": "100% 世界",
+          "target": "stage-7"
+        }
+      ]
+    },
+    "stages": [
+      {
+        "id": "stage-0",
+        "pct": "0%",
+        "kicker": "00 · WIREFRAME — schema / CLI",
+        "title": "先有协议，才有皮肤。",
+        "body": "RepoChan 把一个 git 仓库渲染成完整的品牌世界。一切从一段 schema 开始：analysis 是骨架，CLI 是唯一的写入通道，agent 是你自带的。",
+        "note": "$ repochan analysis → .repochan/analysis/",
+        "figLabel": "CHARACTER_SLOT · 640×960 · empty",
+        "imgAlt": "线框阶段：空角色槽位"
+      },
+      {
+        "id": "stage-1",
+        "pct": "15%",
+        "kicker": "01 · SCHEMA — analysis 字段",
+        "title": "灰模之上，字段先行。",
+        "body": "确定性扫描读出仓库的语言、依赖、命令与气质。在任何一笔颜色之前，先有 techStack、commands 和 readmeTone——它们决定她会长成什么样。",
+        "note": "analysis.json · schema repochan.analysis.v1",
+        "figLabel": "GRAY_BOX · annotated",
+        "fields": [
+          {
+            "key": "techStack[0]",
+            "value": "\"TypeScript\""
+          },
+          {
+            "key": "commands.build",
+            "value": "\"pnpm build\""
+          },
+          {
+            "key": "readmeTone",
+            "value": "\"precise, playful\""
+          },
+          {
+            "key": "persona.primaryColor",
+            "value": "pending…"
+          }
+        ],
+        "imgAlt": "灰模阶段：带尺寸与字段标注的灰盒"
+      },
+      {
+        "id": "stage-2",
+        "pct": "30%",
+        "kicker": "02 · LINEART — persona",
+        "title": "RENDERING PERSONA…",
+        "body": "访谈回答被蒸馏成角色：银发、异色瞳、三角发夹、挂在脖子上的大耳机。线稿定下姿态与轮廓——她还没上色，但已经在了。",
+        "note": "persona create → .repochan/persona/current.json",
+        "figLabel": "LINEART · ord-lineart-001",
+        "imgAlt": "仓库酱角色线稿：黑线白底，跳跃姿态"
+      },
+      {
+        "id": "stage-3",
+        "pct": "45%",
+        "kicker": "03 · FLAT — foundation 色板",
+        "title": "五色平涂，性格入场。",
+        "body": "设定集把整个世界压缩成几个色号：湖蓝主色、樱粉、紫、薄荷绿、暖黄与墨。下游每一笔都从这张表里取色——一致性不是约束，是她的审美。",
+        "note": "ord-foundation-001 · palette locked",
+        "figLabel": "FLAT_COLOR · foundation sheet",
+        "imgAlt": "平涂阶段：角色上色中，旁边是设定集色板"
+      },
+      {
+        "id": "stage-4",
+        "pct": "60%",
+        "kicker": "04 · TEXTURE — stickers & patterns",
+        "title": "贴图与网点，材质生长。",
+        "body": "贴纸、四方连续纹样、像素星星逐层贴上——这是她从 zine 和和纸胶带收藏里学来的语言。平涂开始有了触感。",
+        "note": "ord-sticker-001 / ord-pattern-001 · 3×3 grid extract",
+        "figLabel": "TEXTURE · stickers + pattern",
+        "imgAlt": "材质阶段：贴纸与纹样附着在角色周围"
+      },
+      {
+        "id": "stage-5",
+        "pct": "75%",
+        "kicker": "05 · RENDER — painter 交付",
+        "title": "光影落定，场景合焦。",
+        "body": "Painter 按依赖顺序交付：先设定集，再 cutout，再海报与场景。每一笔都可回溯到一个订单号——这就是协议的意义。",
+        "note": "image gen → order create-result → versions/",
+        "figLabel": "FULL_RENDER · Sugar Riff studio",
+        "imgAlt": "全渲染阶段：Sugar Riff 工作室场景与完整角色"
+      },
+      {
+        "id": "stage-6",
+        "pct": "90%",
+        "kicker": "06 · LIVE — page / starter",
+        "title": "控件点亮，页面通电。",
+        "body": "线框按钮变成真按钮，卡片获得焦点态。page 赋予生命——你正在看的这一页，就是协议的终态。",
+        "note": "starter pull → asset-apply → pnpm build",
+        "figLabel": "LIVE_UI · interactive",
+        "ctaPrimary": "点我——我是真的按钮",
+        "ctaSecondary": "查看协议源码",
+        "imgAlt": "点亮阶段：线框按钮变为可点击的彩色按钮"
+      },
+      {
+        "id": "stage-7",
+        "pct": "100%",
+        "kicker": "07 · WORLD — install",
+        "title": "协议长出了血肉。",
+        "body": "从一段 schema 到一个会呼吸的品牌世界：人设、设定集、贴纸、海报、落地页。把你的仓库交给她。",
+        "note": "RENDER COMPLETE · 100%",
+        "figLabel": "BRAND_WORLD · live",
+        "installLabel": "安装并渲染你的仓库",
+        "installCmd": "npm install -g repochan",
+        "copyLabel": "复制",
+        "copiedLabel": "已复制",
+        "repoLink": "GitHub 仓库",
+        "imgAlt": "完整品牌世界：全彩角色、纹样与贴纸"
+      }
+    ],
+    "colophon": {
+      "line1": "RepoChan — core 是纯协议，skill 赋予灵魂，paint 赋予皮肤，page 赋予生命。",
+      "line2": "本页自身即证据：schema → lineart → flat → texture → render → live。",
+      "designNote": "设计稿 08 · Wireframe Metamorphosis",
+      "backTop": "回到 0%"
+    }
+  }
+}
