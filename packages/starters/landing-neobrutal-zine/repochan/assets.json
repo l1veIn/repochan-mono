@@ -4,57 +4,118 @@
     "cover-cutout": {
       "kind": "scalar",
       "src": "/assets/cutout.png",
-      "status": "source"
+      "status": "source",
+      "orderId": "ord-cutout-001"
     },
     "icon": {
       "kind": "scalar",
       "src": "/assets/icon.webp",
-      "status": "source"
+      "status": "source",
+      "orderId": "ord-icon-001"
     },
     "poster": {
       "kind": "scalar",
       "src": "/assets/poster.webp",
-      "status": "source"
+      "status": "source",
+      "orderId": "ord-poster-001"
     },
     "banner": {
       "kind": "scalar",
       "src": "/assets/banner.webp",
-      "status": "source"
+      "status": "source",
+      "orderId": "ord-banner-001"
     },
     "pattern": {
       "kind": "scalar",
       "src": "/assets/pattern.webp",
-      "status": "source"
+      "status": "source",
+      "orderId": "ord-pattern-001"
     },
     "stickers": {
       "kind": "bundle",
       "status": "source",
       "items": {
-        "welcome": { "src": "/assets/stickers/sticker-0.webp", "status": "source" },
-        "searching": { "src": "/assets/stickers/sticker-1.webp", "status": "source" },
-        "loading": { "src": "/assets/stickers/sticker-2.webp", "status": "source" },
-        "empty": { "src": "/assets/stickers/sticker-3.webp", "status": "source" },
-        "error": { "src": "/assets/stickers/sticker-4.webp", "status": "source" },
-        "success": { "src": "/assets/stickers/sticker-5.webp", "status": "source" },
-        "not-found": { "src": "/assets/stickers/sticker-6.webp", "status": "source" },
-        "cta": { "src": "/assets/stickers/sticker-7.webp", "status": "source" },
-        "cozy": { "src": "/assets/stickers/sticker-8.webp", "status": "source" }
-      }
+        "welcome": {
+          "src": "/assets/stickers/sticker-0.webp",
+          "status": "source"
+        },
+        "searching": {
+          "src": "/assets/stickers/sticker-1.webp",
+          "status": "source"
+        },
+        "loading": {
+          "src": "/assets/stickers/sticker-2.webp",
+          "status": "source"
+        },
+        "empty": {
+          "src": "/assets/stickers/sticker-3.webp",
+          "status": "source"
+        },
+        "error": {
+          "src": "/assets/stickers/sticker-4.webp",
+          "status": "source"
+        },
+        "success": {
+          "src": "/assets/stickers/sticker-5.webp",
+          "status": "source"
+        },
+        "not-found": {
+          "src": "/assets/stickers/sticker-6.webp",
+          "status": "source"
+        },
+        "cta": {
+          "src": "/assets/stickers/sticker-7.webp",
+          "status": "source"
+        },
+        "cozy": {
+          "src": "/assets/stickers/sticker-8.webp",
+          "status": "source"
+        }
+      },
+      "orderId": "ord-sticker-001"
     },
     "webstates": {
       "kind": "bundle",
       "status": "source",
       "items": {
-        "welcome": { "src": "/assets/webstates/state-0.webp", "status": "source" },
-        "searching": { "src": "/assets/webstates/state-1.webp", "status": "source" },
-        "loading": { "src": "/assets/webstates/state-2.webp", "status": "source" },
-        "empty": { "src": "/assets/webstates/state-3.webp", "status": "source" },
-        "error": { "src": "/assets/webstates/state-4.webp", "status": "source" },
-        "success": { "src": "/assets/webstates/state-5.webp", "status": "source" },
-        "not-found": { "src": "/assets/webstates/state-6.webp", "status": "source" },
-        "cta": { "src": "/assets/webstates/state-7.webp", "status": "source" },
-        "cozy": { "src": "/assets/webstates/state-8.webp", "status": "source" }
-      }
+        "welcome": {
+          "src": "/assets/webstates/state-0.webp",
+          "status": "source"
+        },
+        "searching": {
+          "src": "/assets/webstates/state-1.webp",
+          "status": "source"
+        },
+        "loading": {
+          "src": "/assets/webstates/state-2.webp",
+          "status": "source"
+        },
+        "empty": {
+          "src": "/assets/webstates/state-3.webp",
+          "status": "source"
+        },
+        "error": {
+          "src": "/assets/webstates/state-4.webp",
+          "status": "source"
+        },
+        "success": {
+          "src": "/assets/webstates/state-5.webp",
+          "status": "source"
+        },
+        "not-found": {
+          "src": "/assets/webstates/state-6.webp",
+          "status": "source"
+        },
+        "cta": {
+          "src": "/assets/webstates/state-7.webp",
+          "status": "source"
+        },
+        "cozy": {
+          "src": "/assets/webstates/state-8.webp",
+          "status": "source"
+        }
+      },
+      "orderId": "ord-webstates-001"
     }
   }
 }

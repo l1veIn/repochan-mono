@@ -4,7 +4,12 @@
   "name": "Redis Signal Relay",
   "description": "A complete multi-section Redis landing page built around high-speed data relay imagery.",
   "style": "cel-shaded-signal-relay",
-  "tags": ["landing", "multi-section", "kinetic", "cel-shaded"],
+  "tags": [
+    "landing",
+    "multi-section",
+    "kinetic",
+    "cel-shaded"
+  ],
   "previews": {
     "desktop": "repochan/previews/desktop.webp",
     "mobile": "repochan/previews/mobile.webp"
@@ -16,14 +21,16 @@
   },
   "content": {
     "defaultLocale": "en",
-    "supportedLocales": ["en", "zh"]
+    "supportedLocales": [
+      "en",
+      "zh"
+    ]
   },
   "assets": [
     {
       "kind": "scalar",
       "slot": "hero-composite",
       "required": true,
-      "reference": "public/assets/hero-pose-lineart.webp",
       "output": "public/assets/hero-composite.webp",
       "description": "A 16:9 character composition with the character on the right and quiet negative space on the left for live HTML copy.",
       "order": {
@@ -34,8 +41,15 @@
             "keep the left half quiet enough for live HTML typography",
             "preserve the reference composition while using the project's foundation character"
           ],
-          "avoid": ["rendered text", "logos", "UI baked into the image"],
-          "creativeFreedom": ["lighting", "background details that support the project identity"]
+          "avoid": [
+            "rendered text",
+            "logos",
+            "UI baked into the image"
+          ],
+          "creativeFreedom": [
+            "lighting",
+            "background details that support the project identity"
+          ]
         },
         "deliverables": [
           {
@@ -50,7 +64,11 @@
       "postprocess": [
         {
           "op": "compress",
-          "args": { "format": "webp", "quality": 82, "maxWidth": 2560 },
+          "args": {
+            "format": "webp",
+            "quality": 82,
+            "maxWidth": 2560
+          },
           "out": "public/assets/hero-composite.webp"
         }
       ]
@@ -69,8 +87,15 @@
             "one full-bleed seamless square tile",
             "low-contrast comet filaments and relay nodes"
           ],
-          "avoid": ["text", "numbers", "characters", "frames"],
-          "creativeFreedom": ["filament density"]
+          "avoid": [
+            "text",
+            "numbers",
+            "characters",
+            "frames"
+          ],
+          "creativeFreedom": [
+            "filament density"
+          ]
         },
         "deliverables": [
           {
@@ -85,7 +110,11 @@
       "postprocess": [
         {
           "op": "compress",
-          "args": { "format": "webp", "quality": 86, "maxWidth": 1024 },
+          "args": {
+            "format": "webp",
+            "quality": 86,
+            "maxWidth": 1024
+          },
           "out": "public/assets/pattern-tile.webp"
         }
       ]

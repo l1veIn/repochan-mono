@@ -4,7 +4,14 @@
   "name": "The Sealed Scroll",
   "description": "RepoChan's own project site: a continuous one-pager that reads like a contract scroll written from night to morning — baked hero/cta scene composites, a shared seamless wax-seal pattern, chibi sticker cameos, and a proof gallery of the pipeline's real delivered assets. Bilingual (en + zh).",
   "style": "cel-shaded-risograph-continuous-scroll",
-  "tags": ["landing", "multi-section", "continuous", "cel-shaded", "risograph", "bilingual"],
+  "tags": [
+    "landing",
+    "multi-section",
+    "continuous",
+    "cel-shaded",
+    "risograph",
+    "bilingual"
+  ],
   "previews": {
     "desktop": "repochan/previews/desktop.webp",
     "mobile": "repochan/previews/mobile.webp"
@@ -16,37 +23,59 @@
   },
   "content": {
     "defaultLocale": "en",
-    "supportedLocales": ["en", "zh"]
+    "supportedLocales": [
+      "en",
+      "zh"
+    ]
   },
   "assets": [
     {
       "kind": "scalar",
       "slot": "hero-composite",
       "required": true,
-      "reference": "public/assets/hero-pose-lineart.webp",
       "output": "public/assets/hero-composite.webp",
       "description": "Baked L1+L2 hero scene (night workshop, character stamping a contract on the right). Left ~55% is a quiet safe zone for live copy; no text or UI baked in.",
       "order": {
         "assetType": "web_hero_composite",
         "templateId": "official/poster-scene",
         "brief": {
-          "intent": "Repaint the hero scene composite for the downstream project's own character, keeping the reference lineart's pose, composition and blank-zone layout exactly.",
+          "intent": "Repaint the hero scene composite for the downstream project's own character — free execution within the textual blank-zone contract.",
           "mustInclude": [
             "keep the left ~55% (x:0.04–0.52) quiet: no faces, hands, major silhouettes or high-frequency detail; continuous atmospheric background, never flat dead color, so live paper-colored copy keeps ≥4.5 contrast",
-            "character stays at the right (x≥0.55) in the reference pose; night-workshop mood with warm lamplight",
+            "character stays at the right (x≥0.55); night-workshop mood with warm lamplight",
             "landscape 3:2, edge-to-edge scene, no text, letters, numbers, watermarks or UI controls anywhere in the image"
           ],
-          "avoid": ["rendered text", "logos", "UI baked into the image", "composition drift from the reference lineart", "electronic screens or circuit motifs"],
-          "creativeFreedom": ["lighting", "background details that support the project identity", "grain and glow density inside the safe zone"]
+          "avoid": [
+            "rendered text",
+            "logos",
+            "UI baked into the image",
+            "visual noise in the left blank zone",
+            "electronic screens or circuit motifs"
+          ],
+          "creativeFreedom": [
+            "lighting",
+            "background details that support the project identity",
+            "grain and glow density inside the safe zone"
+          ]
         },
         "deliverables": [
-          { "name": "hero-composite", "format": "png", "width": 1536, "height": 1024, "aspectRatio": "3:2" }
+          {
+            "name": "hero-composite",
+            "format": "png",
+            "width": 1536,
+            "height": 1024,
+            "aspectRatio": "3:2"
+          }
         ]
       },
       "postprocess": [
         {
           "op": "compress",
-          "args": { "format": "webp", "quality": 80, "maxWidth": 1536 },
+          "args": {
+            "format": "webp",
+            "quality": 80,
+            "maxWidth": 1536
+          },
           "out": "public/assets/hero-composite.webp"
         }
       ]
@@ -55,30 +84,49 @@
       "kind": "scalar",
       "slot": "cta-composite",
       "required": true,
-      "reference": "public/assets/cta-pose-lineart.webp",
       "output": "public/assets/cta-composite.webp",
       "description": "Baked L1+L2 closing scene (morning light, sealed contracts in a row, character cameo at the right edge). Central band x:0.25–0.75 stays empty for live headline and buttons; no text or UI baked in.",
       "order": {
         "assetType": "web_cta_composite",
         "templateId": "official/poster-scene",
         "brief": {
-          "intent": "Repaint the closing scene composite for the downstream project's own character, keeping the reference lineart's pose, composition and blank-zone layout exactly.",
+          "intent": "Repaint the closing scene composite for the downstream project's own character — free execution within the textual blank-zone contract.",
           "mustInclude": [
             "keep the central safe zone (x:0.25–0.75, y:0.25–0.60) and button band (x:0.32–0.68, y:0.62–0.78) free of faces, hands and high-contrast focal points",
-            "character cameo stays at the right/bottom edge in the reference pose; morning-light mood with a paper-cream top edge so the CSS seam gradient (#F2DAAD-like dawn tone sampled from the image) can meet it seamlessly",
+            "character cameo stays at the right/bottom edge; morning-light mood with a paper-cream top edge so the CSS seam gradient (#F2DAAD-like dawn tone sampled from the image) can meet it seamlessly",
             "landscape 3:2, edge-to-edge scene, no text, letters, numbers, watermarks or UI controls anywhere in the image"
           ],
-          "avoid": ["rendered text", "logos", "UI baked into the image", "composition drift from the reference lineart", "electronic screens or circuit motifs"],
-          "creativeFreedom": ["morning palette details", "desk props that fit the project identity", "paper/grain texture density"]
+          "avoid": [
+            "rendered text",
+            "logos",
+            "UI baked into the image",
+            "visual noise in the central safe zone",
+            "electronic screens or circuit motifs"
+          ],
+          "creativeFreedom": [
+            "morning palette details",
+            "desk props that fit the project identity",
+            "paper/grain texture density"
+          ]
         },
         "deliverables": [
-          { "name": "cta-composite", "format": "png", "width": 1536, "height": 1024, "aspectRatio": "3:2" }
+          {
+            "name": "cta-composite",
+            "format": "png",
+            "width": 1536,
+            "height": 1024,
+            "aspectRatio": "3:2"
+          }
         ]
       },
       "postprocess": [
         {
           "op": "compress",
-          "args": { "format": "webp", "quality": 80, "maxWidth": 1536 },
+          "args": {
+            "format": "webp",
+            "quality": 80,
+            "maxWidth": 1536
+          },
           "out": "public/assets/cta-composite.webp"
         }
       ]
@@ -97,17 +145,34 @@
             "one full-bleed seamless square tile",
             "low-contrast wax-seal circles and half-stamps suited to sit behind text at 3–6% opacity"
           ],
-          "avoid": ["text", "numbers", "characters", "frames"],
-          "creativeFreedom": ["stamp density and rotation"]
+          "avoid": [
+            "text",
+            "numbers",
+            "characters",
+            "frames"
+          ],
+          "creativeFreedom": [
+            "stamp density and rotation"
+          ]
         },
         "deliverables": [
-          { "name": "pattern-tile", "format": "png", "width": 768, "height": 768, "aspectRatio": "1:1" }
+          {
+            "name": "pattern-tile",
+            "format": "png",
+            "width": 768,
+            "height": 768,
+            "aspectRatio": "1:1"
+          }
         ]
       },
       "postprocess": [
         {
           "op": "compress",
-          "args": { "format": "webp", "quality": 86, "maxWidth": 1024 },
+          "args": {
+            "format": "webp",
+            "quality": 86,
+            "maxWidth": 1024
+          },
           "out": "public/assets/pattern-tile.webp"
         }
       ]
@@ -122,18 +187,37 @@
         "assetType": "icon",
         "templateId": "official/icon-single",
         "brief": {
-          "mustInclude": ["one scalable brand mark reading cleanly at 34px", "project motif (wax seal / contract) without any letterforms"],
-          "avoid": ["text", "letters", "watermarks"],
-          "creativeFreedom": ["seal geometry and accent colors from the project palette"]
+          "mustInclude": [
+            "one scalable brand mark reading cleanly at 34px",
+            "project motif (wax seal / contract) without any letterforms"
+          ],
+          "avoid": [
+            "text",
+            "letters",
+            "watermarks"
+          ],
+          "creativeFreedom": [
+            "seal geometry and accent colors from the project palette"
+          ]
         },
         "deliverables": [
-          { "name": "icon", "format": "png", "width": 512, "height": 512, "aspectRatio": "1:1" }
+          {
+            "name": "icon",
+            "format": "png",
+            "width": 512,
+            "height": 512,
+            "aspectRatio": "1:1"
+          }
         ]
       },
       "postprocess": [
         {
           "op": "compress",
-          "args": { "format": "webp", "quality": 90, "maxWidth": 512 },
+          "args": {
+            "format": "webp",
+            "quality": 90,
+            "maxWidth": 512
+          },
           "out": "public/assets/icon.webp"
         }
       ]
@@ -143,15 +227,51 @@
       "slot": "sticker-cells",
       "required": true,
       "publications": [
-        { "key": "welcome", "cell": 0, "output": "public/assets/cameos/welcome.webp" },
-        { "key": "searching", "cell": 1, "output": "public/assets/cameos/searching.webp" },
-        { "key": "loading", "cell": 2, "output": "public/assets/cameos/loading.webp" },
-        { "key": "empty", "cell": 3, "output": "public/assets/cameos/empty.webp" },
-        { "key": "error", "cell": 4, "output": "public/assets/cameos/error.webp" },
-        { "key": "success", "cell": 5, "output": "public/assets/cameos/success.webp" },
-        { "key": "not-found", "cell": 6, "output": "public/assets/cameos/not-found.webp" },
-        { "key": "cta", "cell": 7, "output": "public/assets/cameos/cta.webp" },
-        { "key": "cozy", "cell": 8, "output": "public/assets/cameos/cozy.webp" }
+        {
+          "key": "welcome",
+          "cell": 0,
+          "output": "public/assets/cameos/welcome.webp"
+        },
+        {
+          "key": "searching",
+          "cell": 1,
+          "output": "public/assets/cameos/searching.webp"
+        },
+        {
+          "key": "loading",
+          "cell": 2,
+          "output": "public/assets/cameos/loading.webp"
+        },
+        {
+          "key": "empty",
+          "cell": 3,
+          "output": "public/assets/cameos/empty.webp"
+        },
+        {
+          "key": "error",
+          "cell": 4,
+          "output": "public/assets/cameos/error.webp"
+        },
+        {
+          "key": "success",
+          "cell": 5,
+          "output": "public/assets/cameos/success.webp"
+        },
+        {
+          "key": "not-found",
+          "cell": 6,
+          "output": "public/assets/cameos/not-found.webp"
+        },
+        {
+          "key": "cta",
+          "cell": 7,
+          "output": "public/assets/cameos/cta.webp"
+        },
+        {
+          "key": "cozy",
+          "cell": 8,
+          "output": "public/assets/cameos/cozy.webp"
+        }
       ],
       "description": "3×3 chibi web-state sticker sheet sliced into named transparent cameos. The page displays searching (paradigm + 404), cta (pipeline start) and success (pipeline end); the remaining cells are published for downstream states.",
       "order": {
@@ -162,11 +282,28 @@
             "strict 3×3 grid of the project character in the nine fixed web-state poses (template cell semantics)",
             "perfectly flat uniform matte background in a color absent from the character, identical in every pixel outside the stickers"
           ],
-          "avoid": ["text", "letters", "numbers", "borders", "grid lines", "scenery", "shadows on the matte"],
-          "creativeFreedom": ["pose details inside each fixed semantic", "matte color choice"]
+          "avoid": [
+            "text",
+            "letters",
+            "numbers",
+            "borders",
+            "grid lines",
+            "scenery",
+            "shadows on the matte"
+          ],
+          "creativeFreedom": [
+            "pose details inside each fixed semantic",
+            "matte color choice"
+          ]
         },
         "deliverables": [
-          { "name": "sticker-grid", "format": "png", "width": 1024, "height": 1024, "aspectRatio": "1:1" }
+          {
+            "name": "sticker-grid",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1"
+          }
         ]
       },
       "postprocess": [
@@ -176,11 +313,35 @@
             "rows": 3,
             "cols": 3,
             "strategy": "chroma-grid",
-            "mapping": { "welcome": 0, "searching": 1, "loading": 2, "empty": 3, "error": 4, "success": 5, "not-found": 6, "cta": 7, "cozy": 8 },
-            "normalize": { "canvasSize": 320, "padding": 10 },
-            "chroma": { "matteColor": "auto", "pipeline": "v2", "matteSelect": "subject-aware" },
-            "geometry": { "mode": "centroid-components" },
-            "qa": { "alphaThreshold": 32, "minForegroundRatio": 0.05, "maxForegroundRatio": 0.9, "maxSheetEdgeTouchRatio": 0.05 },
+            "mapping": {
+              "welcome": 0,
+              "searching": 1,
+              "loading": 2,
+              "empty": 3,
+              "error": 4,
+              "success": 5,
+              "not-found": 6,
+              "cta": 7,
+              "cozy": 8
+            },
+            "normalize": {
+              "canvasSize": 320,
+              "padding": 10
+            },
+            "chroma": {
+              "matteColor": "auto",
+              "pipeline": "v2",
+              "matteSelect": "subject-aware"
+            },
+            "geometry": {
+              "mode": "centroid-components"
+            },
+            "qa": {
+              "alphaThreshold": 32,
+              "minForegroundRatio": 0.05,
+              "maxForegroundRatio": 0.9,
+              "maxSheetEdgeTouchRatio": 0.05
+            },
             "format": "webp",
             "quality": 80
           },

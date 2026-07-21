@@ -4,6 +4,17 @@ This changelog records coordinated public package sets.
 
 ## Unreleased
 
+### Dogfood 偏移修复（starter 审计）
+
+- Cutout 重新设计：两张更有冲击力的新姿态（A = 仰角大对角线跳跃 2:3，
+  B = 前倾开放手掌直指镜头 1:1，均绿底 + chroma v2 抠图），分发至
+  character-game-page hero-cutout、frutiger cutout、scrolly
+  cutout-wave/point；`ord-cutout-001` 登记新版本。
+- 移除七个 starter 的非必要 hero-pose 线稿（姿态与页面层无结构关系，
+  按姿态线稿教义）；相关 slot brief 改为纯文字留白/构图契约。
+- landing-neobrutal-zine assets.json 补齐 orderId 溯源；webstates/sticker/
+  cutout 订单的派生产物回填 derived.json（append-only）。
+
 ### Starter 资产间引用（`slot:` reference）
 
 - Scalar slot 的 `reference` 接受 `slot:<slot-name>`：迁移参考解析为同一 starter
