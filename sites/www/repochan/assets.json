@@ -15,6 +15,13 @@
       "orderId": "ord-cutout-001",
       "versionId": "v2026-07-21T04-49-19-959Z"
     },
+    "exhibit-banner": {
+      "kind": "scalar",
+      "src": "/assets/exhibits/banner-readme-v1.webp",
+      "status": "source",
+      "orderId": "ord-banner-001",
+      "versionId": "v2026-07-19T14-05-27-951Z"
+    },
     "exhibit-foundation": {
       "kind": "scalar",
       "src": "/assets/exhibits/foundation-sheet.jpg",

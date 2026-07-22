@@ -48,6 +48,25 @@ export interface SiteContent {
     ctaGithubHref?: string;
     copied: string;
   };
+  artist: {
+    kicker: string;
+    title: string;
+    intro: string;
+    name: string;
+    nameZh: string;
+    alsoKnown: string;
+    catchphrase: string;
+    paletteLabel: string;
+    colors: string[];
+    banner: ExhibitLabel;
+    rows: { label: string; value: string; note?: string }[];
+    blocks: { label: string; title?: string; value?: string; items?: string[] }[];
+    motifsLabel: string;
+    motifs: string[];
+    motto: string;
+    footnotesLabel: string;
+    footnotes: string[];
+  };
   galleryA: { kicker: string; title: string; intro: string; exhibit: ExhibitLabel };
   galleryB: {
     kicker: string;

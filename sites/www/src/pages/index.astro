@@ -2,6 +2,7 @@
 import SiteLayout from "../layouts/SiteLayout.astro";
 import MuseumNav from "../components/MuseumNav.astro";
 import Lobby from "../components/Lobby.astro";
+import ArtistDossier from "../components/ArtistDossier.astro";
 import GalleryShowcase from "../components/GalleryShowcase.astro";
 import GalleryFoundation from "../components/GalleryFoundation.astro";
 import GalleryStudies from "../components/GalleryStudies.astro";
@@ -19,6 +20,7 @@ const t = getContent("zh");
   <MuseumNav content={t.nav} locale="zh" command={t.lobby.ctaPrimaryCommand} copied={t.lobby.copied} path="/" />
   <main>
     <Lobby content={t.lobby} />
+    <ArtistDossier content={t.artist} />
     <GalleryShowcase locale="zh" content={t.showcase} mode="home" />
     <GalleryFoundation content={t.galleryA} />
     <GalleryStudies content={t.galleryB} />

@@ -11,6 +11,10 @@
       "tag": "Official",
       "links": [
         {
+          "label": "Artist",
+          "href": "#artist"
+        },
+        {
           "label": "Cases",
           "href": "#showcase"
         },
@@ -60,6 +64,64 @@
       "ctaSecondaryHref": "#showcase",
       "ctaGithub": "GitHub",
       "ctaGithubHref": "https://github.com/l1veIn/repochan-mono"
+    },
+    "artist": {
+      "kicker": "Artist Dossier",
+      "title": "The Artist",
+      "intro": "The opening portrait in the lobby and every exhibit below came from the same hand. Around this wall — meet the artist herself.",
+      "name": "RepoChan",
+      "nameZh": "仓库酱",
+      "alsoKnown": "also known as",
+      "catchphrase": "\"As long as my pen is in hand, I'm a pro anywhere I go.\"",
+      "paletteLabel": "Palette · specified six-color system",
+      "colors": ["#38BDF8", "#F9A8D4", "#A78BFA", "#34D399", "#FACC15", "#111827"],
+      "banner": {
+        "no": "Work 10",
+        "title": "README Banner · First Edition",
+        "material": "banner / official/readme-banner-21x9 / 2560×1440",
+        "orderId": "ord-banner-001",
+        "year": "2026",
+        "note": "An afternoon in Sugar Riff — the title lettered into the scene in indie-zine style."
+      },
+      "rows": [
+        { "label": "Apparent age", "value": "16" },
+        { "label": "Birthday", "value": "06-13", "note": "taken from the repo's first commit" },
+        { "label": "Height", "value": "~158cm — presence and volume inversely proportional to height" }
+      ],
+      "blocks": [
+        { "label": "Occupation", "value": "First-year high school student / freelance illustrator (pen name: Cangku-chan) · proprietor of Sugar Riff" },
+        { "label": "World", "title": "Sugar Riff", "value": "A tiny studio on the corner of a creative district, marked by a crooked fluorescent-pink marker sticker she refuses to rewrite. Warm, slightly cluttered, full of life: her framed \"first paycheck\" piece from age 14 on the wall, a school blazer draped over a guitar amp, and a fridge that never runs out of iced cola. Sugar for the sweet, riff for the catchiest phrase in rock." },
+        { "label": "Personality", "value": "Bright and blunt, with a detective's curiosity — the first three chords of a band's demo or the tone of a repo's README is already a whole person to her. A natural at school; homework finished before the bell, because every minute after class belongs to Sugar Riff. Classmates know a quiet girl with good grades — none know she's an illustrator with hundreds of thousands of followers online. One iron rule for commissions: no feeling, no job — \"lines die when you draw without feeling.\"" },
+        { "label": "Appearance", "value": "A petite anime girl with the look of a detective who just found the clue. Loose silver low-ponytail fading to sakura pink and mint at the tips; heterochromia — lake blue left, violet-pink right (they're colored contacts; blue + violet-pink is her signature combo). A cat-ear hair clip is her most iconic item, big headphones and a glowing stylus pendant around her neck. Not styled, not cosplay — just \"came straight from school and sat down to draw.\"" },
+        { "label": "Hobbies", "items": [
+          "Rock music — a hard requirement for drawing; different subgenres for different moods, punk for deadlines",
+          "Secretly sketching strangers in cafés as anime characters, based on their outfit and drink order",
+          "Collecting stickers, washi tape, and odd stationery",
+          "Learning electric guitar — \"fingers too short for barre chords,\" progress bleak, enthusiasm intact"
+        ] },
+        { "label": "Little flaws", "items": [
+          "Her desk is in permanent \"controlled chaos\" — she can pull any draft out in three seconds, but anyone who tries to tidy it gets screamed at",
+          "Sends clients unfinished work in moments of over-excitement, then recalls it blushing: \"that didn't count!!\"",
+          "No sense of direction — the studio is a straight 500 meters from the subway and she still takes three wrong turns"
+        ] },
+        { "label": "Special skill", "value": "Names any song and band within its first three chords; sketches a character impression from someone's social profile in three minutes." },
+        { "label": "Art style", "value": "Cel-shading + warm everyday aesthetic — clean flat colors, soft warm lighting, handmade textures (light watercolor, paper grain), echoing Sugar Riff's cozy atmosphere and rock energy." }
+      ],
+      "motifsLabel": "Motifs",
+      "motifs": [
+        "Glowing cursor — a souvenir of her first paycheck at 14",
+        "Cat-ear hair clip — her visual signature",
+        "Headphones & riffs — rock is fuel and force field",
+        "Crooked fluorescent-pink \"Sugar Riff\" handwriting — one of a kind",
+        "Star stickers — one on the wall for every commission she loved"
+      ],
+      "motto": "\"Drawing and rock are the same thing: smashing what's inside you out into the world.\"",
+      "footnotesLabel": "Footnotes",
+      "footnotes": [
+        "She names her stylus pens after rock musicians — the daily driver is Freddie; the inking pen is Kurt.",
+        "Once switched to Metallica mid-way through a gentle romance cover — \"everything came out ready to fight.\"",
+        "A whole drawer of colored contacts; blue + violet-pink is the daily pair — \"but full black for Halloween.\""
+      ]
     },
     "galleryA": {
       "kicker": "Gallery A",

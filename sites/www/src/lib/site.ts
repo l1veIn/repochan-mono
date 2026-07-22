@@ -91,6 +91,7 @@ export const assets = {
   cutoutWave: { src: scalarSrc("exhibit-cutout"), width: 2048, height: 2048 },
   exhibits: {
     foundation: { src: scalarSrc("exhibit-foundation"), width: 1600, height: 1600 },
+    banner: { src: scalarSrc("exhibit-banner"), width: 1600, height: 900 },
     posterRiso: { src: scalarSrc("exhibit-poster-riso"), width: 1600, height: 1067 },
     posterMemphis: { src: scalarSrc("exhibit-poster-memphis"), width: 1536, height: 1536 },
     patternTile: { src: scalarSrc("exhibit-pattern"), width: 1024, height: 1024 },

@@ -1,0 +1,387 @@
+---
+import type { SiteContent } from "../lib/i18n/types";
+import { assets } from "../lib/site";
+
+type Props = { content: SiteContent["artist"] };
+const { content } = Astro.props;
+
+const bannerSrc = assets.exhibits.banner.src;
+const bannerAlt = `${content.banner.no} — ${content.banner.title}`;
+const bannerCaption = `${content.banner.no} — ${content.banner.title} · ${content.banner.material}`;
+const bannerOrder = `${content.banner.orderId} · ${content.banner.year}`;
+---
+
+<section class="room artist" id="artist">
+  <p class="room-kicker" data-reveal>{content.kicker}</p>
+  <h2 class="room-title" data-reveal style="--d:60ms">{content.title}</h2>
+  <p class="room-intro" data-reveal style="--d:120ms">{content.intro}</p>
+
+  <div class="artist-grid">
+    <div class="artist-side" data-reveal style="--d:160ms">
+      <div class="dossier">
+        <div
+          class="banner-plate"
+          data-lightbox
+          data-lb-src={bannerSrc}
+          data-lb-alt={bannerAlt}
+          data-lb-caption={bannerCaption}
+          data-lb-order={bannerOrder}
+          role="button"
+          tabindex="0"
+          aria-label={bannerCaption}
+        >
+          <img
+            src={bannerSrc}
+            width={assets.exhibits.banner.width}
+            height={assets.exhibits.banner.height}
+            alt={bannerAlt}
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+        <p class="banner-caption">
+          {content.banner.no} · {content.banner.title}
+          <span class="banner-order">{content.banner.orderId}</span>
+        </p>
+        {content.banner.note && <p class="banner-note">{content.banner.note}</p>}
+        <h3 class="dossier-name">
+          {content.name}
+          <span class="dossier-aka">{content.alsoKnown} {content.nameZh}</span>
+        </h3>
+        <blockquote class="dossier-quote">
+          <p>{content.catchphrase}</p>
+        </blockquote>
+        <p class="palette-label">{content.paletteLabel}</p>
+        <div class="dossier-palette">
+          {
+            content.colors.map((c) => (
+              <span class="swatch" style={`--sw: ${c}`} title={c}>
+                <span class="swatch-hex">{c}</span>
+              </span>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="artist-main" data-reveal style="--d:220ms">
+      <div class="dossier">
+        <dl class="dossier-grid">
+          {
+            content.rows.map((r) => (
+              <div class="row">
+                <dt>{r.label}</dt>
+                <dd>
+                  {r.value}
+                  {r.note && <p class="row-note">{r.note}</p>}
+                </dd>
+              </div>
+            ))
+          }
+          {
+            content.blocks.map((b) => (
+              <div class="row row--block">
+                <dt>{b.label}</dt>
+                <dd>
+                  {b.title && <strong class="world-name">{b.title}</strong>}
+                  {b.value && <p class={b.title ? "world-atm" : undefined}>{b.value}</p>}
+                  {b.items && (
+                    <ul>
+                      {b.items.map((item) => (
+                        <li>{item}</li>
+                      ))}
+                    </ul>
+                  )}
+                </dd>
+              </div>
+            ))
+          }
+          <div class="row row--block">
+            <dt>{content.motifsLabel}</dt>
+            <dd class="motif-list">
+              {content.motifs.map((m) => <span class="motif">{m}</span>)}
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <footer class="artist-foot" data-reveal style="--d:280ms">
+    <p class="artist-motto">{content.motto}</p>
+    <p class="footnotes-label">{content.footnotesLabel}</p>
+    <ul class="footnotes">
+      {content.footnotes.map((f) => <li>{f}</li>)}
+    </ul>
+  </footer>
+</section>
+
+<style>
+  .artist-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: clamp(24px, 4vw, 56px);
+    align-items: start;
+  }
+
+  .artist-side {
+    position: sticky;
+    top: 96px;
+  }
+
+  .artist-foot {
+    margin-top: clamp(48px, 7vh, 88px);
+    border-top: 1px solid var(--hairline);
+    padding-top: clamp(28px, 4vh, 48px);
+  }
+
+  .artist-motto {
+    font-family: "Newsreader", "Noto Serif SC", serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(20px, 2.4vw, 28px);
+    line-height: 1.4;
+    color: var(--ink);
+    max-width: 40ch;
+    margin: 0;
+  }
+
+  .footnotes-label {
+    margin-top: 28px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .footnotes {
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .footnotes li {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--muted);
+    max-width: 72ch;
+  }
+
+  .footnotes li::before {
+    content: "·";
+    margin-right: 8px;
+    color: var(--hairline);
+  }
+
+  /* ---- dossier 视觉语言（沿用 PersonaDossier） ---- */
+
+  .dossier {
+    background: var(--mat);
+    border: 1px solid var(--hairline);
+    padding: clamp(24px, 3vw, 36px);
+    box-shadow: 0 18px 40px -28px color-mix(in srgb, var(--ink) 20%, transparent);
+  }
+
+  .banner-plate {
+    border: 1px solid var(--hairline);
+    cursor: zoom-in;
+  }
+
+  .banner-plate img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .banner-caption {
+    margin: 12px 0 0;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+
+  .banner-order {
+    display: inline-block;
+    margin-left: 8px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .banner-note {
+    margin: 4px 0 0;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  .dossier-name {
+    font-family: "Newsreader", "Noto Serif SC", serif;
+    font-weight: 500;
+    font-size: clamp(26px, 3vw, 34px);
+    line-height: 1.2;
+    margin: 20px 0 0;
+  }
+
+  .dossier-aka {
+    display: block;
+    margin-top: 6px;
+    font-family: "Noto Sans SC", "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+
+  .dossier-quote {
+    margin: 18px 0 0;
+    padding: 12px 0 0;
+    border-top: 1px solid var(--hairline);
+  }
+
+  .dossier-quote p {
+    font-family: "Newsreader", "Noto Serif SC", serif;
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  .palette-label {
+    margin: 22px 0 0;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .dossier-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .swatch {
+    display: inline-flex;
+    align-items: flex-end;
+    width: 64px;
+    height: 40px;
+    background: var(--sw);
+    border: 1px solid var(--hairline);
+    padding: 4px 6px;
+  }
+
+  .swatch-hex {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    letter-spacing: 0.04em;
+    color: color-mix(in srgb, var(--ink) 70%, var(--wall));
+    mix-blend-mode: difference;
+  }
+
+  .dossier-grid {
+    margin: 0;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 108px minmax(0, 1fr);
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .row:first-child {
+    padding-top: 0;
+  }
+
+  .row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .row--block {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .row dt {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-top: 2px;
+  }
+
+  .row dd {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+
+  .row dd > p {
+    margin: 0;
+  }
+
+  .row-note {
+    margin-top: 4px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  .world-name {
+    font-family: "Newsreader", "Noto Serif SC", serif;
+    font-weight: 500;
+    font-size: 16px;
+  }
+
+  .world-atm {
+    margin-top: 6px;
+  }
+
+  .row ul {
+    margin: 0;
+    padding-left: 1.15em;
+  }
+
+  .row li + li {
+    margin-top: 4px;
+  }
+
+  .motif-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .motif {
+    font-size: 12px;
+    border: 1px solid var(--hairline);
+    padding: 4px 10px;
+    color: var(--muted);
+    max-width: 100%;
+  }
+
+  @media (min-width: 720px) {
+    .row--block {
+      grid-template-columns: 108px minmax(0, 1fr);
+      gap: 16px;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .artist-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .artist-side {
+      position: static;
+    }
+  }
+</style>
