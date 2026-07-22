@@ -141,7 +141,7 @@ export const showcaseCases: ShowcaseCase[] = [
     id: "2048",
     tier: "gallery",
     upstream: { name: "2048", url: "https://github.com/gabrielecirulli/2048" },
-    character: { name: "Tilly" },
+    character: { name: "Niko" },
     hasLanding: false,
     assets: {
       foundation: "/showcase/2048/foundation.jpg",
@@ -149,8 +149,8 @@ export const showcaseCases: ShowcaseCase[] = [
       poster: "/showcase/2048/poster.jpg",
     },
     blurb: {
-      zh: "滑块合成游戏走进数域广场，路人也一眼能懂。",
-      en: "The tile-merge classic steps into Number Plaza — everyone gets it.",
+      zh: "两个二在一起就成了四——双倍庭院里的温柔访客（round5）。",
+      en: "Two twos become four — a gentle visitor in Doubling Courtyard (round5).",
     },
   }),
   withPersona({

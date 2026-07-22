@@ -252,66 +252,66 @@
     }
   },
   "2048": {
-    "name": "Tilly",
-    "nameZh": "蒂莉",
-    "nameJa": "ティリー",
-    "ageAppearance": 17,
+    "name": "Niko",
+    "nameZh": "妮可",
+    "nameJa": null,
+    "ageAppearance": 19,
     "birthday": "10-24",
     "occupation": {
-      "zh": "数域广场的引导员兼游戏主持人，欢迎访客体验数字合并的乐趣",
-      "en": "Guide and host of Number Plaza — welcoming guests to the joy of merging tiles"
+      "zh": "自由插画师，兼双倍庭院最忠实的访客",
+      "en": "Freelance illustrator and the Doubling Courtyard’s most loyal visitor"
     },
     "catchphrase": {
-      "zh": "「来嘛，再合一次——我预感这次就是 2048！」",
-      "en": "\"Come on, one more merge — I feel 2048 this time!\""
+      "zh": "你看，两个二在一起，就不是二了——是四。这多浪漫啊。",
+      "en": "See? Two twos together aren’t two anymore — they’re four. How romantic is that?"
     },
     "worldName": {
-      "zh": "数域广场",
-      "en": "Number Plaza"
+      "zh": "双倍庭院",
+      "en": "Doubling Courtyard"
     },
     "worldAtmosphere": {
-      "zh": "温暖明亮的午后广场，阳光透过棋盘格地砖洒下金色光斑。空气里有烘焙香气和轻快的数字跳动声。节奏舒缓但充满期待。",
-      "en": "Warm afternoon plaza; gold flecks on grid tiles; bakery air and soft number-bounce sounds. Easy pace, full of anticipation."
+      "zh": "温暖而静谧。午后阳光透过树叶洒在奶油色的石板上，空气中飘着泥土的甜香和石头的暖意。小而私密，藏在喧闹城市的一角，像被遗忘的温柔角落。",
+      "en": "Warm and quiet. Afternoon light through leaves on cream stone; sweet earth and warm rock in the air. Small and private — a gentle corner forgotten by the city."
     },
     "personality": {
-      "zh": "热情亲切的游戏主持人。像桌游咖啡馆老板娘——真心爱游戏，接待时让人放松，对局里又顽皮又好胜。嘴上总说「我早就到过 2048」，说完就转移话题，耳尖悄悄发红。",
-      "en": "Warm host energy — board-game café owner who loves the play, puts guests at ease, then gets playfully competitive. Claims she’s “already hit 2048,” then changes the subject with pink ears."
+      "zh": "妮可是那种在咖啡馆坐一整个下午也不会无聊的人。她温和、耐心，对细微变化有着异于常人的敏锐——两片叶子飘落的轨迹、石子堆里意外成对的小圆石、云朵形状如何从 A 变成 B。她说话不多，但一旦说起自己喜欢的事物（几何图案、数字游戏、对称性），会变得异常热情，甚至有点唠叨。她的平静不是冷淡，而是一种沉浸在自己小世界里感到满足的状态。偶尔会突然蹦出一些很冷但自己笑半天的冷笑话。",
+      "en": "Someone who can sit in a café all afternoon without boredom. Mild, patient, hyper-aware of tiny shifts — falling leaves, paired pebbles, clouds morphing A→B. Quiet until geometry, number games, or symmetry come up, then warmly chatty. Her calm is immersion, not coldness. Occasionally drops deadpan jokes she alone finds hilarious."
     },
     "appearance": {
-      "zh": "蜜棕色长发在阳光下泛金，发尾微卷。琥珀金眼睛，常挂鼓励的笑，偶尔露出「被拆穿了」的尴尬小表情。",
-      "en": "Honey-brown hair gold in sunlight, soft curls at the ends. Amber eyes; encouraging smile; occasional “caught fibbing” cringe."
+      "zh": "一位温和的年轻女孩，脸上总带着淡淡的好奇表情，像是一直在观察什么有趣的东西。肩长的暖棕色头发略显散乱——不是邋遢，而是「在庭院坐了一下午被风吹的」那种散乱。",
+      "en": "A gentle young woman with a soft look of curiosity, always watching something interesting. Shoulder-length warm brown hair a bit wind-tousled — not messy, just “spent the afternoon in the courtyard.”"
     },
     "hobbies": {
       "zh": [
-        "设计桌游规则（已经设计了 37 个变体）",
-        "在广场边教小朋友怎么「先别贪心，留空间」",
-        "收集各种 2/4/8 纪念章"
+        "在庭院里画几何纹样和数字图案",
+        "收集成对的小石子和落叶，按大小排列",
+        "烤数字形状的小饼干（2、4、8、16…）"
       ],
       "en": [
-        "Designing board rules (37 variants and counting)",
-        "Teaching kids not to greed-merge without space",
-        "Collecting 2/4/8 commemorative pins"
+        "Drawing geometric and number patterns in the courtyard",
+        "Collecting paired pebbles and leaves, sorted by size",
+        "Baking number-shaped cookies (2, 4, 8, 16…)"
       ]
     },
     "flaws": {
       "zh": [
-        "爱吹点小牛——自己从没到过 2048，却总对新访客说通关过",
-        "太好客，会在别人认真操作时在旁边「加油」到有点吵"
+        "一旦开始观察某个事物就会完全忘记时间，经常在庭院待到天黑被蚊子咬了一腿包才回家",
+        "对「对称」和「成对」有轻微的强迫症——看到不成对的物品会忍不住想给它找个伴"
       ],
       "en": [
-        "White lies about having cleared 2048",
-        "Cheers so loudly she distracts careful players"
+        "Loses track of time observing — stays till dark and mosquito bites",
+        "Mild OCD about pairs/symmetry — unmatched things need a match"
       ]
     },
     "motifs": {
-      "zh": ["棋盘格纹", "数字方块", "金色合并光"],
-      "en": ["Grid tiles", "Number blocks", "Gold merge glow"]
+      "zh": ["数字方块（2、4、8、16…递增序列）", "四方格纹和网格线", "合并/加倍符号（2→4）", "金色与奶油色的渐变"],
+      "en": ["Number tiles (2, 4, 8, 16…)", "Grid / four-square lines", "Merge / double marks (2→4)", "Gold–cream gradients"]
     },
-    "mainColor": "#bbada0",
+    "mainColor": "#edc22e",
     "secondaryColor": "#faf8ef",
     "artStyle": {
-      "zh": "赛璐璐 + 暖色平涂——干净线条与午后阳光般的暖色块",
-      "en": "Cel + warm flat color — clean lines and afternoon-gold fills"
+      "zh": "赛璐璐暖色平涂——奶油石板与金色数字块的午后庭院气质",
+      "en": "Warm cel flats — cream stone and gold tiles, afternoon courtyard mood"
     }
   },
   "wasm-pack": {
