@@ -23,7 +23,7 @@
     "release:pack-smoke": "node scripts/release-preflight.mjs",
     "release:preflight": "node scripts/release-preflight.mjs --source-ref HEAD --registry-check",
     "dev": "pnpm --filter repochan exec tsx src/index.ts",
-    "lint": "pnpm -r lint",
+    "lint": "pnpm --filter repochan... build && pnpm -r lint",
     "cli": "pnpm --filter repochan run cli",
     "cli:dev": "pnpm --filter repochan exec tsx src/index.ts"
   },
