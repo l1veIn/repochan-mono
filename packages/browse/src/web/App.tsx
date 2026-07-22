@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { getJSON, type GraphNode, type Health, type OrderSummary } from "./api";
-import { statusBadge } from "./components";
+import { getJSON, type Health, type OrderSummary, type StartersInfo } from "./api";
 import { OrdersView } from "./views/OrdersView";
 import { OrderDetailView } from "./views/OrderDetailView";
 import { PersonaView } from "./views/PersonaView";
 import { ArtifactView } from "./views/ArtifactView";
 import { CanvasView } from "./views/CanvasView";
+import { StartersView } from "./views/StartersView";
 
 type View =
   | { name: "orders" }
@@ -13,82 +13,33 @@ type View =
   | { name: "persona" }
   | { name: "analysis" }
   | { name: "interview" }
-  | { name: "canvas" };
+  | { name: "starters" }
+  | { name: "canvas"; nodeId?: string };
 
 function parseHash(): View {
   const hash = window.location.hash.replace(/^#\/?/, "");
   const [head, arg] = hash.split("/");
   if (head === "order" && arg) return { name: "order", orderId: decodeURIComponent(arg) };
-  if (head === "persona" || head === "analysis" || head === "interview" || head === "canvas") return { name: head };
+  if (head === "canvas") return { name: "canvas", nodeId: arg ? decodeURIComponent(arg) : undefined };
+  if (head === "persona" || head === "analysis" || head === "interview" || head === "starters") return { name: head };
   return { name: "orders" };
 }
 
 function viewHash(view: View): string {
-  return view.name === "order" ? `#/order/${encodeURIComponent(view.orderId)}` : `#/${view.name}`;
-}
-
-function Inspector(props: {
-  view: View;
-  order: OrderSummary | null;
-  canvasNode: GraphNode | null;
-  onOpenOrder: (orderId: string) => void;
-}) {
-  const { view, order, canvasNode, onOpenOrder } = props;
-  if (canvasNode) {
-    return (
-      <aside className="inspector">
-        <h3>Inspector</h3>
-        <dl className="kv">
-          <dt>node</dt><dd>{canvasNode.id}</dd>
-          <dt>kind</dt><dd>{canvasNode.kind}</dd>
-          {canvasNode.status ? (<><dt>status</dt><dd>{canvasNode.status}</dd></>) : null}
-          {canvasNode.assetType ? (<><dt>assetType</dt><dd>{canvasNode.assetType}</dd></>) : null}
-          {canvasNode.foundation ? (<><dt>role</dt><dd>foundation anchor</dd></>) : null}
-        </dl>
-        {canvasNode.kind === "order" ? (
-          <button className="canvas-btn" onClick={() => onOpenOrder(canvasNode.id.replace(/^order:/, ""))}>打开订单详情 →</button>
-        ) : null}
-      </aside>
-    );
-  }
-  if (order) {
-    return (
-      <aside className="inspector">
-        <h3>Inspector</h3>
-        <p className="mono" style={{ fontWeight: 600 }}>{order.orderId}</p>
-        <div style={{ display: "flex", gap: 6, margin: "6px 0 12px" }}>{statusBadge(order.status)}</div>
-        <dl className="kv">
-          {order.assetType ? (<><dt>assetType</dt><dd>{order.assetType}</dd></>) : null}
-          {order.priority ? (<><dt>priority</dt><dd>{order.priority}</dd></>) : null}
-          {order.currentVersion ? (<><dt>current</dt><dd>{order.currentVersion}</dd></>) : null}
-          {typeof order.resultCount === "number" ? (<><dt>versions</dt><dd>{order.resultCount}</dd></>) : null}
-        </dl>
-        {order.title ? <p className="dim" style={{ fontSize: 12 }}>{order.title}</p> : null}
-        {view.name !== "order" ? (
-          <button className="canvas-btn" onClick={() => onOpenOrder(order.orderId)}>打开订单详情 →</button>
-        ) : null}
-      </aside>
-    );
-  }
-  return (
-    <aside className="inspector">
-      <h3>Inspector</h3>
-      <p className="empty-note">选择订单或画布节点查看 meta / status / references。</p>
-    </aside>
-  );
+  if (view.name === "order") return `#/order/${encodeURIComponent(view.orderId)}`;
+  if (view.name === "canvas" && view.nodeId) return `#/canvas/${encodeURIComponent(view.nodeId)}`;
+  return `#/${view.name}`;
 }
 
 export default function App() {
   const [view, setViewState] = useState<View>(() => parseHash());
   const [health, setHealth] = useState<Health | null>(null);
   const [orders, setOrders] = useState<OrderSummary[]>([]);
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [canvasNode, setCanvasNode] = useState<GraphNode | null>(null);
+  const [starters, setStarters] = useState<StartersInfo | null>(null);
 
   const setView = useCallback((next: View) => {
     setViewState(next);
     window.location.hash = viewHash(next);
-    if (next.name !== "canvas") setCanvasNode(null);
   }, []);
 
   useEffect(() => {
@@ -100,6 +51,7 @@ export default function App() {
   useEffect(() => {
     getJSON<Health>("/api/health").then(setHealth).catch(() => setHealth(null));
     getJSON<{ orders: OrderSummary[] }>("/api/orders").then((r) => setOrders(r.orders)).catch(() => setOrders([]));
+    getJSON<StartersInfo>("/api/starters").then(setStarters).catch(() => setStarters(null));
   }, []);
 
   const projectName = useMemo(() => {
@@ -109,14 +61,8 @@ export default function App() {
   }, [health]);
 
   const openOrder = useCallback((orderId: string) => {
-    setSelectedOrderId(orderId);
     setView({ name: "order", orderId });
   }, [setView]);
-
-  const selectedOrder = useMemo(
-    () => orders.find((o) => o.orderId === selectedOrderId) ?? null,
-    [orders, selectedOrderId],
-  );
 
   const nav = [
     { key: "persona" as const, label: "Persona", on: health?.protocol.persona },
@@ -162,36 +108,29 @@ export default function App() {
           </div>
           <div className="section">
             <div className="section-title">Assets</div>
-            <button className={`nav-item ${view.name === "orders" || view.name === "order" ? "active" : ""}`} onClick={() => setView({ name: "orders" })}>
+            <button
+              className={`nav-item ${view.name === "orders" || view.name === "order" ? "active" : ""}`}
+              onClick={() => setView({ name: "orders" })}
+            >
               Orders <span className="count">{orders.length}</span>
             </button>
-            {orders.slice(0, 12).map((order) => (
-              <button
-                key={order.orderId}
-                className={`nav-item ${view.name === "order" && view.orderId === order.orderId ? "active" : ""}`}
-                style={{ paddingLeft: 22, fontSize: 12 }}
-                onClick={() => openOrder(order.orderId)}
-              >
-                <span className="mono" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{order.orderId}</span>
-              </button>
-            ))}
-            {orders.length > 12 ? <div className="dim" style={{ padding: "2px 22px", fontSize: 11 }}>… {orders.length - 12} more</div> : null}
           </div>
           <div className="section">
             <div className="section-title">Catalog</div>
-            <div className="nav-item" style={{ cursor: "default", color: "var(--ink-2)" }}>
-              Starters <span className="count">{health?.starters.starters.length ?? 0}</span>
-            </div>
+            <button
+              className={`nav-item ${view.name === "starters" ? "active" : ""}`}
+              onClick={() => setView({ name: "starters" })}
+            >
+              Starters <span className="count">{starters?.starters.length ?? 0}</span>
+            </button>
             <div className="dim" style={{ padding: "0 10px", fontSize: 11 }}>
-              只读预览后续阶段开放；当前来源：{health?.starters.source ? `${health.starters.source.kind}` : "未同步"}
+              来源：{starters?.source ? starters.source.kind : "未同步"}
             </div>
           </div>
         </nav>
 
         <main className="stage">
-          {view.name === "orders" ? (
-            <OrdersView orders={orders} selectedId={selectedOrderId} onOpen={openOrder} onSelect={setSelectedOrderId} />
-          ) : null}
+          {view.name === "orders" ? <OrdersView orders={orders} onOpen={openOrder} /> : null}
           {view.name === "order" ? (
             <OrderDetailView orderId={view.orderId} onBack={() => setView({ name: "orders" })} onOpenOrder={openOrder} />
           ) : null}
@@ -214,10 +153,14 @@ export default function App() {
               emptyCue="/repochan-interviewer（可选步骤）"
             />
           ) : null}
-          {view.name === "canvas" ? <CanvasView onSelectNode={setCanvasNode} onOpenOrder={openOrder} /> : null}
+          {view.name === "starters" ? (
+            <StartersView
+              onSourceChange={(info) => setStarters(info)}
+              onOpenOrder={openOrder}
+            />
+          ) : null}
+          {view.name === "canvas" ? <CanvasView initialNodeId={view.nodeId} onOpenOrder={openOrder} /> : null}
         </main>
-
-        <Inspector view={view} order={selectedOrder} canvasNode={canvasNode} onOpenOrder={openOrder} />
       </div>
     </div>
   );

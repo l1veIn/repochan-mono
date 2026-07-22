@@ -2,7 +2,7 @@ import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createBrowseServer, listenBrowseServer, webDistDir } from "./index.js";
+import { createBrowseServer, listenBrowseServer, webDistDir, closeStarterPreviews } from "./index.js";
 import type http from "node:http";
 
 /** Minimal 1x1 PNG. */
@@ -37,6 +37,9 @@ async function writeJson(file: string, data: unknown) {
 
 describe("browse server API contract", () => {
   let projectRoot: string;
+  let starterDir: string;
+  let startersState: import("./index.js").BrowseStartersInfo;
+  let syncCalls = 0;
   let server: http.Server;
   let base: string;
 
@@ -93,9 +96,48 @@ describe("browse server API contract", () => {
 
     await fs.writeFile(path.join(proto, "notes.exe"), "nope");
 
+    // Fixture starter with a mock build (node script writes dist) — no astro needed.
+    starterDir = path.join(projectRoot, "fixture-starters", "tiny");
+    await fs.mkdir(path.join(starterDir, "node_modules"), { recursive: true }); // skip npm install
+    await fs.mkdir(path.join(starterDir, "repochan", "previews"), { recursive: true });
+    await fs.writeFile(path.join(starterDir, "repochan", "starter.json"), JSON.stringify({ id: "tiny" }));
+    await fs.writeFile(path.join(starterDir, "repochan", "previews", "desktop.webp"), PNG_BYTES);
+    await fs.writeFile(path.join(starterDir, "package.json"), JSON.stringify({
+      name: "tiny-starter",
+      type: "module",
+      scripts: { build: "node build.js" },
+    }));
+    await fs.writeFile(path.join(starterDir, "build.js"), `
+import { promises as fs } from "node:fs";
+await fs.mkdir("dist", { recursive: true });
+await fs.writeFile("dist/index.html", "<!doctype html><title>tiny</title><h1>tiny starter</h1>");
+const countFile = "build-count.txt";
+const count = Number(await fs.readFile(countFile, "utf8").catch(() => "0")) + 1;
+await fs.writeFile(countFile, String(count));
+`);
+
+    startersState = {
+      source: { kind: "dir", dir: path.join(projectRoot, "fixture-starters"), via: "flag" },
+      starters: [{
+        id: "tiny",
+        name: "Tiny",
+        dir: starterDir,
+        tags: ["test"],
+        previews: { desktop: "repochan/previews/desktop.webp" },
+      }],
+    };
+
     server = createBrowseServer({
       projectRoot,
-      starters: { source: { kind: "cache", dir: "/tmp/starters", version: "0.1.0" }, starters: [{ id: "landing-museum" }] },
+      getStarters: async () => startersState,
+      syncStarters: async () => {
+        syncCalls += 1;
+        startersState = {
+          source: { kind: "cache", dir: "/tmp/starters-cache", version: "9.9.9" },
+          starters: startersState.starters,
+        };
+        return { version: "9.9.9", updated: true, durationMs: 5 };
+      },
     });
     const port = await listenBrowseServer(server, 0);
     base = `http://127.0.0.1:${port}`;
@@ -103,6 +145,7 @@ describe("browse server API contract", () => {
 
   afterAll(async () => {
     await new Promise<void>((resolve) => server.close(() => resolve()));
+    await closeStarterPreviews();
     await fs.rm(projectRoot, { recursive: true, force: true });
   });
 
@@ -114,7 +157,7 @@ describe("browse server API contract", () => {
     expect(body.ok).toBe(true);
     expect(body.projectRoot).toBe(projectRoot);
     expect(body.protocol).toMatchObject({ exists: true, analysis: true, persona: true, orderCount: 2 });
-    expect(body.starters.source).toMatchObject({ kind: "cache", version: "0.1.0" });
+    expect(body.starters.source).toMatchObject({ kind: "dir" });
     expect(body.starters.starters).toHaveLength(1);
   });
 
@@ -207,5 +250,84 @@ describe("browse server API contract", () => {
     const res = await get("/");
     const built = await fs.stat(path.join(webDistDir(), "index.html")).then((s) => s.isFile()).catch(() => false);
     expect(res.status).toBe(built ? 200 : 404);
+  });
+
+  it("GET /api/starters returns injected starter metadata", async () => {
+    const body = await getJson("/api/starters");
+    expect(body.source).toMatchObject({ kind: "dir" });
+    expect(body.starters[0]).toMatchObject({ id: "tiny", name: "Tiny", dir: starterDir });
+    expect(body.starters[0].previews.desktop).toBe("repochan/previews/desktop.webp");
+  });
+
+  it("GET /api/starters/:id/file serves starter files inside the sandbox only", async () => {
+    const ok = await get(`/api/starters/tiny/file?path=${encodeURIComponent("repochan/previews/desktop.webp")}`);
+    expect(ok.status).toBe(200);
+    expect(ok.headers.get("content-type")).toBe("image/webp");
+
+    for (const p of ["../escape.png", "../../etc/passwd", "/etc/passwd"]) {
+      const res = await get(`/api/starters/tiny/file?path=${encodeURIComponent(p)}`);
+      expect([403, 404]).toContain(res.status);
+    }
+    const outside = await get(`/api/starters/tiny/file?path=${encodeURIComponent("../../../etc/passwd")}`);
+    expect(outside.status).toBe(403);
+    const unknown = await get(`/api/starters/nope/file?path=${encodeURIComponent("repochan/previews/desktop.webp")}`);
+    expect(unknown.status).toBe(404);
+  });
+
+  it("POST /api/actions/starter-sync delegates to the injected sync and refreshes the list", async () => {
+    const res = await fetch(`${base}/api/actions/starter-sync`, { method: "POST" });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.result).toMatchObject({ version: "9.9.9", updated: true });
+    expect(syncCalls).toBe(1);
+    expect(body.starters.source).toMatchObject({ kind: "cache", version: "9.9.9" });
+
+    const wrongMethod = await get("/api/actions/starter-sync");
+    expect(wrongMethod.status).toBe(405);
+  });
+
+  it("POST /api/actions/starter-preview builds, serves, then hits the dist cache", async () => {
+    const post = (body: unknown) =>
+      fetch(`${base}/api/actions/starter-preview`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      }).then((r) => r.json());
+
+    const first = await post({ id: "tiny" });
+    expect(first).toMatchObject({ ok: true, id: "tiny", reused: false });
+    expect(first.url).toMatch(/^http:\/\/127\.0\.0\.1:\d+\/$/);
+
+    const page = await fetch(first.url);
+    expect(page.status).toBe(200);
+    expect(await page.text()).toContain("tiny starter");
+
+    const second = await post({ id: "tiny" });
+    expect(second).toMatchObject({ ok: true, reused: true, url: first.url, port: first.port });
+
+    const buildCount = await fs.readFile(path.join(starterDir, "build-count.txt"), "utf8");
+    expect(buildCount).toBe("1");
+
+    const missing = await post({ id: "nope" });
+    expect(missing.error).toMatch(/unknown starter/);
+  });
+
+  it("POST /api/actions/starter-preview surfaces build failures", async () => {
+    // Break the fixture build, force a rebuild, expect a transparent error.
+    await fs.rename(path.join(starterDir, "dist"), path.join(starterDir, "dist-keep"));
+    await fs.rm(path.join(starterDir, "dist"), { recursive: true, force: true });
+    await fs.writeFile(path.join(starterDir, "build.js"), `process.exit(3);\n`);
+    // Drop the registry's cached server so the rebuild path actually runs.
+    await closeStarterPreviews();
+
+    const res = await fetch(`${base}/api/actions/starter-preview`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id: "tiny", rebuild: true }),
+    });
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body.error).toMatch(/build.*failed|failed.*exit 3/i);
   });
 });

@@ -94,6 +94,36 @@ export type GraphNode = {
 export type GraphEdge = { from: string; to: string; kind: "reference" | "foundation-anchor" | "derived-from"; role?: string };
 export type Graph = { nodes: GraphNode[]; edges: GraphEdge[] };
 
+export type StarterMeta = {
+  id: string;
+  name?: string;
+  description?: string;
+  style?: string;
+  tags?: string[];
+  default?: boolean;
+  dir: string;
+  previews?: { desktop?: string; mobile?: string };
+};
+export type StartersInfo = {
+  source: { kind: string; dir: string; version?: string | null; via?: string } | null;
+  starters: StarterMeta[];
+};
+
+export async function postJSON<T>(url: string, body?: unknown): Promise<T> {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body ?? {}),
+  });
+  const json = (await res.json().catch(() => null)) as (T & { error?: string }) | null;
+  if (!res.ok) throw new Error(json?.error ?? `HTTP ${res.status}`);
+  return json as T;
+}
+
+export function starterFileUrl(starterId: string, relPath: string): string {
+  return `/api/starters/${encodeURIComponent(starterId)}/file?path=${encodeURIComponent(relPath)}`;
+}
+
 export async function getJSON<T>(url: string): Promise<T> {
   const res = await fetch(url);
   if (!res.ok) {

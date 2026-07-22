@@ -14,6 +14,7 @@ import * as setup from "./commands/setup.js";
 import * as template from "./commands/template.js";
 import * as starter from "./commands/starter.js";
 import * as starterSync from "./commands/starter-sync.js";
+import * as starterPreview from "./commands/starter-preview.js";
 import * as image from "./commands/image.js";
 import * as dev from "./commands/dev.js";
 import * as browse from "./commands/browse.js";
@@ -164,6 +165,9 @@ cli.command("starter <sub>", "Landing-page starters")
   .option("--result-version <version-id>", "Specific delivered result version (asset-apply)")
   .option("--file <path>", "Local source file to import (asset-import)")
   .option("--force", "Re-download starters even when the cache is current (sync)")
+  .option("--port <n>", "Port to bind on 127.0.0.1 (starter preview; default: free port)")
+  .option("--no-open", "Do not open the browser automatically (starter preview)")
+  .option("--rebuild", "Re-run install/build even when a dist cache exists (starter preview)")
   .action(async (_p: any, opts: any) => {
     const args = cli.args;
     const sub = args[0];
@@ -177,7 +181,8 @@ cli.command("starter <sub>", "Landing-page starters")
       case "asset-apply": return await starter.runStarterAssetApply(process.cwd(), args[1], opts);
       case "asset-import": return await starter.runStarterAssetImport(process.cwd(), args[1], opts);
       case "validate": return await starter.runStarterValidate(process.cwd(), args[1], opts);
-      default: throw new Error(`Unknown starter subcommand: ${sub}. Use: list | get | sync | pull | configure | create-order | asset-apply | asset-import | validate`);
+      case "preview": return await starterPreview.runStarterPreview(process.cwd(), args[1], opts);
+      default: throw new Error(`Unknown starter subcommand: ${sub}. Use: list | get | sync | pull | configure | create-order | asset-apply | asset-import | validate | preview`);
     }
   });
 

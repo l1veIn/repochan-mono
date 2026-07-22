@@ -4,11 +4,9 @@ import { Badge, EmptyState, statusBadge } from "../components";
 
 export function OrdersView(props: {
   orders: OrderSummary[];
-  selectedId: string | null;
   onOpen: (orderId: string) => void;
-  onSelect: (orderId: string) => void;
 }) {
-  const { orders, onOpen, onSelect, selectedId } = props;
+  const { orders, onOpen } = props;
   const [statusFilter, setStatusFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [query, setQuery] = useState("");
@@ -54,11 +52,10 @@ export function OrdersView(props: {
           {filtered.map((order) => (
             <button
               key={order.orderId}
-              className={`card ${selectedId === order.orderId ? "selected" : ""}`}
-              onClick={() => onSelect(order.orderId)}
-              onDoubleClick={() => onOpen(order.orderId)}
+              className="card"
+              onClick={() => onOpen(order.orderId)}
             >
-              <div className="thumb" onClick={() => onOpen(order.orderId)}>
+              <div className="thumb">
                 {order.cover ? (
                   <img src={fileUrl(order.cover)} alt={order.orderId} loading="lazy" />
                 ) : (

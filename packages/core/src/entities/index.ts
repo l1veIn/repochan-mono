@@ -25,6 +25,7 @@ export {
   abortOrderRecovery,
   findFoundationSheet,
   resolveOrderReferences,
+  assertNoSymlinkPath,
 } from "./orders.js";
 
 export { createReview } from "./review.js";

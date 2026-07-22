@@ -85,7 +85,7 @@ a { color: var(--accent-ink); text-decoration: none; }
 .canvas-btn.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 
 /* ── Shell grid ────────────────────────────── */
-.shell { display: grid; grid-template-columns: 224px 1fr 304px; min-height: 0; }
+.shell { display: grid; grid-template-columns: 224px 1fr; min-height: 0; }
 .nav {
   border-right: 1px solid var(--line);
   background: var(--panel);
@@ -109,13 +109,20 @@ a { color: var(--accent-ink); text-decoration: none; }
 
 .stage { min-width: 0; overflow-y: auto; padding: 24px 28px 64px; }
 
-.inspector {
-  border-left: 1px solid var(--line);
-  background: var(--panel);
-  padding: 18px 18px 48px; overflow-y: auto;
+/* Inspector lives only inside the Canvas view (node selection). */
+.canvas-layout { display: flex; gap: 16px; align-items: stretch; }
+.canvas-layout .canvas-wrap { flex: 1; min-width: 0; }
+.canvas-inspector {
+  width: 304px; flex: none;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 16px 18px; overflow-y: auto;
+  max-height: calc(100vh - 52px - 48px);
 }
-.inspector h3 { margin: 0 0 4px; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
-.inspector .empty-note { color: var(--ink-2); font-size: 13px; }
+.canvas-inspector h3 { margin: 0; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.canvas-inspector .ci-thumb {
+  width: 100%; max-height: 180px; object-fit: contain;
+  background: var(--panel-2); border-radius: 8px; margin-top: 12px;
+}
 
 /* ── Shared bits ───────────────────────────── */
 .kv { display: grid; grid-template-columns: 108px 1fr; gap: 4px 12px; font-size: 13px; margin: 10px 0; }
@@ -166,6 +173,8 @@ a { color: var(--accent-ink); text-decoration: none; }
   aspect-ratio: 4 / 3; background: var(--panel-2);
   display: grid; place-items: center; overflow: hidden;
 }
+.card button.thumb { width: 100%; border: 0; padding: 0; cursor: zoom-in; }
+.card button.thumb:disabled { cursor: wait; opacity: 0.7; }
 .card .thumb img { width: 100%; height: 100%; object-fit: contain; }
 .card .thumb .noimg { color: var(--ink-2); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
 .card .meta { padding: 10px 12px 12px; }
@@ -279,6 +288,6 @@ details.fold summary { cursor: pointer; color: var(--accent-ink); font-size: 13p
 
 @media (max-width: 1100px) {
   .shell { grid-template-columns: 200px 1fr; }
-  .inspector { display: none; }
+  .canvas-inspector { display: none; }
   .detail-grid { grid-template-columns: 1fr; }
 }

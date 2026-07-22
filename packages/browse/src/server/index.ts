@@ -4,6 +4,7 @@ import { promises as fs } from "node:fs";
 import { fileURLToPath } from "node:url";
 import {
   assertNoProtocolSymlinkPath,
+  assertNoSymlinkPath,
   exists,
   findFoundationSheet,
   hasInterview,
@@ -25,10 +26,12 @@ import {
   type OrderDerivedIndex,
   type OrderReference,
 } from "@repochan/core";
+import { serveStaticPath } from "./static.js";
+import { closeStarterPreviews, previewStarter } from "./starter-preview.js";
 
 /** Image extensions the viewer will serve / use as covers (mirrors core shared). */
 const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"];
-/** Extensions servable through /api/file (protocol files only, after sandbox checks). */
+/** Extensions servable through /api/file + starter files (after sandbox checks). */
 const SERVABLE_EXTENSIONS = new Set([...IMAGE_EXTENSIONS, ".ico", ".json", ".txt", ".md"]);
 
 const CONTENT_TYPES: Record<string, string> = {
@@ -42,22 +45,32 @@ const CONTENT_TYPES: Record<string, string> = {
   ".json": "application/json; charset=utf-8",
   ".txt": "text/plain; charset=utf-8",
   ".md": "text/markdown; charset=utf-8",
-  ".html": "text/html; charset=utf-8",
-  ".js": "text/javascript; charset=utf-8",
-  ".css": "text/css; charset=utf-8",
-  ".woff2": "font/woff2",
-  ".map": "application/json",
 };
 
-/** Starter-source summary injected by the CLI (starter resolution lives in the CLI's starter-loader). */
+/** Starter metadata injected by the CLI (starter resolution lives in the CLI's starter-loader). */
+export type BrowseStarterMeta = {
+  id: string;
+  name?: string;
+  description?: string;
+  style?: string;
+  tags?: string[];
+  default?: boolean;
+  /** Absolute starter source directory. */
+  dir: string;
+  previews?: { desktop?: string; mobile?: string };
+};
+
 export type BrowseStartersInfo = {
   source: { kind: string; dir: string; version?: string | null; via?: string } | null;
-  starters: Array<{ id: string; version?: string; default?: boolean; tags?: string[] }>;
+  starters: BrowseStarterMeta[];
 };
 
 export type BrowseServerOptions = {
   projectRoot: string;
-  starters?: BrowseStartersInfo;
+  /** Async resolver — re-invoked per request so a starter-sync action is reflected without restart. */
+  getStarters?: () => Promise<BrowseStartersInfo>;
+  /** Explicit write action backing POST /api/actions/starter-sync (CLI `starter sync` semantics). */
+  syncStarters?: () => Promise<unknown>;
 };
 
 /** Absolute path of the built SPA directory (vite build output). */
@@ -100,7 +113,16 @@ async function artifactMeta(file: string): Promise<{ generatedAt?: string } | un
 // API handlers
 // ---------------------------------------------------------------------------
 
-async function handleHealth(projectRoot: string, starters: BrowseStartersInfo | undefined) {
+async function resolveStarters(options: BrowseServerOptions): Promise<BrowseStartersInfo> {
+  if (!options.getStarters) return { source: null, starters: [] };
+  try {
+    return await options.getStarters();
+  } catch {
+    return { source: null, starters: [] };
+  }
+}
+
+async function handleHealth(projectRoot: string, options: BrowseServerOptions) {
   const root = protocolRoot(projectRoot);
   const protocolExists = await exists(root);
   const { orders } = protocolExists ? await listOrders(projectRoot) : { orders: [] };
@@ -114,7 +136,7 @@ async function handleHealth(projectRoot: string, starters: BrowseStartersInfo | 
       interview: await exists(path.join(root, "interview", "current.json")),
       orderCount: orders.length,
     },
-    starters: starters ?? { source: null, starters: [] },
+    starters: await resolveStarters(options),
   };
 }
 
@@ -418,36 +440,49 @@ async function handleFile(projectRoot: string, rawPath: string, res: http.Server
 }
 
 // ---------------------------------------------------------------------------
-// Static SPA
+// Starters (list / preview files / explicit actions)
 // ---------------------------------------------------------------------------
 
-async function serveStatic(webDir: string, urlPath: string, res: http.ServerResponse): Promise<boolean> {
-  const clean = decodeURIComponent(urlPath.split("?")[0] ?? "/");
-  const rel = clean.replace(/^\/+/, "");
-  const resolved = path.resolve(webDir, rel);
-  const rootResolved = path.resolve(webDir);
-  if (resolved !== rootResolved && !resolved.startsWith(rootResolved + path.sep)) return false;
-  const tryFiles = [resolved, path.join(resolved, "index.html")];
-  for (const file of tryFiles) {
-    const stat = await fs.stat(file).catch(() => undefined);
-    if (stat?.isFile()) {
-      const ext = path.extname(file).toLowerCase();
-      res.writeHead(200, { "content-type": CONTENT_TYPES[ext] ?? "application/octet-stream", "cache-control": "no-cache" });
-      res.end(await fs.readFile(file));
-      return true;
-    }
+/** Serve a file from within a resolved starter source dir (previews, etc.). */
+async function handleStarterFile(options: BrowseServerOptions, starterId: string, rawPath: string, res: http.ServerResponse) {
+  const { starters } = await resolveStarters(options);
+  const starter = starters.find((s) => s.id === starterId);
+  if (!starter) {
+    sendJson(res, 404, { error: `unknown starter '${starterId}'` });
+    return;
   }
-  // SPA fallback: extension-less paths render the app shell.
-  if (!path.extname(clean)) {
-    const index = path.join(webDir, "index.html");
-    const stat = await fs.stat(index).catch(() => undefined);
-    if (stat?.isFile()) {
-      res.writeHead(200, { "content-type": CONTENT_TYPES[".html"], "cache-control": "no-cache" });
-      res.end(await fs.readFile(index));
-      return true;
-    }
+  const root = path.resolve(starter.dir);
+  const abs = path.resolve(root, rawPath.replace(/^\/+/, ""));
+  try {
+    await assertNoSymlinkPath(root, abs, "Starter file");
+  } catch {
+    sendJson(res, 403, { error: "path escapes starter source dir or crosses a symlink" });
+    return;
   }
-  return false;
+  const ext = path.extname(abs).toLowerCase();
+  if (!SERVABLE_EXTENSIONS.has(ext)) {
+    sendJson(res, 403, { error: `extension '${ext}' is not servable` });
+    return;
+  }
+  const stat = await fs.stat(abs).catch(() => undefined);
+  if (!stat?.isFile()) {
+    sendJson(res, 404, { error: "not found" });
+    return;
+  }
+  res.writeHead(200, {
+    "content-type": CONTENT_TYPES[ext] ?? "application/octet-stream",
+    "content-length": stat.size,
+    "cache-control": "no-cache",
+  });
+  res.end(await fs.readFile(abs));
+}
+
+async function readRequestBody(req: http.IncomingMessage): Promise<unknown> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) chunks.push(chunk as Buffer);
+  const raw = Buffer.concat(chunks).toString("utf8").trim();
+  if (!raw) return {};
+  return JSON.parse(raw);
 }
 
 // ---------------------------------------------------------------------------
@@ -458,19 +493,49 @@ export function createBrowseServer(options: BrowseServerOptions): http.Server {
   const projectRoot = path.resolve(options.projectRoot);
   const webDir = webDistDir();
 
-  return http.createServer((req, res) => {
+  const server = http.createServer((req, res) => {
     void (async () => {
       const url = new URL(req.url ?? "/", "http://127.0.0.1");
       const pathname = url.pathname;
 
-      if (pathname === "/api/health") return sendJson(res, 200, await handleHealth(projectRoot, options.starters));
+      if (pathname === "/api/health") return sendJson(res, 200, await handleHealth(projectRoot, options));
       if (pathname === "/api/tree") return sendJson(res, 200, await handleTree(projectRoot));
       if (pathname === "/api/persona") return sendJson(res, 200, await handlePersona(projectRoot));
       if (pathname === "/api/analysis") return sendJson(res, 200, await handleAnalysis(projectRoot));
       if (pathname === "/api/interview") return sendJson(res, 200, await handleInterview(projectRoot));
       if (pathname === "/api/orders") return sendJson(res, 200, await handleOrders(projectRoot));
       if (pathname === "/api/graph") return sendJson(res, 200, await handleGraph(projectRoot));
+      if (pathname === "/api/starters") return sendJson(res, 200, await resolveStarters(options));
       if (pathname === "/api/file") return await handleFile(projectRoot, url.searchParams.get("path") ?? "", res);
+
+      // Explicit write actions (POST only). starter-sync delegates to the CLI's
+      // sync semantics via the injected callback; starter-preview reuses the
+      // same install→build→serve implementation as `repochan starter preview`.
+      if (pathname === "/api/actions/starter-sync") {
+        if (req.method !== "POST") return sendJson(res, 405, { error: "POST required" });
+        if (!options.syncStarters) return sendJson(res, 501, { error: "starter sync is not available in this server" });
+        const result = await options.syncStarters();
+        return sendJson(res, 200, { ok: true, result, starters: await resolveStarters(options) });
+      }
+      if (pathname === "/api/actions/starter-preview") {
+        if (req.method !== "POST") return sendJson(res, 405, { error: "POST required" });
+        const body = (await readRequestBody(req)) as { id?: unknown; rebuild?: unknown };
+        const id = typeof body.id === "string" ? body.id : "";
+        const { starters } = await resolveStarters(options);
+        const starter = starters.find((s) => s.id === id);
+        if (!starter) return sendJson(res, 404, { error: `unknown starter '${id}'` });
+        try {
+          const preview = await previewStarter({ id: starter.id, dir: starter.dir, rebuild: body.rebuild === true, stdio: "pipe" });
+          return sendJson(res, 200, { ok: true, id: starter.id, url: preview.url, port: preview.port, reused: preview.reused });
+        } catch (error) {
+          return sendJson(res, 500, { ok: false, error: error instanceof Error ? error.message : String(error) });
+        }
+      }
+
+      const starterFileMatch = pathname.match(/^\/api\/starters\/([a-z0-9][a-z0-9-]*)\/file$/);
+      if (starterFileMatch) {
+        return await handleStarterFile(options, starterFileMatch[1], url.searchParams.get("path") ?? "", res);
+      }
 
       const orderMatch = pathname.match(/^\/api\/orders\/([^/]+)(\/derived)?$/);
       if (orderMatch) {
@@ -490,7 +555,7 @@ export function createBrowseServer(options: BrowseServerOptions): http.Server {
 
       if (pathname.startsWith("/api/")) return sendJson(res, 404, { error: "unknown api route" });
 
-      if (req.method === "GET" && (await serveStatic(webDir, pathname, res))) return;
+      if (req.method === "GET" && (await serveStaticPath(webDir, pathname, res, true))) return;
       sendJson(res, 404, { error: "not found" });
     })().catch((error) => {
       if (!res.headersSent) {
@@ -500,6 +565,13 @@ export function createBrowseServer(options: BrowseServerOptions): http.Server {
       }
     });
   });
+
+  // Preview servers live in-process; shut them down with the browse server so
+  // `repochan browse` exiting never leaves orphan ports behind.
+  server.on("close", () => {
+    void closeStarterPreviews();
+  });
+  return server;
 }
 
 /** Convenience: start listening on 127.0.0.1. Returns the bound port. */
@@ -514,3 +586,7 @@ export async function listenBrowseServer(server: http.Server, port: number): Pro
 
 // Re-export for the CLI's health check convenience.
 export { protocolRoot, orderDir, relativeProtocolPath };
+// CLI `starter preview` reuses the same implementation as the browse action.
+export { previewStarter, closeStarterPreviews, listStarterPreviews } from "./starter-preview.js";
+export type { StarterPreviewOptions, StarterPreviewResult } from "./starter-preview.js";
+export { createStaticFileServer, listenStaticServer } from "./static.js";

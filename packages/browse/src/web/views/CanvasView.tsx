@@ -3,7 +3,7 @@ import { ReactFlow, Background, Controls, Handle, Position, type Edge, type Node
 import "@xyflow/react/dist/style.css";
 import dagre from "@dagrejs/dagre";
 import { fileUrl, getJSON, type Graph, type GraphNode } from "../api";
-import { EmptyState } from "../components";
+import { EmptyState, statusBadge, Badge } from "../components";
 
 type ProtocolNodeData = {
   graphNode: GraphNode;
@@ -82,10 +82,40 @@ function layoutGraph(graph: Graph): { nodes: ProtocolFlowNode[]; edges: Edge[] }
   return { nodes, edges };
 }
 
-export function CanvasView(props: { onSelectNode: (node: GraphNode | null) => void; onOpenOrder: (orderId: string) => void }) {
+function NodeInspector(props: { node: GraphNode; onOpenOrder: (orderId: string) => void; onClose: () => void }) {
+  const { node, onOpenOrder, onClose } = props;
+  return (
+    <aside className="canvas-inspector">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <h3>Inspector</h3>
+        <button className="canvas-btn" style={{ padding: "2px 10px" }} onClick={onClose} aria-label="close">×</button>
+      </div>
+      {node.thumb ? <img className="ci-thumb" src={fileUrl(node.thumb)} alt={node.label} /> : null}
+      <p className="mono" style={{ fontWeight: 600, margin: "10px 0 4px" }}>{node.label}</p>
+      <div style={{ display: "flex", gap: 6, margin: "4px 0 10px", flexWrap: "wrap" }}>
+        <Badge text={node.kind} />
+        {statusBadge(node.status)}
+        {node.foundation ? <Badge text="foundation" className="foundation" /> : null}
+      </div>
+      <dl className="kv">
+        <dt>node</dt><dd>{node.id}</dd>
+        {node.assetType ? (<><dt>assetType</dt><dd>{node.assetType}</dd></>) : null}
+        {node.foundation ? (<><dt>role</dt><dd>foundation anchor — 全部下游 references 的视觉真相来源</dd></>) : null}
+      </dl>
+      {node.kind === "order" ? (
+        <button className="canvas-btn" onClick={() => onOpenOrder(node.id.replace(/^order:/, ""))}>打开订单详情 →</button>
+      ) : null}
+      {node.kind === "derived" ? (
+        <button className="canvas-btn" onClick={() => onOpenOrder(node.id.replace(/^derived:/, ""))}>查看 derived 审计 →</button>
+      ) : null}
+    </aside>
+  );
+}
+
+export function CanvasView(props: { initialNodeId?: string; onOpenOrder: (orderId: string) => void }) {
   const [graph, setGraph] = useState<Graph | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(props.initialNodeId ?? null);
 
   useEffect(() => {
     getJSON<Graph>("/api/graph").then(setGraph).catch((e) => setError(String(e)));
@@ -101,13 +131,14 @@ export function CanvasView(props: { onSelectNode: (node: GraphNode | null) => vo
     return laidOut;
   }, [graph, selectedId]);
 
-  const onNodeClick = useCallback(
-    (_: unknown, node: ProtocolFlowNode) => {
-      setSelectedId(node.id);
-      props.onSelectNode(node.data.graphNode);
-    },
-    [props],
+  const selectedNode = useMemo(
+    () => graph?.nodes.find((node) => node.id === selectedId) ?? null,
+    [graph, selectedId],
   );
+
+  const onNodeClick = useCallback((_: unknown, node: ProtocolFlowNode) => {
+    setSelectedId(node.id);
+  }, []);
 
   const onNodeDoubleClick = useCallback(
     (_: unknown, node: ProtocolFlowNode) => {
@@ -130,23 +161,28 @@ export function CanvasView(props: { onSelectNode: (node: GraphNode | null) => vo
   }
 
   return (
-    <div className="canvas-wrap">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        onNodeClick={onNodeClick}
-        onNodeDoubleClick={onNodeDoubleClick}
-        onPaneClick={() => { setSelectedId(null); props.onSelectNode(null); }}
-        fitView
-        minZoom={0.2}
-        proOptions={{ hideAttribution: true }}
-        nodesConnectable={false}
-        deleteKeyCode={null}
-      >
-        <Background gap={24} size={1} />
-        <Controls showInteractive={false} />
-      </ReactFlow>
+    <div className={`canvas-layout ${selectedNode ? "with-inspector" : ""}`}>
+      <div className="canvas-wrap">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          onNodeClick={onNodeClick}
+          onNodeDoubleClick={onNodeDoubleClick}
+          onPaneClick={() => setSelectedId(null)}
+          fitView
+          minZoom={0.2}
+          proOptions={{ hideAttribution: true }}
+          nodesConnectable={false}
+          deleteKeyCode={null}
+        >
+          <Background gap={24} size={1} />
+          <Controls showInteractive={false} />
+        </ReactFlow>
+      </div>
+      {selectedNode ? (
+        <NodeInspector node={selectedNode} onOpenOrder={props.onOpenOrder} onClose={() => setSelectedId(null)} />
+      ) : null}
     </div>
   );
 }
