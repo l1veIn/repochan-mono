@@ -16,6 +16,7 @@ import * as starter from "./commands/starter.js";
 import * as starterSync from "./commands/starter-sync.js";
 import * as starterPreview from "./commands/starter-preview.js";
 import * as image from "./commands/image.js";
+import * as imageMl from "./commands/image-ml.js";
 import * as dev from "./commands/dev.js";
 import * as browse from "./commands/browse.js";
 import { recordError, hasRecorded } from "./lib/dev-telemetry.js";
@@ -255,13 +256,14 @@ cli.command("image <sub>", "Image generation, configure, status, probe, and edit
   .option("--provider <p>", "openai | codex | custom | skip (image configure)")
   .option("--api-key <key>", "API key (image configure)")
   .option("--base-url <url>", "Custom OpenAI-compatible base URL (image configure)")
-  .option("--model <model>", "Model id (image configure) or ISNet model small|medium|large (bg-remove)")
+  .option("--model <model>", "Model id (image configure) or ISNet model small|medium (ML image edit)")
   .option("--set-default", "Set this endpoint as default (image configure)")
   .option("--probe", "After configure, GET /models smoke check (no bill)")
   .option("--fps <n>", "Frames per second (image edit gif-from-frames)", { default: undefined })
   .option("--delay <ms>", "Per-frame delay in ms, single or comma-list (image edit gif-from-frames)")
   .option("--loop <n>", "Loop count, 0 = infinite (image edit gif-from-frames)", { default: undefined })
   .option("--overwrite", "Overwrite existing output (bg-remove / gif-from-frames)")
+  .option("--force", "Reinstall the pinned image ML runtime (image edit ml install)")
   .action(async (_p: any, opts: any) => {
     const args = cli.args; // [sub, imagePath?]
     const sub = args[0];
@@ -296,6 +298,12 @@ cli.command("image <sub>", "Image generation, configure, status, probe, and edit
         });
       case "edit": {
         const editSub = args[1];
+        if (editSub === "ml") {
+          const mlSub = args[2];
+          if (mlSub === "status") return await imageMl.runImageMlStatus(process.cwd(), opts);
+          if (mlSub === "install") return await imageMl.runImageMlInstall(process.cwd(), opts);
+          throw new Error(`Unknown image edit ml subcommand: ${mlSub}. Use: status | install`);
+        }
         if (editSub === "slice") return await image.runImageEditSlice(process.cwd(), args[2], opts);
         if (editSub === "validate-seams") return await image.runImageEditValidateSeams(process.cwd(), args[2], opts);
         if (editSub === "bg-remove") return await image.runImageEditBgRemove(process.cwd(), args[2], opts);
@@ -308,7 +316,7 @@ cli.command("image <sub>", "Image generation, configure, status, probe, and edit
         if (editSub === "favicon") return await image.runImageEditFavicon(process.cwd(), args[2], opts);
         if (editSub === "compress") return await image.runImageEditCompress(process.cwd(), args[2], opts);
         if (editSub === "gif-from-frames") return await image.runImageEditGifFromFrames(process.cwd(), args.slice(2), opts);
-        throw new Error(`Unknown image edit subcommand: ${editSub}. Use: slice | validate-seams | bg-remove | chroma-key | extract | iconfont | layout-guide | extract-stickers | resize | favicon | compress | gif-from-frames`);
+        throw new Error(`Unknown image edit subcommand: ${editSub}. Use: ml | slice | validate-seams | bg-remove | chroma-key | extract | iconfont | layout-guide | extract-stickers | resize | favicon | compress | gif-from-frames`);
       }
       default: throw new Error(`Unknown image subcommand: ${sub}. Use: gen | configure | status | probe | edit`);
     }

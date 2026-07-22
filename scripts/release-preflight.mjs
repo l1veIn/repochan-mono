@@ -87,7 +87,7 @@ const canonicalStarterIds = Object.freeze([
   "repochan-harbor",
   "sealed-scroll",
 ]);
-const canonicalDefaultStarter = "minimal";
+const canonicalDefaultStarter = "landing-museum";
 const temporaryRoot = mkdtempSync(path.join(os.tmpdir(), "repochan-release-preflight-"));
 const sourceRoot = path.join(temporaryRoot, "source");
 const artifactDir = registryCheck
@@ -373,10 +373,33 @@ async function candidateFreshInstallSmoke(entries) {
     throw new Error("Fresh-install smoke must install only the candidate CLI tarball as a top-level dependency.");
   }
 
+  // Keep the default CLI on the deterministic Sharp-only image path. The
+  // large IMG.LY/ONNX runtime belongs only to the explicit ML installer.
+  const installLock = JSON.parse(await fs.readFile(path.join(installRoot, "package-lock.json"), "utf8"));
+  const installedPackagePaths = Object.keys(installLock.packages ?? {});
+  for (const forbidden of ["@imgly/background-removal-node", "onnxruntime-node"]) {
+    if (installedPackagePaths.some((packagePath) => packagePath.endsWith(`/node_modules/${forbidden}`) || packagePath === `node_modules/${forbidden}`)) {
+      throw new Error(`Fresh install must not contain optional image ML runtime ${forbidden}.`);
+    }
+  }
+  const sharpPackagePath = installedPackagePaths.find((packagePath) => packagePath.endsWith("/node_modules/sharp") || packagePath === "node_modules/sharp");
+  if (!sharpPackagePath) {
+    throw new Error("Fresh install must contain Sharp for deterministic offline image operations.");
+  }
+
   const cliEntry = path.join(installRoot, "node_modules", "repochan", "dist", "index.js");
   const version = run(process.execPath, [cliEntry, "--version"], { cwd: hostProject, env: isolatedEnv, replaceEnv: true }).trim();
   if (version !== `repochan/${entries.at(-1).manifest.version} ${process.platform}-${process.arch} node-${process.version}`) {
     throw new Error(`Unexpected fresh-install CLI identity: ${version}`);
+  }
+  const imageMlStatus = parseJsonOutput(
+    run(process.execPath, [cliEntry, "image", "edit", "ml", "status", "--json"], { cwd: hostProject, env: isolatedEnv, replaceEnv: true }),
+    "fresh-install image ML status",
+  );
+  if (imageMlStatus.installed !== false
+    || imageMlStatus.capability !== "image-ml"
+    || imageMlStatus.installCommand !== "repochan image edit ml install") {
+    throw new Error(`Fresh-install image ML status is not actionable: ${JSON.stringify(imageMlStatus)}`);
   }
   for (const entry of entries) {
     // @repochan/starters is no longer a CLI dependency: the fresh install must
@@ -540,6 +563,7 @@ async function candidateFreshInstallSmoke(entries) {
     }
     run(process.execPath, [cliEntry, "starter", "validate", "--output-dir", site, "--json"], { cwd: hostProject, env: isolatedEnv, replaceEnv: true });
     run("npm", ["install", "--no-audit", "--no-fund"], { cwd: site, env: isolatedEnv, replaceEnv: true });
+    run("npm", ["exec", "--", "tsc", "-p", "tsconfig.json", "--noEmit", "--pretty", "false"], { cwd: site, env: isolatedEnv, replaceEnv: true });
     run("npm", ["run", "build"], { cwd: site, env: isolatedEnv, replaceEnv: true });
     starterBuilds[starterId] = "passed";
   };
@@ -547,8 +571,15 @@ async function candidateFreshInstallSmoke(entries) {
     buildStarter(starterId, starterId === canonicalDefaultStarter ? [] : ["--starter", starterId]);
   }
 
+  const installKiB = Number.parseInt(run("du", ["-sk", installRoot]).trim().split(/\s+/)[0], 10);
+  const sharpRoot = path.join(installRoot, sharpPackagePath);
+  const sharpKiB = Number.parseInt(run("du", ["-sk", sharpRoot]).trim().split(/\s+/)[0], 10);
+
   return {
     cliVersion: version,
+    defaultInstallMiB: Number((installKiB / 1024).toFixed(1)),
+    sharpInstallMiB: Number((sharpKiB / 1024).toFixed(1)),
+    optionalImageMlInstalled: false,
     isolatedState: ["HOME", "empty npm userconfig", "npm cache", "install prefix", "empty project"],
     setupIdempotent: true,
     initIdempotent: true,

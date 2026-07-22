@@ -7,7 +7,7 @@ import { resizeImage, generateIco } from "../src/index.js";
 
 /**
  * Build a real solid-color PNG via pngjs for resize/ico tests.
- * These exercise imgly's vendored sharp at runtime.
+ * These exercise pinned Sharp at runtime.
  */
 async function makeSolidPng(width: number, height: number, r: number, g: number, b: number): Promise<Buffer> {
   const png = new PNG({ width, height });

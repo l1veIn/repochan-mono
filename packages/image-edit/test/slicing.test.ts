@@ -95,7 +95,7 @@ describe("sliceImage", () => {
 
 // ---------------------------------------------------------------------------
 // sliceGridToFiles integration tests.
-// These create a REAL PNG via pngjs and crop it via imgly's vendored sharp,
+// These create a REAL PNG via pngjs and crop it via pinned Sharp,
 // so they exercise the full extract→write path. No ML model is needed
 // (cropping is pure pixel work).
 // ---------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { loadImglySharp } from "./imgly.js";
+import { loadSharp } from "./sharp.js";
 
 // ---------------------------------------------------------------------------
 // Layout guide (design doc §11) — a deterministic grid-composition reference
@@ -211,7 +211,7 @@ export async function writeLayoutGuide(outPath: string, options: LayoutGuideOpti
   }
 
   await fs.mkdir(path.dirname(destination), { recursive: true });
-  const sharp = (await loadImglySharp()).default;
+  const sharp = (await loadSharp()).default;
   await sharp(buf, { raw: { width, height, channels: 3 } }).png().toFile(destination);
 
   return { outFile: destination, width, height, rows, cols, cellWidth, cellHeight, safeMargin };

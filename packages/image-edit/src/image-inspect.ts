@@ -1,5 +1,5 @@
 import path from "node:path";
-import { loadImglySharp } from "./imgly.js";
+import { loadSharp } from "./sharp.js";
 
 export type SupportedImageFormat = "png" | "jpeg" | "webp" | "avif" | "gif";
 
@@ -24,7 +24,7 @@ export function imageFormatForExtension(filePath: string): SupportedImageFormat 
 
 /** Decode an image and report the format detected from its bytes. */
 export async function inspectImage(imagePath: string): Promise<ImageInspection> {
-  const sharp = (await loadImglySharp()).default;
+  const sharp = (await loadSharp()).default;
   let metadata: Awaited<ReturnType<ReturnType<typeof sharp>["metadata"]>>;
   try {
     metadata = await sharp(imagePath).metadata();

@@ -48,11 +48,15 @@ import {
   type ExtractStrategy,
 } from "@repochan/image-edit";
 import { emitResult, dim, printJson, isExtractError, ApplyFailurePrintedError, type OutputOptions, UsageError } from "../lib/output.js";
+import {
+  contextualizeImageMlCapabilityError,
+  ensureImageMlCapability,
+  imageMlErrorDetails,
+  type ImageMlCapabilityDeps,
+} from "../lib/image-ml-capability.js";
 import { readDataFile } from "../lib/data-file.js";
 import {
-  getDefaultStarterId,
   getStarter,
-  getStarterDir,
   listStarters,
   listStartersFromSource,
   readStarterInstance,
@@ -177,17 +181,31 @@ export async function runStarterPull(cwd: string, options: StarterOptions, deps:
   const target = outputDir(cwd, options.outputDir);
   if (options.from && options.starter) throw new UsageError("starter pull accepts either --starter <id> or --from <local-dir>, not both.");
   const localSource = options.from ? path.resolve(cwd, options.from) : undefined;
+  let resolvedSource: StarterSource | null = null;
   if (!localSource) {
-    const source = await (deps.resolveSource ?? resolveStarterSource)();
-    if (!source) {
+    resolvedSource = await (deps.resolveSource ?? resolveStarterSource)();
+    if (!resolvedSource) {
       throw new UsageError(
         "No starters available: run `repochan starter sync` first.",
         "starter sync downloads @repochan/starters into ~/.repochan/starters/; alternatively pass --from <dir> or set REPOCHAN_STARTERS_DIR.",
       );
     }
   }
-  const starterId = localSource ? (await readStarterInstance(localSource)).id : options.starter ?? await getDefaultStarterId();
-  const source = localSource ?? await getStarterDir(starterId);
+  let starterId: string;
+  let source: string;
+  if (localSource) {
+    starterId = (await readStarterInstance(localSource)).id;
+    source = localSource;
+  } else {
+    const starters = await listStartersFromSource(resolvedSource!);
+    const marked = starters.filter((starter) => starter.default);
+    if (marked.length > 1) throw new Error(`Multiple default starters: ${marked.map((starter) => starter.id).join(", ")}`);
+    starterId = options.starter ?? marked[0]?.id ?? starters[0]?.id;
+    if (!starterId) throw new Error("No starters available: run `repochan starter sync` first.");
+    const selected = starters.find((starter) => starter.id === starterId);
+    if (!selected) throw new Error(`Unknown starter '${starterId}'. Available: ${starters.map((starter) => starter.id).join(", ") || "(none)"}`);
+    source = selected.dir;
+  }
   if (path.resolve(target) === path.resolve(source)) {
     return void emitResult(options, `Starter already present at ${target}.`, { outputDir: target, starter: starterId, generated: false });
   }
@@ -506,6 +524,16 @@ function asExtractError(error: unknown): ExtractError | { message: string; defec
   return undefined;
 }
 
+function imageMlRequirement(slot: StarterAssetSlot, gridStep: StarterPostprocessStep | undefined): string | undefined {
+  if (slot.kind === "bundle") {
+    const strategy = gridStep?.args?.strategy;
+    if (strategy === "ml-blobs" || strategy === "hybrid") return `starter asset-apply slot ${slot.slot} (extract-grid:${strategy})`;
+    return undefined;
+  }
+  const mlStep = slot.postprocess?.find((step) => step.op === "bg-remove" || step.op === "extract-stickers");
+  return mlStep ? `starter asset-apply slot ${slot.slot} (${mlStep.op})` : undefined;
+}
+
 async function listFilesRecursive(root: string): Promise<string[]> {
   const found: string[] = [];
   for (const entry of await fs.readdir(root, { withFileTypes: true })) {
@@ -601,7 +629,12 @@ async function archiveDerivedApply(input: {
   return archiveDir;
 }
 
-export async function runStarterAssetApply(cwd: string, slotName: string | undefined, options: StarterOptions) {
+export async function runStarterAssetApply(
+  cwd: string,
+  slotName: string | undefined,
+  options: StarterOptions,
+  deps: ImageMlCapabilityDeps = {},
+) {
   const target = outputDir(cwd, options.outputDir);
   await assertNoSymlinkPath(target, "", "Starter target");
   const manifest = await readStarterInstance(target);
@@ -632,8 +665,10 @@ export async function runStarterAssetApply(cwd: string, slotName: string | undef
   }
 
   const gridStep = slot.kind === "bundle" ? slot.postprocess.find((step) => step.op === "extract-grid") : undefined;
+  const mlRequiredBy = imageMlRequirement(slot, gridStep);
   const tempRoot = await fs.mkdtemp(path.join(target, ".repochan-starter-"));
   try {
+    if (mlRequiredBy) await ensureImageMlCapability(mlRequiredBy, deps);
     let gridResult: GridApplyResult | undefined;
     if (slot.kind === "bundle") {
       if (!gridStep) throw new Error(`Bundle slot '${slot.slot}' is missing its validated extract-grid step.`);
@@ -725,6 +760,23 @@ export async function runStarterAssetApply(cwd: string, slotName: string | undef
     // Apply failure envelope (design "Structured failure plumbing", PR5): the
     // apply layer owns slot/orderId context, so the structured JSON is printed
     // here and main() skips its own printError via the sentinel.
+    const missingImageMl = contextualizeImageMlCapabilityError(
+      err,
+      mlRequiredBy ?? `starter asset-apply slot ${slot.slot}`,
+    );
+    if (missingImageMl) {
+      if (options.json) {
+        printJson({
+          ...imageMlErrorDetails(missingImageMl),
+          command: "starter asset-apply",
+          slot: slot.slot,
+          orderId: options.order,
+          resultVersion: result.version.versionId,
+        });
+        throw new ApplyFailurePrintedError(missingImageMl);
+      }
+      throw missingImageMl;
+    }
     const extractError = asExtractError(err);
     if (extractError && options.json) {
       const qa = extractError.qa as ExtractQaReport | undefined;

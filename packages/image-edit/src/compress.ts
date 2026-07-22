@@ -1,6 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { loadImglySharp } from "./imgly.js";
+import { loadSharp } from "./sharp.js";
 
 // ---------------------------------------------------------------------------
 // Compress: convert an image to WebP/JPEG/AVIF with optional resize.
@@ -36,7 +36,7 @@ export type CompressResult = {
 
 /**
  * Compress a source image into WebP/JPEG/AVIF with optional downscale.
- * Uses imgly's vendored sharp.
+ * Uses the package's pinned Sharp.
  *
  * @param imagePath  absolute path to source image
  * @param outPath    absolute path to output file
@@ -50,7 +50,7 @@ export async function compressImage(
   const format = options.format ?? "webp";
   const quality = options.quality ?? (format === "avif" ? 50 : 80);
 
-  const sharp = (await loadImglySharp()).default;
+  const sharp = (await loadSharp()).default;
   const sourceFile = imagePath.split(/[\\/]/).pop()!;
   const originalBytes = (await fs.stat(imagePath)).size;
 

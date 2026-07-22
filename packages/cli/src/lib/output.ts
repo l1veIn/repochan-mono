@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import { asMissingImageMlCapabilityError } from "./image-ml-capability.js";
 
 export type OutputOptions = { json?: boolean };
 
@@ -75,6 +76,15 @@ export function printError(error: unknown, opts?: OutputOptions) {
   }
   if (opts?.json && error instanceof UsageError) {
     printJson({ ok: false, error: "UsageError", message: error.message, hint: error.hint ?? null });
+    return;
+  }
+  const missingImageMl = asMissingImageMlCapabilityError(error);
+  if (missingImageMl) {
+    if (opts?.json) printJson(missingImageMl);
+    else {
+      console.error(`${chalk.red("error")}: ${missingImageMl.message}`);
+      console.error(dim(`Install: ${missingImageMl.installCommand}`));
+    }
     return;
   }
   const message = error instanceof Error ? error.message : String(error);

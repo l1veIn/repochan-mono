@@ -71,6 +71,8 @@ repochan starter asset-apply <slot> --order <delivered-order-id> --overwrite
 
 `asset-apply` 因 extract QA 失败时，按 `--json` 信封中的 `defects` 决定回流动作（加强留白/换 matte/layout-guide reference/拆单），要求 Painter 重生新版本后重跑 apply；不要自己手切 PNG 或手改 `public/`。失败映射表见 [phase2-assemble.md](references/phase2-assemble.md)。
 
+如果失败是 `MissingImageMlCapabilityError`（错误码 `REPOCHAN_IMAGE_ML_MISSING`），它是 Page Designer 所在机器缺少可选 ML runtime，不是 Painter 原图缺陷。只执行一次 `repochan image edit ml install`；安装成功后原样重试刚才的 `starter asset-apply` 命令。安装失败时停止并报告，不要循环安装，也不要要求 Painter 重生。当前官方 Starters 的网格装配使用离线 `chroma-grid`，不要为普通流程预装 ML；只有 manifest 显式选择 `bg-remove`、`extract-stickers`、`ml-blobs` 或 `hybrid` 时才可能需要它。网络下载只发生在显式 install；安装后的 ML 操作从 capability cache 读取本地 runtime 和模型。
+
 完整边界见 [phase2-assemble.md](references/phase2-assemble.md)。
 
 ### 5. 本地化验收

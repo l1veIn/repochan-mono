@@ -344,7 +344,7 @@ describe("runChromaPipeline v2 input handling", () => {
 });
 
 // ---------------------------------------------------------------------------
-// chromaKeyImage wrapper: v2 passthrough (file-level, uses vendored sharp)
+// chromaKeyImage wrapper: v2 passthrough (file-level, uses pinned Sharp)
 // ---------------------------------------------------------------------------
 
 describe("chromaKeyImage pipeline option", () => {

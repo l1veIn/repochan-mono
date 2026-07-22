@@ -30,7 +30,7 @@ L1 可进一步区分基础色面 L1a、共享 seamless pattern L1b、section �
 视觉母版负责验证构图、节奏、层级和 section 关系，不负责同时提供可直接上线的位图。即使 prompt 要求角色轮廓可提取，也必须根据实际像素判断：
 
 - 头发丝、半透明衣料、辉光、粒子和环境反射与背景耦合时，母版不可直接作为独立 L2 来源。
-- 需要独立 L2 时，另建 uniform-matte production order，再执行 chroma-key/bg-remove 和 alpha QA。
+- 需要独立 L2 时，另建 uniform-matte production order，再通过 CLI 执行 chroma-key/bg-remove 和 alpha QA。优先使用离线、确定性的 chroma-key；`bg-remove` 需要可选 ML runtime。直接调用时若收到 `MissingImageMlCapabilityError` / `REPOCHAN_IMAGE_ML_MISSING`，只执行一次 `repochan image edit ml install`，成功后原样重试；安装失败就停止报告，不要循环。网络下载只发生在显式 install；运行时从 capability cache 读取本地 runtime 和模型。
 - alpha QA 失败时，优先生成无文字、无 UI 的 L1+L2 composite，而不是反复修补母版截图。
 - 角色跨 section 的视觉动势不要求角色像素真的跨界；可让 Git DAG、能量轨迹、几何边界或 CSS/SVG seam 承担连接，从而降低耦合。
 

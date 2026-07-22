@@ -140,8 +140,8 @@ export type ExtractMatteGridResult = {
  * since PR7; equal-cell + v1 via explicit options); error messages keep the
  * legacy `extractMatteGrid:` wording. This function
  * has no network, ML, starter, or `.repochan/` knowledge for the default
- * chroma strategies ("ml-blobs"/"hybrid" strategies of extractAssets are the
- * explicitly networked paths).
+ * chroma strategies ("ml-blobs"/"hybrid" strategies of extractAssets require
+ * the explicitly installed local image-ML capability).
  */
 export async function extractMatteGrid(
   imagePath: string,

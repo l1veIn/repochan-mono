@@ -6,6 +6,12 @@ This changelog records coordinated public package sets.
 
 ### Lightweight default CLI and explicit image ML capability
 
+Patch set: `@repochan/core@0.3.1`, `@repochan/image-edit@0.3.1`,
+`@repochan/skill@0.3.1`, `@repochan/starters@0.2.1`,
+`@repochan/browse@0.1.1`, and `repochan@0.4.1`.
+Browse advances because its packed runtime dependency now targets the patched
+Core; unchanged leaves retain their published versions.
+
 - `@repochan/image-edit` now depends directly on pinned `sharp@0.32.6` for
   deterministic offline pixel work; the large IMG.LY/ONNX runtime is no longer
   part of the default CLI dependency closure.
@@ -20,6 +26,12 @@ This changelog records coordinated public package sets.
 - Release smoke rejects `@imgly/background-removal-node` or
   `onnxruntime-node` in a fresh default install and verifies that ML status
   points to the explicit installer.
+- `landing-museum` is the sole default Starter. `minimal` remains available as
+  an explicitly selected lightweight fixture, but is no longer recommended as
+  the first-run product experience.
+- Starter release smoke now type-checks every copied site before building it;
+  `landing-frutiger-aero` narrows scalar asset states correctly when its catalog
+  also contains bundle slots.
 
 ## 2026-07-22 — `repochan` v0.4.0 package set
 

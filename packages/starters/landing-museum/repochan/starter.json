@@ -13,6 +13,7 @@
     "curated",
     "bilingual"
   ],
+  "default": true,
   "previews": {
     "desktop": "repochan/previews/desktop.webp",
     "mobile": "repochan/previews/mobile.webp"

@@ -1,5 +1,6 @@
 import { promises as fs } from "node:fs";
 import { extractAssets, ExtractError } from "./extract.js";
+import type { MatteModel } from "./imgly.js";
 
 // ---------------------------------------------------------------------------
 // Types (FROZEN compatibility contract — design doc §8)
@@ -24,8 +25,8 @@ export type StickerMeta = {
 export type ExtractStickersOptions = {
   rows: number;
   cols: number;
-  /** ISNet model size: 'small' (~40MB, default) / 'medium' / 'large'. First run downloads, later runs use cache. */
-  model?: "small" | "medium" | "large";
+  /** ISNet model size from the locally installed optional ML capability. */
+  model?: MatteModel;
   /** Replace an existing output directory. Default false. */
   overwrite?: boolean;
 };
@@ -34,7 +35,7 @@ export type ExtractStickersResult = {
   sourceFile: string;
   stickers: StickerMeta[];
   /** Engine diagnostics for the caller to persist if it wants. */
-  config: { model: "small" | "medium" | "large"; engine: "imgly-isnet"; method: "blob-detection"; expected: number; detected: number };
+  config: { model: MatteModel; engine: "imgly-isnet"; method: "blob-detection"; expected: number; detected: number };
 };
 
 // ---------------------------------------------------------------------------
@@ -97,8 +98,9 @@ export function findConnectedComponents(
  * never left half-written — an intentional behavior change from the previous
  * rm+mkdir approach (design §8).
  *
- * NOTE: ml-blobs is NOT a zero-network path — the ISNet model may download on
- * first run. Refuses to guess when the blob count ≠ rows×cols: overlapping
+ * NOTE: ml-blobs requires the optional local image-ML capability. Execution is
+ * offline after that capability is explicitly installed. Refuses to guess when
+ * the blob count ≠ rows×cols: overlapping
  * stickers merge into one blob (too few), holed stickers split into several
  * (too many). Both mean the grid is structurally wrong and needs regeneration.
  *

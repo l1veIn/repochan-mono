@@ -48,9 +48,9 @@ verifies the complete project-local Codex skill inventory and representative
 skill content, requires the exact canonical 25-template inventory, and exercises
 `template get`. It also verifies the fresh install does not bundle
 `@repochan/starters`, syncs the Starter catalog on demand from the registry
-(`starter sync`), requires the canonical 20-Starter inventory with `minimal`
+(`starter sync`), requires the canonical 20-Starter inventory with `landing-museum`
 as the sole default, pulls each Starter from the synced cache, validates its
-Transfer Kit and builds the copied site.
+Transfer Kit, type-checks it with `tsc --noEmit`, and builds the copied site.
 This command tests
 current worktree changes for development feedback; its artifacts are not
 release-eligible.

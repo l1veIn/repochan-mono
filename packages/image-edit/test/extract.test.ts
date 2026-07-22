@@ -17,8 +17,8 @@ import { matteImage } from "../src/imgly.js";
 // ---------------------------------------------------------------------------
 // PR3 gate A: synthetic fixture suite for extractAssets.
 //
-// Network guard: matteImage (the only network-capable call, ISNet download) is
-// mocked in this file. The chroma strategies (equal-cell / chroma-grid) must
+// ML guard: matteImage (the optional native ISNet capability) is mocked in
+// this file. The chroma strategies (equal-cell / chroma-grid) must
 // NEVER call it — each chroma test asserts the mock was not touched. Hybrid
 // tests set explicit mock implementations instead.
 // ---------------------------------------------------------------------------
@@ -161,7 +161,7 @@ async function expectExtractError(promise: Promise<unknown>): Promise<ExtractErr
 beforeEach(() => {
   matteImageMock.mockReset();
   matteImageMock.mockImplementation(() => {
-    throw new Error("matteImage must not be called on chroma-only paths (no network allowed)");
+    throw new Error("matteImage must not be called on chroma-only paths (no ML allowed)");
   });
 });
 
@@ -442,6 +442,20 @@ describe("extractAssets option validation", () => {
     );
   });
 
+  it("rejects hybrid model sizes not bundled by the pinned ML runtime", async () => {
+    await invalid(
+      {
+        strategy: "hybrid",
+        rows: 3,
+        cols: 3,
+        mapping: [...KEYS],
+        normalize: { canvasSize: 64 },
+        hybrid: { mlFallback: true, model: "large" },
+      } as unknown as ExtractAssetsOptions,
+      /hybrid\.model must be small \| medium \(got "large"\)/,
+    );
+  });
+
   it("rejects out-of-range numeric options", async () => {
     await invalid(
       { strategy: "chroma-grid", rows: 3, cols: 3, mapping: [...KEYS], normalize: { canvasSize: 64 }, geometry: { debrisFraction: 1.5 } },
@@ -506,11 +520,11 @@ describe("extractAssets hybrid", () => {
 
   it("reports ml_unavailable when the model fails to load", async () => {
     const { dir, image, out } = await fixture({ skipCells: [4] });
-    matteImageMock.mockRejectedValue(new Error("induced model download failure"));
+    matteImageMock.mockRejectedValue(new Error("induced ML runtime failure"));
 
     const error = await expectExtractError(extractAssets(image, out, hybridOptions()));
     expect(error.defects[0].code).toBe("ml_unavailable");
-    expect(error.defects[0].detail).toMatch(/induced model download failure/);
+    expect(error.defects[0].detail).toMatch(/induced ML runtime failure/);
     await fs.rm(dir, { recursive: true, force: true });
   });
 

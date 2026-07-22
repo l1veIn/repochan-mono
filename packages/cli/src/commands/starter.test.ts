@@ -106,7 +106,7 @@ async function projectFixture() {
 async function gridBundleFixture() {
   const root = await projectFixture();
   const siteDir = path.join(root, "site");
-  await runStarterPull(root, { outputDir: siteDir, json: true });
+  await runStarterPull(root, { starter: "minimal", outputDir: siteDir, json: true });
   const manifestPath = path.join(siteDir, "repochan", "starter.json");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   manifest.assets = [{
@@ -141,7 +141,7 @@ async function gridBundleFixture() {
 async function slotReferenceFixture() {
   const root = await projectFixture();
   const siteDir = path.join(root, "site");
-  await runStarterPull(root, { outputDir: siteDir, json: true });
+  await runStarterPull(root, { starter: "minimal", outputDir: siteDir, json: true });
   const manifestPath = path.join(siteDir, "repochan", "starter.json");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   manifest.assets.push({
@@ -162,12 +162,25 @@ async function slotReferenceFixture() {
 }
 
 describe("starter v1 commands", () => {
-  it("discovers minimal as the sole default through repochan/starter.json", async () => {
-    expect(await getDefaultStarterId()).toBe("minimal");
-    const starter = await getStarter("minimal");
+  it("discovers landing-museum as the sole default through repochan/starter.json", async () => {
+    const root = await projectFixture();
+    const bundledDir = await getBuiltinStartersDir();
+    expect(await getDefaultStarterId({ homeDir: root, bundledDir })).toBe("landing-museum");
+    const starter = await getStarter("landing-museum", { homeDir: root, bundledDir });
     expect(starter.schemaVersion).toBe("repochan.starter.v1");
     expect(starter.config.site).toBe("repochan/site.json");
-    expect(starter.assets.map((asset) => asset.slot)).toEqual(["hero-composite"]);
+    expect(starter.assets.map((asset) => asset.slot)).toContain("opening-portrait");
+  });
+
+  it("resolves a bare starter pull to landing-museum", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const root = await projectFixture();
+    const siteDir = path.join(root, "site");
+    const bundledDir = await getBuiltinStartersDir();
+    await runStarterPull(root, { outputDir: siteDir, json: true }, {
+      resolveSource: async () => ({ kind: "bundled", dir: bundledDir! }),
+    });
+    expect((await readStarterInstance(siteDir)).id).toBe("landing-museum");
   });
 
   it("surfaces the operational asset contract in starter list/get output", async () => {
@@ -193,7 +206,7 @@ describe("starter v1 commands", () => {
     const root = await projectFixture();
     const sourceDir = path.join(root, "creator-owned-starter");
     const siteDir = path.join(root, "localized-site");
-    await runStarterPull(root, { outputDir: sourceDir, json: true });
+    await runStarterPull(root, { starter: "minimal", outputDir: sourceDir, json: true });
     await mkdir(path.join(sourceDir, "dist"), { recursive: true });
     await writeFile(path.join(sourceDir, "dist", "stale.html"), "stale");
     await runStarterPull(root, { from: sourceDir, outputDir: siteDir, json: true });
@@ -207,7 +220,7 @@ describe("starter v1 commands", () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const root = await projectFixture();
     const siteDir = path.join(root, "site");
-    await runStarterPull(root, { outputDir: siteDir, json: true });
+    await runStarterPull(root, { starter: "minimal", outputDir: siteDir, json: true });
     const manifestPath = path.join(siteDir, "repochan/starter.json");
     const pulled = JSON.parse(await readFile(manifestPath, "utf8"));
     pulled.previews = { desktop: "repochan/previews/missing.png", mobile: "repochan/previews/mobile.png" };
@@ -227,7 +240,7 @@ describe("starter v1 commands", () => {
     const siteDir = path.join(root, "site");
     vi.spyOn(console, "log").mockImplementation(() => undefined);
 
-    await runStarterPull(root, { outputDir: siteDir, json: true });
+    await runStarterPull(root, { starter: "minimal", outputDir: siteDir, json: true });
     expect((await readStarterInstance(siteDir)).id).toBe("minimal");
     await runStarterConfigure(root, { outputDir: siteDir, json: true, repositoryUrl: "https://example.test/override" });
     await runStarterValidate(root, undefined, { outputDir: siteDir, json: true });
@@ -246,7 +259,7 @@ describe("starter v1 commands", () => {
     const root = await projectFixture();
     const siteDir = path.join(root, "site");
     vi.spyOn(console, "log").mockImplementation(() => undefined);
-    await runStarterPull(root, { outputDir: siteDir, json: true });
+    await runStarterPull(root, { starter: "minimal", outputDir: siteDir, json: true });
 
     const localePath = path.join(siteDir, "repochan", "i18n", "en.json");
     const invalid = JSON.parse(await readFile(localePath, "utf8"));
@@ -263,7 +276,7 @@ describe("starter v1 commands", () => {
     const root = await projectFixture();
     const siteDir = path.join(root, "site");
     const source = path.join(root, "incoming", "hero.webp");
-    await runStarterPull(root, { outputDir: siteDir, json: true });
+    await runStarterPull(root, { starter: "minimal", outputDir: siteDir, json: true });
 
     const output = path.join(siteDir, "public/assets/hero-composite.webp");
     await mkdir(path.dirname(source), { recursive: true });
@@ -298,7 +311,7 @@ describe("starter v1 commands", () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const root = await projectFixture();
     const siteDir = path.join(root, "site");
-    await runStarterPull(root, { outputDir: siteDir, json: true });
+    await runStarterPull(root, { starter: "minimal", outputDir: siteDir, json: true });
     const output = path.join(siteDir, "public/assets/hero-composite.webp");
     const assetsPath = path.join(siteDir, "repochan/assets.json");
     const outputBefore = await readFile(output);
@@ -316,7 +329,7 @@ describe("starter v1 commands", () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const root = await projectFixture();
     const siteDir = path.join(root, "site");
-    await runStarterPull(root, { outputDir: siteDir, json: true });
+    await runStarterPull(root, { starter: "minimal", outputDir: siteDir, json: true });
     const output = path.join(siteDir, "public/assets/hero-composite.webp");
     const assetsPath = path.join(siteDir, "repochan/assets.json");
     const outputBefore = await readFile(output);
@@ -339,7 +352,7 @@ describe("starter v1 commands", () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const root = await projectFixture();
     const siteDir = path.join(root, "site");
-    await runStarterPull(root, { outputDir: siteDir, json: true });
+    await runStarterPull(root, { starter: "minimal", outputDir: siteDir, json: true });
     const source = path.join(root, "source.webp");
     const originalOutput = path.join(siteDir, "public/assets/hero-composite.webp");
     await writeFile(source, await readFile(originalOutput));
@@ -357,7 +370,7 @@ describe("starter v1 commands", () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const root = await projectFixture();
     const siteDir = path.join(root, "site");
-    await runStarterPull(root, { outputDir: siteDir, json: true });
+    await runStarterPull(root, { starter: "minimal", outputDir: siteDir, json: true });
     const source = path.join(root, "source.webp");
     await writeFile(source, await readFile(path.join(siteDir, "public/assets/hero-composite.webp")));
     const assetsPath = path.join(siteDir, "repochan/assets.json");
@@ -439,7 +452,7 @@ describe("starter v1 commands", () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const root = await projectFixture();
     const siteDir = path.join(root, "site");
-    await runStarterPull(root, { outputDir: siteDir, json: true });
+    await runStarterPull(root, { starter: "minimal", outputDir: siteDir, json: true });
     const manifestPath = path.join(siteDir, "repochan/starter.json");
     const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
     manifest.assets[0].postprocess = [
@@ -581,6 +594,41 @@ describe("starter v1 commands", () => {
     expect(await readFile(assetsPath, "utf8")).toBe(assetsBefore);
   });
 
+  it("reports missing ML with agent-install instructions and leaves asset-apply atomic", async () => {
+    vi.mocked(extractAssets).mockClear();
+    const { root, siteDir, assetsPath } = await gridBundleFixture();
+    const manifestPath = path.join(siteDir, "repochan/starter.json");
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    manifest.assets[0].postprocess[0].args.strategy = "ml-blobs";
+    await writeFile(manifestPath, JSON.stringify(manifest));
+    const assetsBefore = await readFile(assetsPath, "utf8");
+    const isolatedHome = await mkdtemp(path.join(os.tmpdir(), "repochan-ml-home-"));
+    tempDirs.push(isolatedHome);
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+    await expect(runStarterAssetApply(root, "web-states", {
+      outputDir: siteDir, order: "ord-grid-001", overwrite: true, json: true,
+    }, { homeDir: isolatedHome })).rejects.toBeInstanceOf(ApplyFailurePrintedError);
+
+    expect(extractAssets).not.toHaveBeenCalled();
+    expect(await readFile(assetsPath, "utf8")).toBe(assetsBefore);
+    expect((await readdir(siteDir)).filter((name) => name.startsWith(".repochan-starter-"))).toEqual([]);
+    expect(JSON.parse(String(log.mock.calls.at(-1)?.[0]))).toMatchObject({
+      ok: false,
+      error: "MissingImageMlCapabilityError",
+      code: "REPOCHAN_IMAGE_ML_MISSING",
+      command: "starter asset-apply",
+      capability: "image-ml",
+      packageName: "@imgly/background-removal-node",
+      requiredVersion: "1.4.5",
+      requiredBy: "starter asset-apply slot web-states (extract-grid:ml-blobs)",
+      installCommand: "repochan image edit ml install",
+      slot: "web-states",
+      orderId: "ord-grid-001",
+      resultVersion: "v1",
+    });
+  });
+
   it("recovers a wrapped ExtractError through the cause chain for the envelope", async () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
     const { root, siteDir } = await gridBundleFixture();
@@ -632,7 +680,7 @@ describe("starter v1 commands", () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const root = await projectFixture();
     const siteDir = path.join(root, "site");
-    await runStarterPull(root, { outputDir: siteDir, json: true });
+    await runStarterPull(root, { starter: "minimal", outputDir: siteDir, json: true });
     const canary = JSON.parse(await readFile(new URL("../../test/fixtures/canary-chroma-grid.json", import.meta.url), "utf8"));
     await writeFile(path.join(siteDir, "repochan", "starter.json"), JSON.stringify(canary));
     const publications = canary.assets[0].publications as Array<{ key: string; cell: number; output: string }>;
@@ -688,7 +736,7 @@ describe("starter v1 commands", () => {
   async function scalarChainFixture(postprocess: Array<Record<string, unknown>>) {
     const root = await projectFixture();
     const siteDir = path.join(root, "site");
-    await runStarterPull(root, { outputDir: siteDir, json: true });
+    await runStarterPull(root, { starter: "minimal", outputDir: siteDir, json: true });
     const manifestPath = path.join(siteDir, "repochan/starter.json");
     const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
     manifest.assets[0].postprocess = postprocess;

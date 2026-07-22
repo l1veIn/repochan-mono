@@ -6,10 +6,10 @@ import { PNG } from "pngjs";
 import { findConnectedComponents, extractStickersFromImage } from "../src/index.js";
 
 // Fixtures use pngjs (a devDep) so the test suite has no sharp dependency.
-// image-edit itself uses imgly's vendored sharp at runtime via dynamic import.
+// image-edit itself uses pinned Sharp at runtime via dynamic import.
 
 // ── Slow: full ML matting integration (skipped unless RUN_ML=1) ───────
-// The matting pipeline downloads an ISNet model on first run and is slow.
+// The native ML runtime is large, slow, and intentionally absent by default.
 // Enable explicitly:
 //   RUN_ML=1 pnpm --filter @repochan/image-edit test stickers
 const itML = process.env.RUN_ML === "1" ? it : it.skip;

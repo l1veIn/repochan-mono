@@ -1,6 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { loadImglySharp } from "./imgly.js";
+import { loadSharp } from "./sharp.js";
 
 // ---------------------------------------------------------------------------
 // PNG IHDR reading (zero-dependency)
@@ -165,8 +165,7 @@ export type SliceGridResult = {
  *   2. Inset each cell by `padding` px on all sides (default 0) so the crop
  *      avoids white gutters / borders / edge labels that AI sheets often add.
  *      Padding is clamped so a crop never goes zero-size.
- *   3. Crop and write each tile as a PNG via imgly's vendored sharp (no extra
- *      dependency).
+ *   3. Crop and write each tile as a PNG via the package's pinned Sharp.
  *
  * Pure pixel operation: writes PNGs to `outDir` and returns metadata. Does NOT
  * touch any `.repochan/` protocol directory — the caller persists metadata
@@ -207,7 +206,7 @@ export async function sliceGridToFiles(
   const padX = Math.min(padding, maxPadX);
   const padY = Math.min(padding, maxPadY);
 
-  const sharp = (await loadImglySharp()).default;
+  const sharp = (await loadSharp()).default;
   const tiles: SlicedTile[] = [];
 
   for (let i = 0; i < grid.cells.length; i++) {

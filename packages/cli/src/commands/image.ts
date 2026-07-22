@@ -14,6 +14,12 @@ import {
 // modeOverride: only force when user passes --mode openai|openai-async
 import { emitResult, type OutputOptions, UsageError } from "../lib/output.js";
 import {
+  contextualizeImageMlCapabilityError,
+  ensureImageMlCapability,
+  IMAGE_ML_SUPPORTED_MODELS,
+  type ImageMlCapabilityDeps,
+} from "../lib/image-ml-capability.js";
+import {
   runImageConfigure,
   runImageStatus,
   runImageProbe,
@@ -232,22 +238,25 @@ export async function runImageEditBgRemove(
   cwd: string,
   imagePath: string | undefined,
   options: OutputOptions & { out?: string; model?: string; overwrite?: boolean },
+  deps: ImageMlCapabilityDeps = {},
 ) {
   if (!imagePath) {
     throw new UsageError(
-      "Usage: repochan image edit bg-remove <img-path> [--out out.png] [--model small|medium|large]",
+      "Usage: repochan image edit bg-remove <img-path> [--out out.png] [--model small|medium]",
     );
   }
   const absIn = path.resolve(cwd, imagePath);
   const absOut = options.out
     ? path.resolve(cwd, options.out)
     : absIn.replace(/(\.[^.]+)?$/, "-nobg.png");
-  const model = (options.model as "small" | "medium" | "large" | undefined) ?? "small";
+  const model = requireImageMlModel(options.model);
 
+  const requiredBy = "image edit bg-remove";
+  await ensureImageMlCapability(requiredBy, deps);
   const { removeImageBackground } = await import("@repochan/image-edit");
   await fs.mkdir(path.dirname(absOut), { recursive: true });
   if (!options.json) {
-    console.log("Removing background via ISNet… (first run downloads the model, ~40MB)");
+    console.log("Removing background via the installed offline ISNet runtime…");
   }
   const spinner = ora("Matting foreground…").start();
   try {
@@ -266,6 +275,8 @@ export async function runImageEditBgRemove(
     );
   } catch (err) {
     spinner.fail();
+    const missing = contextualizeImageMlCapabilityError(err, requiredBy);
+    if (missing) throw missing;
     throw err;
   }
 }
@@ -370,11 +381,20 @@ export async function runImageEditChromaKey(
   }
 }
 
-/** repochan image edit extract-stickers <img> --rows --cols --out <dir> [--model small|medium|large] [--overwrite] */
+function requireImageMlModel(value: string | undefined): "small" | "medium" {
+  const model = value ?? "small";
+  if (!(IMAGE_ML_SUPPORTED_MODELS as readonly string[]).includes(model)) {
+    throw new UsageError(`--model must be small | medium for ML image editing (got "${value}")`);
+  }
+  return model as "small" | "medium";
+}
+
+/** repochan image edit extract-stickers <img> --rows --cols --out <dir> [--model small|medium] [--overwrite] */
 export async function runImageEditExtractStickers(
   cwd: string,
   imagePath: string | undefined,
   options: OutputOptions & { rows?: number; cols?: number; out?: string; model?: string; overwrite?: boolean },
+  deps: ImageMlCapabilityDeps = {},
 ) {
   if (!imagePath) throw new UsageError("Usage: repochan image edit extract-stickers <img> --rows <n> --cols <n> --out <dir>");
   if (!options.out) throw new UsageError("--out <dir> is required for extract-stickers");
@@ -382,11 +402,13 @@ export async function runImageEditExtractStickers(
 
   const absIn = path.resolve(cwd, imagePath);
   const absOut = path.resolve(cwd, options.out);
-  const model = (options.model as "small" | "medium" | "large" | undefined) ?? "small";
+  const model = requireImageMlModel(options.model);
+  const requiredBy = "image edit extract-stickers";
+  await ensureImageMlCapability(requiredBy, deps);
   const { extractStickersFromImage } = await import("@repochan/image-edit");
 
   if (!options.json) {
-    console.log("Extracting stickers via ISNet… (first run downloads the model, ~40MB)");
+    console.log("Extracting stickers via the installed offline ISNet runtime…");
   }
   const spinner = ora("Matting + detecting stickers…").start();
   try {
@@ -402,6 +424,8 @@ export async function runImageEditExtractStickers(
     );
   } catch (err) {
     spinner.fail();
+    const missing = contextualizeImageMlCapabilityError(err, requiredBy);
+    if (missing) throw missing;
     throw err;
   }
 }
@@ -602,6 +626,7 @@ export async function runImageEditExtract(
     mlFallback?: boolean;
     overwrite?: boolean;
   },
+  deps: ImageMlCapabilityDeps = {},
 ) {
   if (!imagePath) {
     throw new UsageError(
@@ -674,6 +699,11 @@ export async function runImageEditExtract(
     throw new UsageError(`--normalize <canvas-size> is required for strategy "${strategy}" (named outputs are normalized onto a canvas)`);
   }
 
+  const requiredBy = `image edit extract --strategy ${strategy}`;
+  if (strategy === "ml-blobs" || strategy === "hybrid") {
+    await ensureImageMlCapability(requiredBy, deps);
+  }
+
   const absIn = path.resolve(cwd, imagePath);
   const absOut = path.resolve(cwd, options.out);
   const { extractAssets, matteColorToHex } = await import("@repochan/image-edit");
@@ -711,6 +741,8 @@ export async function runImageEditExtract(
     return result;
   } catch (err) {
     spinner.fail();
+    const missing = contextualizeImageMlCapabilityError(err, requiredBy);
+    if (missing) throw missing;
     throw err;
   }
 }

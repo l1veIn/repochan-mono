@@ -1,6 +1,6 @@
 {
   "name": "@repochan/starters",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Built-in landing-page starters (full Astro/Tailwind project scaffolds) for RepoChan.",
   "type": "module",
   "license": "MIT",

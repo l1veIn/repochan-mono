@@ -614,7 +614,7 @@ export type MatteGridItemGeometry = {
 export type HybridPolicy = {
   /** Required true when strategy === "hybrid". Default false only meaningful as field default on chroma-grid. */
   mlFallback?: boolean;
-  model?: "small" | "medium" | "large";
+  model?: "small" | "medium";
   /**
    * Geometry for ML assist after chroma-grid fail:
    * - "seed-cell": crop equal-cell (may reintroduce drift) — simple salvage
@@ -636,17 +636,18 @@ export type HybridPolicy = {
 | `strategy: "hybrid", mlFallback: false` / 缺省 | **非法** — 校验阶段拒绝：`hybrid requires hybrid.mlFallback === true; use strategy chroma-grid otherwise` |
 | `strategy: "hybrid"` 省略 hybrid 对象 | 非法（同上） |
 
-即：**不存在**「hybrid 且不触网」的合法配置，避免与 chroma-grid 死枚举重复。
+即：**不存在**「hybrid 且不需要 ML capability」的合法配置，避免与 chroma-grid 死枚举重复。
 
 **离线边界**：
 
 | API / 路径 | 网络 |
 |------------|------|
 | equal-cell / chroma-grid + chroma only | **无网络**（验收：单测禁网） |
-| `ml-blobs` / `removeImageBackground` / **hybrid**（必 mlFallback） | **可**下载/加载 `@imgly` 模型 |
-| CI | **禁止** hybrid / ml-blobs 于默认 job；chroma 路径断言无 network |
+| `repochan image edit ml install` | **显式联网安装** ML runtime 与随包提供的模型到 capability cache |
+| `ml-blobs` / `removeImageBackground` / **hybrid**（必 mlFallback） | 安装后通过 `file://` 从 capability cache 读取 runtime 与 bundled models；**执行期无网络** |
+| CI | 默认 job **不安装** ML capability、**不运行** hybrid / ml-blobs；chroma 路径断言无 network |
 
-失败码 `ml_unavailable`：offline 环境或模型加载失败。
+缺少 capability 时返回 `MissingImageMlCapabilityError` / `REPOCHAN_IMAGE_ML_MISSING`；已安装后的 runtime 或本地模型加载失败仍使用 `ml_unavailable`。
 
 **不**把 hybrid 绑进 starter canary；canary 用纯 `chroma-grid`。
 
@@ -658,7 +659,7 @@ export type ExtractStickersResult = {
   sourceFile: string;
   stickers: StickerMeta[]; // index, file sNN.png, bbox, centroid, width, height
   config: {
-    model: "small" | "medium" | "large";
+    model: "small" | "medium";
     engine: "imgly-isnet";
     method: "blob-detection";
     expected: number;
@@ -972,7 +973,7 @@ export function printError(error: unknown, opts?: OutputOptions) {
 | `chroma.spillMaxFraction` / `spillSuppression` | number ∈ [0,1] |
 | `qa.maxSheetEdgeTouchRatio` / ratios | ∈ [0,1]；`residueMaxFraction` ∈ [0,1]；`residueEdgeDepthPx` int 0–8 |
 | `qa.alphaThreshold` | int 1–255（已有） |
-| `hybrid.mlFallback` | strategy=hybrid 时 **必须** `=== true`；model ∈ small\|medium\|large |
+| `hybrid.mlFallback` | strategy=hybrid 时 **必须** `=== true`；model ∈ small\|medium |
 | `hybrid.mlCrop` | ∈ {seed-cell, dilated-seed, source-bounds} |
 | `hybrid.dilateFraction` | ∈ [0,1] |
 | `format` / `quality` / `normalize` | 保持现有 |

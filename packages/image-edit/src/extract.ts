@@ -12,7 +12,7 @@
 //     invariant: explicit v1 output stays byte-identical to the legacy
 //     behavior), cell-perimeter edge QA.
 //   - "ml-blobs":   whole-image ISNet matting + blob count (the stickers
-//     path). NOT a zero-network path.
+//     path). Requires the optional, locally installed image-ML capability.
 //   - "hybrid":     chroma-grid first; on QA failure, ML assist per failed
 //     cell, then QA again. Requires hybrid.mlFallback === true (§7).
 //
@@ -49,7 +49,8 @@ import { measureChromaResidue } from "./chroma-residue.js";
 import { computeCentroidGridGeometry, type GridCellAssignment } from "./grid-geometry.js";
 import { computeTileCells, readPngSize, type TileCell } from "./slicing.js";
 import { findConnectedComponents } from "./stickers.js";
-import { loadImglySharp, matteImage, type MatteModel } from "./imgly.js";
+import { matteImage, type MatteModel } from "./imgly.js";
+import { loadSharp } from "./sharp.js";
 import type {
   GridSemanticCell,
   GridSemanticMapping,
@@ -83,7 +84,7 @@ export type ExtractDefect = {
 export type HybridPolicy = {
   /** Required true when strategy === "hybrid". Default false only meaningful as field default on chroma-grid. */
   mlFallback?: boolean;
-  model?: "small" | "medium" | "large";
+  model?: MatteModel;
   /**
    * Geometry for ML assist after chroma-grid fail:
    * - "seed-cell": crop equal-cell (may reintroduce drift) — simple salvage
@@ -276,7 +277,7 @@ function resolveOptions(options: ExtractAssetsOptions): Resolved {
     throw invalidOptions(`strategy "ml-blobs" does not accept subset (output keys are positional sNN).`);
   }
 
-  // ── hybrid contract (design §7): no legal "hybrid without network" config ──
+  // ── hybrid contract (design §7): no legal "hybrid without ML" config ──
   if (strategy === "hybrid" && options.hybrid?.mlFallback !== true) {
     throw invalidOptions("hybrid requires hybrid.mlFallback === true; use strategy chroma-grid otherwise");
   }
@@ -288,8 +289,8 @@ function resolveOptions(options: ExtractAssetsOptions): Resolved {
     throw invalidOptions(`hybrid.dilateFraction must be between 0 and 1 (got ${dilateFraction}).`);
   }
   const hybridModel = options.hybrid?.model ?? "small";
-  if (!["small", "medium", "large"].includes(hybridModel)) {
-    throw invalidOptions(`hybrid.model must be small | medium | large (got "${String(hybridModel)}").`);
+  if (hybridModel !== "small" && hybridModel !== "medium") {
+    throw invalidOptions(`hybrid.model must be small | medium (got "${String(hybridModel)}").`);
   }
 
   // ── mapping / subset (named strategies) ──
@@ -635,7 +636,7 @@ async function exists(filePath: string): Promise<boolean> {
   try { await fs.access(filePath); return true; } catch { return false; }
 }
 
-type SharpModule = Awaited<ReturnType<typeof loadImglySharp>>["default"];
+type SharpModule = Awaited<ReturnType<typeof loadSharp>>["default"];
 
 /** Trim/normalize/encode one prepared item onto the configured canvas. */
 async function normalizeAndEncode(
@@ -971,7 +972,7 @@ async function runMlBlobs(
   }
 
   // Matte report (informational only — ml-blobs runs no chroma).
-  const sharp = (await loadImglySharp()).default;
+  const sharp = (await loadSharp()).default;
   const raw = await sharp(imagePath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const matte = selectMatteColor(raw.data, raw.info.width, raw.info.height, raw.info.channels, {
     mode: "corner",
@@ -1308,7 +1309,7 @@ export async function extractAssets(
     return runMlBlobs(imagePath, outDir, resolved);
   }
 
-  const sharp = (await loadImglySharp()).default;
+  const sharp = (await loadSharp()).default;
   const raw = await sharp(imagePath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const { data, info } = raw;
   assertMaxDimensions(info.width, info.height, resolved.maxDimension);

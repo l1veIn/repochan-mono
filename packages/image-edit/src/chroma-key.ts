@@ -1,6 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { loadImglySharp } from "./imgly.js";
+import { loadSharp } from "./sharp.js";
 
 // ---------------------------------------------------------------------------
 // Chroma keying — deterministic matte extraction (no ML model required).
@@ -241,7 +241,7 @@ export function extractChromaKey(
 
 /**
  * Chroma-key a source image: read it, extract alpha via matte color, write a
- * transparent PNG. Uses imgly's vendored sharp for decode/encode.
+ * transparent PNG. Uses the package's pinned Sharp for decode/encode.
  *
  * @param imagePath  absolute path to source image (PNG/JPG)
  * @param outPath    absolute path to output transparent PNG
@@ -256,7 +256,7 @@ export async function chromaKeyImage(
   const softness = options.softness ?? DEFAULT_SOFTNESS;
   const spillSuppression = options.spillSuppression ?? DEFAULT_SPILL_SUPPRESSION;
 
-  const sharp = (await loadImglySharp()).default;
+  const sharp = (await loadSharp()).default;
   const raw = await sharp(imagePath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const { data, info } = raw;
   const { width, height, channels } = info;

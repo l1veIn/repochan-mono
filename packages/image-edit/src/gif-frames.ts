@@ -1,6 +1,6 @@
 import { promises as fs } from "node:fs";
 import gifenc from "gifenc";
-import { loadImglySharp } from "./imgly.js";
+import { loadSharp } from "./sharp.js";
 
 const { GIFEncoder, quantize, applyPalette } = gifenc;
 
@@ -31,9 +31,8 @@ export type FramesToGifResult = {
  * Combine multiple image frames into one animated GIF.
  *
  * Reads each frame file, normalizes it to raw RGBA at a uniform size (first
- * frame's dimensions; later frames are resized to match via imgly's vendored
- * sharp), and encodes with gifenc because the bundled sharp version does not
- * reliably write multi-frame GIFs.
+ * frame's dimensions; later frames are resized to match via pinned Sharp), and
+ * encodes with gifenc because Sharp does not reliably write multi-frame GIFs.
  *
  * Pure pixel operation: writes one GIF to `outPath`. Does NOT touch any
  * `.repochan/` protocol directory.
@@ -59,9 +58,8 @@ export async function framesToGif(
   const perFrameDelay = resolveDelay(options.delay, fps, framePaths.length);
   const maxColors = options.palette ?? 256;
 
-  // Decode all frames to uniform-size RGBA via imgly's vendored sharp (0.32),
-  // so this package has no direct sharp dependency.
-  const sharp = (await loadImglySharp()).default;
+  // Decode all frames to uniform-size RGBA via the package's pinned Sharp.
+  const sharp = (await loadSharp()).default;
 
   // Read the first frame to establish the target dimensions.
   const firstMeta = await sharp(framePaths[0]).metadata();

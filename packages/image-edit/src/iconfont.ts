@@ -19,7 +19,7 @@ import { randomUUID } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import { extractAssets } from "./extract.js";
-import { loadImglySharp } from "./imgly.js";
+import { loadSharp } from "./sharp.js";
 import type { ChromaPipelineOptions } from "./chroma-pipeline.js";
 import type { GridSemanticMapping } from "./matte-grid.js";
 import {
@@ -313,7 +313,7 @@ export async function extractIconfont(
       overwrite: true,
     });
 
-    const sharp = (await loadImglySharp()).default;
+    const sharp = (await loadSharp()).default;
     const scale = viewBox / normalizeSize;
     const prepared: Array<{ name: string; traced: TracedIcon }> = [];
     for (const item of extracted.items) {

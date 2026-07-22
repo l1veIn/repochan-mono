@@ -21,7 +21,9 @@ function hexToRgb(value: string): string {
 
 export function scalarAsset(slot: keyof typeof assets): string {
   const asset = assets[slot];
-  if (!asset || asset.kind !== "scalar") throw new Error(`Missing scalar asset slot: ${slot}`);
+  if (!asset || asset.kind !== "scalar" || !("src" in asset)) {
+    throw new Error(`Missing scalar asset slot: ${slot}`);
+  }
   return asset.src;
 }
 

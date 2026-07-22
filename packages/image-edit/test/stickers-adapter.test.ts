@@ -8,7 +8,7 @@ import { matteImage } from "../src/imgly.js";
 
 // ---------------------------------------------------------------------------
 // extractStickersFromImage adapter contract (design §8 — FROZEN result shape)
-// + atomic publish. The ISNet model (matteImage) is mocked: no network.
+// + atomic publish. The optional native ISNet capability (matteImage) is mocked.
 // ---------------------------------------------------------------------------
 
 vi.mock("../src/imgly.js", async (importOriginal) => {

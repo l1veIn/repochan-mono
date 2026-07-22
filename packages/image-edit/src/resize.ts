@@ -1,6 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { loadImglySharp } from "./imgly.js";
+import { loadSharp } from "./sharp.js";
 import { readPngSize } from "./slicing.js";
 
 // ---------------------------------------------------------------------------
@@ -41,7 +41,7 @@ export type ResizeResult = {
 /**
  * Resize a source image into one or more PNG files at specified dimensions.
  *
- * Uses imgly's vendored sharp (no extra dependency). Each target produces a
+ * Uses the package's pinned Sharp. Each target produces a
  * separate PNG in `outDir`. If a target omits `height`, aspect ratio is
  * preserved.
  *
@@ -70,7 +70,7 @@ export async function resizeImage(
     ({ width: sourceWidth, height: sourceHeight } = await readPngSize(imagePath));
   } catch {
     // Not a PNG — let sharp read it.
-    const sharp = (await loadImglySharp()).default;
+    const sharp = (await loadSharp()).default;
     const meta = await sharp(imagePath).metadata();
     sourceWidth = meta.width!;
     sourceHeight = meta.height!;
@@ -78,7 +78,7 @@ export async function resizeImage(
 
   await fs.mkdir(outDir, { recursive: true });
 
-  const sharp = (await loadImglySharp()).default;
+  const sharp = (await loadSharp()).default;
   const stem = sourceFile.replace(/\.[^.]+$/, "");
   const outputs: ResizeResult["outputs"] = [];
 
@@ -162,7 +162,7 @@ export async function generateIco(
     throw new Error(`generateIco: output file already exists: ${outPath}. Pass overwrite=true to replace.`);
   }
 
-  const sharp = (await loadImglySharp()).default;
+  const sharp = (await loadSharp()).default;
   const sourceFile = imagePath.split(/[\\/]/).pop()!;
 
   // Resize source to each requested size, keep PNG buffers in memory.

@@ -20,11 +20,21 @@ repochan starter asset-apply <slot> --order <order-id> [--result-version <versio
 
 `asset-apply` 必须整体成功后才更新 `assets.json`。发生后处理错误时，保留现有站点输出和状态，不要手工拼出半完成状态。只有调试 image-edit 本身时才直接调用 `repochan image edit`。
 
+官方 Starters 当前使用离线、确定性的 `chroma-grid` 网格链路，正常装配不需要 ML runtime，也不应提前安装它。只有 manifest 显式要求 `bg-remove`、`extract-stickers`、`ml-blobs` 或带 ML fallback 的 `hybrid` 时，`asset-apply` 才可能需要可选 ML capability。
+
 **派生归档（审计）**：apply 成功后，postprocess 链中每个 `keep` ≠ `false` 的步骤会把产物归档到 `.repochan/orders/<order-id>/derived/<时间戳>--<slot>/`，并向该订单的 `derived.json`（`repochan.order-derived.v1`）追加一条 entry（slot / starter / resultVersion / steps / artifacts）。索引为 append-only，重复 apply 追加而不覆盖。需要回答「这个订单派生出过哪些产物、在哪」时读 `derived.json`，不要去猜 `public/` 的当前状态。归档失败不会阻断 apply（输出里带 `derivedWarning`）。
 
 已经是最终格式的仓库截图或真实 proof 走 `starter asset-import <slot> --file <path>`：CLI 原子复制到声明的 scalar output，并在 `assets.json` 记录 local-file SHA-256 provenance。Bundle/publications 仍必须走 `asset-apply`。
 
 ## Extract QA 失败回流
+
+先区分依赖缺失与像素 QA：如果错误类型是 `MissingImageMlCapabilityError`、错误码是 `REPOCHAN_IMAGE_ML_MISSING`，不要进入下方 Painter 回流。执行一次：
+
+```bash
+repochan image edit ml install
+```
+
+安装成功后，原样重试失败的 `repochan starter asset-apply ...` 命令。安装失败则停止并报告原始错误；不要循环安装。网络下载只发生在显式 install；安装后的 ML 操作从 capability cache 读取本地 runtime 和模型，不再联网。依赖缺失属于 Page Designer 的装配环境问题，不是原图问题，禁止要求 Painter 重生来规避。
 
 `asset-apply` 因 extract QA 失败时以非零退出；带 `--json` 运行时 stdout 输出结构化信封（人类可读模式下只打印摘要，排查时务必带 `--json` 重跑）：
 
@@ -52,7 +62,7 @@ repochan starter asset-apply <slot> --order <order-id> [--result-version <versio
 | `edge_touch` / `sheet_edge_touch` / `empty_cell` / `frame_count_mismatch` | 阻断 apply；要求 Painter 加强 cell margin / 整表留白，并把 layout-guide 作为 gen reference（`sheet_edge_touch` 与 `edge_touch` 同一指引）；同一订单连续 2 次失败建议拆单（按 row 或 single-cell 分别开订单） |
 | `matte_subject_collision` / `chroma_residue` | 报告信封中的 `matteColor` 与 `metric`，要求 Painter 换 matte hex 或加强 flat matte prompt |
 | `foreground_ratio_low` / `foreground_ratio_high` | 报告 metric；要求 Painter 检查内容过稀或 matte 污染 |
-| `ml_unavailable` / `invalid_options` | 修 ML 环境或 starter 的 extract-grid args；不要盲目重生 |
+| `ml_unavailable` / `invalid_options` | 修 ML runtime/模型环境或 starter 的 extract-grid args；不要盲目重生。若同时得到 `REPOCHAN_IMAGE_ML_MISSING`，按上方显式安装流程只安装一次 |
 
 再次强调：只有调试 image-edit 本身时才直接调用 `repochan image edit`（见上「CLI 边界」），正常回流永远走 Painter 重生 + `asset-apply` 重跑。
 

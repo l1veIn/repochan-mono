@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { matteImage, loadImglySharp, type MatteModel } from "./imgly.js";
+import { matteImage, type MatteModel } from "./imgly.js";
+import { loadSharp } from "./sharp.js";
 
 /**
  * Remove the background from a single image, writing a transparent PNG.
@@ -38,7 +39,7 @@ export async function removeImageBackground(
   const { data, width, height, channels } = await matteImage(srcBuf, mimeType, model);
 
   // Write the matted RGBA pixels out as a transparent PNG.
-  const sharp = (await loadImglySharp()).default;
+  const sharp = (await loadSharp()).default;
   await sharp(data, { raw: { width, height, channels } })
     .png()
     .toFile(outPath);

@@ -1,6 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { loadImglySharp } from "./imgly.js";
+import { loadSharp } from "./sharp.js";
 
 export const SEAM_METRIC_ID = "premultiplied-rgba-l1-v1" as const;
 
@@ -102,7 +102,7 @@ export async function validateSeamlessTile(
     throw new Error(`validateSeamlessTile: threshold must be a finite number from 0 to 1 (got ${threshold}).`);
   }
 
-  const sharp = (await loadImglySharp()).default;
+  const sharp = (await loadSharp()).default;
   const decoded = await sharp(imagePath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const { width, height } = decoded.info;
   const rgba = decoded.data;

@@ -507,15 +507,15 @@ function validateExtractGridArgs(
   }
   if (args.hybrid && typeof args.hybrid === "object") {
     const hybrid = args.hybrid as Record<string, unknown>;
-    // Design §7: there is no legal "hybrid without network" configuration.
+    // Design §7: hybrid always declares the optional ML capability fallback.
     if (strategy === "hybrid" && hybrid.mlFallback !== true) {
       throw new Error(`${label}.hybrid.mlFallback must be true when strategy is 'hybrid'; use strategy 'chroma-grid' otherwise.`);
     }
     if (hybrid.mlFallback !== undefined && typeof hybrid.mlFallback !== "boolean") {
       throw new Error(`${label}.hybrid.mlFallback must be a boolean.`);
     }
-    if (hybrid.model !== undefined && hybrid.model !== "small" && hybrid.model !== "medium" && hybrid.model !== "large") {
-      throw new Error(`${label}.hybrid.model must be 'small' | 'medium' | 'large' (got ${JSON.stringify(hybrid.model)}).`);
+    if (hybrid.model !== undefined && hybrid.model !== "small" && hybrid.model !== "medium") {
+      throw new Error(`${label}.hybrid.model must be 'small' | 'medium' (got ${JSON.stringify(hybrid.model)}).`);
     }
     if (hybrid.mlCrop !== undefined && hybrid.mlCrop !== "seed-cell" && hybrid.mlCrop !== "dilated-seed" && hybrid.mlCrop !== "source-bounds") {
       throw new Error(`${label}.hybrid.mlCrop must be 'seed-cell' | 'dilated-seed' | 'source-bounds' (got ${JSON.stringify(hybrid.mlCrop)}).`);

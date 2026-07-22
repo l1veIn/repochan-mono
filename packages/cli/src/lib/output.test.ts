@@ -6,6 +6,7 @@ import {
   isExtractError,
   printError,
 } from "./output.js";
+import { ImageMlCapabilityRequiredError } from "./image-ml-capability.js";
 
 // ---------------------------------------------------------------------------
 // Structured failure plumbing (design doc "Structured failure plumbing", PR4):
@@ -61,6 +62,29 @@ describe("printError --json", () => {
     expect(err).toEqual([]);
     const payload = JSON.parse(out.join("\n"));
     expect(payload).toEqual({ ok: false, error: "UsageError", message: "--rows is required", hint: "Run `repochan --help`." });
+  });
+
+  it("renders a structural missing image-ml error with an exact agent install command", () => {
+    const { out, err } = capture();
+    printError(new ImageMlCapabilityRequiredError("image edit bg-remove"), { json: true });
+    expect(err).toEqual([]);
+    expect(JSON.parse(out.join("\n"))).toMatchObject({
+      ok: false,
+      error: "MissingImageMlCapabilityError",
+      code: "REPOCHAN_IMAGE_ML_MISSING",
+      capability: "image-ml",
+      packageName: "@imgly/background-removal-node",
+      requiredVersion: "1.4.5",
+      requiredBy: "image edit bg-remove",
+      installCommand: "repochan image edit ml install",
+    });
+  });
+
+  it("shows the install command on stderr for a human missing-capability error", () => {
+    const { out, err } = capture();
+    printError(new ImageMlCapabilityRequiredError("image edit extract-stickers"));
+    expect(out).toEqual([]);
+    expect(err.join("\n")).toContain("repochan image edit ml install");
   });
 
   it("falls back to the human stderr path for generic errors even under --json", () => {

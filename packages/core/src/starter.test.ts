@@ -324,7 +324,8 @@ describe("starter v1", () => {
     it("rejects illegal hybrid policy keys", () => {
       const withHybrid = (hybrid: Record<string, unknown>) => gridManifest({ ...baseArgs, strategy: "chroma-grid", hybrid });
       expect(() => validateStarterManifest(withHybrid({ mlFallback: "yes" }))).toThrow(/hybrid\.mlFallback must be a boolean/);
-      expect(() => validateStarterManifest(withHybrid({ model: "huge" }))).toThrow(/hybrid\.model must be 'small' \| 'medium' \| 'large'/);
+      expect(() => validateStarterManifest(withHybrid({ model: "huge" }))).toThrow(/hybrid\.model must be 'small' \| 'medium'/);
+      expect(() => validateStarterManifest(withHybrid({ model: "large" }))).toThrow(/hybrid\.model must be 'small' \| 'medium'/);
       expect(() => validateStarterManifest(withHybrid({ mlCrop: "whole" }))).toThrow(/hybrid\.mlCrop must be 'seed-cell' \| 'dilated-seed' \| 'source-bounds'/);
       expect(() => validateStarterManifest(withHybrid({ dilateFraction: 2 }))).toThrow(/hybrid\.dilateFraction must be between 0 and 1/);
     });

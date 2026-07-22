@@ -15,4 +15,9 @@ export * from "./iconfont.js";
 export * from "./layout-guide.js";
 export * from "./seam-validation.js";
 export * from "./image-inspect.js";
-export type { MatteModel } from "./imgly.js";
+export {
+  IMAGE_ML_PACKAGE_NAME,
+  IMAGE_ML_REQUIRED_VERSION,
+  MissingImageMlCapabilityError,
+  type MatteModel,
+} from "./imgly.js";

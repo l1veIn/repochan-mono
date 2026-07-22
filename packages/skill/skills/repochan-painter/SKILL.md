@@ -67,6 +67,7 @@ description: >
 8. **安全**：禁止血腥/gore、CSAM、仇恨歧视；角色外观年龄不低于 15 岁（全文见 safety-and-mindset）。
 9. **不劫持目标仓库**——不跑项目代码做生图/认证。
 10. **meta 不存绝对路径**——只记 `referenceImagesUsed`、orderId 等可移植信息。
+11. **不安装或运行 image-edit ML**——Painter 只交付原图；切分、抠图、alpha QA 和可选 ML capability 安装归 Page/Web Designer 的装配阶段。即使回流错误是 `REPOCHAN_IMAGE_ML_MISSING`，也不要安装依赖或重生原图。
 
 ## 引用解析流程
 
