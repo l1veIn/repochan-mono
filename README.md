@@ -26,6 +26,12 @@ character sheets, icons, stickers, posters, and a landing page — driven by *yo
 
 <p align="center"><b><a href="https://repochan.com">Website</a> · <a href="./README.md">English</a> · <a href="./README_zh.md">中文文档</a> · <a href="./ARCHITECTURE.md">Architecture</a></b></p>
 
+<p align="center">
+<img src="docs/readme-variants/dock/girl-icons-dock.webp" alt="macOS Dock in the age of girl-icons — Chrome, Claude, Codex, GitHub, RepoChan, Hermes, VS Code, and Obsidian as character icons" width="100%">
+<br>
+<em>The age of girl-icons！</em>
+</p>
+
 ---
 
 You already use a coding agent (Claude Code, Codex, Pi, Cursor, Hermes, …). RepoChan gives that agent a creative pipeline to run: **analysis → persona → art direction → painting → landing page**. Hard rules live in code (schemas, state machine, dependency gates); creative judgment lives in skills. There is **no embedded runtime** — your agent orchestrates, RepoChan tracks.

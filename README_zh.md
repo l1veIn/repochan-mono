@@ -26,6 +26,12 @@
 
 <p align="center"><b><a href="https://repochan.com">官网</a> · <a href="./README.md">English</a> · <a href="./README_zh.md">中文文档</a> · <a href="./ARCHITECTURE.md">架构</a></b></p>
 
+<p align="center">
+<img src="docs/readme-variants/dock/girl-icons-dock.webp" alt="Girl-icons 时代的 macOS Dock——Chrome、Claude、Codex、GitHub、RepoChan、Hermes、VS Code、Obsidian 全是角色图标" width="100%">
+<br>
+<em>The age of girl-icons！</em>
+</p>
+
 ---
 
 你已经在用某个 coding agent（Claude Code、Codex、Pi、Cursor、Hermes……）。RepoChan 交给它一条创意产线：**分析 → 人设 → 美术指导 → 绘制 → 落地页**。硬规则在代码里（schema、状态机、依赖门禁），创意判断在 skill 里。**没有内嵌运行时**——你的 agent 负责编排，RepoChan 负责记账。
