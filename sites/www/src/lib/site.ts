@@ -25,9 +25,48 @@ export function getContent(locale: Locale): SiteContent {
   return locales[locale];
 }
 
-/** 另一个 locale 的页面路径（locale 切换链接用） */
-export function alternatePath(locale: Locale): string {
-  return locale === defaultLocale ? `/${supportedLocales.find((l) => l !== defaultLocale) ?? "en"}/` : "/";
+/** Normalize path to trailing-slash form used by this static site. */
+export function normalizeSitePath(pathname: string): string {
+  if (!pathname || pathname === "/") return "/";
+  const withSlash = pathname.endsWith("/") ? pathname : `${pathname}/`;
+  return withSlash;
+}
+
+/** Whether a path is under the English prefix. */
+export function pathIsEnglish(pathname: string): boolean {
+  const p = pathname || "/";
+  return p === "/en" || p === "/en/" || p.startsWith("/en/");
+}
+
+/**
+ * Map a site path into the other (or target) locale.
+ * zh: `/`, `/showcase/`, `/showcase/redis/`
+ * en: `/en/`, `/en/showcase/`, `/en/showcase/redis/`
+ */
+export function switchLocalePath(pathname: string, target: Locale): string {
+  const p = normalizeSitePath(pathname);
+  const onEn = pathIsEnglish(p);
+
+  if (target === "en") {
+    if (onEn) return p;
+    if (p === "/") return "/en/";
+    return `/en${p}`;
+  }
+
+  // target zh
+  if (!onEn) return p;
+  if (p === "/en/") return "/";
+  return p.replace(/^\/en/, "") || "/";
+}
+
+/**
+ * 另一个 locale 的页面路径（locale 切换链接用）。
+ * Pass `currentPath` so subpages (e.g. /showcase/redis/) map correctly.
+ */
+export function alternatePath(locale: Locale, currentPath?: string): string {
+  const path = currentPath ?? (locale === "zh" ? "/" : "/en/");
+  const target: Locale = locale === "zh" ? "en" : "zh";
+  return switchLocalePath(path, target);
 }
 
 /** 素材路径 —— slot 输出 src 全部来自 repochan/assets.json（slot 状态），尺寸为布局提示 */

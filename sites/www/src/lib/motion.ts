@@ -33,6 +33,22 @@ function initReveal(): void {
   els.forEach((el) => io.observe(el));
 }
 
+/** Persist manual locale choice before navigating EN/ZH links. */
+function initLocalePreference(): void {
+  document.querySelectorAll<HTMLAnchorElement>("[data-set-locale]").forEach((a) => {
+    a.addEventListener("click", () => {
+      const loc = a.getAttribute("data-set-locale");
+      if (loc === "zh" || loc === "en") {
+        try {
+          localStorage.setItem("repochan_locale", loc);
+        } catch {
+          /* ignore */
+        }
+      }
+    });
+  });
+}
+
 /** One-click copy for [data-copy] buttons. */
 function initCopyButtons(): void {
   document.querySelectorAll<HTMLButtonElement>("[data-copy]").forEach((btn) => {
@@ -169,5 +185,6 @@ function initViewer(): void {
 }
 
 initReveal();
+initLocalePreference();
 initCopyButtons();
 initViewer();

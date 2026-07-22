@@ -16,7 +16,7 @@ const t = getContent("zh");
 ---
 
 <SiteLayout title={t.meta.title} description={t.meta.description} locale="zh" lightbox={t.lightbox} path="/">
-  <MuseumNav content={t.nav} locale="zh" command={t.lobby.ctaPrimaryCommand} copied={t.lobby.copied} />
+  <MuseumNav content={t.nav} locale="zh" command={t.lobby.ctaPrimaryCommand} copied={t.lobby.copied} path="/" />
   <main>
     <Lobby content={t.lobby} />
     <GalleryShowcase locale="zh" content={t.showcase} mode="home" />
@@ -27,5 +27,5 @@ const t = getContent("zh");
     <StudioNotes content={t.notes} />
     <MuseumShop content={t.shop} />
   </main>
-  <Colophon content={t.colophon} locale="zh" />
+  <Colophon content={t.colophon} locale="zh" path="/" />
 </SiteLayout>

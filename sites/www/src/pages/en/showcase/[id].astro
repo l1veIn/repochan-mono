@@ -42,9 +42,9 @@ const title = `${item.upstream.name} → ${item.character.name} · RepoChan`;
   lightbox={t.lightbox}
   path={`/en/showcase/${item.id}/`}
 >
-  <MuseumNav content={nav} locale="en" command={t.lobby.ctaPrimaryCommand} copied={t.lobby.copied} />
+  <MuseumNav content={nav} locale="en" command={t.lobby.ctaPrimaryCommand} copied={t.lobby.copied} path={`/en/showcase/${item.id}/`} />
   <main>
     <ShowcaseDetail locale="en" item={item} content={detailContent} />
   </main>
-  <Colophon content={t.colophon} locale="en" />
+  <Colophon content={t.colophon} locale="en" path={`/en/showcase/${item.id}/`} />
 </SiteLayout>

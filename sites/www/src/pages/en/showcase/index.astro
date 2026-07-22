@@ -17,9 +17,9 @@ const nav = navForSubpage(t.nav, "en");
   lightbox={t.lightbox}
   path="/en/showcase/"
 >
-  <MuseumNav content={nav} locale="en" command={t.lobby.ctaPrimaryCommand} copied={t.lobby.copied} />
+  <MuseumNav content={nav} locale="en" command={t.lobby.ctaPrimaryCommand} copied={t.lobby.copied} path="/en/showcase/" />
   <main>
     <GalleryShowcase locale="en" content={t.showcase} mode="full" />
   </main>
-  <Colophon content={t.colophon} locale="en" />
+  <Colophon content={t.colophon} locale="en" path="/en/showcase/" />
 </SiteLayout>

@@ -2,13 +2,23 @@
 import { assets, alternatePath, type Locale } from "../lib/site";
 import type { SiteContent } from "../lib/i18n/types";
 
-type Props = { content: SiteContent["nav"]; locale: Locale; command: string; copied: string };
-const { content, locale, command, copied } = Astro.props;
+type Props = {
+  content: SiteContent["nav"];
+  locale: Locale;
+  command: string;
+  copied: string;
+  /** Current page path for correct EN/ZH toggle on subpages */
+  path?: string;
+};
+const { content, locale, command, copied, path } = Astro.props;
+const homeHref = locale === "zh" ? "/" : "/en/";
+const altLocale: Locale = locale === "zh" ? "en" : "zh";
+const altHref = alternatePath(locale, path ?? homeHref);
 ---
 
 <header class="nav">
   <div class="nav-inner">
-    <a class="nav-brand" href="#top" aria-label={content.brand}>
+    <a class="nav-brand" href={homeHref} aria-label={content.brand}>
       <img src={assets.icon.src} width={assets.icon.width} height={assets.icon.height} alt="" />
       <span class="nav-name">{content.brand}</span>
       <span class="nav-tag">{content.tag}</span>
@@ -24,7 +34,12 @@ const { content, locale, command, copied } = Astro.props;
       <button class="nav-cta" type="button" data-copy={command} data-copied={copied}>
         {content.cta}
       </button>
-      <a class="nav-locale" href={alternatePath(locale)} hreflang={locale === "zh" ? "en" : "zh-CN"}>
+      <a
+        class="nav-locale"
+        href={altHref}
+        hreflang={locale === "zh" ? "en" : "zh-CN"}
+        data-set-locale={altLocale}
+      >
         {content.localeSwitch}
       </a>
     </div>

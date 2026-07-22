@@ -16,15 +16,73 @@ const { title, description, locale, path } = Astro.props;
 const htmlLang = locale === "zh" ? "zh-CN" : "en";
 const cssVars = buildCssVars();
 const selfPath = path ?? (locale === "zh" ? "/" : "/en/");
+const altPath = alternatePath(locale, selfPath);
 const ogImage = assets.og.src.startsWith("http") ? assets.og.src : `${siteOrigin}${assets.og.src}`;
 const canonical = `${siteOrigin}${selfPath}`;
 ---
 
 <!doctype html>
-<html lang={htmlLang}>
+<html lang={htmlLang} data-locale={locale}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {/*
+      Locale auto-switch (runs before paint when possible):
+      - prefers Chinese if browser language starts with zh
+      - otherwise English
+      - localStorage.repochan_locale = "zh"|"en" wins after manual switch
+    */}
+    <script is:inline>
+      (function () {
+        try {
+          var KEY = "repochan_locale";
+          var path = location.pathname || "/";
+          var onEn = path === "/en" || path === "/en/" || path.indexOf("/en/") === 0;
+          var pageLocale = onEn ? "en" : "zh";
+          var stored = localStorage.getItem(KEY);
+
+          function prefersZh() {
+            var langs =
+              navigator.languages && navigator.languages.length
+                ? navigator.languages
+                : [navigator.language || "en"];
+            for (var i = 0; i < langs.length; i++) {
+              if (String(langs[i]).toLowerCase().indexOf("zh") === 0) return true;
+            }
+            return false;
+          }
+
+          function withSlash(p) {
+            if (!p || p === "/") return "/";
+            return p.charAt(p.length - 1) === "/" ? p : p + "/";
+          }
+
+          function toEn(p) {
+            p = withSlash(p);
+            if (p === "/en/" || p.indexOf("/en/") === 0) return p;
+            if (p === "/") return "/en/";
+            return "/en" + p;
+          }
+
+          function toZh(p) {
+            p = withSlash(p);
+            if (p === "/en/") return "/";
+            if (p.indexOf("/en/") === 0) return p.slice(3) || "/";
+            return p;
+          }
+
+          var desired =
+            stored === "zh" || stored === "en" ? stored : prefersZh() ? "zh" : "en";
+
+          if (desired !== pageLocale) {
+            var next = desired === "en" ? toEn(path) : toZh(path);
+            if (next !== withSlash(path) && next !== path) {
+              location.replace(next + location.search + location.hash);
+            }
+          }
+        } catch (e) {}
+      })();
+    </script>
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="theme-color" content={site.theme.base} />
@@ -41,7 +99,8 @@ const canonical = `${siteOrigin}${selfPath}`;
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
     <link rel="alternate" hreflang={htmlLang} href={`${siteOrigin}${selfPath}`} />
-    <link rel="alternate" hreflang={locale === "zh" ? "en" : "zh-CN"} href={`${siteOrigin}${alternatePath(locale)}`} />
+    <link rel="alternate" hreflang={locale === "zh" ? "en" : "zh-CN"} href={`${siteOrigin}${altPath}`} />
+    <link rel="alternate" hreflang="x-default" href={`${siteOrigin}/en/`} />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />

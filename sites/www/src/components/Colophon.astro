@@ -2,8 +2,11 @@
 import { alternatePath, type Locale } from "../lib/site";
 import type { SiteContent } from "../lib/i18n/types";
 
-type Props = { content: SiteContent["colophon"]; locale: Locale };
-const { content, locale } = Astro.props;
+type Props = { content: SiteContent["colophon"]; locale: Locale; path?: string };
+const { content, locale, path } = Astro.props;
+const homeHref = locale === "zh" ? "/" : "/en/";
+const altLocale: Locale = locale === "zh" ? "en" : "zh";
+const altHref = alternatePath(locale, path ?? homeHref);
 ---
 
 <footer class="room colophon" id="colophon">
@@ -36,7 +39,7 @@ const { content, locale } = Astro.props;
           {l.label}
         </a>
       ))}
-      <a href={alternatePath(locale)} hreflang={locale === "zh" ? "en" : "zh-CN"}>
+      <a href={altHref} hreflang={locale === "zh" ? "en" : "zh-CN"} data-set-locale={altLocale}>
         {content.localeSwitch}
       </a>
     </nav>
