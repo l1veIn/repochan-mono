@@ -164,20 +164,26 @@ This changelog records coordinated public package sets.
   (ChatGPT login)" choice) validates `~/.codex/auth.json` is readable before
   writing the endpoint.
 
-## 2026-07-15 release candidate
+## 2026-07-22 release candidate
 
-This candidate publishes the current CLI, libraries, skills, templates, and
-starters as one dependency-closed set.
+This candidate publishes the current CLI, local protocol browser, libraries,
+skills, templates, and Starters as one dependency-closed eight-package set. The
+seven existing npm package names move to unclaimed versions, and
+`@repochan/browse` enters the set as a first release. Because this 0.x candidate
+adds public capabilities and changes protocol or workflow contracts across each
+existing package, the affected release lines advance by one minor version rather
+than reusing immutable npm versions or presenting the changes as patches.
 
 | Package | Candidate | Role in this set |
 | --- | --- | --- |
-| `@repochan/core` | `0.2.0` | Protocol schemas, deterministic rules, and recoverable order-result transactions. |
-| `@repochan/image-edit` | `0.2.0` | Local page-assembly and pixel operations. |
-| `@repochan/image-gen` | `0.2.0` | Image endpoint routing and generation. |
-| `@repochan/skill` | `0.2.0` | Wizard and specialist workflow contracts. |
-| `@repochan/templates` | `0.2.0` | Asset prompt and composition templates. |
-| `@repochan/starters` | `0.1.0` | Complete Caddy, MarkText, RepoChan minimal, and Redis Source Starters with concentrated Transfer Kits. |
-| `repochan` | `0.3.0` | Sole CLI binding surface for the complete set. |
+| `@repochan/core` | `0.3.0` | Protocol and deterministic rules for derived audit history, `genSize`, inter-asset references, and browser reads. |
+| `@repochan/image-edit` | `0.3.0` | Chroma extraction v2, structured extraction, iconfont output, and new default behavior. |
+| `@repochan/image-gen` | `0.3.0` | Codex authentication and native Responses image transport alongside existing endpoint routing. |
+| `@repochan/skill` | `0.3.0` | Updated wizard, Painter, Page Designer, Web Designer, and browser-assisted workflow contracts. |
+| `@repochan/templates` | `0.3.0` | Expanded grid/icon templates and revised generation and postprocess contracts. |
+| `@repochan/starters` | `0.2.0` | Expanded, localized Source Starter catalog with concentrated Transfer Kits and auditable asset assembly. |
+| `@repochan/browse` | `0.1.0` | First release of the local read-only protocol viewer and Starter preview service. |
+| `repochan` | `0.4.0` | Sole CLI binding surface, now including browse, channel-selectable Starter sync, preview, extraction, and derived-archive commands. |
 
 Release verification uses a fresh-source, registry-aware preflight, explicit
 public npm metadata, MIT license payloads, finite command timeouts, and tarball

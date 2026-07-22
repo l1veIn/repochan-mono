@@ -1,0 +1,10 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Synthetic API key used to verify protocol-log redaction."
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+paths = ['''packages/core/test/desensitize\.test\.ts$''']
+regexes = ['''OPENAI_API_KEY=sk-1234567890abcdef''']

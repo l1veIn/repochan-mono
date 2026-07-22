@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { runStarterSync } from "./starter-sync.js";
+import { resolveStarterChannelFromPackument, runStarterSync } from "./starter-sync.js";
 import { getStartersCacheDir, listStarters, resolveStarterSource } from "../lib/starter-loader.js";
 
 const execFileAsync = promisify(execFile);
@@ -67,7 +67,7 @@ describe("starter sync", () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const homeDir = await tempDir();
     const result = await runStarterSync("", { json: true }, fixtureDeps(homeDir)) as any;
-    expect(result).toMatchObject({ ok: true, version: "9.9.9", updated: true });
+    expect(result).toMatchObject({ ok: true, channel: "latest", version: "9.9.9", updated: true });
 
     const cacheDir = getStartersCacheDir(homeDir);
     expect(await readFile(path.join(cacheDir, "VERSION"), "utf8")).toBe("9.9.9\n");
@@ -79,6 +79,45 @@ describe("starter sync", () => {
     expect(source).toMatchObject({ kind: "cache", version: "9.9.9" });
     const starters = await listStarters({ env: {}, homeDir });
     expect(starters.map((starter) => [starter.id, starter.source])).toEqual([["fixture-starter", "cache"]]);
+  });
+
+  it("resolves an explicit next channel instead of the default latest channel", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const channels: string[] = [];
+    const versions: string[] = [];
+    const makeDeps = (homeDir: string) => ({
+      homeDir,
+      resolveLatest: async (channel: string) => {
+        channels.push(channel);
+        return channel === "next" ? "0.2.0" : "0.1.0";
+      },
+      download: async (version: string, destDir: string) => {
+        versions.push(version);
+        const destination = path.join(destDir, path.basename(fixtureTarball));
+        await copyFile(fixtureTarball, destination);
+        return destination;
+      },
+    });
+
+    const latest = await runStarterSync("", { json: true }, makeDeps(await tempDir())) as any;
+    const next = await runStarterSync("", { json: true, channel: "next" }, makeDeps(await tempDir())) as any;
+
+    expect(latest).toMatchObject({ channel: "latest", version: "0.1.0" });
+    expect(next).toMatchObject({ channel: "next", version: "0.2.0" });
+    expect(channels).toEqual(["latest", "next"]);
+    expect(versions).toEqual(["0.1.0", "0.2.0"]);
+  });
+
+  it("rejects a channel that is not a simple npm dist-tag", async () => {
+    await expect(runStarterSync("", { channel: "next --registry=https://example.invalid" }, fixtureDeps(await tempDir())))
+      .rejects.toThrow(/simple npm dist-tag/);
+  });
+
+  it("selects the requested channel from an HTTPS fallback packument", () => {
+    const packument = { "dist-tags": { latest: "0.1.0", next: "0.2.0" } };
+    expect(resolveStarterChannelFromPackument(packument, "latest")).toBe("0.1.0");
+    expect(resolveStarterChannelFromPackument(packument, "next")).toBe("0.2.0");
+    expect(() => resolveStarterChannelFromPackument(packument, "beta")).toThrow(/dist-tags\.beta/);
   });
 
   it("is a no-op when the cache already matches latest", async () => {

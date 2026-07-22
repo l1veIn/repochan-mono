@@ -2,7 +2,9 @@
 
 RepoChan is released as one dependency-closed package set. The five runtime
 leaf packages must be available before the `repochan` CLI because the packed
-CLI uses exact versions for every local runtime dependency.
+CLI uses exact versions for every local runtime dependency. `@repochan/browse`
+depends on `@repochan/core` and is itself a CLI runtime dependency, so it is
+published after the leaves and before the CLI.
 `@repochan/starters` is an independent publishable in the same coordinated
 set: the CLI no longer bundles it, and downloads it on demand with
 `repochan starter sync` into a user-level cache.
@@ -15,11 +17,12 @@ Canonical order:
 4. `@repochan/skill`
 5. `@repochan/templates`
 6. `@repochan/starters` (independent artifact; synced on demand, not a CLI dependency)
-7. `repochan`
+7. `@repochan/browse` (depends on `@repochan/core`)
+8. `repochan`
 
 The candidate versions and their semver rationale are recorded in
 [`CHANGELOG.md`](../CHANGELOG.md). Do not force every package to share one
-version; the packed CLI pins the exact coordinated leaf versions.
+version; the packed CLI pins the exact coordinated runtime package versions.
 
 The executable contract lives in `scripts/release-contract.mjs`. Do not infer
 publishability from workspace tests or source `package.json` files: `workspace:*`
@@ -39,13 +42,13 @@ byte-identical tarballs. Each raw pnpm pack is normalized by deep-sorting its
 packed manifest and rebuilding a portable archive with fixed timestamps and a
 sorted entry order before hashing. It checks the
 rewritten dependency graph and public workspace inventory. A local scoped
-registry exposes the six leaf tarballs while the empty npm project installs only
+registry exposes all seven non-CLI tarballs while the empty npm project installs only
 the CLI tarball as a top-level dependency. The smoke then runs the packed CLI,
 verifies the complete project-local Codex skill inventory and representative
-skill content, requires the exact canonical 21-template inventory, and exercises
+skill content, requires the exact canonical 25-template inventory, and exercises
 `template get`. It also verifies the fresh install does not bundle
 `@repochan/starters`, syncs the Starter catalog on demand from the registry
-(`starter sync`), requires the canonical Starter inventory with `minimal`
+(`starter sync`), requires the canonical 20-Starter inventory with `minimal`
 as the sole default, pulls each Starter from the synced cache, validates its
 Transfer Kit and builds the copied site.
 This command tests
@@ -95,6 +98,15 @@ The same preflight checks that current runtime and Skill surfaces expose only th
 current contract. OpenAI-compatible endpoint terminology, Starter runnable
 fallbacks, and business asset/template names containing `migrate` remain valid.
 
+The compatibility gate has a closed waiver inventory only for the intentional
+image-edit chroma v1, equal-cell, and stable adapter contracts. Every waiver is
+bound to one source path, detector rule, exact trimmed source line, occurrence,
+rationale, and removal condition. A new finding remains a blocker; a waiver
+that matches zero source lines is stale, and one exact line cannot authorize an
+additional occurrence. Remove the corresponding waiver when its v1,
+equal-cell, or adapter contract is removed in an explicitly versioned breaking
+release.
+
 Every child process has a finite five-minute timeout. Slow release environments
 may raise it explicitly, without disabling the guard:
 
@@ -114,7 +126,7 @@ not to the published CLI runtime contract.
 Stop unless all of these are true:
 
 - the retained preflight report has no blockers and its candidate fresh-install smoke passed;
-- a human has approved the exact seven versions and retained SHA-256 values;
+- a human has approved the exact eight versions and retained SHA-256 values;
 - `npm whoami --registry https://registry.npmjs.org/` identifies the intended
   publisher, and that human has verified public publish rights for the
   `@repochan` scope as well as the unscoped `repochan` package;
@@ -128,7 +140,7 @@ authorized operations. The preflight deliberately performs none of them.
 ## Stage the retained set under `next`
 
 Before the first `npm publish`, save the complete existing `dist-tags` response
-for all seven package names in the release record, including packages that return
+for all eight package names in the release record, including packages that return
 404 or have no prior `next`/`latest`. `npm publish --tag next` is itself a tag
 mutation, so this snapshot must exist before staging begins. Published package
 bytes are immutable; the recorded prior tags are the rollback surface.
@@ -146,21 +158,24 @@ npm publish /absolute/path/from-report.tgz \
   --registry https://registry.npmjs.org/
 ```
 
-Publish all six leaves first and confirm each exact version is readable from npm
-before publishing the CLI tarball last. Do not continue past a failed leaf:
+Publish the five runtime leaves first, then the independent Starter artifact,
+then `@repochan/browse`, and confirm each exact version is readable from npm
+before publishing the CLI tarball last. Do not continue past a failed package:
 
 ```bash
 # Set these from the retained preflight report.
 CORE_VERSION=...
+BROWSE_VERSION=...
 CLI_VERSION=...
 npm view "@repochan/core@${CORE_VERSION}" version --registry https://registry.npmjs.org/
-# ...repeat for every published exact leaf...
+# ...repeat for image-edit, image-gen, skill, templates, and starters...
+npm view "@repochan/browse@${BROWSE_VERSION}" version --registry https://registry.npmjs.org/
 npm view "repochan@${CLI_VERSION}" version --registry https://registry.npmjs.org/
 ```
 
 ## Smoke the real `next` install
 
-After all seven packages are visible under `next`, verify an install that reads
+After all eight packages are visible under `next`, verify an install that reads
 only from npm. This shell block keeps HOME, npm user config/cache, installation,
 and project state in one disposable directory:
 
@@ -186,7 +201,13 @@ printf 'registry=https://registry.npmjs.org/\n' > "$SMOKE_ROOT/npmrc"
   node "$CLI" status --json
   node "$CLI" init --json
   node "$CLI" setup --agent codex --project --json
-  node "$CLI" starter sync --json
+  STARTERS_VERSION=... # exact staged version from the retained report
+  STARTER_SYNC_JSON="$(node "$CLI" starter sync --channel next --json)"
+  printf '%s\n' "$STARTER_SYNC_JSON"
+  node -e '
+    const actual = JSON.parse(process.argv[1]).version;
+    if (actual !== process.argv[2]) throw new Error(`next Starter mismatch: ${actual} != ${process.argv[2]}`);
+  ' "$STARTER_SYNC_JSON" "$STARTERS_VERSION"
   node "$CLI" starter list --json
   node "$CLI" starter pull --starter minimal --output-dir site --json
   node "$CLI" starter validate --output-dir site --json
@@ -204,13 +225,14 @@ credentials, or a billed image generation request.
 ## Promote to `latest`
 
 Only after a human accepts the `next` smoke, move `latest` to the exact staged
-versions. Promote the six leaves first and `repochan` last; verify every tag from
-the registry after changing it:
+versions. Promote the five runtime leaves, the independent Starter artifact,
+then `@repochan/browse`, and `repochan` last; verify every tag from the registry
+after changing it:
 
 ```bash
 # Reuse the exact version variables recorded from the retained report.
 npm dist-tag add "@repochan/core@${CORE_VERSION}" latest --registry https://registry.npmjs.org/
-# ...image-edit, image-gen, skill, templates, starters...
+# ...image-edit, image-gen, skill, templates, starters, browse...
 npm dist-tag add "repochan@${CLI_VERSION}" latest --registry https://registry.npmjs.org/
 npm view repochan dist-tags --json --registry https://registry.npmjs.org/
 ```

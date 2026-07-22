@@ -9,12 +9,12 @@
 
 # RepoChan
 
-**Turn any git repository into a girl!** —
+**Your repo, but make it a girl!** —
 
 character sheets, icons, stickers, posters, and a landing page — driven by *your* coding agent.
 
 <p align="center">
-<img src="docs/readme-variants/museum/assets/icon.png" alt="RepoChan icon" width="30">
+<img src="docs/readme-variants/museum/assets/icon.png" alt="RepoChan icon" width="100">
 </p>
 
 <p align="center">
@@ -53,7 +53,7 @@ Run `repochan setup` again after upgrading the CLI so the bundled skills are ref
 
 ```bash
 pnpm install
-pnpm -r build                 # builds core, image-gen, image-edit, cli
+pnpm -r build                 # builds every workspace package and Starter
 pnpm --filter repochan exec node dist/index.js setup
 pnpm test                     # full monorepo test suite
 ```
@@ -130,6 +130,7 @@ Grid sheets are generated on a uniform matte with a layout-guide reference, then
 | [`docs/releasing.md`](docs/releasing.md) | Leaf-first release contract |
 | [`packages/skill/`](./packages/skill/) | Skill inventory (wizard + team roles) |
 | [`packages/core/`](./packages/core/) | Protocol, schemas, business rules |
+| [`packages/browse/`](./packages/browse/) | Local protocol viewer and Starter preview service |
 | [`packages/starters/`](./packages/starters/) | Landing-page starter catalog |
 
 ---

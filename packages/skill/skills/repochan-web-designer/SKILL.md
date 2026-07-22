@@ -37,7 +37,7 @@ description: >
 
 **Cutout 分两类**：通用 cutout 必须完整入画（全身/七分身完整、四边留白），可直接放置在任意区域；出血裁切 cutout 默认是**设计绑定资产**，仅当页面有 H3/H4 层元素充当接收裁切的视觉边界（卡片缘、section 分界线）时才下单。出血版可以进入 starter/通用库，但此时必须搭配姿态线稿（`official/hero-pose-lineart-extract`）把姿态的结构关系传递给下游——这正是姿态线稿的合法使用场景。
 
-**资产不满足就重新生成，不凑合**：现有资产（旧订单结果、starter 源图、历史裁切）在清晰度、风格一致性、matte 规范或姿态构图上达不到当前标准时，新建订单重走 Painter 流程（带 foundation 引用与当前模板约束），不要拿旧图降格使用或手工修补。订单系统支持无限版本——重生是常态操作，旧版本自动成为历史。唯一例外是用户明确要求保留的既有资产。
+**资产不满足就重新生成，不凑合**：现有资产（先前订单结果、starter 源图、已有裁切）在清晰度、风格一致性、matte 规范或姿态构图上达不到当前标准时，新建订单重走 Painter 流程（带 foundation 引用与当前模板约束），不要用不达标的素材凑数或手工修补。订单系统支持无限版本——重生是常态操作，先前版本自动进入历史。唯一例外是用户明确要求保留的既有资产。
 
 角色不应只出现在 Hero。适合 404、empty、loading、success、CTA cameo 等统一镜头的小型状态，可规划 3×3/4×4 uniform-matte 网格并为每个 cell 定义语义名称、publication、尺寸和 fallback。可产品化的网格合同使用 manifest `publications[]` + 独占的 `extract-grid` postprocess，由 `starter asset-apply` 原子提取、QA 和投影；原创站点也应复用同样的语义顺序与像素 QA，不手工伪造协议状态。
 
