@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  downloadUrl,
   fileUrl,
   getJSON,
   type DerivedTimeline,
@@ -12,10 +13,20 @@ function firstImage(version: OrderVersion | undefined) {
   return version?.files.find((f) => f.image);
 }
 
-function allImages(versions: OrderVersion[]): LightboxImage[] {
-  return versions.flatMap((v) =>
-    v.files.filter((f) => f.image).map((f) => ({ url: fileUrl(f.path), caption: `${v.versionId} · ${f.name}` })),
-  );
+function versionImages(version: OrderVersion | undefined): LightboxImage[] {
+  if (!version) return [];
+  return version.files
+    .filter((f) => f.image)
+    .map((f) => ({ url: fileUrl(f.path), caption: `${version.versionId} · ${f.name}` }));
+}
+
+type LightboxState = { images: LightboxImage[]; index: number };
+
+/** Optional deep-link: #/order/<id>?v=<versionId> preselects a timeline version. */
+function hashVersionParam(): string | null {
+  const query = window.location.hash.split("?")[1];
+  if (!query) return null;
+  return new URLSearchParams(query).get("v");
 }
 
 export function OrderDetailView(props: { orderId: string; onBack: () => void; onOpenOrder: (orderId: string) => void }) {
@@ -23,17 +34,22 @@ export function OrderDetailView(props: { orderId: string; onBack: () => void; on
   const [detail, setDetail] = useState<OrderDetail | null>(null);
   const [derived, setDerived] = useState<DerivedTimeline | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [picked, setPicked] = useState<{ a?: string; b?: string }>({});
-  const [lightbox, setLightbox] = useState<number | null>(null);
+  const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<LightboxState | null>(null);
 
   useEffect(() => {
     setDetail(null);
     setDerived(null);
     setError(null);
-    setPicked({});
+    setSelectedVersionId(null);
     getJSON<OrderDetail>(`/api/orders/${encodeURIComponent(orderId)}`)
       .then((d) => {
         setDetail(d);
+        const fromHash = hashVersionParam();
+        const fallback = d.currentVersion ?? d.versions[0]?.versionId ?? null;
+        setSelectedVersionId(
+          fromHash && d.versions.some((v) => v.versionId === fromHash) ? fromHash : fallback,
+        );
         if (d.derivedAvailable) {
           getJSON<DerivedTimeline>(`/api/orders/${encodeURIComponent(orderId)}/derived`).then(setDerived).catch(() => undefined);
         }
@@ -41,32 +57,21 @@ export function OrderDetailView(props: { orderId: string; onBack: () => void; on
       .catch((e) => setError(e instanceof Error ? e.message : String(e)));
   }, [orderId]);
 
-  const images = useMemo(() => (detail ? allImages(detail.versions) : []), [detail]);
+  const selected = useMemo(() => {
+    if (!detail) return undefined;
+    return detail.versions.find((v) => v.versionId === selectedVersionId) ?? detail.versions[0];
+  }, [detail, selectedVersionId]);
+
+  const openLightbox = (images: LightboxImage[], index: number) => {
+    if (images.length > 0) setLightbox({ images, index });
+  };
 
   if (error) return <EmptyState title={`无法读取订单 ${orderId}`} hint={error} cue="repochan order get <id> --json" />;
   if (!detail) return <p className="dim">加载中…</p>;
 
   const { order } = detail;
-  const current = detail.versions.find((v) => v.versionId === detail.currentVersion) ?? detail.versions[0];
-  const hero = firstImage(current);
-  const pickA = detail.versions.find((v) => v.versionId === picked.a);
-  const pickB = detail.versions.find((v) => v.versionId === picked.b);
-  const compareMode = Boolean(pickA && pickB);
-
-  const togglePick = (versionId: string) => {
-    setPicked((prev) => {
-      if (prev.a === versionId) return { ...prev, a: undefined };
-      if (prev.b === versionId) return { ...prev, b: undefined };
-      if (!prev.a) return { ...prev, a: versionId };
-      if (!prev.b) return { ...prev, b: versionId };
-      return { a: prev.b, b: versionId };
-    });
-  };
-
-  const openLightbox = (path: string) => {
-    const idx = images.findIndex((img) => img.url === fileUrl(path));
-    if (idx >= 0) setLightbox(idx);
-  };
+  const hero = firstImage(selected);
+  const selectedImages = versionImages(selected);
 
   return (
     <div>
@@ -79,28 +84,14 @@ export function OrderDetailView(props: { orderId: string; onBack: () => void; on
         {order.templateId ? <span className="mono dim">{order.templateId}</span> : null}
       </div>
 
-      {hero && !compareMode ? (
+      {hero ? (
         <div className="hero">
-          <img src={fileUrl(hero.path)} alt={current?.versionId} onClick={() => openLightbox(hero.path)} />
-        </div>
-      ) : null}
-
-      {compareMode && pickA && pickB ? (
-        <div className="compare" style={{ marginBottom: 16 }}>
-          {[pickA, pickB].map((version, i) => {
-            const img = firstImage(version);
-            return (
-              <figure key={version.versionId}>
-                {img ? <img src={fileUrl(img.path)} alt={version.versionId} onClick={() => openLightbox(img.path)} /> : null}
-                <figcaption>{i === 0 ? "A" : "B"} · {version.versionId} · {new Date(version.createdAt).toLocaleString()}</figcaption>
-              </figure>
-            );
-          })}
+          <img src={fileUrl(hero.path)} alt={selected?.versionId} onClick={() => openLightbox(selectedImages, 0)} />
         </div>
       ) : null}
 
       <div className="panel">
-        <h4>Version 时间线{detail.versions.length > 1 ? "（点选两版可 A/B 对比）" : ""}</h4>
+        <h4>Version 时间线</h4>
         {detail.versions.length === 0 ? (
           <p className="dim">尚无 result version —— Painter 交付后出现在这里。</p>
         ) : (
@@ -111,10 +102,9 @@ export function OrderDetailView(props: { orderId: string; onBack: () => void; on
                 className={[
                   "version-chip",
                   version.versionId === detail.currentVersion ? "current" : "",
-                  picked.a === version.versionId ? "picked-a" : "",
-                  picked.b === version.versionId ? "picked-b" : "",
+                  version.versionId === selected?.versionId ? "selected" : "",
                 ].join(" ").trim()}
-                onClick={() => togglePick(version.versionId)}
+                onClick={() => setSelectedVersionId(version.versionId)}
                 title={version.promptBrief ?? version.versionId}
               >
                 {version.versionId}
@@ -125,11 +115,19 @@ export function OrderDetailView(props: { orderId: string; onBack: () => void; on
             ))}
           </div>
         )}
-        {current?.promptBrief ? <p className="dim" style={{ margin: "4px 0 0" }}>{current.promptBrief}</p> : null}
-        {current?.generationPrompt ? (
+        {selected ? (
+          <dl className="kv" style={{ marginTop: 10 }}>
+            <dt>viewing</dt><dd>{selected.versionId}{selected.versionId === detail.currentVersion ? " (current)" : ""}</dd>
+            <dt>createdAt</dt><dd>{new Date(selected.createdAt).toLocaleString()}</dd>
+            {selected.tool ? (<><dt>tool</dt><dd>{selected.tool}</dd></>) : null}
+            <dt>files</dt><dd>{selected.files.map((f) => f.name).join(", ")}</dd>
+          </dl>
+        ) : null}
+        {selected?.promptBrief ? <p className="dim" style={{ margin: "4px 0 0" }}>{selected.promptBrief}</p> : null}
+        {selected?.generationPrompt ? (
           <details className="fold" style={{ marginTop: 8 }}>
             <summary>generationPrompt（完整生成提示词）</summary>
-            <pre className="prompt">{current.generationPrompt}</pre>
+            <pre className="prompt">{selected.generationPrompt}</pre>
           </details>
         ) : null}
       </div>
@@ -159,34 +157,64 @@ export function OrderDetailView(props: { orderId: string; onBack: () => void; on
               <p className="dim">无 derived 记录 —— 该订单尚未被 <span className="mono">repochan starter asset-apply</span> 应用。</p>
             ) : (
               <div className="timeline">
-                {derived.entries.map((entry, i) => (
-                  <div className="tl-entry" key={i}>
-                    <div className="head">
-                      <span className="slot">{entry.slot}</span>
-                      <Badge text={entry.starter} />
-                      <span className="mono dim">{entry.resultVersion}</span>
-                      <span className="dim">{new Date(entry.appliedAt).toLocaleString()}</span>
-                      <span className="dim">· {entry.artifactCount} artifacts</span>
+                {derived.entries.map((entry, i) => {
+                  const entryImages: LightboxImage[] = entry.artifacts
+                    .filter((a) => a.image)
+                    .map((a) => ({ url: fileUrl(a.path), caption: `${entry.slot} · ${a.out}` }));
+                  return (
+                    <div className="tl-entry" key={i}>
+                      <div className="head">
+                        <span className="slot">{entry.slot}</span>
+                        <Badge text={entry.starter} />
+                        <span className="mono dim">{entry.resultVersion}</span>
+                        <span className="dim">{new Date(entry.appliedAt).toLocaleString()}</span>
+                        <span className="dim">· {entry.artifactCount} artifacts</span>
+                      </div>
+                      <div className="mono dim" style={{ fontSize: 11, marginTop: 2 }}>
+                        {entry.steps.map((s) => `${s.op}→${s.out}${s.keep ? "" : " (dropped)"}`).join(" · ")}
+                      </div>
+                      <div className="tl-artifacts">
+                        {entry.artifacts.map((artifact, j) => {
+                          const imageIndex = entryImages.findIndex((img) => img.url === fileUrl(artifact.path));
+                          return (
+                            <div className="art" key={j}>
+                              {artifact.image ? (
+                                <button
+                                  className="art-preview"
+                                  onClick={() => openLightbox(entryImages, imageIndex)}
+                                  title={`${artifact.op} → ${artifact.out}（点击放大）`}
+                                >
+                                  <img src={fileUrl(artifact.path)} alt={artifact.out} loading="lazy" />
+                                </button>
+                              ) : (
+                                <a
+                                  className="art-preview art-file"
+                                  href={downloadUrl(artifact.path)}
+                                  download={artifact.out.split("/").pop()}
+                                  title={`${artifact.op} → ${artifact.out}（下载）`}
+                                >
+                                  <span className="name" style={{ padding: "24px 4px", textAlign: "center", display: "block" }}>{artifact.out}</span>
+                                </a>
+                              )}
+                              <div className="art-foot">
+                                <span className="name">{artifact.out}</span>
+                                <a
+                                  className="dl"
+                                  href={downloadUrl(artifact.path)}
+                                  download={artifact.out.split("/").pop()}
+                                  title={`下载 ${artifact.out}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  ⬇
+                                </a>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="mono dim" style={{ fontSize: 11, marginTop: 2 }}>
-                      {entry.steps.map((s) => `${s.op}→${s.out}${s.keep ? "" : " (dropped)"}`).join(" · ")}
-                    </div>
-                    <div className="tl-artifacts">
-                      {entry.artifacts.map((artifact, j) =>
-                        artifact.image ? (
-                          <button className="art" key={j} onClick={() => openLightbox(artifact.path)} title={`${artifact.op} → ${artifact.out}`}>
-                            <img src={fileUrl(artifact.path)} alt={artifact.out} loading="lazy" />
-                            <div className="name">{artifact.out}</div>
-                          </button>
-                        ) : (
-                          <a className="art" key={j} href={fileUrl(artifact.path)} target="_blank" rel="noreferrer" title={`${artifact.op} → ${artifact.out}`}>
-                            <div className="name" style={{ padding: "28px 4px", textAlign: "center" }}>{artifact.out}</div>
-                          </a>
-                        ),
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -219,32 +247,44 @@ export function OrderDetailView(props: { orderId: string; onBack: () => void; on
             {detail.references.length === 0 ? (
               <p className="dim">无 references —— 独立资产，不锚定其他订单。</p>
             ) : (
-              detail.references.map((ref, i) => (
-                <div className="ref-row" key={i}>
-                  {ref.files.find((f) => f.path) ? (
-                    <img src={fileUrl(ref.files.find((f) => f.path)!.path!)} alt={ref.role} />
-                  ) : (
-                    <span style={{ width: 44 }} />
-                  )}
-                  <div>
+              detail.references.map((ref, i) => {
+                const refImages: LightboxImage[] = ref.files
+                  .filter((f) => f.path)
+                  .map((f) => ({ url: fileUrl(f.path!), caption: `${ref.role} · ${f.name}` }));
+                const firstPath = ref.files.find((f) => f.path)?.path ?? null;
+                return (
+                  <div className="ref-row" key={i}>
+                    {firstPath ? (
+                      <button
+                        className="ref-thumb"
+                        onClick={() => openLightbox(refImages, 0)}
+                        title={`${ref.role} reference（点击放大）`}
+                      >
+                        <img src={fileUrl(firstPath)} alt={ref.role} />
+                      </button>
+                    ) : (
+                      <span style={{ width: 44 }} />
+                    )}
                     <div>
-                      <Badge text={ref.role} />{" "}
-                      {ref.type === "order" ? (
-                        <a
-                          href="#"
-                          onClick={(e) => { e.preventDefault(); if (ref.orderId) onOpenOrder(ref.orderId); }}
-                          className="mono"
-                        >
-                          {ref.orderId}{ref.versionId ? `@${ref.versionId}` : ""}
-                        </a>
-                      ) : (
-                        <span className="mono">{ref.path}</span>
-                      )}
+                      <div>
+                        <Badge text={ref.role} />{" "}
+                        {ref.type === "order" ? (
+                          <a
+                            href="#"
+                            onClick={(e) => { e.preventDefault(); if (ref.orderId) onOpenOrder(ref.orderId); }}
+                            className="mono"
+                          >
+                            {ref.orderId}{ref.versionId ? `@${ref.versionId}` : ""}
+                          </a>
+                        ) : (
+                          <span className="mono">{ref.path}</span>
+                        )}
+                      </div>
+                      {ref.error ? <div className="err">⚠ {ref.error}</div> : null}
                     </div>
-                    {ref.error ? <div className="err">⚠ {ref.error}</div> : null}
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 
@@ -260,7 +300,12 @@ export function OrderDetailView(props: { orderId: string; onBack: () => void; on
       </div>
 
       {lightbox !== null ? (
-        <Lightbox images={images} index={lightbox} onClose={() => setLightbox(null)} onNavigate={setLightbox} />
+        <Lightbox
+          images={lightbox.images}
+          index={lightbox.index}
+          onClose={() => setLightbox(null)}
+          onNavigate={(index) => setLightbox((prev) => (prev ? { ...prev, index } : prev))}
+        />
       ) : null}
     </div>
   );

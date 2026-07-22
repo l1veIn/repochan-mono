@@ -136,3 +136,8 @@ export async function getJSON<T>(url: string): Promise<T> {
 export function fileUrl(protocolPath: string): string {
   return `/api/file?path=${encodeURIComponent(protocolPath)}`;
 }
+
+/** Same as fileUrl but asks the server for Content-Disposition: attachment. */
+export function downloadUrl(protocolPath: string): string {
+  return `${fileUrl(protocolPath)}&download=1`;
+}

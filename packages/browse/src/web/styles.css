@@ -200,15 +200,11 @@ a { color: var(--accent-ink); text-decoration: none; }
 }
 .version-chip .when { display: block; color: var(--ink-2); font-size: 10px; }
 .version-chip.current { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-.version-chip.picked-a { background: color-mix(in srgb, var(--accent) 22%, transparent); }
-.version-chip.picked-b { background: color-mix(in srgb, #a78bfa 24%, transparent); }
-.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.compare figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; }
-.compare img { width: 100%; max-height: 340px; object-fit: contain; cursor: zoom-in; }
-.compare figcaption { font-family: var(--mono); font-size: 11px; color: var(--ink-2); padding-top: 8px; }
+.version-chip.selected { background: color-mix(in srgb, var(--accent) 22%, transparent); border-color: var(--accent); }
 .ref-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .ref-row:last-child { border-bottom: 0; }
-.ref-row img { width: 44px; height: 44px; object-fit: contain; background: var(--panel-2); border-radius: 6px; }
+.ref-thumb { border: 0; padding: 0; background: none; cursor: zoom-in; }
+.ref-thumb img, .ref-row img { width: 44px; height: 44px; object-fit: contain; background: var(--panel-2); border-radius: 6px; }
 .ref-row .err { color: var(--danger); font-size: 12px; }
 pre.prompt {
   white-space: pre-wrap; word-break: break-word; font-family: var(--mono); font-size: 12px;
@@ -230,10 +226,18 @@ details.fold summary { cursor: pointer; color: var(--accent-ink); font-size: 13p
 .tl-artifacts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 .tl-artifacts .art {
   border: 1px solid var(--line); border-radius: 8px; background: var(--panel);
-  padding: 6px; width: 108px; cursor: pointer;
+  padding: 6px; width: 108px;
 }
-.tl-artifacts .art img { width: 100%; height: 72px; object-fit: contain; background: var(--panel-2); border-radius: 5px; }
-.tl-artifacts .art .name { font-family: var(--mono); font-size: 10px; color: var(--ink-2); margin-top: 4px; word-break: break-all; }
+.tl-artifacts .art-preview { display: block; border: 0; padding: 0; background: none; width: 100%; cursor: zoom-in; }
+.tl-artifacts .art-preview img { width: 100%; height: 72px; object-fit: contain; background: var(--panel-2); border-radius: 5px; }
+.tl-artifacts .art-file { cursor: pointer; color: inherit; }
+.tl-artifacts .art-foot { display: flex; align-items: center; gap: 4px; margin-top: 4px; }
+.tl-artifacts .art-foot .name { flex: 1; font-family: var(--mono); font-size: 10px; color: var(--ink-2); word-break: break-all; }
+.tl-artifacts .art-foot .dl {
+  flex: none; font-size: 11px; color: var(--accent-ink); text-decoration: none;
+  border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; line-height: 16px;
+}
+.tl-artifacts .art-foot .dl:hover { border-color: var(--accent); }
 
 /* ── Persona card ──────────────────────────── */
 .persona-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px; max-width: 860px; }

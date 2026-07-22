@@ -407,7 +407,12 @@ async function handleGraph(projectRoot: string) {
   return { nodes, edges };
 }
 
-async function handleFile(projectRoot: string, rawPath: string, res: http.ServerResponse) {
+function contentDispositionAttachment(abs: string): string {
+  const name = path.basename(abs).replace(/["\r\n]/g, "_");
+  return `attachment; filename="${name}"; filename*=UTF-8''${encodeURIComponent(name)}`;
+}
+
+async function handleFile(projectRoot: string, rawPath: string, res: http.ServerResponse, opts?: { download?: boolean }) {
   let abs: string;
   try {
     abs = safeProtocolPath(projectRoot, rawPath);
@@ -431,11 +436,14 @@ async function handleFile(projectRoot: string, rawPath: string, res: http.Server
     sendJson(res, 404, { error: "not found" });
     return;
   }
-  res.writeHead(200, {
+  const headers: Record<string, string | number> = {
     "content-type": CONTENT_TYPES[ext] ?? "application/octet-stream",
     "content-length": stat.size,
     "cache-control": "no-cache",
-  });
+  };
+  // Opt-in only: ?download=1 turns this single response into an attachment.
+  if (opts?.download) headers["content-disposition"] = contentDispositionAttachment(abs);
+  res.writeHead(200, headers);
   res.end(await fs.readFile(abs));
 }
 
@@ -506,7 +514,9 @@ export function createBrowseServer(options: BrowseServerOptions): http.Server {
       if (pathname === "/api/orders") return sendJson(res, 200, await handleOrders(projectRoot));
       if (pathname === "/api/graph") return sendJson(res, 200, await handleGraph(projectRoot));
       if (pathname === "/api/starters") return sendJson(res, 200, await resolveStarters(options));
-      if (pathname === "/api/file") return await handleFile(projectRoot, url.searchParams.get("path") ?? "", res);
+      if (pathname === "/api/file") {
+        return await handleFile(projectRoot, url.searchParams.get("path") ?? "", res, { download: url.searchParams.get("download") === "1" });
+      }
 
       // Explicit write actions (POST only). starter-sync delegates to the CLI's
       // sync semantics via the injected callback; starter-preview reuses the

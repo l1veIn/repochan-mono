@@ -229,8 +229,17 @@ await fs.writeFile(countFile, String(count));
     const res = await get(`/api/file?path=${encodeURIComponent("orders/ord-foundation-001/versions/v1/img.png")}`);
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toBe("image/png");
+    expect(res.headers.get("content-disposition")).toBeNull();
     const bytes = Buffer.from(await res.arrayBuffer());
     expect(bytes.equals(PNG_BYTES)).toBe(true);
+  });
+
+  it("GET /api/file?download=1 opts into Content-Disposition: attachment", async () => {
+    const p = encodeURIComponent("orders/ord-foundation-001/versions/v1/img.png");
+    const res = await get(`/api/file?path=${p}&download=1`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toBe("image/png");
+    expect(res.headers.get("content-disposition")).toBe(`attachment; filename="img.png"; filename*=UTF-8''${encodeURIComponent("img.png")}`);
   });
 
   it("GET /api/file rejects traversal, escapes, symlinks-adjacent tricks, and non-servable extensions", async () => {
