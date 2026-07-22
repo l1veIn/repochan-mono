@@ -11,8 +11,21 @@ export const releasePackages = Object.freeze([
   { name: "@repochan/skill", dir: "packages/skill" },
   { name: "@repochan/templates", dir: "packages/templates" },
   { name: "@repochan/starters", dir: "packages/starters" },
+  { name: "@repochan/browse", dir: "packages/browse" },
   { name: "repochan", dir: "packages/cli" },
 ]);
+
+const requiredInternalRuntimeDependencies = Object.freeze({
+  "@repochan/browse": Object.freeze(["@repochan/core"]),
+  repochan: Object.freeze([
+    "@repochan/core",
+    "@repochan/image-edit",
+    "@repochan/image-gen",
+    "@repochan/skill",
+    "@repochan/templates",
+    "@repochan/browse",
+  ]),
+});
 
 export const compatibilityDebtRoots = Object.freeze([
   "packages/core/src",
@@ -28,6 +41,55 @@ const compatibilityDebtPatterns = Object.freeze([
   { rule: "deprecated-contract", pattern: /\bdeprecated\b/i },
   { rule: "chinese-compatibility-contract", pattern: /(?:向后兼容|兼容旧|旧版|旧实例|旧格式|旧协议|旧模板|遗留|弃用|已废弃)/ },
 ]);
+
+const chromaV1Reason = "The explicit v1 option preserves byte-frozen chroma output while v2 remains the default.";
+const equalCellReason = "The explicit equal-cell path preserves its documented pixel, QA, and metadata contract.";
+const adapterReason = "The public image-edit adapter preserves stable defaults, errors, or output ordering for callers.";
+const removeCompatibilityPath = "Remove with the corresponding v1, equal-cell, or adapter contract in an explicitly versioned breaking release.";
+
+/**
+ * Closed compatibility waiver inventory. Every waiver binds one path, detector
+ * rule, and exact trimmed source line. Zero or multiple matches fail the gate,
+ * so edits cannot silently broaden or orphan a waiver.
+ */
+export const compatibilityDebtWaivers = Object.freeze([
+  ["packages/core/src/starter.test.ts", "legacy-contract", "it(\"accepts a legal hybrid config and legacy equal-cell defaults\", () => {", equalCellReason],
+  ["packages/cli/src/commands/image.ts", "legacy-contract", "/** repochan image edit chroma-key <img> [--out out.png] [--matte auto|#ff00ff] [--threshold N] [--softness N] [--spill 0.85] [--pipeline v1|v2] (default pipeline v2; v1 = legacy escape hatch) */", chromaV1Reason],
+  ["packages/cli/src/commands/image.ts", "legacy-contract", "\"Usage: repochan image edit chroma-key <img> [--out out.png] [--matte auto|#ff00ff|magenta|green|cyan] [--threshold 96] [--softness 34] [--spill 0.85] [--pipeline v1|v2] (default v2; v1 = legacy)\",", chromaV1Reason],
+  ["packages/cli/src/commands/image.ts", "legacy-contract", "const pipeline = options.pipeline ?? \"v2\"; // PR7 default; v1 = legacy escape hatch", chromaV1Reason, 1],
+  ["packages/cli/src/commands/image.ts", "legacy-contract", "const pipeline = options.pipeline ?? \"v2\"; // PR7 default; v1 = legacy escape hatch", chromaV1Reason, 2],
+  ["packages/cli/src/index.ts", "legacy-contract", ".option(\"--pipeline <v>\", \"Chroma pipeline: v2 (default) | v1 (legacy escape hatch) (image edit chroma-key/extract)\")", chromaV1Reason],
+  ["packages/image-edit/src/chroma-key.ts", "legacy-contract", "/** Chroma pipeline version. Default \"v2\" (PR7); \"v1\" is the byte-frozen legacy escape hatch. */", chromaV1Reason],
+  ["packages/image-edit/src/chroma-pipeline.ts", "legacy-contract", "// (frozen legacy escape hatch).", chromaV1Reason],
+  ["packages/image-edit/src/chroma-pipeline.ts", "legacy-contract", "// to the legacy behavior; it is reached only via explicit `pipeline: \"v1\"`.", chromaV1Reason],
+  ["packages/image-edit/src/chroma-pipeline.ts", "legacy-contract", "/** Pipeline version. Default \"v2\" (PR7); \"v1\" is the frozen legacy escape hatch. */", chromaV1Reason],
+  ["packages/image-edit/src/extract.ts", "legacy-contract", "//     invariant: explicit v1 output stays byte-identical to the legacy", chromaV1Reason],
+  ["packages/image-edit/src/extract.ts", "legacy-contract", "//     warns (legacy behavior preserved).", adapterReason],
+  ["packages/image-edit/src/extract.ts", "legacy-contract", "| \"edge_touch\" // equal-cell: seed-cell perimeter (legacy)", equalCellReason],
+  ["packages/image-edit/src/extract.ts", "legacy-contract", "/** Default \"v2\" (PR7); \"v1\" is the frozen legacy escape hatch. */", chromaV1Reason],
+  ["packages/image-edit/src/extract.ts", "legacy-contract", "/** corner = legacy auto; subject-aware = scored candidates. Default \"corner\" when matteColor is auto/omitted. */", adapterReason],
+  ["packages/image-edit/src/extract.ts", "legacy-contract", "const ML_BLOB_ALPHA_THRESHOLD = 128; // ml-blobs CC threshold (legacy; design §4)", adapterReason],
+  ["packages/image-edit/src/extract.ts", "legacy-contract", "* corner auto → warnings only (legacy behavior), never a defect here.", adapterReason],
+  ["packages/image-edit/src/extract.ts", "legacy-contract", "// ── equal-cell (Appendix C: per-cell chroma, legacy pixel path) ────────────", equalCellReason],
+  ["packages/image-edit/src/extract.ts", "legacy-contract", "// Legacy defect set and order: empty → ratio low → ratio high → edge touch.", equalCellReason],
+  ["packages/image-edit/src/extract.ts", "legacy-contract", "// Legacy PNG gate + max-dimension hard acceptance (§10).", adapterReason],
+  ["packages/image-edit/src/extract.ts", "legacy-contract", "// Reading order: top-to-bottom by row, then left-to-right by col (legacy).", adapterReason],
+  ["packages/image-edit/src/matte-grid.ts", "legacy-contract", "// legacy extractMatteGrid) is covered by a golden-hash regression test in", equalCellReason],
+  ["packages/image-edit/src/matte-grid.ts", "legacy-contract", "/** corner = legacy auto; subject-aware = scored candidates. Default \"corner\". */", adapterReason],
+  ["packages/image-edit/src/matte-grid.ts", "legacy-contract", "* Foreground bounds relative to the equal-size source cell (LEGACY for", equalCellReason],
+  ["packages/image-edit/src/matte-grid.ts", "legacy-contract", "* legacy `extractMatteGrid:` wording. This function", adapterReason],
+  ["packages/image-edit/src/matte-grid.ts", "legacy-contract", "* Map extractAssets failures back to the legacy extractMatteGrid error", adapterReason],
+  ["packages/image-edit/src/matte-select.ts", "legacy-contract", "// - \"corner\" (default): legacy corner-mode sampling via estimateMatteColor.", adapterReason],
+  ["packages/image-edit/src/matte-select.ts", "backward-compatibility", "/** Default \"corner\" for back-compat of \"auto\". */", adapterReason],
+  ["packages/image-edit/src/stickers.ts", "legacy-contract", "// Adapter contract: legacy callers expect plain Errors with the", adapterReason],
+].map(([path, rule, text, reason, occurrence = 1]) => Object.freeze({
+  path,
+  rule,
+  text,
+  occurrence,
+  reason,
+  removeWhen: removeCompatibilityPath,
+})));
 
 const releaseSurfaceDebtPatterns = Object.freeze([
   { rule: "adr-reference", pattern: /\bADR\b/ },
@@ -57,6 +119,54 @@ export function detectCompatibilityDebt(relativePath, source) {
   return findings;
 }
 
+function compatibilityFindingKey({ path: findingPath, rule, text }) {
+  return JSON.stringify([findingPath, rule, text]);
+}
+
+export function applyCompatibilityDebtWaivers(findings, waivers = compatibilityDebtWaivers) {
+  if (!Array.isArray(findings) || !Array.isArray(waivers)) {
+    throw new Error("Compatibility findings and waivers must be arrays.");
+  }
+
+  const waiverSlots = new Map();
+  for (const waiver of waivers) {
+    for (const field of ["path", "rule", "text", "reason", "removeWhen"]) {
+      if (typeof waiver?.[field] !== "string" || waiver[field].trim().length === 0) {
+        throw new Error(`Compatibility waiver ${field} must be a non-empty string.`);
+      }
+    }
+    if (!Number.isSafeInteger(waiver.occurrence) || waiver.occurrence < 1) {
+      throw new Error("Compatibility waiver occurrence must be a positive integer.");
+    }
+    const slot = `${compatibilityFindingKey(waiver)}#${waiver.occurrence}`;
+    if (waiverSlots.has(slot)) throw new Error(`Duplicate compatibility waiver: ${slot}.`);
+    waiverSlots.set(slot, { waiver, matched: false });
+  }
+
+  const occurrences = new Map();
+  const actionable = [];
+  for (const finding of findings) {
+    const key = compatibilityFindingKey(finding);
+    const occurrence = (occurrences.get(key) ?? 0) + 1;
+    occurrences.set(key, occurrence);
+    const slot = waiverSlots.get(`${key}#${occurrence}`);
+    if (slot) slot.matched = true;
+    else actionable.push(finding);
+  }
+
+  for (const { waiver, matched } of waiverSlots.values()) {
+    if (matched) continue;
+    actionable.push({
+      path: waiver.path,
+      line: 0,
+      rule: "stale-compatibility-waiver",
+      match: waiver.rule,
+      text: `Waiver no longer matches occurrence ${waiver.occurrence} of the exact source line. Reason: ${waiver.reason} Removal condition: ${waiver.removeWhen}`,
+    });
+  }
+  return actionable;
+}
+
 export async function scanCompatibilityDebt(repositoryRoot) {
   const findings = [];
   async function walk(relativeDir) {
@@ -71,7 +181,7 @@ export async function scanCompatibilityDebt(repositoryRoot) {
     }
   }
   for (const relativeRoot of compatibilityDebtRoots) await walk(relativeRoot);
-  return findings;
+  return applyCompatibilityDebtWaivers(findings);
 }
 
 export function detectReleaseSurfaceDebt(relativePath, source) {
@@ -298,19 +408,20 @@ export function validatePackedRelease(entries, workspaceManifests) {
     throw new Error("The public CLI must be the final package in the release order.");
   }
 
-  const cliDependencies = entries.at(-1).manifest.dependencies ?? {};
+  for (const [packageName, requiredDependencies] of Object.entries(requiredInternalRuntimeDependencies)) {
+    const runtimeDependencies = byName.get(packageName)?.manifest?.dependencies ?? {};
+    for (const dependency of requiredDependencies) {
+      if (!(dependency in runtimeDependencies)) {
+        throw new Error(`${packageName} is missing required runtime dependency ${dependency}.`);
+      }
+    }
+  }
+
+  const cliDependencies = byName.get("repochan").manifest.dependencies ?? {};
   // @repochan/starters is an independent publishable: the CLI downloads it on
   // demand (`repochan starter sync`) instead of bundling it as a dependency.
-  for (const { name } of releasePackages.slice(0, -1)) {
-    if (name === "@repochan/starters") {
-      if (name in cliDependencies) {
-        throw new Error(`repochan must not depend on ${name}; starters are synced on demand via \`repochan starter sync\`.`);
-      }
-      continue;
-    }
-    if (!(name in cliDependencies)) {
-      throw new Error(`repochan is missing required runtime dependency ${name}.`);
-    }
+  if ("@repochan/starters" in cliDependencies) {
+    throw new Error("repochan must not depend on @repochan/starters; starters are synced on demand via `repochan starter sync`.");
   }
 
   return {

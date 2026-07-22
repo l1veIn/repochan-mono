@@ -18,6 +18,7 @@ vi.mock("../image-configure.js", () => ({
 }));
 
 import { runSetup } from "./index.js";
+import { cliVersion } from "../../lib/register.js";
 
 async function missing(filePath: string): Promise<void> {
   await expect(access(filePath)).rejects.toThrow();
@@ -131,7 +132,7 @@ describe("multi-target project setup preflight", () => {
     expect(await readFile(userSkill, "utf8")).not.toBe("# User-owned\n");
     expect(await readFile(customSkill, "utf8")).toBe("# Keep me\n");
     expect(await readFile(path.join(root, ".codex", "skills", ".repochan-version"), "utf8"))
-      .toContain("0.3.0");
+      .toContain(cliVersion());
 
     await writeFile(userSkill, "# Stale installed copy\n");
     await runSetup(root, { project: true, yes: true, json: true, agent: "codex" });

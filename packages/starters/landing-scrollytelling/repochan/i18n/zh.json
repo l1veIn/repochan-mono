@@ -129,7 +129,7 @@
       "termBar": "your-repo — zsh",
       "lines": [
         { "cls": "cmd", "html": "$ npm install -g repochan" },
-        { "cls": "cmd", "html": "$ cd your-repo &amp;&amp; repochan init" },
+        { "cls": "cmd", "html": "$ cd your-repo &amp;&amp; repochan setup" },
         { "cls": "ok", "html": "✔ .repochan/ 协议目录就绪 — 剩下的交给 agent skills" },
         { "cls": "str", "html": "→ analysis → interview → persona → orders → painter → page" },
         { "cls": "dim", "html": "# 没感觉，画不了。有感觉，挡不住。" }

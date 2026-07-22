@@ -1,6 +1,6 @@
 {
   "name": "@repochan/image-gen",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Image generation library for RepoChan — prompt→PNG via OpenAI-compatible endpoints (sync + optional async queue). Credentials self-managed, no .repochan/ protocol writes.",
   "type": "module",
   "license": "MIT",

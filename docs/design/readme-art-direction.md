@@ -322,7 +322,7 @@ Phase 1.1：替换为 `pipeline.svg`（六节点 + 三 pause 标记），节点�
 | `assets/readme/**` | 新建导出资产 |
 | `README.md` | 按本方案重排 |
 | `README_zh.md` | 同构 |
-| `docs/design/readme-art-direction.md` | 本文；实现后可标「已落地」并记 commit |
+| `docs/design/readme-art-direction.md` | 本文；保留为已实现 README 视觉方向的设计记录 |
 
 不修改 `packages/skill` 业务协议；README 艺术化与 `.repochan` 协议解耦。
 

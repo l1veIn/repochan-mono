@@ -39,6 +39,7 @@ if (sourceRefFlag >= 0 && (!sourceRef || sourceRef.startsWith("--"))) {
 }
 const commandTimeout = releaseCommandTimeout();
 const canonicalTemplateIds = Object.freeze([
+  "official/badge-grid-3x3",
   "official/character-cutout",
   "official/chibi-grid-3x3",
   "official/chibi-grid-4x4",
@@ -49,6 +50,7 @@ const canonicalTemplateIds = Object.freeze([
   "official/icon-grid-3x3",
   "official/icon-single",
   "official/iconfont-grid-4x4",
+  "official/item-prop-grid-3x3",
   "official/pattern-tile",
   "official/poster",
   "official/poster-constructivist",
@@ -57,11 +59,34 @@ const canonicalTemplateIds = Object.freeze([
   "official/poster-risograph-pop",
   "official/poster-scene",
   "official/readme-banner-21x9",
+  "official/section-character-migrate-localize",
   "official/section-design",
   "official/three-view",
+  "official/web-state-grid-2x2",
   "official/web-state-grid-3x3",
 ]);
-const canonicalStarterIds = Object.freeze(["caddy", "marktext", "minimal", "redis"]);
+const canonicalStarterIds = Object.freeze([
+  "caddy",
+  "character-game-page",
+  "landing-anti-design",
+  "landing-cinema-credits",
+  "landing-constructivist",
+  "landing-frutiger-aero",
+  "landing-glitch-os",
+  "landing-memphis",
+  "landing-museum",
+  "landing-neobrutal-zine",
+  "landing-scrollytelling",
+  "landing-solarpunk",
+  "landing-swiss-type",
+  "landing-toy-city",
+  "landing-wireframe-morph",
+  "marktext",
+  "minimal",
+  "redis",
+  "repochan-harbor",
+  "sealed-scroll",
+]);
 const canonicalDefaultStarter = "minimal";
 const temporaryRoot = mkdtempSync(path.join(os.tmpdir(), "repochan-release-preflight-"));
 const sourceRoot = path.join(temporaryRoot, "source");
@@ -189,6 +214,7 @@ async function prepareFreshSource() {
   const forbidden = [
     "node_modules",
     "packages/core/dist",
+    "packages/browse/dist",
     "packages/image-edit/dist",
     "packages/image-gen/dist",
     "packages/cli/dist",
@@ -197,7 +223,7 @@ async function prepareFreshSource() {
     if (existsSync(path.join(sourceRoot, relative))) throw new Error(`Fresh release source unexpectedly contains ${relative}.`);
   }
   run("pnpm", ["install", "--frozen-lockfile"], { cwd: sourceRoot });
-  for (const compiledPackage of ["@repochan/core", "@repochan/image-edit", "@repochan/image-gen", "repochan"]) {
+  for (const compiledPackage of ["@repochan/core", "@repochan/image-edit", "@repochan/image-gen", "@repochan/browse", "repochan"]) {
     run("pnpm", ["--filter", compiledPackage, "build"], { cwd: sourceRoot });
   }
   for (const relative of forbidden.slice(1)) {
@@ -468,10 +494,22 @@ async function candidateFreshInstallSmoke(entries) {
     throw new Error("Fresh-install template get did not return the complete foundation-sheet contract.");
   }
 
-  const starterSync = parseJsonOutput(
-    run(process.execPath, [cliEntry, "starter", "sync", "--json"], { cwd: hostProject, env: isolatedEnv, replaceEnv: true }),
-    "fresh-install starter sync",
-  );
+  // Re-open the candidate registry for on-demand Starter sync. The CLI itself
+  // was installed from a tarball, and closing/clearing this registry before
+  // sync would silently resolve npm's public `latest` instead of the retained
+  // candidate whenever their versions differ.
+  const starterRegistry = await startScopedRegistry(entries);
+  await fs.writeFile(userConfig, `@repochan:registry=${starterRegistry.registry}\n`, "utf8");
+  let starterSync;
+  try {
+    starterSync = parseJsonOutput(
+      await runAsync(process.execPath, [cliEntry, "starter", "sync", "--json"], { cwd: hostProject, env: isolatedEnv, replaceEnv: true }),
+      "fresh-install starter sync",
+    );
+  } finally {
+    await starterRegistry.close();
+    await fs.writeFile(userConfig, "", "utf8");
+  }
   const startersEntry = entries.find((entry) => entry.manifest.name === "@repochan/starters");
   if (starterSync.version !== startersEntry.manifest.version) {
     throw new Error(`Fresh-install starter sync resolved ${starterSync.version ?? "no version"}; expected ${startersEntry.manifest.version}.`);

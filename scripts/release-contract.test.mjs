@@ -6,6 +6,7 @@ import path from "node:path";
 import test from "node:test";
 import * as tar from "tar";
 import {
+  applyCompatibilityDebtWaivers,
   compareExtractedPackages,
   createGitWorktreeSnapshot,
   detectCompatibilityDebt,
@@ -35,15 +36,17 @@ function validEntries() {
       version: versions.get(name),
       license: "MIT",
       publishConfig: { access: "public", registry: "https://registry.npmjs.org/" },
-      dependencies: name === "repochan"
-        ? Object.fromEntries(releasePackages.slice(0, -1).filter(({ name: dependency }) => dependency !== "@repochan/starters").map(({ name: dependency }) => [dependency, versions.get(dependency)]))
-        : {},
+      dependencies: name === "@repochan/browse"
+        ? { "@repochan/core": versions.get("@repochan/core") }
+        : name === "repochan"
+          ? Object.fromEntries(releasePackages.slice(0, -1).filter(({ name: dependency }) => dependency !== "@repochan/starters").map(({ name: dependency }) => [dependency, versions.get(dependency)]))
+          : {},
     },
     files: [{ path: "LICENSE" }, { path: "README.md" }],
   }));
 }
 
-test("accepts a complete leaf-first packed release set", () => {
+test("accepts a complete dependency-first packed release set with leaves before browse and CLI", () => {
   assert.deepEqual(validatePackedRelease(validEntries(), validInventory()).order, [
     "@repochan/core@0.1.0",
     "@repochan/image-edit@0.1.1",
@@ -51,8 +54,30 @@ test("accepts a complete leaf-first packed release set", () => {
     "@repochan/skill@0.1.3",
     "@repochan/templates@0.1.4",
     "@repochan/starters@0.1.5",
-    "repochan@0.1.6",
+    "@repochan/browse@0.1.6",
+    "repochan@0.1.7",
   ]);
+});
+
+test("compatibility waivers are exact, auditable, and stale-safe", () => {
+  const waiver = {
+    path: "packages/image-edit/src/chroma.ts",
+    rule: "legacy-contract",
+    text: "// v1 legacy output is byte-frozen",
+    occurrence: 1,
+    reason: "The explicit v1 output is a supported contract.",
+    removeWhen: "Remove when v1 is removed in a breaking release.",
+  };
+  const finding = { ...waiver, line: 10, match: "legacy" };
+  assert.deepEqual(applyCompatibilityDebtWaivers([finding], [waiver]), []);
+
+  const newDebt = { ...finding, line: 11, text: "// another legacy branch" };
+  assert.deepEqual(applyCompatibilityDebtWaivers([finding, newDebt], [waiver]), [newDebt]);
+
+  const stale = applyCompatibilityDebtWaivers([], [waiver]);
+  assert.equal(stale.length, 1);
+  assert.equal(stale[0].rule, "stale-compatibility-waiver");
+  assert.match(stale[0].text, /no longer matches/);
 });
 
 test("compatibility debt gate is precise about current contracts", () => {
@@ -114,6 +139,14 @@ test("rejects publishing the CLI before one of its leaves", () => {
   assert.throws(() => validatePackedRelease(entries, validInventory()), /must precede dependent package/);
 });
 
+test("rejects publishing browse before core", () => {
+  const entries = validEntries();
+  const browseIndex = entries.findIndex(({ manifest }) => manifest.name === "@repochan/browse");
+  const [browse] = entries.splice(browseIndex, 1);
+  entries.unshift(browse);
+  assert.throws(() => validatePackedRelease(entries, validInventory()), /@repochan\/core must precede dependent package @repochan\/browse/);
+});
+
 test("rejects an incomplete release set", () => {
   assert.throws(() => validatePackedRelease(validEntries().slice(1), validInventory()), /Missing: @repochan\/core/);
 });
@@ -122,6 +155,13 @@ test("rejects a CLI missing a required internal runtime dependency", () => {
   const entries = validEntries();
   delete entries.at(-1).manifest.dependencies["@repochan/core"];
   assert.throws(() => validatePackedRelease(entries, validInventory()), /missing required runtime dependency @repochan\/core/);
+});
+
+test("rejects browse without its core runtime dependency", () => {
+  const entries = validEntries();
+  const browse = entries.find(({ manifest }) => manifest.name === "@repochan/browse");
+  delete browse.manifest.dependencies["@repochan/core"];
+  assert.throws(() => validatePackedRelease(entries, validInventory()), /@repochan\/browse is missing required runtime dependency @repochan\/core/);
 });
 
 test("rejects public workspace inventory drift", () => {

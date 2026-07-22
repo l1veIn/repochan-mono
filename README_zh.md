@@ -14,7 +14,7 @@
 角色设定集、图标、贴纸、海报、落地页——由*你自己的* coding agent 驱动。
 
 <p align="center">
-<img src="docs/readme-variants/museum/assets/icon.png" alt="RepoChan 图标" width="30">
+<img src="docs/readme-variants/museum/assets/icon.png" alt="RepoChan 图标" width="100">
 </p>
 
 <p align="center">
@@ -53,7 +53,7 @@ npm install -g repochan && repochan setup          # 把 skill 装进你的 agen
 
 ```bash
 pnpm install
-pnpm -r build                 # 构建 core、image-gen、image-edit、cli
+pnpm -r build                 # 构建全部 workspace 包与 Starter
 pnpm --filter repochan exec node dist/index.js setup
 pnpm test                     # 全量 monorepo 测试
 ```
@@ -130,6 +130,7 @@ pnpm test                     # 全量 monorepo 测试
 | [`docs/releasing.md`](docs/releasing.md) | 叶子优先的发布合同 |
 | [`packages/skill/`](./packages/skill/) | skill 清单（向导 + 团队角色） |
 | [`packages/core/`](./packages/core/) | 协议、schema、业务规则 |
+| [`packages/browse/`](./packages/browse/) | 本地协议浏览器与 Starter 预览服务 |
 | [`packages/starters/`](./packages/starters/) | 落地页 starter 目录 |
 
 ---

@@ -25,7 +25,7 @@ RepoChan 给 agent 提供一套**交付拓扑**：每个角色的工作目标不
 
 ### 一句话定位
 
-> **core 守约束，skill 出思路，cli（唯一 bin）把 core 操作暴露成子命令；image-gen / image-edit / templates 是 cli 调用的库包；agent 由用户自带。无内嵌运行时，每个包一眼能懂。**
+> **core 守约束，skill 出思路，cli（唯一 bin）把确定性能力暴露成子命令；image-gen / image-edit / templates / browse 是 cli 调用的库包；agent 由用户自带。无内嵌运行时，每个包一眼能懂。**
 
 ---
 
@@ -133,7 +133,7 @@ RepoChan 给 agent 提供一套**交付拓扑**：每个角色的工作目标不
 
 ### 5. CLI 绑定面 — 唯一入口
 
-**职责**：把 core / image-gen / image-edit / templates 的能力暴露成 shell 可调用的子命令；把 skill 分发给各 agent。
+**职责**：把 core / image-gen / image-edit / templates / browse 的能力暴露成 shell 可调用的子命令；把 skill 分发给各 agent。
 
 - 入口：`packages/cli`，bin 名 `repochan`。
 - **CLI 没有大脑**：不内嵌 agent runtime，不跑模型循环，不做创作判断。
@@ -192,6 +192,7 @@ packages/
 ├── image-gen    @repochan/image-gen    库：prompt → PNG（AI SDK，OpenAI-compatible endpoint）。自管凭证。
 ├── image-edit   @repochan/image-edit   库：切图 / 抠图 / GIF。零凭证、纯本地。
 ├── templates    @repochan/templates    纯数据：内置资产 YAML 模板。
+├── browse       @repochan/browse       本地协议 viewer 与 Starter 预览服务；协议读取走 core。
 └── starters     @repochan/starters     纯数据：落地页 starter（完整 Astro/Tailwind 脚手架目录）。
 
 > 落地页 Starter 位于 `packages/starters/`；每个目录保留原项目的完整成品、desktop/mobile 预览与 Transfer Kit。`minimal` 是默认的 Hero-only Starter。
@@ -205,7 +206,8 @@ cli ──┬──> core
       ├──> skill          # setup 时拷贝 skill 资源
       ├──> image-gen      # repochan image gen / configure
       ├──> image-edit     # repochan image edit …
-      └──> templates      # repochan template list|get
+      ├──> templates      # repochan template list|get
+      └──> browse ───────> core  # repochan browse / starter preview
 
 starters      独立发布物：CLI 不再依赖它；`repochan starter sync` 按需下载到
               ~/.repochan/starters/，解析顺序 --from > REPOCHAN_STARTERS_DIR > 缓存 > 内嵌包（dev）
@@ -215,6 +217,7 @@ image-edit    叶子：不写 .repochan/，不知协议
 templates     叶子：纯 YAML
 starters      叶子：纯 scaffold 数据（Astro 项目目录 + repochan/starter.json）
 skill         叶子：纯 markdown
+browse        非叶子库：只依赖 core；必须在 core 之后、CLI 之前发布
 ```
 
 ### 各包职责边界
@@ -227,6 +230,7 @@ skill         叶子：纯 markdown
 | `image-gen` | 调图像 endpoint、管理 `~/.repochan/image.json` | 写协议目录、知道 order/persona |
 | `image-edit` | 切图 / 抠图 / 组 GIF | 联网、持凭证、写协议目录 |
 | `templates` | 提供官方 YAML 模板文件 | 含代码或 agent 指令 |
+| `browse` | 经 core 读取协议、提供本地 viewer 与 Starter 预览服务 | 定义平行协议、嵌入 agent runtime、直接拥有 Starter sync 语义 |
 
 ## 五、绑定模型：agent × skill × CLI
 
