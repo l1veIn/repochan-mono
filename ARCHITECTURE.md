@@ -64,6 +64,7 @@ RepoChan 给 agent 提供一套**交付拓扑**：每个角色的工作目标不
   packages/image-gen/   prompt → PNG（带凭证，AI SDK）
   packages/image-edit/  切图 / 抠图 / GIF（零凭证，纯本地）
   packages/templates/   资产 YAML 模板（纯数据）
+  packages/browse/      本地只读协议 viewer（SPA + 127.0.0.1 薄服务，读盘走 core）
 ```
 
 ### 1. Schema 层 — 交付物的「形状契约」

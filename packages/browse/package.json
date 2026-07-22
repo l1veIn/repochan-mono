@@ -1,0 +1,58 @@
+{
+  "name": "@repochan/browse",
+  "version": "0.1.0",
+  "description": "Local read-only protocol viewer for .repochan/: HTTP API + SPA (orders, persona, versions, references canvas).",
+  "type": "module",
+  "license": "MIT",
+  "author": "l1veIn",
+  "homepage": "https://github.com/l1veIn/repochan-mono/tree/main/packages/browse",
+  "bugs": {
+    "url": "https://github.com/l1veIn/repochan-mono/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/l1veIn/repochan-mono.git",
+    "directory": "packages/browse"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "main": "./dist/server/index.js",
+  "types": "./dist/server/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "package.json"
+  ],
+  "dependencies": {
+    "@dagrejs/dagre": "^1.1.4",
+    "@repochan/core": "workspace:*",
+    "@xyflow/react": "^12.3.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.9.3",
+    "vite": "^6.3.5",
+    "vitest": "^2.1.9"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && vite build && tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build",
+    "test": "vitest run",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  }
+}
