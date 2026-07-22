@@ -20,14 +20,16 @@ description: >
 ```bash
 repochan analysis get --json
 repochan persona get --json
+repochan starter sync          # starters 未同步到本地缓存时必须先跑（fresh install 后首次使用）
 repochan starter list
 repochan starter get <id> --json
+repochan starter preview <id>  # 构建并在浏览器里直接预览候选 starter 的真实页面
 repochan starter pull --starter <id>
 ```
 
-先看 desktop/mobile 预览、标签和完整成品，再判断其 section 容量、内容结构和视觉关系是否适合当前项目。必要时 pull 后运行并检查源码；直接以成品为准。如果需要改设计才能适配，换 Starter 或转 Web Designer。
+starters 不随 CLI 捆绑：`starter list` 显示 none 或提示 sync 时先 `repochan starter sync`（下载到 `~/.repochan/starters/` 缓存；之后全部本地可用）。选 starter 时不要只看静态预览图——用 `repochan starter preview <id>` 把候选站点真实构建出来走一遍（桌面/移动、locale 切换），判断其 section 容量、内容结构和视觉关系是否适合当前项目。必要时 pull 后运行并检查源码；直接以成品为准。如果需要改设计才能适配，换 Starter 或转 Web Designer。
 
-也可以消费创作者提供的可信本地 Starter：
+也可以消费创作者提供的可信本地 Starter（`--from` 路径不经过 sync 缓存）：
 
 ```bash
 repochan starter pull --from <creator-starter-dir>

@@ -33,6 +33,8 @@ description: >
 
 逐个订单执行：读取订单 → 解析引用 → 组装 prompt → `repochan image gen` → `repochan order create-result` → 下一个。
 
+**可视化检查（`repochan browse`）**：交付一个结果后或需要对比版本时，可用 `repochan browse` 打开本地协议浏览器——Orders 网格看全部订单封面、Order 详情看版本时间线与 A/B 对比、Persona 卡核对角色设定、derived 视图看派生审计。它比逐张打开文件快，且能让你在重生决策前确认「上一版到底长什么样」。它只读，不会改协议状态。
+
 开始实际生成前，将当前订单显式切换到 `in_progress`；通过 QA 的结果由 `create-result` 标记为 `delivered`。不要让订单在远端生成期间仍显示为 `approved`。
 
 ## 执行前检查
