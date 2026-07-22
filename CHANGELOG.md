@@ -4,6 +4,49 @@ This changelog records coordinated public package sets.
 
 ## Unreleased
 
+### Lightweight default CLI and explicit image ML capability
+
+- `@repochan/image-edit` now depends directly on pinned `sharp@0.32.6` for
+  deterministic offline pixel work; the large IMG.LY/ONNX runtime is no longer
+  part of the default CLI dependency closure.
+- `repochan image edit ml status|install` manages the pinned optional runtime
+  under `~/.repochan/capabilities/image-ml/`. Installation is explicit,
+  progress is visible, publication is atomic, and bundled models are verified
+  before the cache becomes current.
+- ML commands and `starter asset-apply` return an actionable
+  `REPOCHAN_IMAGE_ML_MISSING` envelope with the exact install command. Page and
+  Web Designer agents may install once and retry; Painter remains responsible
+  only for original images.
+- Release smoke rejects `@imgly/background-removal-node` or
+  `onnxruntime-node` in a fresh default install and verifies that ML status
+  points to the explicit installer.
+
+## 2026-07-22 — `repochan` v0.4.0 package set
+
+This release publishes the current CLI, local protocol browser, libraries,
+skills, templates, and Starters as one dependency-closed eight-package set.
+The seven existing npm package names move to unclaimed versions, and
+`@repochan/browse` enters the set as a first release. Because this 0.x release
+adds public capabilities and changes protocol or workflow contracts across each
+existing package, the affected release lines advance by one minor version rather
+than reusing immutable npm versions or presenting the changes as patches.
+
+| Package | Version | Role in this set |
+| --- | --- | --- |
+| `@repochan/core` | `0.3.0` | Protocol and deterministic rules for derived audit history, `genSize`, inter-asset references, and browser reads. |
+| `@repochan/image-edit` | `0.3.0` | Chroma extraction v2, structured extraction, iconfont output, and new default behavior. |
+| `@repochan/image-gen` | `0.3.0` | Codex authentication and native Responses image transport alongside existing endpoint routing. |
+| `@repochan/skill` | `0.3.0` | Updated wizard, Painter, Page Designer, Web Designer, and browser-assisted workflow contracts. |
+| `@repochan/templates` | `0.3.0` | Expanded grid/icon templates and revised generation and postprocess contracts. |
+| `@repochan/starters` | `0.2.0` | Expanded, localized Source Starter catalog with concentrated Transfer Kits and auditable asset assembly. |
+| `@repochan/browse` | `0.1.0` | First release of the local read-only protocol viewer and Starter preview service. |
+| `repochan` | `0.4.0` | Sole CLI binding surface, now including browse, channel-selectable Starter sync, preview, extraction, and derived-archive commands. |
+
+Release verification uses a fresh-source, registry-aware preflight, explicit
+public npm metadata, MIT license payloads, finite command timeouts, and tarball
+checks that reject compiled test artifacts. Its isolated smoke installs the
+release into an empty project.
+
 ### 清晰度机制（genSize）与 web-designer 微调
 
 - Cutout 资产分类学：通用 cutout 必须完整入画（四边留白、肢体完整）；
@@ -163,29 +206,3 @@ This changelog records coordinated public package sets.
 - `repochan image configure --provider codex` (and the interactive "Codex
   (ChatGPT login)" choice) validates `~/.codex/auth.json` is readable before
   writing the endpoint.
-
-## 2026-07-22 release candidate
-
-This candidate publishes the current CLI, local protocol browser, libraries,
-skills, templates, and Starters as one dependency-closed eight-package set. The
-seven existing npm package names move to unclaimed versions, and
-`@repochan/browse` enters the set as a first release. Because this 0.x candidate
-adds public capabilities and changes protocol or workflow contracts across each
-existing package, the affected release lines advance by one minor version rather
-than reusing immutable npm versions or presenting the changes as patches.
-
-| Package | Candidate | Role in this set |
-| --- | --- | --- |
-| `@repochan/core` | `0.3.0` | Protocol and deterministic rules for derived audit history, `genSize`, inter-asset references, and browser reads. |
-| `@repochan/image-edit` | `0.3.0` | Chroma extraction v2, structured extraction, iconfont output, and new default behavior. |
-| `@repochan/image-gen` | `0.3.0` | Codex authentication and native Responses image transport alongside existing endpoint routing. |
-| `@repochan/skill` | `0.3.0` | Updated wizard, Painter, Page Designer, Web Designer, and browser-assisted workflow contracts. |
-| `@repochan/templates` | `0.3.0` | Expanded grid/icon templates and revised generation and postprocess contracts. |
-| `@repochan/starters` | `0.2.0` | Expanded, localized Source Starter catalog with concentrated Transfer Kits and auditable asset assembly. |
-| `@repochan/browse` | `0.1.0` | First release of the local read-only protocol viewer and Starter preview service. |
-| `repochan` | `0.4.0` | Sole CLI binding surface, now including browse, channel-selectable Starter sync, preview, extraction, and derived-archive commands. |
-
-Release verification uses a fresh-source, registry-aware preflight, explicit
-public npm metadata, MIT license payloads, finite command timeouts, and tarball
-checks that reject compiled test artifacts. Its isolated smoke installs the
-candidate into an empty project.
