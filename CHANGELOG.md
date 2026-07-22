@@ -183,7 +183,7 @@ than reusing immutable npm versions or presenting the changes as patches.
 | `@repochan/templates` | `0.3.0` | Expanded grid/icon templates and revised generation and postprocess contracts. |
 | `@repochan/starters` | `0.2.0` | Expanded, localized Source Starter catalog with concentrated Transfer Kits and auditable asset assembly. |
 | `@repochan/browse` | `0.1.0` | First release of the local read-only protocol viewer and Starter preview service. |
-| `repochan` | `0.4.0` | Sole CLI binding surface, now including browse, Starter sync/preview, extraction, and derived-archive commands. |
+| `repochan` | `0.4.0` | Sole CLI binding surface, now including browse, channel-selectable Starter sync, preview, extraction, and derived-archive commands. |
 
 Release verification uses a fresh-source, registry-aware preflight, explicit
 public npm metadata, MIT license payloads, finite command timeouts, and tarball

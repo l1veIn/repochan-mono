@@ -201,7 +201,13 @@ printf 'registry=https://registry.npmjs.org/\n' > "$SMOKE_ROOT/npmrc"
   node "$CLI" status --json
   node "$CLI" init --json
   node "$CLI" setup --agent codex --project --json
-  node "$CLI" starter sync --json
+  STARTERS_VERSION=... # exact staged version from the retained report
+  STARTER_SYNC_JSON="$(node "$CLI" starter sync --channel next --json)"
+  printf '%s\n' "$STARTER_SYNC_JSON"
+  node -e '
+    const actual = JSON.parse(process.argv[1]).version;
+    if (actual !== process.argv[2]) throw new Error(`next Starter mismatch: ${actual} != ${process.argv[2]}`);
+  ' "$STARTER_SYNC_JSON" "$STARTERS_VERSION"
   node "$CLI" starter list --json
   node "$CLI" starter pull --starter minimal --output-dir site --json
   node "$CLI" starter validate --output-dir site --json

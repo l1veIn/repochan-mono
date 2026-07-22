@@ -17,6 +17,8 @@ const DEFAULT_REGISTRY = "https://registry.npmjs.org";
 
 export type StarterSyncOptions = OutputOptions & {
   force?: boolean;
+  /** npm dist-tag to sync. Defaults to `latest`; release staging uses `next`. */
+  channel?: string;
 };
 
 /**
@@ -25,8 +27,8 @@ export type StarterSyncOptions = OutputOptions & {
  */
 export type StarterSyncDeps = {
   homeDir?: string;
-  /** Resolve the @repochan/starters version to sync (default: npm dist-tag `latest`). */
-  resolveLatest?: () => Promise<string>;
+  /** Resolve the @repochan/starters version for the requested npm dist-tag. */
+  resolveLatest?: (channel: string) => Promise<string>;
   /** Download the package tarball for `version` into `destDir`; returns the tarball path. */
   download?: (version: string, destDir: string) => Promise<string>;
 };
@@ -47,14 +49,22 @@ function syncFailure(error: unknown): Error {
 // mirrors, auth). A plain-https registry fetch is the fallback for minimal
 // environments without an npm binary on PATH. Both avoid new dependencies.
 
-async function defaultResolveLatest(): Promise<string> {
+function normalizeChannel(value: string | undefined): string {
+  const channel = value ?? "latest";
+  if (!/^[a-z][a-z0-9._-]{0,63}$/i.test(channel)) {
+    throw new Error("starter sync --channel must be a simple npm dist-tag such as latest, next, or beta.");
+  }
+  return channel;
+}
+
+async function defaultResolveLatest(channel: string): Promise<string> {
   try {
-    const { stdout } = await execFileAsync("npm", ["view", `${STARTERS_PACKAGE}@latest`, "version"]);
+    const { stdout } = await execFileAsync("npm", ["view", `${STARTERS_PACKAGE}@${channel}`, "version"]);
     const version = stdout.trim().split(/\r?\n/).pop()?.trim();
     if (!version) throw new Error("npm returned an empty version.");
     return version;
   } catch (error) {
-    if (isCommandMissing(error)) return httpsResolveLatest();
+    if (isCommandMissing(error)) return httpsResolveLatest(channel);
     throw syncFailure(error);
   }
 }
@@ -81,11 +91,17 @@ async function fetchJson(url: string): Promise<any> {
   return response.json();
 }
 
-async function httpsResolveLatest(): Promise<string> {
-  const packument = await fetchJson(`${fallbackRegistry()}/${STARTERS_PACKAGE.replace("/", "%2F")}`);
-  const version = packument?.["dist-tags"]?.latest;
-  if (typeof version !== "string" || !version) throw syncFailure(new Error("registry packument has no dist-tags.latest."));
+export function resolveStarterChannelFromPackument(packument: any, channel: string): string {
+  const version = packument?.["dist-tags"]?.[channel];
+  if (typeof version !== "string" || !version) {
+    throw syncFailure(new Error(`registry packument has no dist-tags.${channel}.`));
+  }
   return version;
+}
+
+async function httpsResolveLatest(channel: string): Promise<string> {
+  const packument = await fetchJson(`${fallbackRegistry()}/${STARTERS_PACKAGE.replace("/", "%2F")}`);
+  return resolveStarterChannelFromPackument(packument, channel);
 }
 
 async function httpsDownload(version: string, destDir: string): Promise<string> {
@@ -133,16 +149,18 @@ async function publishCache(staging: string, cacheDir: string): Promise<void> {
 
 export async function runStarterSync(_cwd: string, options: StarterSyncOptions, deps: StarterSyncDeps = {}) {
   const cacheDir = getStartersCacheDir(deps.homeDir);
+  const channel = normalizeChannel(options.channel);
   const resolveLatest = deps.resolveLatest ?? defaultResolveLatest;
   const download = deps.download ?? defaultDownload;
 
-  const latest = await resolveLatest();
+  const version = await resolveLatest(channel);
   const cached = await readCachedStartersVersion(cacheDir);
-  if (!options.force && cached === latest) {
-    return emitResult(options, `Starters already up to date (cached@${latest}).`, {
+  if (!options.force && cached === version) {
+    return emitResult(options, `Starters already up to date (cached@${version}).`, {
       ok: true,
       package: STARTERS_PACKAGE,
-      version: latest,
+      channel,
+      version,
       cacheDir,
       updated: false,
     });
@@ -150,7 +168,7 @@ export async function runStarterSync(_cwd: string, options: StarterSyncOptions, 
 
   const workRoot = await fs.mkdtemp(path.join(os.tmpdir(), "repochan-starters-sync-"));
   try {
-    const tarball = await download(latest, workRoot);
+    const tarball = await download(version, workRoot);
     const extracted = path.join(workRoot, "extracted");
     await extractTarball(tarball, extracted);
     const packageRoot = path.join(extracted, "package");
@@ -160,16 +178,17 @@ export async function runStarterSync(_cwd: string, options: StarterSyncOptions, 
     // Flatten the package contents: ~/.repochan/starters/<starter-id>/...
     const staging = path.join(workRoot, "staging");
     await fs.cp(packageRoot, staging, { recursive: true });
-    await fs.writeFile(path.join(staging, STARTERS_CACHE_VERSION_FILE), `${latest}\n`);
+    await fs.writeFile(path.join(staging, STARTERS_CACHE_VERSION_FILE), `${version}\n`);
     await publishCache(staging, cacheDir);
   } finally {
     await fs.rm(workRoot, { recursive: true, force: true });
   }
 
-  return emitResult(options, `Synced ${STARTERS_PACKAGE}@${latest} → ${cacheDir}`, {
+  return emitResult(options, `Synced ${STARTERS_PACKAGE}@${version} → ${cacheDir}`, {
     ok: true,
     package: STARTERS_PACKAGE,
-    version: latest,
+    channel,
+    version,
     cacheDir,
     updated: true,
   });
