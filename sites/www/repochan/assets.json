@@ -1,0 +1,141 @@
+{
+  "schemaVersion": "repochan.starter-assets.v1",
+  "assets": {
+    "opening-portrait": {
+      "kind": "scalar",
+      "src": "/assets/opening-portrait.webp",
+      "status": "source",
+      "orderId": "ord-cutout-001",
+      "versionId": "v2026-07-21T04-49-19-959Z"
+    },
+    "exhibit-cutout": {
+      "kind": "scalar",
+      "src": "/assets/cutout-wave.webp",
+      "status": "source",
+      "orderId": "ord-cutout-001",
+      "versionId": "v2026-07-21T04-49-19-959Z"
+    },
+    "exhibit-foundation": {
+      "kind": "scalar",
+      "src": "/assets/exhibits/foundation-sheet.jpg",
+      "status": "source",
+      "orderId": "ord-foundation-001",
+      "versionId": "v2026-07-19T13-53-01-958Z"
+    },
+    "exhibit-poster-riso": {
+      "kind": "scalar",
+      "src": "/assets/exhibits/poster-riso.jpg",
+      "status": "source",
+      "orderId": "ord-poster-001",
+      "versionId": "v2026-07-19T14-02-18-266Z"
+    },
+    "exhibit-poster-memphis": {
+      "kind": "scalar",
+      "src": "/assets/exhibits/poster-memphis.webp",
+      "status": "source",
+      "orderId": "ord-poster-memphis-001",
+      "versionId": "v2026-07-21T05-08-14-741Z"
+    },
+    "exhibit-pattern": {
+      "kind": "scalar",
+      "src": "/assets/exhibits/pattern-tile.jpg",
+      "status": "source",
+      "orderId": "ord-pattern-001",
+      "versionId": "v2026-07-19T14-06-56-300Z"
+    },
+    "icon": {
+      "kind": "scalar",
+      "src": "/assets/icon.webp",
+      "status": "source",
+      "orderId": "ord-icon-001"
+    },
+    "stickers": {
+      "kind": "bundle",
+      "status": "source",
+      "items": {
+        "welcome": {
+          "src": "/assets/stickers/sticker-0.webp",
+          "status": "source"
+        },
+        "searching": {
+          "src": "/assets/stickers/sticker-1.webp",
+          "status": "source"
+        },
+        "loading": {
+          "src": "/assets/stickers/sticker-2.webp",
+          "status": "source"
+        },
+        "empty": {
+          "src": "/assets/stickers/sticker-3.webp",
+          "status": "source"
+        },
+        "error": {
+          "src": "/assets/stickers/sticker-4.webp",
+          "status": "source"
+        },
+        "success": {
+          "src": "/assets/stickers/sticker-5.webp",
+          "status": "source"
+        },
+        "not-found": {
+          "src": "/assets/stickers/sticker-6.webp",
+          "status": "source"
+        },
+        "cta": {
+          "src": "/assets/stickers/sticker-7.webp",
+          "status": "source"
+        },
+        "cozy": {
+          "src": "/assets/stickers/sticker-8.webp",
+          "status": "source"
+        }
+      },
+      "orderId": "ord-sticker-001",
+      "versionId": "v2026-07-21T04-07-06-015Z"
+    },
+    "webstates": {
+      "kind": "bundle",
+      "status": "source",
+      "items": {
+        "welcome": {
+          "src": "/assets/webstates/state-0.webp",
+          "status": "source"
+        },
+        "searching": {
+          "src": "/assets/webstates/state-1.webp",
+          "status": "source"
+        },
+        "loading": {
+          "src": "/assets/webstates/state-2.webp",
+          "status": "source"
+        },
+        "empty": {
+          "src": "/assets/webstates/state-3.webp",
+          "status": "source"
+        },
+        "error": {
+          "src": "/assets/webstates/state-4.webp",
+          "status": "source"
+        },
+        "success": {
+          "src": "/assets/webstates/state-5.webp",
+          "status": "source"
+        },
+        "not-found": {
+          "src": "/assets/webstates/state-6.webp",
+          "status": "source"
+        },
+        "cta": {
+          "src": "/assets/webstates/state-7.webp",
+          "status": "source"
+        },
+        "cozy": {
+          "src": "/assets/webstates/state-8.webp",
+          "status": "source"
+        }
+      },
+      "orderId": "ord-webstates-001",
+      "versionId": "v2026-07-21T04-07-05-763Z"
+    }
+  }
+}

@@ -1,0 +1,108 @@
+---
+import { assets } from "../lib/site";
+import Exhibit from "./Exhibit.astro";
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["galleryC"] };
+const { content } = Astro.props;
+---
+
+<section class="room" id="gallery-c">
+  <p class="room-kicker" data-reveal>{content.kicker}</p>
+  <h2 class="room-title" data-reveal style="--d:60ms">{content.title}</h2>
+  <p class="room-intro" data-reveal style="--d:120ms">{content.intro}</p>
+
+  <div class="edition">
+    <div class="edition-wall">
+      {
+        assets.stickers.map((img, i) => (
+          <Exhibit
+            ex={{ ...content.stickers, no: `${content.stickers.no}·${i + 1}` }}
+            src={img.src}
+            width={img.width}
+            height={img.height}
+            alt={`${content.stickers.title} ${i + 1}`}
+            thin
+            spot={false}
+            hideLabel
+            delay={i * 40}
+          />
+        ))
+      }
+    </div>
+    <div class="label edition-label" data-reveal>
+      <div class="label-no">{content.stickers.no}</div>
+      <h3 class="label-title">{content.stickers.title}</h3>
+      <p class="label-meta">{content.stickers.material} · {content.stickers.year}</p>
+      <p class="label-order">{content.stickers.orderId}</p>
+    </div>
+  </div>
+
+  <div class="edition">
+    <div class="edition-wall">
+      {
+        assets.webstates.map((img, i) => (
+          <Exhibit
+            ex={{ ...content.webstates, no: `${content.webstates.no}·${i + 1}` }}
+            src={img.src}
+            width={img.width}
+            height={img.height}
+            alt={`${content.webstates.title} ${i + 1}`}
+            thin
+            spot={false}
+            hideLabel
+            delay={i * 40}
+          />
+        ))
+      }
+    </div>
+    <div class="label edition-label" data-reveal>
+      <div class="label-no">{content.webstates.no}</div>
+      <h3 class="label-title">{content.webstates.title}</h3>
+      <p class="label-meta">{content.webstates.material} · {content.webstates.year}</p>
+      <p class="label-order">{content.webstates.orderId}</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* 九宫格装裱墙：一面墙一件组合作品 */
+  .edition {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.28fr);
+    gap: clamp(28px, 4vw, 64px);
+    align-items: end;
+  }
+
+  .edition + .edition {
+    margin-top: clamp(64px, 10vh, 120px);
+  }
+
+  .edition-wall {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(16px, 2.4vw, 32px);
+    max-width: 760px;
+  }
+
+  .edition-wall :global(.frame img) {
+    aspect-ratio: 1;
+    object-fit: contain;
+  }
+
+  .edition-label {
+    margin-top: 0;
+    padding-bottom: 6px;
+  }
+
+  @media (max-width: 800px) {
+    .edition {
+      grid-template-columns: 1fr;
+      align-items: start;
+    }
+
+    .edition-label {
+      order: -1;
+    }
+  }
+</style>

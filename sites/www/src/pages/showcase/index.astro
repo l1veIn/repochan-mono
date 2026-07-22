@@ -1,0 +1,25 @@
+---
+import SiteLayout from "../../layouts/SiteLayout.astro";
+import MuseumNav from "../../components/MuseumNav.astro";
+import GalleryShowcase from "../../components/GalleryShowcase.astro";
+import Colophon from "../../components/Colophon.astro";
+import { getContent } from "../../lib/site";
+import { navForSubpage } from "../../lib/nav";
+
+const t = getContent("zh");
+const nav = navForSubpage(t.nav, "zh");
+---
+
+<SiteLayout
+  title={t.showcase.pageTitle}
+  description={t.showcase.pageDescription}
+  locale="zh"
+  lightbox={t.lightbox}
+  path="/showcase/"
+>
+  <MuseumNav content={nav} locale="zh" command={t.lobby.ctaPrimaryCommand} copied={t.lobby.copied} />
+  <main>
+    <GalleryShowcase locale="zh" content={t.showcase} mode="full" />
+  </main>
+  <Colophon content={t.colophon} locale="zh" />
+</SiteLayout>

@@ -1,0 +1,20 @@
+{
+  "name": "@repochan/www",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Official RepoChan website (repochan.com) — museum white-cube static site.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^4.16.18",
+    "viewerjs": "^1.11.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.3"
+  }
+}

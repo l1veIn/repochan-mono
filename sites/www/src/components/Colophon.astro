@@ -1,0 +1,122 @@
+---
+import { alternatePath, type Locale } from "../lib/site";
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["colophon"]; locale: Locale };
+const { content, locale } = Astro.props;
+---
+
+<footer class="room colophon" id="colophon">
+  <h2 class="room-kicker" data-reveal>{content.title}</h2>
+  <p class="colophon-built" data-reveal style="--d:60ms">{content.built}</p>
+
+  <dl class="colophon-credits" data-reveal style="--d:120ms">
+    {
+      content.credits.map((c) => (
+        <div class="colophon-row">
+          <dt>{c.label}</dt>
+          <dd>{c.value}</dd>
+        </div>
+      ))
+    }
+  </dl>
+
+  {
+    content.disclaimer ? (
+      <p class="colophon-disclaimer" data-reveal style="--d:160ms">
+        {content.disclaimer}
+      </p>
+    ) : null
+  }
+
+  <div class="colophon-foot">
+    <nav class="colophon-links" aria-label="Footer">
+      {content.links.map((l) => (
+        <a href={l.href} target={l.href.startsWith("http") ? "_blank" : undefined} rel={l.href.startsWith("http") ? "noopener" : undefined}>
+          {l.label}
+        </a>
+      ))}
+      <a href={alternatePath(locale)} hreflang={locale === "zh" ? "en" : "zh-CN"}>
+        {content.localeSwitch}
+      </a>
+    </nav>
+    <p class="colophon-protocol">{content.protocol}</p>
+  </div>
+</footer>
+
+<style>
+  .colophon {
+    border-top: 1px solid var(--frame);
+    padding-bottom: clamp(48px, 8vh, 96px);
+  }
+
+  .colophon-built {
+    max-width: 60ch;
+    font-size: 15px;
+    color: var(--muted);
+    margin-bottom: clamp(36px, 6vh, 64px);
+  }
+
+  .colophon-credits {
+    margin: 0;
+    max-width: 920px;
+    border-top: 1px solid var(--hairline);
+  }
+
+  .colophon-row {
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr);
+    gap: 24px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .colophon-row dt {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .colophon-row dd {
+    margin: 0;
+    font-size: 14px;
+  }
+
+  .colophon-disclaimer {
+    max-width: 62ch;
+    font-size: 12.5px;
+    color: var(--muted);
+    margin: 0 0 clamp(24px, 4vh, 40px);
+    line-height: 1.65;
+  }
+
+  .colophon-foot {
+    margin-top: clamp(32px, 5vh, 56px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .colophon-links {
+    display: flex;
+    gap: 20px;
+    font-size: 13px;
+  }
+
+  .colophon-protocol {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+
+  @media (max-width: 560px) {
+    .colophon-row {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+  }
+</style>

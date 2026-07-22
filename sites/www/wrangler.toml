@@ -1,0 +1,6 @@
+# Cloudflare Pages — optional local deploy via `npx wrangler pages deploy dist`
+# Dashboard project should use root directory `sites/www` on the monorepo.
+
+name = "repochan-www"
+compatibility_date = "2026-07-01"
+pages_build_output_dir = "dist"

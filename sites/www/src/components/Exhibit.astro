@@ -1,0 +1,66 @@
+---
+import type { ExhibitLabel } from "../lib/i18n/types";
+
+type Props = {
+  ex: ExhibitLabel;
+  src: string;
+  width: number;
+  height: number;
+  alt: string;
+  thin?: boolean;
+  spot?: boolean;
+  reveal?: boolean;
+  delay?: number;
+  hideLabel?: boolean;
+  class?: string;
+};
+
+const {
+  ex,
+  src,
+  width,
+  height,
+  alt,
+  thin = false,
+  spot = true,
+  reveal = true,
+  delay,
+  hideLabel = false,
+  class: className,
+} = Astro.props;
+
+const caption = `${ex.no} — ${ex.title} · ${ex.material}`;
+---
+
+<figure
+  class:list={["exhibit", spot && "spot", className]}
+  data-reveal={reveal ? "" : undefined}
+  style={delay ? `--d:${delay}ms` : undefined}
+>
+  <div
+    class:list={["frame", thin && "frame--thin"]}
+    data-lightbox
+    data-lb-src={src}
+    data-lb-alt={alt}
+    data-lb-caption={caption}
+    data-lb-order={`${ex.orderId} · ${ex.year}`}
+    role="button"
+    tabindex="0"
+    aria-label={caption}
+  >
+    <img src={src} width={width} height={height} alt={alt} loading="lazy" decoding="async" />
+  </div>
+  {
+    !hideLabel && (
+      <figcaption class="label">
+        <div class="label-no">{ex.no}</div>
+        <h3 class="label-title">{ex.title}</h3>
+        <p class="label-meta">
+          {ex.material} · {ex.year}
+        </p>
+        <p class="label-order">{ex.orderId}</p>
+        {ex.note && <p class="label-note">{ex.note}</p>}
+      </figcaption>
+    )
+  }
+</figure>

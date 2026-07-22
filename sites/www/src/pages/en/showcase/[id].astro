@@ -1,0 +1,50 @@
+---
+import SiteLayout from "../../../layouts/SiteLayout.astro";
+import MuseumNav from "../../../components/MuseumNav.astro";
+import ShowcaseDetail from "../../../components/ShowcaseDetail.astro";
+import Colophon from "../../../components/Colophon.astro";
+import { getContent } from "../../../lib/site";
+import { navForSubpage } from "../../../lib/nav";
+import { showcaseCases, getShowcaseCase } from "../../../data/showcase";
+
+export function getStaticPaths() {
+  return showcaseCases.map((c) => ({ params: { id: c.id } }));
+}
+
+const { id } = Astro.params;
+const item = getShowcaseCase(id!);
+if (!item) {
+  throw new Error(`Unknown showcase case: ${id}`);
+}
+
+const t = getContent("en");
+const nav = navForSubpage(t.nav, "en");
+const detailContent = {
+  back: t.showcase.back,
+  upstream: t.showcase.upstream,
+  character: t.showcase.character,
+  foundation: t.showcase.foundation,
+  poster: t.showcase.poster,
+  icon: t.showcase.icon,
+  landing: t.showcase.landing,
+  unofficial: t.showcase.unofficial,
+  installCta: t.showcase.installCta,
+  installHref: "/en/#shop",
+  persona: t.showcase.persona,
+};
+const title = `${item.upstream.name} → ${item.character.name} · RepoChan`;
+---
+
+<SiteLayout
+  title={title}
+  description={item.blurb.en}
+  locale="en"
+  lightbox={t.lightbox}
+  path={`/en/showcase/${item.id}/`}
+>
+  <MuseumNav content={nav} locale="en" command={t.lobby.ctaPrimaryCommand} copied={t.lobby.copied} />
+  <main>
+    <ShowcaseDetail locale="en" item={item} content={detailContent} />
+  </main>
+  <Colophon content={t.colophon} locale="en" />
+</SiteLayout>

@@ -24,7 +24,7 @@ character sheets, icons, stickers, posters, and a landing page — driven by *yo
 <a href="../../../packages/skill/"><img src="https://img.shields.io/badge/agent-BYO-F9A8D4" alt="agent: bring your own"></a>
 </p>
 
-<p align="center"><b><a href="./README.md">English</a> · <a href="./README_zh.md">中文文档</a> · <a href="../../../ARCHITECTURE.md">Architecture</a></b></p>
+<p align="center"><b><a href="https://repochan.com">Website</a> · <a href="./README.md">English</a> · <a href="./README_zh.md">中文文档</a> · <a href="./ARCHITECTURE.md">Architecture</a></b></p>
 
 ---
 

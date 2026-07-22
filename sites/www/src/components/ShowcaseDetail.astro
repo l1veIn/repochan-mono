@@ -1,0 +1,326 @@
+---
+import type { ShowcaseCase } from "../data/showcase";
+import { showcasePath, tText } from "../data/showcase";
+import type { Locale } from "../lib/site";
+import PersonaDossier from "./PersonaDossier.astro";
+
+type Props = {
+  locale: Locale;
+  item: ShowcaseCase;
+  content: {
+    back: string;
+    upstream: string;
+    character: string;
+    foundation: string;
+    poster: string;
+    icon: string;
+    landing: string;
+    unofficial: string;
+    installCta: string;
+    installHref: string;
+    persona: {
+      dossier: string;
+      alsoKnown: string;
+      age: string;
+      birthday: string;
+      occupation: string;
+      world: string;
+      catchphrase: string;
+      personality: string;
+      appearance: string;
+      hobbies: string;
+      flaws: string;
+      motifs: string;
+      artStyle: string;
+      palette: string;
+    };
+  };
+};
+
+const { locale, item, content } = Astro.props;
+const blurb = item.blurb[locale];
+const p = item.persona;
+const catchphrase = tText(p.catchphrase, locale);
+---
+
+<section class="room showcase-detail" id="top">
+  <p class="back" data-reveal>
+    <a href={showcasePath(locale)}>{content.back}</a>
+  </p>
+
+  <header class="detail-head" data-reveal style="--d:60ms">
+    <p class="room-kicker">
+      {content.upstream}
+      <span class="dot">·</span>
+      <a href={item.upstream.url} target="_blank" rel="noopener">{item.upstream.name}</a>
+    </p>
+    <h1 class="detail-title">
+      {item.upstream.name}
+      <span class="arrow">→</span>
+      {item.character.name}
+      {
+        p.nameZh && p.nameZh !== item.character.name && (
+          <span class="detail-zh"> / {p.nameZh}</span>
+        )
+      }
+    </h1>
+    <p class="detail-blurb">{blurb}</p>
+    {
+      catchphrase && (
+        <p class="detail-catch" data-reveal style="--d:80ms">
+          {catchphrase}
+        </p>
+      )
+    }
+  </header>
+
+  <div class="detail-split">
+    <div class="detail-visual">
+      <div class="detail-main" data-reveal style="--d:120ms">
+        <figure class="exhibit">
+          <div
+            class="frame spot"
+            data-lightbox
+            data-lb-src={item.assets.foundation}
+            data-lb-alt={content.foundation}
+            data-lb-caption={`${item.upstream.name} → ${item.character.name}`}
+            data-lb-order={item.id}
+            role="button"
+            tabindex="0"
+            aria-label={content.foundation}
+          >
+            <img
+              src={item.assets.foundation}
+              alt={content.foundation}
+              width={1200}
+              height={1200}
+            />
+          </div>
+          <figcaption class="label">
+            <p class="label-no">{content.foundation}</p>
+            <p class="label-title">{item.character.name}</p>
+            <p class="label-meta">{item.upstream.name} · unofficial demo</p>
+          </figcaption>
+        </figure>
+      </div>
+
+      <div class="detail-side">
+        {
+          item.assets.poster && (
+            <figure class="exhibit side" data-reveal style="--d:160ms">
+              <div
+                class="frame frame--thin spot"
+                data-lightbox
+                data-lb-src={item.assets.poster}
+                data-lb-alt={content.poster}
+                data-lb-caption={content.poster}
+                data-lb-order={item.id}
+                role="button"
+                tabindex="0"
+                aria-label={content.poster}
+              >
+                <img
+                  src={item.assets.poster}
+                  alt={content.poster}
+                  width={1200}
+                  height={800}
+                  loading="lazy"
+                />
+              </div>
+              <figcaption class="label">
+                <p class="label-no">{content.poster}</p>
+              </figcaption>
+            </figure>
+          )
+        }
+        {
+          item.assets.icon && (
+            <figure class="exhibit side icon" data-reveal style="--d:200ms">
+              <div
+                class="frame frame--thin"
+                data-lightbox
+                data-lb-src={item.assets.icon}
+                data-lb-alt={content.icon}
+                data-lb-caption={content.icon}
+                data-lb-order={item.id}
+                role="button"
+                tabindex="0"
+                aria-label={content.icon}
+              >
+                <img
+                  src={item.assets.icon}
+                  alt={content.icon}
+                  width={512}
+                  height={512}
+                  loading="lazy"
+                />
+              </div>
+              <figcaption class="label">
+                <p class="label-no">{content.icon}</p>
+              </figcaption>
+            </figure>
+          )
+        }
+      </div>
+    </div>
+
+    <PersonaDossier persona={item.persona} labels={content.persona} locale={locale} />
+  </div>
+
+  {
+    item.assets.landing && (
+      <figure class="exhibit landing-full" data-reveal style="--d:220ms">
+        <div
+          class="frame frame--thin"
+          data-lightbox
+          data-lb-src={item.assets.landing}
+          data-lb-alt={content.landing}
+          data-lb-caption={content.landing}
+          data-lb-order={item.id}
+          role="button"
+          tabindex="0"
+          aria-label={content.landing}
+        >
+          <img
+            src={item.assets.landing}
+            alt={content.landing}
+            width={1440}
+            height={2400}
+            loading="lazy"
+          />
+        </div>
+        <figcaption class="label">
+          <p class="label-no">{content.landing}</p>
+        </figcaption>
+      </figure>
+    )
+  }
+
+  <p class="detail-disclaimer" data-reveal>{content.unofficial}</p>
+  <p class="detail-cta" data-reveal>
+    <a class="cta-link" href={content.installHref}>{content.installCta}</a>
+  </p>
+</section>
+
+<style>
+  .back {
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    margin-bottom: clamp(28px, 4vh, 48px);
+  }
+
+  .detail-head .dot {
+    margin: 0 0.4em;
+    color: var(--muted);
+  }
+
+  .detail-title {
+    font-family: "Newsreader", "Noto Serif SC", serif;
+    font-weight: 300;
+    font-size: clamp(32px, 4.5vw, 56px);
+    line-height: 1.2;
+    margin-top: 8px;
+  }
+
+  .detail-title .arrow {
+    color: var(--muted);
+    margin: 0 0.2em;
+  }
+
+  .detail-zh {
+    font-size: 0.55em;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  .detail-blurb {
+    margin-top: 16px;
+    max-width: 48ch;
+    color: var(--muted);
+    font-size: 15px;
+  }
+
+  .detail-catch {
+    margin-top: 14px;
+    font-family: "Newsreader", "Noto Serif SC", serif;
+    font-style: italic;
+    font-size: 18px;
+    max-width: 40ch;
+  }
+
+  .detail-split {
+    margin-top: clamp(40px, 6vh, 72px);
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: clamp(32px, 4vw, 56px);
+    align-items: start;
+  }
+
+  .detail-side {
+    margin-top: clamp(28px, 4vh, 40px);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(20px, 2.5vw, 32px);
+  }
+
+  .detail-side .icon {
+    max-width: 240px;
+  }
+
+  .landing-full {
+    margin-top: clamp(48px, 7vh, 80px);
+  }
+
+  .landing-full img {
+    width: 100%;
+    max-height: min(70vh, 900px);
+    object-fit: cover;
+    object-position: top center;
+    background: var(--mat);
+  }
+
+  [data-lightbox] {
+    cursor: zoom-in;
+  }
+
+  .detail-disclaimer {
+    margin-top: clamp(40px, 6vh, 64px);
+    max-width: 60ch;
+    font-size: 12.5px;
+    color: var(--muted);
+    border-top: 1px solid var(--hairline);
+    padding-top: 16px;
+  }
+
+  .detail-cta {
+    margin-top: 24px;
+  }
+
+  .cta-link {
+    display: inline-block;
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    border: 1px solid var(--ink);
+    padding: 12px 22px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .cta-link:hover {
+    background: var(--ink);
+    color: var(--wall);
+    text-decoration: none;
+  }
+
+  @media (max-width: 960px) {
+    .detail-split {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .detail-side {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

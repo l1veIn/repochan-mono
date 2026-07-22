@@ -1,0 +1,135 @@
+---
+import { assets, alternatePath, type Locale } from "../lib/site";
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["nav"]; locale: Locale; command: string; copied: string };
+const { content, locale, command, copied } = Astro.props;
+---
+
+<header class="nav">
+  <div class="nav-inner">
+    <a class="nav-brand" href="#top" aria-label={content.brand}>
+      <img src={assets.icon.src} width={assets.icon.width} height={assets.icon.height} alt="" />
+      <span class="nav-name">{content.brand}</span>
+      <span class="nav-tag">{content.tag}</span>
+    </a>
+    <nav class="nav-links" aria-label="Sections">
+      {
+        content.links.map((l) => (
+          <a href={l.href}>{l.label}</a>
+        ))
+      }
+    </nav>
+    <div class="nav-actions">
+      <button class="nav-cta" type="button" data-copy={command} data-copied={copied}>
+        {content.cta}
+      </button>
+      <a class="nav-locale" href={alternatePath(locale)} hreflang={locale === "zh" ? "en" : "zh-CN"}>
+        {content.localeSwitch}
+      </a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .nav {
+    border-bottom: 1px solid var(--hairline);
+    background: color-mix(in srgb, var(--wall) 92%, transparent);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .nav-inner {
+    max-width: 1344px;
+    margin-inline: auto;
+    padding: 14px clamp(24px, 7vw, 96px);
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .nav-brand img {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+  }
+
+  .nav-name {
+    font-family: "Newsreader", "Noto Serif SC", serif;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  .nav-tag {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    border-left: 1px solid var(--hairline);
+    padding-left: 10px;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 22px;
+    margin-left: auto;
+  }
+
+  .nav-links a {
+    font-size: 13px;
+    color: var(--ink);
+    letter-spacing: 0.04em;
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .nav-cta {
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    border: 1px solid var(--ink);
+    padding: 7px 14px;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .nav-cta:hover,
+  .nav-cta.is-copied {
+    background: var(--ink);
+    color: var(--wall);
+  }
+
+  .nav-locale {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 860px) {
+    .nav-links {
+      display: none;
+    }
+
+    .nav-actions {
+      margin-left: auto;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .nav-tag {
+      display: none;
+    }
+  }
+</style>

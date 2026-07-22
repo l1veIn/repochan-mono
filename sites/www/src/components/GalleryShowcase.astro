@@ -1,0 +1,238 @@
+---
+import { showcaseCases, showcasePath, tText, type ShowcaseCase } from "../data/showcase";
+import type { Locale } from "../lib/site";
+
+type Props = {
+  locale: Locale;
+  content: {
+    kicker: string;
+    title: string;
+    intro: string;
+    viewAll: string;
+    unofficial: string;
+  };
+  /** homepage: featured-first strip; full: all cases */
+  mode?: "home" | "full";
+};
+
+const { locale, content, mode = "home" } = Astro.props;
+
+const cases: ShowcaseCase[] =
+  mode === "home"
+    ? [
+        ...showcaseCases.filter((c) => c.tier === "featured"),
+        ...showcaseCases.filter((c) => c.tier === "gallery"),
+      ]
+    : showcaseCases;
+---
+
+<section class="room showcase" id="showcase">
+  <p class="room-kicker" data-reveal>{content.kicker}</p>
+  <h2 class="room-title" data-reveal style="--d:60ms">{content.title}</h2>
+  <p class="room-intro" data-reveal style="--d:120ms">{content.intro}</p>
+
+  <div class="showcase-grid">
+    {
+      cases.map((c, i) => (
+        <a
+          class="showcase-card"
+          href={showcasePath(locale, c.id)}
+          data-reveal
+          style={`--d:${i * 50}ms`}
+        >
+          <div class="showcase-frame frame frame--thin spot">
+            <img
+              src={c.assets.foundation}
+              alt={`${c.upstream.name} → ${c.character.name}`}
+              width={1200}
+              height={1200}
+              loading="lazy"
+            />
+          </div>
+          <div class="showcase-meta">
+            <p class="showcase-pair">
+              <span class="showcase-upstream">{c.upstream.name}</span>
+              <span class="showcase-arrow" aria-hidden="true">→</span>
+              <span class="showcase-char">{c.character.name}</span>
+              {
+                c.persona.nameZh && c.persona.nameZh !== c.character.name && (
+                  <span class="showcase-zh"> · {c.persona.nameZh}</span>
+                )
+              }
+            </p>
+            {
+              tText(c.persona.catchphrase, locale) && (
+                <p class="showcase-catch">{tText(c.persona.catchphrase, locale)}</p>
+              )
+            }
+            <p class="showcase-blurb">{c.blurb[locale]}</p>
+            {
+              tText(c.persona.occupation, locale) && (
+                <p class="showcase-occ">{tText(c.persona.occupation, locale)}</p>
+              )
+            }
+            <div class="showcase-tags">
+              {tText(c.persona.worldName, locale) && (
+                <span class="showcase-badge">{tText(c.persona.worldName, locale)}</span>
+              )}
+              {c.hasLanding && <span class="showcase-badge">landing</span>}
+            </div>
+          </div>
+        </a>
+      ))
+    }
+  </div>
+
+  {
+    mode === "home" && (
+      <p class="showcase-more" data-reveal>
+        <a href={showcasePath(locale)}>{content.viewAll}</a>
+      </p>
+    )
+  }
+
+  <p class="showcase-disclaimer" data-reveal>{content.unofficial}</p>
+</section>
+
+<style>
+  .showcase-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(28px, 3.5vw, 48px);
+  }
+
+  .showcase-card {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+  }
+
+  .showcase-card:hover {
+    text-decoration: none;
+  }
+
+  .showcase-card:hover .showcase-frame {
+    border-color: var(--ink);
+  }
+
+  .showcase-frame {
+    overflow: hidden;
+  }
+
+  .showcase-frame img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    object-position: center top;
+    background: var(--mat);
+  }
+
+  .showcase-meta {
+    margin-top: clamp(16px, 2vw, 24px);
+    position: relative;
+  }
+
+  .showcase-pair {
+    font-family: "Newsreader", "Noto Serif SC", serif;
+    font-size: clamp(16px, 1.6vw, 20px);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  .showcase-upstream {
+    color: var(--muted);
+  }
+
+  .showcase-arrow {
+    margin: 0 0.35em;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  .showcase-char {
+    color: var(--ink);
+  }
+
+  .showcase-zh {
+    font-size: 0.85em;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  .showcase-catch {
+    margin-top: 8px;
+    font-family: "Newsreader", "Noto Serif SC", serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink);
+    max-width: 34ch;
+  }
+
+  .showcase-blurb {
+    margin-top: 8px;
+    font-size: 13.5px;
+    color: var(--muted);
+    max-width: 36ch;
+  }
+
+  .showcase-occ {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    max-width: 40ch;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .showcase-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .showcase-badge {
+    display: inline-block;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    border: 1px solid var(--hairline);
+    padding: 3px 8px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .showcase-more {
+    margin-top: clamp(36px, 5vh, 56px);
+    font-size: 14px;
+    letter-spacing: 0.06em;
+  }
+
+  .showcase-disclaimer {
+    margin-top: clamp(28px, 4vh, 48px);
+    max-width: 62ch;
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.6;
+    border-top: 1px solid var(--hairline);
+    padding-top: 16px;
+  }
+
+  @media (max-width: 960px) {
+    .showcase-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 560px) {
+    .showcase-grid {
+      grid-template-columns: 1fr;
+      max-width: 420px;
+    }
+  }
+</style>

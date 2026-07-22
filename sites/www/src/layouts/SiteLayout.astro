@@ -1,0 +1,66 @@
+---
+import "../styles/global.css";
+import { site, assets, alternatePath, buildCssVars, siteOrigin, type Locale } from "../lib/site";
+
+type Props = {
+  title: string;
+  description: string;
+  locale: Locale;
+  /** Kept for call-site compatibility; zoom UI is Viewer.js (not custom lightbox). */
+  lightbox?: { close: string; prev: string; next: string };
+  /** Optional absolute path for hreflang self (defaults to / or /en/) */
+  path?: string;
+};
+
+const { title, description, locale, path } = Astro.props;
+const htmlLang = locale === "zh" ? "zh-CN" : "en";
+const cssVars = buildCssVars();
+const selfPath = path ?? (locale === "zh" ? "/" : "/en/");
+const ogImage = assets.og.src.startsWith("http") ? assets.og.src : `${siteOrigin}${assets.og.src}`;
+const canonical = `${siteOrigin}${selfPath}`;
+---
+
+<!doctype html>
+<html lang={htmlLang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content={site.theme.base} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="RepoChan" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={locale === "zh" ? "zh_CN" : "en_US"} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <link rel="alternate" hreflang={htmlLang} href={`${siteOrigin}${selfPath}`} />
+    <link rel="alternate" hreflang={locale === "zh" ? "en" : "zh-CN"} href={`${siteOrigin}${alternatePath(locale)}`} />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&family=Noto+Serif+SC:wght@400;600&family=Noto+Sans+SC:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style is:inline set:html={cssVars} />
+  </head>
+  <body>
+    <slot />
+    {/* Image zoom / pan handled by Viewer.js in motion.ts (no custom lightbox DOM). */}
+    <script>
+      import "../lib/motion";
+    </script>
+  </body>
+</html>

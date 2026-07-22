@@ -1,0 +1,87 @@
+---
+import type { SiteContent } from "../lib/i18n/types";
+
+type Props = { content: SiteContent["notes"] };
+const { content } = Astro.props;
+---
+
+<section class="room" id="notes">
+  <p class="room-kicker" data-reveal>{content.kicker}</p>
+  <h2 class="room-title" data-reveal style="--d:60ms">{content.title}</h2>
+  <p class="room-intro" data-reveal style="--d:120ms">{content.intro}</p>
+
+  <ol class="notes-list">
+    {
+      content.steps.map((step, i) => (
+        <li class="notes-step" data-reveal style={`--d:${i * 50}ms`}>
+          <span class="notes-index">{String(i + 1).padStart(2, "0")}</span>
+          <div class="notes-body">
+            <h3 class="notes-title">{step.title}</h3>
+            <p class="notes-desc">{step.desc}</p>
+          </div>
+          <code class="notes-command">{step.command}</code>
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<style>
+  .notes-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--hairline);
+    max-width: 920px;
+  }
+
+  .notes-step {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    gap: clamp(16px, 3vw, 40px);
+    align-items: baseline;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .notes-index {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .notes-title {
+    font-family: "Newsreader", "Noto Serif SC", serif;
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  .notes-desc {
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 4px;
+    max-width: 52ch;
+  }
+
+  .notes-command {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    color: var(--ink);
+    background: var(--floor);
+    padding: 6px 12px;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 640px) {
+    .notes-step {
+      grid-template-columns: 32px minmax(0, 1fr);
+    }
+
+    .notes-command {
+      grid-column: 2;
+      justify-self: start;
+      margin-top: 8px;
+    }
+  }
+</style>

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "repochan.starter-site.v1",
+  "project": {
+    "name": "RepoChan",
+    "description": "Your repo, but make it a girl — mascot persona, illustrations, stickers, posters and a landing page, driven by your coding agent.",
+    "repositoryUrl": "https://github.com/l1veIn/repochan-mono",
+    "siteUrl": "https://repochan.com",
+    "npmUrl": "https://www.npmjs.com/package/repochan"
+  },
+  "theme": {
+    "primary": "#38BDF8",
+    "base": "#F7F7F5",
+    "ink": "#1A1A1A",
+    "accents": ["#EDEDE8", "#FFFFFF", "#6B6B6B", "#D8D8D2"]
+  },
+  "brand": {
+    "artStyle": "Museum white cube — a minimalist gallery that hangs real pipeline deliverables as framed exhibits: white walls, thin dark frames, spotlight ellipses under each work, generous negative space and curator-style caption typography (serif titles, sans metadata, mono order ids). Restraint everywhere; the character appears only once, in the lobby portrait.",
+    "motifs": ["picture frame", "spotlight ellipse", "exhibit caption label", "hairline divider", "order id as accession number"],
+    "patterns": ["single full-width exhibit", "diptych pairing", "3×3 edition grid wall", "rhythm of empty wall between rooms"]
+  },
+  "locales": {
+    "default": "zh",
+    "supported": ["zh", "en"]
+  }
+}

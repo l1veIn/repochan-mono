@@ -24,7 +24,7 @@
 <a href="../../../packages/skill/"><img src="https://img.shields.io/badge/agent-BYO-F9A8D4" alt="agent：自带"></a>
 </p>
 
-<p align="center"><b><a href="./README.md">English</a> · <a href="./README_zh.md">中文文档</a> · <a href="../../../ARCHITECTURE.md">架构</a></b></p>
+<p align="center"><b><a href="https://repochan.com">官网</a> · <a href="./README.md">English</a> · <a href="./README_zh.md">中文文档</a> · <a href="./ARCHITECTURE.md">架构</a></b></p>
 
 ---
 

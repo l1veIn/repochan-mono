@@ -1,0 +1,339 @@
+---
+import type { ShowcasePersona } from "../data/showcase";
+import { tList, tText } from "../data/showcase";
+import type { Locale } from "../lib/site";
+
+type Labels = {
+  dossier: string;
+  alsoKnown: string;
+  age: string;
+  birthday: string;
+  occupation: string;
+  world: string;
+  catchphrase: string;
+  personality: string;
+  appearance: string;
+  hobbies: string;
+  flaws: string;
+  motifs: string;
+  artStyle: string;
+  palette: string;
+};
+
+type Props = {
+  persona: ShowcasePersona;
+  labels: Labels;
+  locale: Locale;
+};
+
+const { persona: p, labels, locale } = Astro.props;
+
+const aka = [p.nameZh, p.nameJa].filter(Boolean);
+const occupation = tText(p.occupation, locale);
+const catchphrase = tText(p.catchphrase, locale);
+const worldName = tText(p.worldName, locale);
+const worldAtmosphere = tText(p.worldAtmosphere, locale);
+const personality = tText(p.personality, locale);
+const appearance = tText(p.appearance, locale);
+const artStyle = tText(p.artStyle, locale);
+const hobbies = tList(p.hobbies, locale);
+const flaws = tList(p.flaws, locale);
+const motifs = tList(p.motifs, locale);
+---
+
+<aside class="dossier" data-reveal style="--d:100ms" aria-label={labels.dossier}>
+  <header class="dossier-head">
+    <p class="dossier-kicker">{labels.dossier}</p>
+    <h2 class="dossier-name">
+      {p.name}
+      {
+        aka.length > 0 && (
+          <span class="dossier-aka">
+            {labels.alsoKnown} {aka.join(" · ")}
+          </span>
+        )
+      }
+    </h2>
+    {
+      catchphrase && (
+        <blockquote class="dossier-quote">
+          <p>{catchphrase}</p>
+        </blockquote>
+      )
+    }
+    {
+      (p.mainColor || p.secondaryColor) && (
+        <div class="dossier-palette" aria-label={labels.palette}>
+          {p.mainColor && (
+            <span class="swatch" style={`--sw: ${p.mainColor}`} title={p.mainColor}>
+              <span class="swatch-hex">{p.mainColor}</span>
+            </span>
+          )}
+          {p.secondaryColor && (
+            <span class="swatch" style={`--sw: ${p.secondaryColor}`} title={p.secondaryColor}>
+              <span class="swatch-hex">{p.secondaryColor}</span>
+            </span>
+          )}
+        </div>
+      )
+    }
+  </header>
+
+  <dl class="dossier-grid">
+    {
+      p.ageAppearance != null && p.ageAppearance !== "" && (
+        <div class="row">
+          <dt>{labels.age}</dt>
+          <dd>{p.ageAppearance}</dd>
+        </div>
+      )
+    }
+    {
+      p.birthday && (
+        <div class="row">
+          <dt>{labels.birthday}</dt>
+          <dd>
+            <code>{p.birthday}</code>
+          </dd>
+        </div>
+      )
+    }
+    {
+      occupation && (
+        <div class="row row--block">
+          <dt>{labels.occupation}</dt>
+          <dd>{occupation}</dd>
+        </div>
+      )
+    }
+    {
+      worldName && (
+        <div class="row row--block">
+          <dt>{labels.world}</dt>
+          <dd>
+            <strong class="world-name">{worldName}</strong>
+            {worldAtmosphere && <p class="world-atm">{worldAtmosphere}</p>}
+          </dd>
+        </div>
+      )
+    }
+    {
+      personality && (
+        <div class="row row--block">
+          <dt>{labels.personality}</dt>
+          <dd>{personality}</dd>
+        </div>
+      )
+    }
+    {
+      appearance && (
+        <div class="row row--block">
+          <dt>{labels.appearance}</dt>
+          <dd>{appearance}</dd>
+        </div>
+      )
+    }
+    {
+      hobbies.length > 0 && (
+        <div class="row row--block">
+          <dt>{labels.hobbies}</dt>
+          <dd>
+            <ul>
+              {hobbies.map((h) => (
+                <li>{h}</li>
+              ))}
+            </ul>
+          </dd>
+        </div>
+      )
+    }
+    {
+      flaws.length > 0 && (
+        <div class="row row--block">
+          <dt>{labels.flaws}</dt>
+          <dd>
+            <ul>
+              {flaws.map((f) => (
+                <li>{f}</li>
+              ))}
+            </ul>
+          </dd>
+        </div>
+      )
+    }
+    {
+      motifs.length > 0 && (
+        <div class="row row--block">
+          <dt>{labels.motifs}</dt>
+          <dd class="motif-list">
+            {motifs.map((m) => (
+              <span class="motif">{m}</span>
+            ))}
+          </dd>
+        </div>
+      )
+    }
+    {
+      artStyle && (
+        <div class="row row--block">
+          <dt>{labels.artStyle}</dt>
+          <dd>{artStyle}</dd>
+        </div>
+      )
+    }
+  </dl>
+</aside>
+
+<style>
+  .dossier {
+    background: var(--mat);
+    border: 1px solid var(--hairline);
+    padding: clamp(24px, 3vw, 36px);
+    box-shadow: 0 18px 40px -28px color-mix(in srgb, var(--ink) 20%, transparent);
+  }
+
+  .dossier-kicker {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .dossier-name {
+    font-family: "Newsreader", "Noto Serif SC", serif;
+    font-weight: 500;
+    font-size: clamp(26px, 3vw, 34px);
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .dossier-aka {
+    display: block;
+    margin-top: 6px;
+    font-family: "Noto Sans SC", "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+
+  .dossier-quote {
+    margin: 18px 0 0;
+    padding: 12px 0 0;
+    border-top: 1px solid var(--hairline);
+  }
+
+  .dossier-quote p {
+    font-family: "Newsreader", "Noto Serif SC", serif;
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  .dossier-palette {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .swatch {
+    display: inline-flex;
+    align-items: flex-end;
+    width: 72px;
+    height: 40px;
+    background: var(--sw);
+    border: 1px solid var(--hairline);
+    padding: 4px 6px;
+  }
+
+  .swatch-hex {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    letter-spacing: 0.04em;
+    color: color-mix(in srgb, var(--ink) 70%, var(--wall));
+    mix-blend-mode: difference;
+  }
+
+  .dossier-grid {
+    margin: 22px 0 0;
+    border-top: 1px solid var(--hairline);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 108px minmax(0, 1fr);
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .row--block {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .row dt {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-top: 2px;
+  }
+
+  .row dd {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+
+  .world-name {
+    font-family: "Newsreader", "Noto Serif SC", serif;
+    font-weight: 500;
+    font-size: 16px;
+  }
+
+  .world-atm {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 13.5px;
+  }
+
+  .row ul {
+    margin: 0;
+    padding-left: 1.15em;
+  }
+
+  .row li + li {
+    margin-top: 4px;
+  }
+
+  .motif-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .motif {
+    font-size: 12px;
+    border: 1px solid var(--hairline);
+    padding: 4px 10px;
+    color: var(--muted);
+    max-width: 100%;
+  }
+
+  code {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+  }
+
+  @media (min-width: 720px) {
+    .row--block {
+      grid-template-columns: 108px minmax(0, 1fr);
+      gap: 16px;
+    }
+  }
+</style>

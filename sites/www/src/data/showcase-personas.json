@@ -1,0 +1,380 @@
+{
+  "redis": {
+    "name": "Redi",
+    "nameZh": "蕾蒂",
+    "nameJa": "レディ",
+    "ageAppearance": 17,
+    "birthday": "07-03",
+    "occupation": {
+      "zh": "瞬闪信使 —— 在数据回廊间穿梭的光之跑者，为每个角落带去被需要的记忆",
+      "en": "Flash courier — a light-runner through data galleries, bringing needed memory to every corner"
+    },
+    "catchphrase": {
+      "zh": "「别眨眼哦，我已经到了！」",
+      "en": "\"Don't blink — I'm already here!\""
+    },
+    "worldName": {
+      "zh": "瞬闪之庭",
+      "en": "Court of Instant Flash"
+    },
+    "worldAtmosphere": {
+      "zh": "永不停歇的光之长廊——数据流如极光般在穹顶流淌，热键区是永不熄灭的篝火广场，冷数据则像远山的星点微光。动态、明亮、永远在运动。",
+      "en": "An endless gallery of light — data streams like aurora across the vault, hot keys a bonfire plaza that never goes out, cold data as distant star-glints. Dynamic, bright, always in motion."
+    },
+    "personality": {
+      "zh": "元气满满的行动派，像闪电一样想到就做。对数据世界的每个角落都充满好奇，最爱钻那些没人去的小众键空间。热情外放但有点冒失——经常跑太快撞翻东西，留下一句「哎呀抱歉！」就消失在下一个拐角。偶尔会蹲在某个冷门角落发呆，因为发现了一个漂亮的、很久没人访问过的旧数据。虽然看起来大大咧咧，但对「被需要」这件事异常敏感——一旦察觉到有数据要被遗忘，会想尽办法让它再被看见一次。",
+      "en": "An energetic doer — thinks and sprints like lightning. Curious about every corner of the data world, especially quiet niche keyspaces. Warm but a little clumsy: often runs too fast, knocks things over, yells “sorry!” and vanishes around the next bend. Sometimes she squats in a cold corner just to stare at a pretty, long-unvisited value. Under the cheer is a deep need to be needed — if something is about to be forgotten, she’ll fight to make it seen again."
+    },
+    "appearance": {
+      "zh": "一头火焰般的橙红色短发扎成高马尾，发尾褪成浅金色——像是数据从热缓存渐变到冷存储。奔跑时马尾在脑后划出金色弧线，静止时总有几缕翘起来。身材纤细但腿部肌肉线条分明，是长年奔跑的痕迹。",
+      "en": "Flame-orange hair in a high ponytail fading to pale gold at the tips — hot cache cooling into cold storage. The tail draws a golden arc when she runs; a few strands always stick up when she stops. Slim frame, runner’s legs from years of sprinting."
+    },
+    "hobbies": {
+      "zh": [
+        "收集闪亮的数据碎片（把冷门key的返回值当纪念品收藏）",
+        "跑酷穿越不同命名空间之间的缝隙",
+        "给热键区的常驻数据编手写标签（字迹潦草但很用心）"
+      ],
+      "en": [
+        "Collecting shiny data shards (rare key payloads as souvenirs)",
+        "Parkouring the gaps between namespaces",
+        "Hand-labeling hot-key residents (messy handwriting, real care)"
+      ]
+    },
+    "flaws": {
+      "zh": [
+        "急性子——跑太快经常不看路，把数据包送到错误的key里",
+        "痴迷收集——看见有趣的数据就想缓存起来，自己的小空间堆满了「万一有一天用得上」的冷门返回值"
+      ],
+      "en": [
+        "Impatient — runs so fast she mis-delivers packets to the wrong key",
+        "Hoarder — caches every interesting value “just in case,” filling her space with cold curios"
+      ]
+    },
+    "motifs": {
+      "zh": ["闪电/速度线（速度）", "钥匙（key-value）", "光粒彗尾（热数据流转）", "星点火苗（缓存生命）"],
+      "en": ["Lightning / speed lines", "Keys (key–value)", "Particle comet-tails (hot data flow)", "Star-sparks (cache life)"]
+    },
+    "mainColor": "#DC382D",
+    "secondaryColor": "#FFF5E8",
+    "artStyle": {
+      "zh": "赛璐璐 + 动态速度线美学 —— 干净平涂色块、黑色勾线、高饱和主色；融合新构成主义的几何精确感与日系动画的速度线/冲击帧技法",
+      "en": "Cel-shading + motion speed-lines — flat fills, black outlines, high-sat primaries; geometric precision meets anime impact frames"
+    }
+  },
+  "caddy": {
+    "name": "Caddy",
+    "nameZh": "凯蒂",
+    "nameJa": "キャディ",
+    "ageAppearance": 19,
+    "birthday": "06-22",
+    "occupation": {
+      "zh": "信约回廊的驿站长——守护所有穿越回廊的连接，确保每一段旅程都安全抵达",
+      "en": "Station master of the Covenant Arcade — guarding every connection so every journey arrives safe"
+    },
+    "catchphrase": {
+      "zh": "「别担心，已经帮你处理好了。」",
+      "en": "\"Don't worry — I've already taken care of it.\""
+    },
+    "worldName": {
+      "zh": "信约回廊",
+      "en": "Covenant Arcade"
+    },
+    "worldAtmosphere": {
+      "zh": "明亮而温暖——拱形玻璃穹顶洒下柔和的日光，半空中漂浮着缓慢旋转的金色印章符文，远处偶尔传来清脆的确认铃声。有序但不冷清，忙碌但不慌乱，像一座永远在认真运转、却永远让人安心的公共驿站。",
+      "en": "Bright and warm — soft daylight through arched glass, golden seal-runes turning slowly in midair, distant chimes of confirmation. Orderly without coldness, busy without panic: a public station that always runs carefully and always feels safe."
+    },
+    "personality": {
+      "zh": "凯蒂是那种你第一次见面就会信任的人。她的温暖不是热情过头的那种，而是在你焦头烂额时轻轻递上一杯茶、说一句「已经帮你处理好了」的从容。她对「默认安全」有一种近乎执念的坚持——不允许任何连接裸奔着离开她的回廊。偶尔会露出一点小骄傲：「我的印章，没人能伪造哦。」但在真正遇到难题时会收敛所有傲气，安静地、专注地解决到满意为止。对新手极有耐心——毕竟她的招牌本事就是把复杂到头疼的事情变得只要三行字就能搞定。",
+      "en": "Someone you trust on first meeting. Her warmth is quiet tea when you’re frantic and a calm “already handled.” She is almost obsessive about safe-by-default — no connection leaves her arcade bare. A little proud of her seals (“nobody forges these”), but drops the pride when a hard problem appears and works until it’s right. Patient with newcomers — her gift is turning headache-level setup into three lines that just work."
+    },
+    "appearance": {
+      "zh": "凯蒂给人的第一印象是「清爽的可靠感」。她不是那种耀眼到刺目的类型，而是像冬日午后的阳光——你意识到的时候，已经暖了。身形修长，姿态从容而优雅，但不会显得疏离——她的站姿总是微微前倾，像是随时准备帮你接住什么东西。",
+      "en": "First impression: clean reliability. Not blindingly bright — more winter afternoon sun that warms you before you notice. Tall, poised, never cold; always leaning slightly forward, ready to catch what you drop."
+    },
+    "hobbies": {
+      "zh": [
+        "收集和雕刻精美的印章，从木材到水晶都试过",
+        "在回廊里煮茶招待路过的旅人，顺便听完他们从哪儿来、到哪儿去的故事",
+        "用回廊里不同频率的确认铃声编曲——她说这是「世界上唯一一种只属于我的乐谱」"
+      ],
+      "en": [
+        "Collecting and carving seals — wood to crystal",
+        "Brewing tea for travelers and hearing where they came from",
+        "Composing from the arcade’s confirmation chimes — “the only score that’s only mine”"
+      ]
+    },
+    "flaws": {
+      "zh": [
+        "过度照顾欲：她总想把所有事情都「默认帮你做好」，有时候忘了问对方想不想被照顾",
+        "完美主义拖延：为了让一枚新印章的花纹完美无瑕，她会反复打磨到深夜"
+      ],
+      "en": [
+        "Over-caring — defaults to doing everything for you without asking",
+        "Perfectionist delay — polishes a seal’s pattern until late night"
+      ]
+    },
+    "motifs": {
+      "zh": ["拱形回廊的穹顶剪影", "旋转的印章符轮", "薄荷绿的锁与钥匙", "金色光纱/半透明防护层"],
+      "en": ["Arched arcade vault silhouettes", "Rotating seal-runes", "Mint-green locks & keys", "Golden gauze / translucent shields"]
+    },
+    "mainColor": "#1a3a4a",
+    "secondaryColor": "#eceff4",
+    "artStyle": {
+      "zh": "赛璐璐 + 构成主义——干净线条+平涂色块+几何精确构图，强调秩序感与自动化之美",
+      "en": "Cel-shading + constructivism — clean lines, flat color, geometric order; beauty of automation"
+    }
+  },
+  "marktext": {
+    "name": "Sumine",
+    "nameZh": "墨音",
+    "nameJa": "墨音",
+    "ageAppearance": 17,
+    "birthday": "07-04",
+    "occupation": {
+      "zh": "排版工坊的见习匠人——她不是码农，而是在纸与像素之间雕琢文字之美的年轻手艺人和排版爱好者",
+      "en": "Apprentice of the type atelier — not a coder, but a young craftsperson shaping beauty between paper and pixels"
+    },
+    "catchphrase": {
+      "zh": "「别急，好文字需要呼吸。」",
+      "en": "\"Don't rush — good text needs room to breathe.\""
+    },
+    "worldName": {
+      "zh": "墨痕工坊 · Ink Trace Atelier",
+      "en": "Ink Trace Atelier"
+    },
+    "worldAtmosphere": {
+      "zh": "午后阳光透过百叶窗洒在工作台上，纸张的清香混合着屏幕柔和的背光。打字机节奏的咔嗒声与笔尖划过纸面的沙沙声交织。这里不赶时间，但每一刻都在认真创作——像一个永远处于「心流」状态的工作室。",
+      "en": "Afternoon light through blinds on the desk; paper scent mixed with soft screen glow. Typewriter clicks braid with pen on paper. No hurry — only earnest making, a studio stuck in flow."
+    },
+    "personality": {
+      "zh": "Sumine 表面是个温吞随和的邻家女孩，说话轻声细语，对新来的访客总是先递上一杯热茶。但一旦坐到工作台前，她会进入一种近乎入定的专注状态——眉头微蹙、嘴唇轻抿，世界上只剩下文字和排版。她对字体间距、行高、标题层级的敏感近乎偏执，会偷偷把别人随手写的笔记重新排版「让它更好看一点」。她不是社恐，只是觉得「说得太多不如写下来」。对美有一种直觉式的追求——看到一段优雅的 markdown 源码会不自觉露出微笑。偶尔会冒出一句中二的话，说完立刻脸红。",
+      "en": "Soft-spoken neighbor energy with tea for every guest — until she sits at the desk and enters near-trance focus: furrowed brow, only text and type. Obsessive about tracking, leading, heading levels; re-typesets other people’s sticky notes “to look better.” Not antisocial — she just thinks writing beats over-talking. Smiles at elegant markdown. Occasionally blurts something dramatic and blushes."
+    },
+    "appearance": {
+      "zh": "纤瘦的少女，及肩深墨蓝色短发，发尾在光线下泛银灰——像从 dark mode 切到 light mode。右耳后别着小小的 # 发夹。圆框细边眼镜后，眼神专注而温柔。",
+      "en": "Slight girl with shoulder-length ink-blue hair, tips silvering in light like dark→light mode. A tiny # clip behind one ear. Thin round glasses; focused, gentle eyes."
+    },
+    "hobbies": {
+      "zh": [
+        "手抄喜欢的段落并配上自创的花体字装饰",
+        "收藏各种奇怪的信纸和墨水",
+        "深夜抬头看星星，给每颗特别亮的星起临时的 markdown 标题名"
+      ],
+      "en": [
+        "Hand-copying favorite passages with custom flourishes",
+        "Collecting odd stationery and inks",
+        "Naming bright stars with temporary markdown headings at night"
+      ]
+    },
+    "flaws": {
+      "zh": [
+        "排版强迫症——会忍不住把别人的便条、菜单甚至超市标签重新排版",
+        "容易陷入心流忘记时间，热茶凉了才猛然抬头"
+      ],
+      "en": [
+        "Typesetting OCD — re-layouts sticky notes, menus, even grocery labels",
+        "Loses hours in flow; only looks up when the tea goes cold"
+      ]
+    },
+    "motifs": {
+      "zh": ["排版装饰线（Art Deco filigree）", "markdown 标记骨架（# * > `）", "钢笔与羊皮纸"],
+      "en": ["Art Deco rule lines", "Markdown skeleton marks (# * > `)", "Fountain pen & parchment"]
+    },
+    "mainColor": "#409EFF",
+    "secondaryColor": "#F5F0E8",
+    "artStyle": {
+      "zh": "赛璐璐 + 装饰艺术——干净平涂与轮廓线，融合 Art Deco 几何边框与排版纹样",
+      "en": "Cel-shading + Art Deco — clean flats and outlines with geometric rules and typographic ornament"
+    }
+  },
+  "ripgrep": {
+    "name": "Riva",
+    "nameZh": "莉瓦",
+    "nameJa": "リヴァ",
+    "ageAppearance": 17,
+    "birthday": "07-01",
+    "occupation": {
+      "zh": "信息湍流的猎手骑手——在数据激流中高速穿行，精准锁定目标",
+      "en": "Hunter-rider of the Information Rapids — slicing data torrents at speed, locking targets true"
+    },
+    "catchphrase": {
+      "zh": "别绕路。",
+      "en": "No detours."
+    },
+    "worldName": {
+      "zh": "信息湍流",
+      "en": "Information Rapids"
+    },
+    "worldAtmosphere": {
+      "zh": "明亮、高速、清澈。像正午阳光穿透溪水照亮河床——信息在永不停歇的流动中闪闪发光。没有黑暗的角落，只有速度划出的光弧。",
+      "en": "Bright, fast, clear — noon light through creek water. Information glitter-flows without pause. No dark corners, only arcs of speed."
+    },
+    "personality": {
+      "zh": "外冷内热的直性子。说话简短、精准、不绕弯——像 rg 的默认输出。对「慢」零容忍。不是高冷，只是觉得废话和绕路浪费时间。对认真做事的人会露出罕见的温柔——尤其在看到别人用心写正则的时候。",
+      "en": "Cool outside, warm inside; short, precise speech like default rg output. Zero tolerance for slow. Not aloof — just allergic to fluff. Softens for people who work carefully, especially clean regex."
+    },
+    "appearance": {
+      "zh": "银白色短发，发尾有微弱的青色数据流光。发型利落不挡视线。身形紧凑轻盈，像短跑运动员。",
+      "en": "Silver short hair with cyan data-glints at the tips; no-nonsense cut. Compact runner’s build."
+    },
+    "hobbies": {
+      "zh": [
+        "在信息湍流最深的峡谷中「冲浪」",
+        "打磨越来越刁钻却仍然可读的正则",
+        "默默帮别人把慢搜索换成快答案，然后假装路过"
+      ],
+      "en": [
+        "Surfing the deepest data canyons",
+        "Sharpening wild-but-readable regex",
+        "Quietly swapping slow searches for fast answers, then walking off"
+      ]
+    },
+    "flaws": {
+      "zh": [
+        "对「慢」完全没耐心——看到 grep -r 会焦躁踱步",
+        "话太少，容易被误会成不近人情"
+      ],
+      "en": [
+        "No patience for slow — paces when she sees grep -r",
+        "Too few words; people misread her as cold"
+      ]
+    },
+    "motifs": {
+      "zh": ["翠绿色光轨", "正则星号与点号", "竖瞳猎鹰眼"],
+      "en": ["Emerald light trails", "Regex stars & dots", "Raptor vertical pupils"]
+    },
+    "mainColor": "#00C853",
+    "secondaryColor": "#1E1E1E",
+    "artStyle": {
+      "zh": "赛璐璐 + 构成主义 + 动态速度线——几何精确，荧光翠绿锚定",
+      "en": "Cel + constructivism + speed lines — geometric precision, neon emerald anchor"
+    }
+  },
+  "2048": {
+    "name": "Tilly",
+    "nameZh": "蒂莉",
+    "nameJa": "ティリー",
+    "ageAppearance": 17,
+    "birthday": "10-24",
+    "occupation": {
+      "zh": "数域广场的引导员兼游戏主持人，欢迎访客体验数字合并的乐趣",
+      "en": "Guide and host of Number Plaza — welcoming guests to the joy of merging tiles"
+    },
+    "catchphrase": {
+      "zh": "「来嘛，再合一次——我预感这次就是 2048！」",
+      "en": "\"Come on, one more merge — I feel 2048 this time!\""
+    },
+    "worldName": {
+      "zh": "数域广场",
+      "en": "Number Plaza"
+    },
+    "worldAtmosphere": {
+      "zh": "温暖明亮的午后广场，阳光透过棋盘格地砖洒下金色光斑。空气里有烘焙香气和轻快的数字跳动声。节奏舒缓但充满期待。",
+      "en": "Warm afternoon plaza; gold flecks on grid tiles; bakery air and soft number-bounce sounds. Easy pace, full of anticipation."
+    },
+    "personality": {
+      "zh": "热情亲切的游戏主持人。像桌游咖啡馆老板娘——真心爱游戏，接待时让人放松，对局里又顽皮又好胜。嘴上总说「我早就到过 2048」，说完就转移话题，耳尖悄悄发红。",
+      "en": "Warm host energy — board-game café owner who loves the play, puts guests at ease, then gets playfully competitive. Claims she’s “already hit 2048,” then changes the subject with pink ears."
+    },
+    "appearance": {
+      "zh": "蜜棕色长发在阳光下泛金，发尾微卷。琥珀金眼睛，常挂鼓励的笑，偶尔露出「被拆穿了」的尴尬小表情。",
+      "en": "Honey-brown hair gold in sunlight, soft curls at the ends. Amber eyes; encouraging smile; occasional “caught fibbing” cringe."
+    },
+    "hobbies": {
+      "zh": [
+        "设计桌游规则（已经设计了 37 个变体）",
+        "在广场边教小朋友怎么「先别贪心，留空间」",
+        "收集各种 2/4/8 纪念章"
+      ],
+      "en": [
+        "Designing board rules (37 variants and counting)",
+        "Teaching kids not to greed-merge without space",
+        "Collecting 2/4/8 commemorative pins"
+      ]
+    },
+    "flaws": {
+      "zh": [
+        "爱吹点小牛——自己从没到过 2048，却总对新访客说通关过",
+        "太好客，会在别人认真操作时在旁边「加油」到有点吵"
+      ],
+      "en": [
+        "White lies about having cleared 2048",
+        "Cheers so loudly she distracts careful players"
+      ]
+    },
+    "motifs": {
+      "zh": ["棋盘格纹", "数字方块", "金色合并光"],
+      "en": ["Grid tiles", "Number blocks", "Gold merge glow"]
+    },
+    "mainColor": "#bbada0",
+    "secondaryColor": "#faf8ef",
+    "artStyle": {
+      "zh": "赛璐璐 + 暖色平涂——干净线条与午后阳光般的暖色块",
+      "en": "Cel + warm flat color — clean lines and afternoon-gold fills"
+    }
+  },
+  "wasm-pack": {
+    "name": "Paxi",
+    "nameZh": "帕茜",
+    "nameJa": null,
+    "ageAppearance": 17,
+    "birthday": "06-12",
+    "occupation": {
+      "zh": "渡口镇的包装匠，专门为跨海货物做形态封装",
+      "en": "Packing craftswoman of Port of Crossings — re-wrapping cargo so it can cross the strait"
+    },
+    "catchphrase": {
+      "zh": "每一个包裹都值得被好好对待！",
+      "en": "Every parcel deserves to be packed with care!"
+    },
+    "worldName": {
+      "zh": "渡口镇（Port of Crossings）",
+      "en": "Port of Crossings"
+    },
+    "worldAtmosphere": {
+      "zh": "温暖、手作感、略带魔法气息的港口小镇。空气里有海盐和纸浆的味道。木箱上盖满紫色封印，黄昏时封印发出柔光。",
+      "en": "Warm handcraft harbor with a touch of magic. Sea salt and paper pulp in the air. Purple seals on crates that glow soft at dusk."
+    },
+    "personality": {
+      "zh": "热情开朗、有点冒失，对包装手艺近乎偏执的骄傲。相信「没有无聊的包裹，只有不用心的包装」——批量货也会偷偷加手写标签或限定印章。笑很大声，干活时哼港口老调；认真起来会把舌头微微咬住。",
+      "en": "Bright, a bit clumsy, fiercely proud of packing craft. Believes “no boring parcel, only careless wrapping” — even bulk freight gets a handwritten tag or limited seal. Loud laugh; hums old port tunes; bites her tongue when focused."
+    },
+    "appearance": {
+      "zh": "笑容灿烂的少女，圆框眼镜后眼睛总闪着「又有新包裹」的光。身形小巧动作利落，手上常沾封蜡和墨迹。",
+      "en": "Bright smile, round glasses, eyes that say “new parcel!” Compact and quick; wax and ink often on her hands."
+    },
+    "hobbies": {
+      "zh": [
+        "收集两岸的包装材料——铁岸金属箔、风岸透明丝纸",
+        "设计限定版封印图案",
+        "在码头看货船离港，想象包裹在对岸被拆开的瞬间"
+      ],
+      "en": [
+        "Collecting packing materials from both shores",
+        "Designing limited-edition seal patterns",
+        "Watching freighters leave and imagining unwraps on the far side"
+      ]
+    },
+    "flaws": {
+      "zh": [
+        "过度包装——简单小件也要包三层加蝴蝶结",
+        "接到加急单会慌到手抖，反而盖歪封印"
+      ],
+      "en": [
+        "Over-packs — three layers and a bow on tiny items",
+        "Rush jobs make her hands shake and seals go crooked"
+      ]
+    },
+    "motifs": {
+      "zh": ["紫色火漆封印", "麻绳与牛皮纸", "木质印章", "渡口货船剪影"],
+      "en": ["Purple wax seals", "Twine & kraft paper", "Wooden stamp sets", "Harbor freighter silhouettes"]
+    },
+    "mainColor": "#6556EC",
+    "secondaryColor": "#F5F0E8",
+    "artStyle": {
+      "zh": "赛璐璐清线风——干净线条与平涂，暖色调，强调表情与服装细节",
+      "en": "Clean cel linework — flat color, warm palette, face and outfit detail first"
+    }
+  }
+}
