@@ -82,6 +82,21 @@ This changelog records coordinated public package sets.
 - `scripts/preview-sites.sh` 默认改扫 `packages/starters`（`PREVIEW_SITES_DIR`
   可覆盖）。
 
+### `repochan browse` — 本地协议浏览器（Phase 1+2）
+
+- 新包 `@repochan/browse`（Vite + React SPA + 127.0.0.1 薄服务）+ CLI
+  `repochan browse [--port --no-open --json]`：persona 结构化人设卡（版本/
+  候选切换）、orders 网格（current 封面 + 状态角标 + 筛选）、order 详情
+  （版本时间线 A/B、references、prompt）、derived 审计时间线、React Flow
+  依赖画布（foundation-anchor/reference/derived-from 边，选中节点弹出
+  Inspector）。全部经 core 只读访问，协议安全文件沙箱。
+- Starters 页：未同步时 sync 按钮（复用 CLI sync），同步后 preview 卡片网格；
+  点卡片经新命令 `repochan starter preview <id>`（install→build→serve，
+  dist 缓存复用）在新标签页打开真实站点。
+- Skill 同步：painter 学会用 browse 做交付检查与版本对比；page-designer
+  学会先 `starter sync` 再 pull、用 `starter preview` 评估候选；向导在
+  检查点推荐用户打开 browse。
+
 ### Orders — postprocess 派生归档（审计）
 
 - Starter postprocess 步骤新增 `keep` 字段（默认 `true`）。`starter asset-apply`
