@@ -144,9 +144,10 @@ export const showcaseCases: ShowcaseCase[] = [
     character: { name: "Niko" },
     hasLanding: false,
     assets: {
-      foundation: "/showcase/2048/foundation.jpg",
-      icon: "/showcase/2048/icon.jpg",
-      poster: "/showcase/2048/poster.jpg",
+      // *-r5.jpg: cache-busted filenames from test-results round5 archive
+      foundation: "/showcase/2048/foundation-r5.jpg",
+      icon: "/showcase/2048/icon-r5.jpg",
+      poster: "/showcase/2048/poster-r5.jpg",
     },
     blurb: {
       zh: "两个二在一起就成了四——双倍庭院里的温柔访客（round5）。",
