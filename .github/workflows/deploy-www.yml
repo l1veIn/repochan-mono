@@ -1,0 +1,64 @@
+# Deploy sites/www → Cloudflare Pages (direct upload via Wrangler).
+#
+# Does NOT use Cloudflare's GitHub app integration, so it will not conflict
+# with another CF account already linked to this GitHub user.
+#
+# Required repo secrets:
+#   CLOUDFLARE_API_TOKEN   — API Token with Account.Cloudflare Pages:Edit
+#   CLOUDFLARE_ACCOUNT_ID  — this account (see sites/www/README.md)
+
+name: Deploy www
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "sites/www/**"
+      - ".github/workflows/deploy-www.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: deploy-www-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build and deploy Pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: www
+      url: https://repochan.com
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: sites/www/package-lock.json
+
+      - name: Install dependencies
+        working-directory: sites/www
+        run: npm ci
+
+      - name: Build
+        working-directory: sites/www
+        env:
+          PUBLIC_SITE_URL: https://repochan.com
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: sites/www
+          command: pages deploy dist --project-name=repochan-www --branch=main --commit-dirty=true
