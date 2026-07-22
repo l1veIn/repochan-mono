@@ -19,9 +19,9 @@ character sheets, icons, stickers, posters, and a landing page — driven by *yo
 
 <p align="center">
 <a href="https://www.npmjs.com/package/repochan"><img src="https://img.shields.io/npm/v/repochan?color=38BDF8&label=npm" alt="npm version"></a>
-<a href="../../../LICENSE"><img src="https://img.shields.io/badge/license-MIT-111827" alt="license: MIT"></a>
+<a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-111827" alt="license: MIT"></a>
 <a href="https://nodejs.org"><img src="https://img.shields.io/badge/node-%E2%89%A520-34D399" alt="node >= 20"></a>
-<a href="../../../packages/skill/"><img src="https://img.shields.io/badge/agent-BYO-F9A8D4" alt="agent: bring your own"></a>
+<a href="./packages/skill/"><img src="https://img.shields.io/badge/agent-BYO-F9A8D4" alt="agent: bring your own"></a>
 </p>
 
 <p align="center"><b><a href="https://repochan.com">Website</a> · <a href="./README.md">English</a> · <a href="./README_zh.md">中文文档</a> · <a href="./ARCHITECTURE.md">Architecture</a></b></p>
@@ -103,7 +103,7 @@ You talk to **your agent**. The wizard skill schedules the teams:
   <tr>
     <td align="center" width="33%"><img src="docs/readme-variants/museum/assets/gallery/stickers.webp" alt="Exhibit 004 — three sticker specimens cut from a chroma-grid sheet" width="240"><br/><sub>No. 004 — sticker specimens<br/><code>ord-sticker-001</code></sub></td>
     <td align="center" width="33%"><img src="docs/readme-variants/museum/assets/gallery/webstates.webp" alt="Exhibit 005 — three webstate specimens: searching, error, cozy" width="240"><br/><sub>No. 005 — webstate specimens<br/><code>ord-webstates-001</code></sub></td>
-    <td align="center" width="33%"><a href="../../../packages/starters/landing-museum"><img src="docs/readme-variants/museum/assets/gallery/landing-museum.webp" alt="Exhibit 006 — the museum landing starter: a white-cube exhibition page for the mascot" width="240"></a><br/><sub>No. 006 — museum landing<br/><code>packages/starters/landing-museum</code></sub></td>
+    <td align="center" width="33%"><a href="./packages/starters/landing-museum"><img src="docs/readme-variants/museum/assets/gallery/landing-museum.webp" alt="Exhibit 006 — the museum landing starter: a white-cube exhibition page for the mascot" width="240"></a><br/><sub>No. 006 — museum landing<br/><code>packages/starters/landing-museum</code></sub></td>
   </tr>
 </table>
 
@@ -117,10 +117,10 @@ Grid sheets are generated on a uniform matte with a layout-guide reference, then
 
 <table>
   <tr>
-    <td align="center" width="25%"><a href="../../../packages/starters/landing-neobrutal-zine"><img src="docs/readme-variants/museum/assets/starters/landing-neobrutal-zine.webp" alt="Starter preview: landing-neobrutal-zine" width="200"><br/><sub>neobrutal-zine</sub></a></td>
-    <td align="center" width="25%"><a href="../../../packages/starters/landing-frutiger-aero"><img src="docs/readme-variants/museum/assets/starters/landing-frutiger-aero.webp" alt="Starter preview: landing-frutiger-aero" width="200"><br/><sub>frutiger-aero</sub></a></td>
-    <td align="center" width="25%"><a href="../../../packages/starters/landing-solarpunk"><img src="docs/readme-variants/museum/assets/starters/landing-solarpunk.webp" alt="Starter preview: landing-solarpunk" width="200"><br/><sub>solarpunk</sub></a></td>
-    <td align="center" width="25%"><a href="../../../packages/starters/landing-memphis"><img src="docs/readme-variants/museum/assets/starters/landing-memphis.webp" alt="Starter preview: landing-memphis" width="200"><br/><sub>memphis</sub></a></td>
+    <td align="center" width="25%"><a href="./packages/starters/landing-neobrutal-zine"><img src="docs/readme-variants/museum/assets/starters/landing-neobrutal-zine.webp" alt="Starter preview: landing-neobrutal-zine" width="200"><br/><sub>neobrutal-zine</sub></a></td>
+    <td align="center" width="25%"><a href="./packages/starters/landing-frutiger-aero"><img src="docs/readme-variants/museum/assets/starters/landing-frutiger-aero.webp" alt="Starter preview: landing-frutiger-aero" width="200"><br/><sub>frutiger-aero</sub></a></td>
+    <td align="center" width="25%"><a href="./packages/starters/landing-solarpunk"><img src="docs/readme-variants/museum/assets/starters/landing-solarpunk.webp" alt="Starter preview: landing-solarpunk" width="200"><br/><sub>solarpunk</sub></a></td>
+    <td align="center" width="25%"><a href="./packages/starters/landing-memphis"><img src="docs/readme-variants/museum/assets/starters/landing-memphis.webp" alt="Starter preview: landing-memphis" width="200"><br/><sub>memphis</sub></a></td>
   </tr>
 </table>
 

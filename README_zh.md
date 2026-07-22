@@ -19,9 +19,9 @@
 
 <p align="center">
 <a href="https://www.npmjs.com/package/repochan"><img src="https://img.shields.io/npm/v/repochan?color=38BDF8&label=npm" alt="npm 版本"></a>
-<a href="../../../LICENSE"><img src="https://img.shields.io/badge/license-MIT-111827" alt="许可证：MIT"></a>
+<a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-111827" alt="许可证：MIT"></a>
 <a href="https://nodejs.org"><img src="https://img.shields.io/badge/node-%E2%89%A520-34D399" alt="node >= 20"></a>
-<a href="../../../packages/skill/"><img src="https://img.shields.io/badge/agent-BYO-F9A8D4" alt="agent：自带"></a>
+<a href="./packages/skill/"><img src="https://img.shields.io/badge/agent-BYO-F9A8D4" alt="agent：自带"></a>
 </p>
 
 <p align="center"><b><a href="https://repochan.com">官网</a> · <a href="./README.md">English</a> · <a href="./README_zh.md">中文文档</a> · <a href="./ARCHITECTURE.md">架构</a></b></p>
@@ -103,7 +103,7 @@ pnpm test                     # 全量 monorepo 测试
   <tr>
     <td align="center" width="33%"><img src="docs/readme-variants/museum/assets/gallery/stickers.webp" alt="展品 004——从 chroma 网格图切下的三枚贴纸标本" width="240"><br/><sub>编号 004 · 贴纸标本<br/><code>ord-sticker-001</code></sub></td>
     <td align="center" width="33%"><img src="docs/readme-variants/museum/assets/gallery/webstates.webp" alt="展品 005——三枚网页状态标本：搜索中、错误、惬意" width="240"><br/><sub>编号 005 · 状态标本<br/><code>ord-webstates-001</code></sub></td>
-    <td align="center" width="33%"><a href="../../../packages/starters/landing-museum"><img src="docs/readme-variants/museum/assets/gallery/landing-museum.webp" alt="展品 006——museum 落地 starter：为看板娘打造的白盒子展览页" width="240"></a><br/><sub>编号 006 · museum 落地页<br/><code>packages/starters/landing-museum</code></sub></td>
+    <td align="center" width="33%"><a href="./packages/starters/landing-museum"><img src="docs/readme-variants/museum/assets/gallery/landing-museum.webp" alt="展品 006——museum 落地 starter：为看板娘打造的白盒子展览页" width="240"></a><br/><sub>编号 006 · museum 落地页<br/><code>packages/starters/landing-museum</code></sub></td>
   </tr>
 </table>
 
@@ -117,10 +117,10 @@ pnpm test                     # 全量 monorepo 测试
 
 <table>
   <tr>
-    <td align="center" width="25%"><a href="../../../packages/starters/landing-neobrutal-zine"><img src="docs/readme-variants/museum/assets/starters/landing-neobrutal-zine.webp" alt="Starter 预览：landing-neobrutal-zine" width="200"><br/><sub>neobrutal-zine</sub></a></td>
-    <td align="center" width="25%"><a href="../../../packages/starters/landing-frutiger-aero"><img src="docs/readme-variants/museum/assets/starters/landing-frutiger-aero.webp" alt="Starter 预览：landing-frutiger-aero" width="200"><br/><sub>frutiger-aero</sub></a></td>
-    <td align="center" width="25%"><a href="../../../packages/starters/landing-solarpunk"><img src="docs/readme-variants/museum/assets/starters/landing-solarpunk.webp" alt="Starter 预览：landing-solarpunk" width="200"><br/><sub>solarpunk</sub></a></td>
-    <td align="center" width="25%"><a href="../../../packages/starters/landing-memphis"><img src="docs/readme-variants/museum/assets/starters/landing-memphis.webp" alt="Starter 预览：landing-memphis" width="200"><br/><sub>memphis</sub></a></td>
+    <td align="center" width="25%"><a href="./packages/starters/landing-neobrutal-zine"><img src="docs/readme-variants/museum/assets/starters/landing-neobrutal-zine.webp" alt="Starter 预览：landing-neobrutal-zine" width="200"><br/><sub>neobrutal-zine</sub></a></td>
+    <td align="center" width="25%"><a href="./packages/starters/landing-frutiger-aero"><img src="docs/readme-variants/museum/assets/starters/landing-frutiger-aero.webp" alt="Starter 预览：landing-frutiger-aero" width="200"><br/><sub>frutiger-aero</sub></a></td>
+    <td align="center" width="25%"><a href="./packages/starters/landing-solarpunk"><img src="docs/readme-variants/museum/assets/starters/landing-solarpunk.webp" alt="Starter 预览：landing-solarpunk" width="200"><br/><sub>solarpunk</sub></a></td>
+    <td align="center" width="25%"><a href="./packages/starters/landing-memphis"><img src="docs/readme-variants/museum/assets/starters/landing-memphis.webp" alt="Starter 预览：landing-memphis" width="200"><br/><sub>memphis</sub></a></td>
   </tr>
 </table>
 
