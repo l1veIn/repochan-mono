@@ -62,5 +62,16 @@ const canonical = `${siteOrigin}${selfPath}`;
     <script>
       import "../lib/motion";
     </script>
+    {/*
+      Cloudflare Web Analytics (privacy-first RUM).
+      Site created with auto_install for zone repochan.com; Pages HTML still needs
+      the public site token for reliable beacon delivery.
+    */}
+    <script
+      is:inline
+      defer
+      src="https://static.cloudflareinsights.com/beacon.min.js"
+      data-cf-beacon='{"token":"a202915ba0c740289045abbe3b12930a"}'
+    ></script>
   </body>
 </html>

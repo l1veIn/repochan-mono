@@ -67,6 +67,16 @@ Optional env:
 
 - `PUBLIC_SITE_URL` — absolute origin for OG/canonical (default `https://repochan.com`)
 
+### Web Analytics
+
+Cloudflare **Web Analytics** is enabled for `repochan.com`:
+
+- Dashboard: [Web Analytics](https://dash.cloudflare.com/?to=/:account/web-analytics) → site `repochan.com`
+- Beacon is embedded in `src/layouts/SiteLayout.astro` (public site token; safe to ship in HTML)
+- Edge request analytics still live under the zone **Analytics** tab (no script required)
+
+After deploy, open the site a few times, then check **Web Analytics** for page views and referrers.
+
 ## Showcase
 
 Case assets live under `public/showcase/<id>/` and are registered in
