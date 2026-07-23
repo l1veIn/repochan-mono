@@ -49,8 +49,7 @@ Canonical translations for all domain-specific terms. Use these consistently acr
 | 中文 | English | Notes |
 |---|---|---|
 | 人设 | Persona | The mascot character definition |
-| 看板娘 | Mascot / Repo Mascot | Female mascot character for the repo |
-| 仓库娘 | Repo Girl | Alternative name for repo mascot |
+| 看板娘 / 仓库娘 | Mascot | The repo mascot character. Both Chinese terms refer to the same concept. "Repo Girl" appears only in the persona skill's product-name explanation (Repo + -chan), not as a separate term. |
 | 世界架构师 | World Architect | Persona sub-agent: builds the character's world |
 | 角色设计师 | Character Designer | Persona sub-agent: designs the character |
 | 一致性守护者 | Consistency Guardian | Persona sub-agent: anti-overfit + anti-language-leak |
