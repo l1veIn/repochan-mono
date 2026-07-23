@@ -1,56 +1,56 @@
-# 访谈问题设计
+# Interview Question Design
 
-## 原则：每个问题必须来自分析报告的具体信号
+## Principle: Every question must stem from a specific signal in the analysis report
 
-❌ 泛泛的问题：「你想要什么风格的角色？」
-✅ 基于信号的问题：「分析显示这个项目的文档风格非常极简和工程化（abstract.code_style score=0.8）。角色的性格底色应该偏向哪种？」
-
-
-## 问题类别（8 个维度）
-
-为每个类别设计 1-2 个问题（总共 7-14 个）：
-
-1. **tone（基调）**：角色的整体情绪氛围。
-   - 来自信号：README 语气、commit message 风格、abstract.team_culture、abstract.product_philosophy
-   - 示例选项：「沉稳专业，像图书管理员」「活泼热情，像社区主持人」「冷峻极简，像终端界面」「神秘诗意，像占星师」
-
-2. **audience（受众 & 使用场景）**：角色面向谁、用户打算怎么用。
-   - 来自信号：preAnalysis.project_category、README 目标用户描述
-   - 示例选项：「品牌吉祥物（需要辨识度和象征性）」「社区 mascot（日常陪伴，接地气）」「故事主角（需要复杂性格和背景）」「纯装饰用（视觉优先）」
-
-3. **weight（角色重量感）**：角色在世界中的定位——是世界的核心还是普通一员。
-   - 来自信号：preAnalysis.project_category、abstract.product_philosophy
-   - 示例选项：「高概念/象征级（世界的守护者/记录者/反抗者，有戏剧性张力）」「日常普通级（世界里的普通居民，接地气但有独特个性）」「由创意团队自行决定」
-   - 这个维度直接影响下游 World Architect 的世界规则强度和 Character Designer 的角色中心性。
-
-4. **world（世界设定偏好）**：用户对角色所在世界的复杂度偏好。
-   - 来自信号：（此维度无直接 repo 信号——完全由用户偏好驱动）
-   - 示例选项：「强规则世界（有明确的核心法则，像「每本书都是一个人的记忆」）」「弱规则/纯氛围世界（由情绪和质感定义，规则不重要）」「由创意团队基于仓库信号自行构建」
-   - 如果用户跳过此问题，Creative Team 将根据角色重量感自行推断世界复杂度。
-
-5. **style（视觉风格）**：角色的美术方向。
-   - 来自信号：颜色提取结果、项目类型（游戏/工具/库）
-   - 示例选项：「赛博朋克 / 未来感」「和风 / 传统日系」「奇幻 / 魔法少女」「日常 / 校园系」「机甲 / 科幻」
-
-6. **reference（参考角色）**：用户喜欢的二次元角色及具体喜欢点。
-   - 来自信号：（此维度无直接 repo 信号——完全由用户偏好驱动）
-   - 提问方式：「有没有你喜欢的二次元角色？具体喜欢它们的哪一点？（比如「喜欢薇尔莉特那种不懂人类情感但努力理解的感觉」——不是整个角色，而是某个具体特质）」
-   - 标记 `optional: true`。下游 Character Designer 会吸收具体特质而非复制角色。
-
-7. **naming（命名）**：角色名字如何继承仓库身份。
-   - 来自信号：`analysis.context.identity.namingSeeds.primary/secondary`、仓库名、包名、产品名、README 标题、领域概念、用户偏好
-   - 示例选项：「直接拟人化仓库名」「从核心领域概念取名」「短名 + 项目称号」「用户自定义」
-   - 禁止默认问「中式/日系/西式名字」。自然语言不是命名文化方向，除非用户主动提出。
-
-8. **constraints（约束）**：用户明确的硬性要求。
-   - 来自信号：用户在对话中已表达的任何偏好
-   - 示例：「有没有任何你必须避免的元素？」「有没有必须包含的特定配色/符号/主题？」「角色的年龄外观有偏好吗？」
+No generic questions: "What style of character do you want?"
+Yes signal-driven questions: "Analysis shows this project's documentation style is very minimal and engineering-oriented (abstract.code_style score=0.8). Which direction should the character's personality base lean towards?"
 
 
-## 问题设计规则
+## Question Categories (8 Dimensions)
 
-- 每个问题必须有 `rationale` 字段，说明它来自哪个分析信号
-- 每个问题 2-4 个选项
-- 选项要有具体的 `description`，解释这个选择意味着什么
-- 标记 `optional: true` 的问题允许用户跳过
-- 不要问 `ask_user_question` 已经自动追加的「Type something.」行——那是自由文本回退
+Design 1-2 questions per category (7-14 total):
+
+1. **tone**: The character's overall emotional atmosphere.
+   - From signals: README tone, commit message style, abstract.team_culture, abstract.product_philosophy
+   - Example options: "Calm and professional, like a librarian" / "Lively and warm, like a community host" / "Cold and minimal, like a terminal interface" / "Mysterious and poetic, like an astrologer"
+
+2. **audience**: Who the character is for and how the user intends to use them.
+   - From signals: preAnalysis.project_category, README target-user descriptions
+   - Example options: "Brand mascot (needs recognizability and symbolism)" / "Community mascot (daily companion, grounded)" / "Story protagonist (needs complex personality and backstory)" / "Purely decorative (visuals first)"
+
+3. **weight**: The character's weight class — their position in the world, from central figure to ordinary member.
+   - From signals: preAnalysis.project_category, abstract.product_philosophy
+   - Example options: "High-concept / symbolic tier (guardian/recorder/rebel of the world, with dramatic tension)" / "Everyday tier (ordinary resident of the world, grounded but with distinct personality)" / "Defer to Creative Team"
+   - This dimension directly affects the downstream World Architect's world-rule intensity and the Character Designer's character centrality.
+
+4. **world**: User's preference for the complexity of the character's world.
+   - From signals: (No direct repo signal for this dimension — entirely user-preference driven)
+   - Example options: "Strong-rule world (has clear fundamental laws, like 'every book is a person's memory')" / "Weak-rule / atmosphere-only world (defined by mood and texture, rules don't matter)" / "Defer to Creative Team to infer from repo signals"
+   - If the user skips this question, the Creative Team will infer world complexity from the character's weight class.
+
+5. **style**: The character's art direction.
+   - From signals: color extraction results, project type (game/tool/library)
+   - Example options: "Cyberpunk / futuristic" / "Japanese traditional / wa-style" / "Fantasy / magical girl" / "Everyday / school-life" / "Mecha / sci-fi"
+
+6. **reference**: The user's favorite anime-style characters and what they specifically like about them.
+   - From signals: (No direct repo signal for this dimension — entirely user-preference driven)
+   - Question phrasing: "Are there any anime-style characters you like? What specifically do you like about them? (e.g., 'I like how Violet Evergarden doesn't understand human emotions but tries hard to learn' — a specific trait, not the entire character)"
+   - Mark `optional: true`. The downstream Character Designer will absorb specific traits rather than copy characters.
+
+7. **naming**: How the character name inherits repository identity.
+   - From signals: `analysis.context.identity.namingSeeds.primary/secondary`, repo name, package name, product name, README title, domain concepts, user preferences
+   - Example options: "Direct anthropomorphization of the repo name" / "Name from core domain concepts" / "Short name + project title" / "User custom"
+   - Do NOT default to asking "Chinese/Japanese/Western name." Natural language is not a naming culture direction unless the user raises it.
+
+8. **constraints**: The user's explicit hard requirements.
+   - From signals: any preferences the user has already expressed in conversation
+   - Example: "Are there any elements you absolutely must avoid?" / "Any specific color palette / symbols / themes that must be included?" / "Any preference for the character's apparent age?"
+
+
+## Question Design Rules
+
+- Each question must have a `rationale` field stating which analysis signal it comes from
+- Each question 2-4 options
+- Options must have concrete `description` fields explaining what each choice means
+- Questions marked `optional: true` allow the user to skip
+- Don't ask what the "Type something." line auto-appended by `ask_user_question` already covers — that's the free-text fallback
