@@ -48,7 +48,7 @@ import {
 import { measureChromaResidue } from "./chroma-residue.js";
 import { computeCentroidGridGeometry, type GridCellAssignment } from "./grid-geometry.js";
 import { computeTileCells, readPngSize, type TileCell } from "./slicing.js";
-import { findConnectedComponents } from "./stickers.js";
+import { findConnectedComponents } from "./connected-components.js";
 import { matteImage, type MatteModel } from "./imgly.js";
 import { loadSharp } from "./sharp.js";
 import type {

@@ -11,7 +11,6 @@ import {
   runImageEditChromaKey,
   runImageEditBgRemove,
   runImageEditExtract,
-  runImageEditExtractStickers,
   runImageEditLayoutGuide,
 } from "./image.js";
 import { isExtractError, printError, UsageError } from "../lib/output.js";
@@ -248,16 +247,12 @@ describe("image edit extract", () => {
 });
 
 describe("image edit ML capability preflight", () => {
-  it("guards bg-remove and extract-stickers before image processing", async () => {
+  it("guards bg-remove before image processing", async () => {
     const dir = await tempDir();
     const source = await writeGrid(dir);
     await expect(runImageEditBgRemove(dir, source, { out: path.join(dir, "cutout.png") }, { homeDir: dir }))
       .rejects.toBeInstanceOf(ImageMlCapabilityRequiredError);
-    await expect(runImageEditExtractStickers(dir, source, {
-      rows: 3, cols: 3, out: path.join(dir, "stickers"),
-    }, { homeDir: dir })).rejects.toBeInstanceOf(ImageMlCapabilityRequiredError);
     expect(existsSync(path.join(dir, "cutout.png"))).toBe(false);
-    expect(existsSync(path.join(dir, "stickers"))).toBe(false);
   });
 
   it("rejects the unavailable large model before capability lookup", async () => {
@@ -265,9 +260,6 @@ describe("image edit ML capability preflight", () => {
     const source = await writeGrid(dir);
     await expect(runImageEditBgRemove(dir, source, {
       out: path.join(dir, "cutout.png"), model: "large",
-    }, { homeDir: dir })).rejects.toThrow(UsageError);
-    await expect(runImageEditExtractStickers(dir, source, {
-      rows: 3, cols: 3, out: path.join(dir, "stickers"), model: "large",
     }, { homeDir: dir })).rejects.toThrow(UsageError);
   });
 

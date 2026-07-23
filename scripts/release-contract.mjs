@@ -81,7 +81,6 @@ export const compatibilityDebtWaivers = Object.freeze([
   ["packages/image-edit/src/matte-grid.ts", "legacy-contract", "* Map extractAssets failures back to the legacy extractMatteGrid error", adapterReason],
   ["packages/image-edit/src/matte-select.ts", "legacy-contract", "// - \"corner\" (default): legacy corner-mode sampling via estimateMatteColor.", adapterReason],
   ["packages/image-edit/src/matte-select.ts", "backward-compatibility", "/** Default \"corner\" for back-compat of \"auto\". */", adapterReason],
-  ["packages/image-edit/src/stickers.ts", "legacy-contract", "// Adapter contract: legacy callers expect plain Errors with the", adapterReason],
 ].map(([path, rule, text, reason, occurrence = 1]) => Object.freeze({
   path,
   rule,

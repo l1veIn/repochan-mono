@@ -82,7 +82,7 @@ describe("printError --json", () => {
 
   it("shows the install command on stderr for a human missing-capability error", () => {
     const { out, err } = capture();
-    printError(new ImageMlCapabilityRequiredError("image edit extract-stickers"));
+    printError(new ImageMlCapabilityRequiredError("image edit bg-remove"));
     expect(out).toEqual([]);
     expect(err.join("\n")).toContain("repochan image edit ml install");
   });

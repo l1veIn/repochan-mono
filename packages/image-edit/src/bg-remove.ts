@@ -6,8 +6,8 @@ import { loadSharp } from "./sharp.js";
 /**
  * Remove the background from a single image, writing a transparent PNG.
  *
- * Uses the same ISNet ML matting engine as `extractStickersFromImage`, but
- * stops after matting — no blob detection or cropping. The whole foreground
+ * Uses the same ISNet ML matting engine as the `extract` `ml-blobs` strategy,
+ * but stops after matting — no blob detection or cropping. The whole foreground
  * is kept as one transparent image.
  *
  * Pure pixel operation: writes one PNG to `outPath` and returns metadata.

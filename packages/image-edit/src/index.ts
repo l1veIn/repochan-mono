@@ -1,5 +1,5 @@
 export * from "./slicing.js";
-export * from "./stickers.js";
+export * from "./connected-components.js";
 export * from "./bg-remove.js";
 export * from "./gif-frames.js";
 export * from "./resize.js";

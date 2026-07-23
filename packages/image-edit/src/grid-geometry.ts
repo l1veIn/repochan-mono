@@ -1,4 +1,4 @@
-import { findConnectedComponents } from "./stickers.js";
+import { findConnectedComponents } from "./connected-components.js";
 import { computeTileCells, type TileCell } from "./slicing.js";
 
 // ---------------------------------------------------------------------------

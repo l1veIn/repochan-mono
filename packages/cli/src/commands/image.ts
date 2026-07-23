@@ -389,47 +389,6 @@ function requireImageMlModel(value: string | undefined): "small" | "medium" {
   return model as "small" | "medium";
 }
 
-/** repochan image edit extract-stickers <img> --rows --cols --out <dir> [--model small|medium] [--overwrite] */
-export async function runImageEditExtractStickers(
-  cwd: string,
-  imagePath: string | undefined,
-  options: OutputOptions & { rows?: number; cols?: number; out?: string; model?: string; overwrite?: boolean },
-  deps: ImageMlCapabilityDeps = {},
-) {
-  if (!imagePath) throw new UsageError("Usage: repochan image edit extract-stickers <img> --rows <n> --cols <n> --out <dir>");
-  if (!options.out) throw new UsageError("--out <dir> is required for extract-stickers");
-  if (!options.rows || !options.cols) throw new UsageError("--rows and --cols are required");
-
-  const absIn = path.resolve(cwd, imagePath);
-  const absOut = path.resolve(cwd, options.out);
-  const model = requireImageMlModel(options.model);
-  const requiredBy = "image edit extract-stickers";
-  await ensureImageMlCapability(requiredBy, deps);
-  const { extractStickersFromImage } = await import("@repochan/image-edit");
-
-  if (!options.json) {
-    console.log("Extracting stickers via the installed offline ISNet runtime…");
-  }
-  const spinner = ora("Matting + detecting stickers…").start();
-  try {
-    const result = await extractStickersFromImage(absIn, {
-      rows: options.rows, cols: options.cols, model, overwrite: options.overwrite,
-    }, absOut);
-    const list = result.stickers.map((s) => `${s.file} (${s.width}×${s.height})`).join(", ");
-    spinner.succeed(`Extracted ${result.stickers.length} stickers → ${path.relative(cwd, absOut) || absOut}`);
-    emitResult(
-      options,
-      `Extracted ${result.stickers.length} transparent stickers from ${result.sourceFile}: ${list}`,
-      { sourceFile: result.sourceFile, outDir: absOut, stickers: result.stickers, config: result.config },
-    );
-  } catch (err) {
-    spinner.fail();
-    const missing = contextualizeImageMlCapabilityError(err, requiredBy);
-    if (missing) throw missing;
-    throw err;
-  }
-}
-
 /** repochan image edit resize <img> --sizes <list> --out <dir> [--fit <mode>] [--overwrite] */
 export async function runImageEditResize(
   cwd: string,

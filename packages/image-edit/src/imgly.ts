@@ -4,7 +4,7 @@ import { pathToFileURL } from "node:url";
 import { loadSharp } from "./sharp.js";
 
 // ---------------------------------------------------------------------------
-// Optional image-ML capability resolution — shared by stickers.ts/bg-remove.ts
+// Optional image-ML capability resolution — shared by extract.ts/bg-remove.ts
 // ---------------------------------------------------------------------------
 export const IMAGE_ML_PACKAGE_NAME = "@imgly/background-removal-node";
 export const IMAGE_ML_REQUIRED_VERSION = "1.4.5";
@@ -109,8 +109,8 @@ function assertMatteModel(model: unknown): asserts model is MatteModel {
  * Run ML matting (ISNet via @imgly) on a source image buffer and return the
  * foreground (transparent-background) pixels as raw RGBA, plus dimensions.
  *
- * Shared by `extractStickersFromImage` (sticker blob detection) and
- * `removeImageBackground` (standalone bg-remove). Keeps the matting step in
+ * Shared by the `ml-blobs` extraction strategy (blob detection in extract.ts)
+ * and `removeImageBackground` (standalone bg-remove). Keeps the matting step in
  * one place so both callers stay consistent.
  *
  * @param srcBuf    source image bytes (PNG/JSBuffer)

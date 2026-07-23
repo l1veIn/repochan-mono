@@ -12,7 +12,6 @@ const SLOT_REFERENCE_PATTERN = /^slot:([a-z0-9][a-z0-9-]*)$/;
 export const StarterPostprocessOpSchema = Type.Union([
   Type.Literal("compress"),
   Type.Literal("slice"),
-  Type.Literal("extract-stickers"),
   Type.Literal("chroma-key"),
   Type.Literal("bg-remove"),
   Type.Literal("resize"),
@@ -201,7 +200,7 @@ export const StarterLocaleContentSchema = Type.Object({
   content: Type.Record(Type.String(), Type.Any()),
 }, { additionalProperties: false });
 
-export type StarterPostprocessOp = "compress" | "slice" | "extract-stickers" | "chroma-key" | "bg-remove" | "resize" | "favicon" | "gif-from-frames" | "extract-grid" | "iconfont";
+export type StarterPostprocessOp = "compress" | "slice" | "chroma-key" | "bg-remove" | "resize" | "favicon" | "gif-from-frames" | "extract-grid" | "iconfont";
 
 export type StarterPostprocessStep = {
   op: StarterPostprocessOp;
@@ -344,7 +343,7 @@ export function validateStarterManifest(value: unknown): StarterManifest {
     }
     for (const [index, step] of (asset.postprocess ?? []).entries()) {
       assertSafeRelativePath(step.out, `assets.${asset.slot}.postprocess.out`);
-      if (index < (asset.postprocess?.length ?? 0) - 1 && ["slice", "extract-stickers", "resize", "iconfont"].includes(step.op)) {
+      if (index < (asset.postprocess?.length ?? 0) - 1 && ["slice", "resize", "iconfont"].includes(step.op)) {
         throw new Error(`assets.${asset.slot}: multi-output postprocess '${step.op}' must be the final step.`);
       }
     }

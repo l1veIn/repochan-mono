@@ -592,7 +592,6 @@ export const OrderDerivedStepSchema = Type.Object({
   op: Type.Union([
     Type.Literal("compress"),
     Type.Literal("slice"),
-    Type.Literal("extract-stickers"),
     Type.Literal("chroma-key"),
     Type.Literal("bg-remove"),
     Type.Literal("resize"),
@@ -600,6 +599,10 @@ export const OrderDerivedStepSchema = Type.Object({
     Type.Literal("gif-from-frames"),
     Type.Literal("extract-grid"),
     Type.Literal("iconfont"),
+    // Legacy op retained ONLY so historical append-only derived.json archives
+    // remain readable (readOrderDerived validates on-disk data). New starter
+    // manifests cannot select it — the starter postprocess schema dropped it.
+    Type.Literal("extract-stickers"),
   ]),
   args: Type.Optional(Type.Record(Type.String(), Type.Any())),
   out: Type.String({ minLength: 1 }),

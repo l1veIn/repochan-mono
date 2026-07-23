@@ -33,7 +33,6 @@ import {
   extractAssets,
   ExtractError,
   extractIconfont,
-  extractStickersFromImage,
   framesToGif,
   generateIco,
   imageFormatForExtension,
@@ -398,9 +397,6 @@ async function applyStep(step: StarterPostprocessStep, sourceFiles: string[], ou
     case "slice":
       await sliceGridToFiles(source, out, { rows: Number(args.rows), cols: Number(args.cols), padding: Number(args.padding) || 0, overwrite });
       return;
-    case "extract-stickers":
-      await extractStickersFromImage(source, { rows: Number(args.rows), cols: Number(args.cols), model: (args.model as any) ?? "small", overwrite }, out);
-      return;
     case "resize":
       await resizeImage(source, out, { targets: numbers(args.sizes).map((width) => ({ width })), fit: args.fit as any, overwrite });
       return;
@@ -530,7 +526,7 @@ function imageMlRequirement(slot: StarterAssetSlot, gridStep: StarterPostprocess
     if (strategy === "ml-blobs" || strategy === "hybrid") return `starter asset-apply slot ${slot.slot} (extract-grid:${strategy})`;
     return undefined;
   }
-  const mlStep = slot.postprocess?.find((step) => step.op === "bg-remove" || step.op === "extract-stickers");
+  const mlStep = slot.postprocess?.find((step) => step.op === "bg-remove");
   return mlStep ? `starter asset-apply slot ${slot.slot} (${mlStep.op})` : undefined;
 }
 
@@ -546,7 +542,7 @@ async function listFilesRecursive(root: string): Promise<string[]> {
 
 /**
  * Copy one postprocess step's output (single file or directory tree) into the
- * order's derived archive. Directory outputs (slice / resize / extract-stickers)
+ * order's derived archive. Directory outputs (slice / resize / iconfont)
  * are archived recursively with one artifact record per file.
  */
 async function archiveStepOutput(

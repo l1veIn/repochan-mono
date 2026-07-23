@@ -23,7 +23,8 @@ export type OrderDerivedArtifact = {
 };
 
 export type OrderDerivedStep = {
-  op: StarterPostprocessOp;
+  /** Legacy "extract-stickers" may appear in historical append-only archives; new starter manifests can no longer select it. */
+  op: StarterPostprocessOp | "extract-stickers";
   args?: Record<string, unknown>;
   out: string;
   keep?: boolean;

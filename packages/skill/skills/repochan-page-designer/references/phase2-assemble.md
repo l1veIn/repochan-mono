@@ -20,7 +20,7 @@ repochan starter asset-apply <slot> --order <order-id> [--result-version <versio
 
 `asset-apply` updates `assets.json` only after complete success. When a postprocessing error occurs, preserve existing site output and state; do not manually assemble a half-completed state. Only call `repochan image edit` directly when debugging image-edit itself.
 
-Official Starters currently use the offline, deterministic `chroma-grid` pipeline; normal assembly does not need ML runtime and should not pre-install it. Only when the manifest explicitly selects `bg-remove`, `extract-stickers`, `ml-blobs`, or `hybrid` with ML fallback, may `asset-apply` potentially need optional ML capability.
+Official Starters currently use the offline, deterministic `chroma-grid` pipeline; normal assembly does not need ML runtime and should not pre-install it. Only when the manifest explicitly selects `bg-remove`, `ml-blobs`, or `hybrid` with ML fallback, may `asset-apply` potentially need optional ML capability.
 
 **Derived archive (audit)**: after a successful apply, each step in the postprocess chain where `keep` ≠ `false` archives its artifact to `.repochan/orders/<order-id>/derived/<timestamp>--<slot>/`, and appends an entry (slot / starter / resultVersion / steps / artifacts) to that order's `derived.json` (`repochan.order-derived.v1`). The index is append-only; repeated applies append without overwriting. When you need to answer "what artifacts has this order derived and where are they," read `derived.json`; do not guess from the current state of `public/`. Archive failure does not block apply (output carries `derivedWarning`).
 

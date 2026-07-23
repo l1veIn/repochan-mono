@@ -311,12 +311,11 @@ cli.command("image <sub>", "Image generation, configure, status, probe, and edit
         if (editSub === "extract") return await image.runImageEditExtract(process.cwd(), args[2], opts);
         if (editSub === "iconfont") return await image.runImageEditIconfont(process.cwd(), args[2], opts);
         if (editSub === "layout-guide") return await image.runImageEditLayoutGuide(process.cwd(), opts);
-        if (editSub === "extract-stickers") return await image.runImageEditExtractStickers(process.cwd(), args[2], opts);
         if (editSub === "resize") return await image.runImageEditResize(process.cwd(), args[2], opts);
         if (editSub === "favicon") return await image.runImageEditFavicon(process.cwd(), args[2], opts);
         if (editSub === "compress") return await image.runImageEditCompress(process.cwd(), args[2], opts);
         if (editSub === "gif-from-frames") return await image.runImageEditGifFromFrames(process.cwd(), args.slice(2), opts);
-        throw new Error(`Unknown image edit subcommand: ${editSub}. Use: ml | slice | validate-seams | bg-remove | chroma-key | extract | iconfont | layout-guide | extract-stickers | resize | favicon | compress | gif-from-frames`);
+        throw new Error(`Unknown image edit subcommand: ${editSub}. Use: ml | slice | validate-seams | bg-remove | chroma-key | extract | iconfont | layout-guide | resize | favicon | compress | gif-from-frames`);
       }
       default: throw new Error(`Unknown image subcommand: ${sub}. Use: gen | configure | status | probe | edit`);
     }

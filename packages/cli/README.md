@@ -17,7 +17,7 @@ The default CLI install includes the `sharp`-based offline pixel operations used
 repochan image edit ml install
 ```
 
-`bg-remove`, `extract-stickers`, `ml-blobs`, and `hybrid` may require that capability. When it is absent, the CLI exits with `MissingImageMlCapabilityError` / `REPOCHAN_IMAGE_ML_MISSING` and prints the install command; after one successful install, retry the original command. Network download occurs only during that explicit install. ML execution then reads the runtime and bundled model files from the local capability cache without network access. Page Designer agents normally encounter this through atomic `starter asset-apply`; Web Designer agents may invoke it directly. Painter never installs or runs image-edit ML, and official Starters' current `chroma-grid` path needs no ML install.
+`bg-remove`, `ml-blobs`, and `hybrid` may require that capability. When it is absent, the CLI exits with `MissingImageMlCapabilityError` / `REPOCHAN_IMAGE_ML_MISSING` and prints the install command; after one successful install, retry the original command. Network download occurs only during that explicit install. ML execution then reads the runtime and bundled model files from the local capability cache without network access. Page Designer agents normally encounter this through atomic `starter asset-apply`; Web Designer agents may invoke it directly. Painter never installs or runs image-edit ML, and official Starters' current `chroma-grid` path needs no ML install.
 
 ## Quick start
 
