@@ -1,43 +1,43 @@
-# 创作任务哲学与设定集内容
+# Order Craft Philosophy & Foundation Sheet Content
 
-## 创作任务哲学
+## Order Craft Philosophy
 
-创作任务（Asset Order）是一份约稿简报。它定义意图、约束、验收标准和交付物，把艺术执行留给 Painter。避免像素级精确的相机/图层指令，除非技术上有必要。
+An Asset Order is a commissioning brief. It defines intent, constraints, acceptance criteria, and deliverables, leaving artistic execution to the Painter. Avoid pixel-precise camera/layer instructions unless technically necessary.
 
-`references` 字段不是可选装饰——它是 Painter 知道角色长什么样的机制。没有它，每次生成都是一次没有视觉延续性的盲文生图。
-
-
-### 简报描述纪律
-
-**正向描述驱动图像；`avoid` 列表是护栏，不是方向盘。**
-
-图像模型不理解"不是X"作为边界——它们把否定当作方向向量。"不要科幻"不会落在"现代风格"上，它会过冲到"前电子时代"或"肮脏破旧"。写简报时遵循以下规则：
-
-1. **描述你要的，不是你不要的。** 写"现代大学实验室，荧光灯照明，务实建筑风格"——不是"不要科幻，不要赛博朋克"。
-2. **`mustInclude` 是主要描述载体。** 填入具体的正向视觉锚点：特定的场景、材质、光线、氛围。
-3. **`avoid` 是轻量级尾部护栏。** 谨慎用于确实无法正向表达的硬性排除（如"复杂背景"、"文字标注"）。不要用 `avoid` 替代正向描述——Painter 会转化或丢弃 avoid 项，过度堆叠是浪费信号。
-4. **优先使用多词限定短语而非单个形容词。** 单个英文形容词在图像模型中具有过大的语义半径。"shabby" → 肮脏/廉价；"disheveled" → 蓬头垢面。用"well-worn but maintained"、"slightly tousled"代替。
+The `references` field is not optional decoration — it is the mechanism by which the Painter knows what the character looks like. Without it, every generation is blind prompting with no visual continuity.
 
 
-### 身份边界
+### Brief-Writing Discipline
 
-不要把自然语言证据转化为视觉要求。README/文档/commit/UI 的语言可能影响写给用户的文字，但不得创建文化编码的 `mustInclude` 条目，如卷轴、印章、灯笼、竹子、玉石、和服、神社、羽毛笔、城堡等。此类元素仅在以下条件之一为真时允许：
+**Positive description drives the image; the `avoid` list is a guardrail, not a steering wheel.**
 
-1. 用户明确要求了它们。
-2. 仓库/产品/领域本身与该文化/材质/时代相关。
-3. 当前已批准的 persona/设定集锚点已包含它们，且用户在保持该方向。
+Image models don't understand "not X" as a boundary — they treat negation as a direction vector. "Not sci-fi" won't land on "modern style"; it will overshoot into "pre-electronic era" or "grungy and dilapidated." Follow these rules when writing briefs:
 
-如果一个元素未通过此检查，用仓库衍生的隐喻替换它——来自 `analysis.context.identity`、`preAnalysis`、`abstract`、配色板、或产品领域。
+1. **Describe what you want, not what you don't want.** Write "modern university lab, fluorescent lighting, pragmatic architecture" — not "no sci-fi, no cyberpunk."
+2. **`mustInclude` is the primary description carrier.** Fill it with concrete positive visual anchors: specific scenes, materials, lighting, atmosphere.
+3. **`avoid` is a lightweight trailing guardrail.** Use sparingly for hard exclusions that truly cannot be expressed positively (e.g., "complex backgrounds," "text annotations"). Don't use `avoid` as a substitute for positive description — the Painter will transform or discard avoid items; overstuffing wastes signal.
+4. **Prefer multi-word qualifying phrases over single adjectives.** Single English adjectives have an outsized semantic radius in image models. "shabby" → dirty/cheap; "disheveled" → unkempt and messy. Use "well-worn but maintained," "slightly tousled" instead.
 
 
-## 设定集封面内容指南
+### Identity Boundaries
 
-设定集封面应在单张图上包含：
+Don't convert natural language evidence into visual requirements. README/docs/commit/UI language may influence text written for users, but must not create culturally encoded `mustInclude` entries such as scrolls, seals, lanterns, bamboo, jade, kimono, shrines, quills, castles, etc. Such elements are only allowed if one of the following is true:
 
-| 元素 | 描述 |
-|------|------|
-| 全身姿势 | 看板娘的标志性站姿 |
-| Q版形象 | 角色的简化/Q版版本 |
-| 表情 | 3-4个展示关键情绪的头像（开心、严肃、惊讶等） |
-| 配色 | 主色、辅色、点缀色的色块 |
-| 关键元素 | 标志性物品、配饰或视觉符号 |
+1. The user explicitly requested them.
+2. The repo/product/domain itself is related to that culture/material/era.
+3. The currently approved persona/foundation sheet anchor already includes them, and the user is maintaining that direction.
+
+If an element fails this check, replace it with a repo-derived metaphor — from `analysis.context.identity`, `preAnalysis`, `abstract`, the color palette, or the product domain.
+
+
+## Foundation Sheet Cover Content Guide
+
+The foundation sheet cover should include, on a single image:
+
+| Element | Description |
+|---------|-------------|
+| Full-body pose | The mascot's signature standing pose |
+| Chibi | A simplified/chibi version of the character |
+| Expressions | 3-4 avatars showing key emotions (happy, serious, surprised, etc.) |
+| Color palette | Swatches of main, secondary, and accent colors |
+| Key elements | Signature items, accessories, or visual motifs |

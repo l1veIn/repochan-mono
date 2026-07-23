@@ -1,20 +1,20 @@
-# 边界情况
+# Edge Cases
 
-### 没有设定集 + 用户想立刻要特定资产
+### No Foundation Sheet + User Wants Specific Assets Immediately
 
-告诉用户："这个项目还没有设定集封面。没有它，生成的资产不会有视觉锚点，无法保证跨资产的视觉一致性。我建议先创建设定集封面。你想在没有锚点的情况下继续吗？"
+Tell the user: "This project doesn't have a foundation sheet cover yet. Without it, generated assets won't have a visual anchor, and cross-asset visual consistency cannot be guaranteed. I recommend creating a foundation sheet cover first. Do you want to proceed without an anchor?"
 
-如果用户坚持，创建不带引用的任务，但在 `brief.notes` 中标注它是在没有视觉锚点的情况下创建的。
+If the user insists, create orders without references, but note in `brief.notes` that they were created without a visual anchor.
 
-### 设定集已存在但用户想要不同风格
+### Foundation Sheet Exists but User Wants a Different Style
 
-创建一个新的设定集任务（如 `ord-foundation-002`），带有新的风格方向。现有下游任务可以继续引用原设定集，也可以更新为引用新设定集。
+Create a new foundation sheet order (e.g., `ord-foundation-002`) with the new style direction. Existing downstream orders can continue referencing the original foundation sheet or be updated to reference the new one.
 
-### 处理修订
+### Handling Revisions
 
-修订请求是一等公民式结构化任务。保留原始任务结果，引用它，并说明差异：
+Revision requests are first-class structured orders. Preserve the original order result, reference it, and describe the diff:
 
-- 保留什么，
-- 修改什么，
-- 修订解决什么问题，
-- 如何判断成功。
+- What to keep,
+- What to change,
+- What problem the revision solves,
+- How to judge success.

@@ -1,74 +1,74 @@
-# 海报模板选择与品牌延伸任务
+# Poster Template Selection & Brand Extension Orders
 
-`poster` 有多个设计方向。把角色视作平面设计系统中的一个元素，而不是默认让角色占满画面。
+`poster` has multiple design directions. Treat the character as one element within a graphic design system, rather than defaulting to the character filling the frame.
 
-## 可用海报模板
+## Available Poster Templates
 
-| 模板 id | 气质 / 关键词（用于匹配 artStyle） |
-|---------|-------------------------------------|
-| `official/poster-constructivist` | 构成主义、工业、几何秩序、功能主义、斜向构图、红黑白 |
-| `official/poster-glitch-art` | 故障美学、glitch、数字失真、霓虹、赛博、波普电子、屏幕感 |
-| `official/poster-risograph-pop` | 复古印刷、risograph、温暖亲和、社区、轻量创意、纸感 |
-| `official/poster-memphis` | 孟菲斯、撞色、几何装饰、年轻活泼、不对称、高饱和 |
-| `official/poster` | **仅**在上面四者都不沾边时的中性 fallback（少用） |
+| Template ID | Vibe / Keywords (for matching artStyle) |
+|-------------|-----------------------------------------|
+| `official/poster-constructivist` | Constructivism, industrial, geometric order, functionalism, diagonal composition, red-black-white |
+| `official/poster-glitch-art` | Glitch art, digital distortion, neon, cyber, pop-electronic, screen aesthetic |
+| `official/poster-risograph-pop` | Retro print, risograph, warm and approachable, community, light creative, paper texture |
+| `official/poster-memphis` | Memphis, clashing colors, geometric decoration, youthful and lively, asymmetric, high saturation |
+| `official/poster` | Neutral fallback **only** when none of the above four fit (use sparingly) |
 
-> 不要把「工具型 / 基建 / 开源软件」自动等同于构成主义。开发者工具也可以是 glitch、孟菲斯或 risograph。
+> Don't automatically equate "tooling / infrastructure / open-source software" with Constructivism. Developer tools can also be glitch, Memphis, or risograph.
 
-## 策展算法（强制顺序）
+## Curation Algorithm (Forced Order)
 
-创建 `poster` 订单时，**按下面三步选 `templateId`**（不要凭喜好或表第一行默认）。
+When creating a `poster` order, **pick `templateId` using the three steps below** (don't go by preference or default to the first row of the table).
 
-### 1. 读 `persona.artStyle`（主信号）
+### 1. Read `persona.artStyle` (Primary Signal)
 
-从 `artStyle` 全文做关键词匹配（中英文、近义都算）：
+Do keyword matching against the full `artStyle` text (Chinese, English, and near-synonyms all count):
 
-| artStyle 含… | 优先模板 |
-|--------------|----------|
-| 构成 / constructivist / 工业几何 / 功能主义 | `poster-constructivist` |
-| 故障 / glitch / 赛博 / 霓虹 / 数字波普 / 电子失真 | `poster-glitch-art` |
-| 孟菲斯 / memphis / 撞色几何装饰 / 波普活泼 | `poster-memphis` |
-| 复古印刷 / risograph / 温暖纸感 / 社区亲和 / 装饰艺术偏暖 | `poster-risograph-pop` |
-| 装饰艺术 / Art Deco（无更贴的专用模板时） | 优先 `poster-risograph-pop`，其次 `poster-memphis` |
+| artStyle contains... | Preferred template |
+|----------------------|--------------------|
+| construct / constructivist / industrial geometry / functionalism | `poster-constructivist` |
+| glitch / cyber / neon / digital pop / electronic distortion | `poster-glitch-art` |
+| Memphis / clashing-color geometric decoration / pop lively | `poster-memphis` |
+| retro print / risograph / warm paper texture / community approachable / Art Deco warm-leaning | `poster-risograph-pop` |
+| Art Deco (no closer dedicated template) | Prefer `poster-risograph-pop`, fallback `poster-memphis` |
 
-**匹配成功** → 用该模板，在 order `brief` 或 notes 写一句理由：  
-`templateReason: 因 artStyle「…」关键词「…」选 …`
+**Match found** → Use that template, write a one-line reason in the order `brief` or notes:  
+`templateReason: artStyle "..." keyword "..." → ...`
 
-### 2. 无明确关键词 → 项目气质仅作弱提示（禁止默认构成）
+### 2. No Clear Keyword → Project Vibe as Weak Hint Only (Forbidden: Default to Constructivist)
 
-仅当 artStyle **完全对不上**上表时，才看项目气质，且 **不得**把「CLI / 中间件 / 系统工具」一律映射到 constructivist：
+Only when artStyle has **no match at all** against the table above, look at project vibe, and **do not** map "CLI / middleware / system tool" uniformly to Constructivist:
 
-| 气质 | 可考虑 |
-|------|--------|
-| 强数字/AI/图形/实时媒体 | glitch-art |
-| 文档/编辑器/内容创作、偏亲和 | risograph-pop |
-| 设计系统、活泼品牌、Material/活泼 UI | memphis |
-| 真正强调工业秩序、斜向构成美学（且 artStyle 也中性） | constructivist |
+| Vibe | Consider |
+|------|----------|
+| Strongly digital/AI/graphics/real-time media | glitch-art |
+| Docs/editor/content creation, approachable-leaning | risograph-pop |
+| Design system, lively brand, Material/lively UI | memphis |
+| Genuinely emphasizes industrial order, diagonal composition aesthetic (and artStyle is also neutral) | constructivist |
 
-### 3. 仍无清晰匹配 → 确定性「伪随机」，禁止总选同一条
+### 3. Still No Clear Match → Deterministic "Pseudo-Random" (Forbidden: Always Picking the Same One)
 
-在  
+Pick from the four **dedicated** templates:  
 `poster-constructivist | poster-glitch-art | poster-risograph-pop | poster-memphis`  
-四个 **专用** 模板中选一个（**不要**优先 `official/poster`）。
+(Do **not** prefer `official/poster`.)
 
-确定性挑法（可复现、跨项目分散）：
+Deterministic selection method (reproducible, dispersed across projects):
 
-1. 取 `orderId` + 项目名（或 `analysis` 的 repo 名）拼成字符串  
-2. 对字符 code 求和，对 **4** 取模  
-3. 0→constructivist，1→glitch-art，2→risograph-pop，3→memphis  
+1. Concatenate `orderId` + project name (or repo name from `analysis`) into a string  
+2. Sum the character codes, modulo **4**  
+3. 0→constructivist, 1→glitch-art, 2→risograph-pop, 3→memphis  
 
-理由写：`templateReason: artStyle 无明确海报方向，按 orderId hash 选 … 以保持多样性`。
+Write the reason as: `templateReason: artStyle has no clear poster direction; selected ... via orderId hash to maintain diversity`.
 
-### 禁止
+### Prohibited
 
-- 因为「工具型仓库」就默认 `poster-constructivist`
-- 无理由地连选表第一行
-- 忽略 `artStyle` 里已经写明的「孟菲斯 / 故障 / 构成…」
+- Defaulting to `poster-constructivist` because it's a "tooling repo"
+- Always picking the first row of the table without reason
+- Ignoring "Memphis / glitch / constructivist / ..." already stated in `artStyle`
 
-## 品牌延伸任务（signaturePatterns / signatureScenes）
+## Brand Extension Orders (signaturePatterns / signatureScenes)
 
-读取 persona（`repochan persona get`）后，若定义了品牌延伸字段，主动提议：
+After reading the persona (`repochan persona get`), if brand extension fields are defined, proactively propose:
 
-- **`signaturePatterns`**：每个 pattern 生成一个**独立的 1×1 四方连续纹理** order，`assetType: "visual_pattern"` + `templateId: "official/pattern-tile"`（页面背景/边框/社交卡纹理）。每张图独立生成、直接可用，不需要切分。**硬约束见该模板**：单张无缝、出血到边界、四方连续。
-- **`signatureScenes`**：1–2 个 `poster` 或背景类任务，brief 引用场景，并按上面策展算法选海报模板。
+- **`signaturePatterns`**: For each pattern, generate a **standalone 1x1 4-way seamless texture** order, `assetType: "visual_pattern"` + `templateId: "official/pattern-tile"` (page backgrounds / borders / social card textures). Each image is generated independently and directly usable — no slicing needed. **See hard constraints in that template**: single seamless tile, bleeds to edges, 4-way seamless.
+- **`signatureScenes`**: 1–2 `poster` or background-type orders, brief referencing the scene, with poster template selected per the curation algorithm above.
 
-这些任务**仍须引用 foundation**。不要在缺少设定集引用时创建下游任务，除非用户明确要求无锚点资产。
+These orders **must still reference the foundation**. Don't create downstream orders without a foundation sheet reference, unless the user explicitly requests anchor-less assets.

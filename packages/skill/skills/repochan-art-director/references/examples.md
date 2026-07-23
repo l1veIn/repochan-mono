@@ -1,6 +1,6 @@
-# 任务 JSON 示例
+# Order JSON Examples
 
-## 设定集任务示例
+## Foundation Sheet Order Example
 
 ```json
 {
@@ -11,19 +11,19 @@
   "templateId": "official/foundation-sheet",
   "references": [],
   "brief": {
-    "intent": "创建项目的视觉锚点：一张角色设定图。",
-    "mustInclude": ["全身签名姿势", "Q版形象", "3-4个表情头像", "配色卡色块"],
-    "avoid": ["复杂背景", "文字标注"],
-    "creativeFreedom": ["选择表情组合", "在设定图上排列元素"]
+    "intent": "Create the project's visual anchor: a character reference sheet.",
+    "mustInclude": ["Full-body signature pose", "Chibi", "3-4 expression avatars", "Color palette swatches"],
+    "avoid": ["Complex backgrounds", "Text annotations"],
+    "creativeFreedom": ["Choosing expression combinations", "Arranging elements on the reference sheet"]
   },
   "deliverables": [{ "name": "foundation_sheet", "format": "png", "width": 1024, "height": 1024 }]
 }
 ```
 
-> yolo 示例写 `"status": "approved"`。非 yolo 可省略 status（默认 draft）或显式 `"draft"`。
+> The yolo example writes `"status": "approved"`. Non-yolo can omit status (defaults to draft) or explicitly set `"draft"`.
 
 
-## 带引用的下游任务示例
+## Downstream Order with References Example
 
 ```json
 {
@@ -34,9 +34,9 @@
   "templateId": "official/readme-banner-21x9",
   "references": [{ "type": "order", "orderId": "ord-foundation-001", "role": "character" }],
   "brief": {
-    "intent": "将项目人设呈现为一位能干的工作室向导，面向开发者。",
-    "mustInclude": ["角色核心剪影", "仓库品牌配色"],
-    "avoid": ["字面意义上的代码雨", "复杂的UI截图"]
+    "intent": "Present the project persona as a capable studio guide, oriented toward developers.",
+    "mustInclude": ["Character's core silhouette", "Repo brand colors"],
+    "avoid": ["Literal code rain (Matrix-style)", "Complex UI screenshots"]
   }
 }
 ```
