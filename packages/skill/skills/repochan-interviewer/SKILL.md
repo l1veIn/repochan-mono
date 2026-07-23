@@ -84,26 +84,22 @@ Replace the standard 8 dimensions with these greenfield-specific dimensions:
 
 ### Greenfield workflow
 
-1. Receive greenfield signal + user's project description from the wizard.
-2. Design 5-8 questions across the greenfield dimensions above. Prioritize **project essence** and **naming direction** — these drive the analysis stub's naming seeds.
-3. Ask in batches via `ask_user_question`.
-4. Distill the responses into the interview report, with special attention to:
-   - `summary`: A concise description of the project the user wants to build. This becomes `preAnalysis.userIntent` in the analysis stub.
-   - `preferences`: Include project category, tone, and target audience. These become `preAnalysis.projectCategory` and `abstract.*` fields.
+1. Receive greenfield signal + user's project description from the wizard. By this point, the wizard has already bootstrapped the repo directory (`mkdir + git init + repochan init`), and written a seed analysis stub — so `.repochan/analysis/current.json` already exists.
+2. Read the seed analysis stub (`repochan analysis get`) to see what initial signals the wizard captured.
+3. Design 5-8 questions across the greenfield dimensions above. Prioritize **project essence** and **naming direction** — these will enrich the analysis stub in Pass 2.
+4. Ask in batches via `ask_user_question`.
+5. Distill the responses into the interview report:
+   - `summary`: A concise description of the project the user wants to build. This will become `preAnalysis.userIntent` in the enriched stub.
+   - `preferences`: Include project category, tone, and target audience. These will become `preAnalysis.projectCategory` and `abstract.*` fields.
    - `keyConstraints`: Any hard constraints the user stated.
-5. Save via `repochan interview create` (standard CLI, same as normal mode).
-6. Notify that the interview is complete. The wizard will use the interview report to construct the greenfield analysis stub, then proceed to persona creation.
-
-### Greenfield signal extraction (for the wizard's analysis stub)
-
-After the interview is saved, provide the wizard with a clear signal summary. The wizard needs these specific pieces to construct the analysis stub:
-
-- **Project name candidate**: the user's preferred name, or derive one from keywords.
-- **Naming seeds (primary)**: 3-5 key terms from the project description.
-- **Project category**: CLI tool / web app / library / mobile app / desktop app / game / other.
-- **Tone preference**: playful / serious / minimalist / warm / bold / professional / quirky.
-- **Target audience**: 1-sentence description.
-- **User intent summary**: 1-2 sentence distillation of the project's core value proposition.
+6. **Save via `repochan interview create`** — the interview is properly persisted, same as standard mode.
+7. Notify that the interview is complete. Provide a clear **signal summary** for the wizard to use in Pass 2 analysis enrichment:
+   - **Project name candidate**: the user's preferred name, or derive one from keywords.
+   - **Naming seeds to add**: new keywords from the interview beyond what's already in the seed stub.
+   - **Project category**: CLI tool / web app / library / mobile app / desktop app / game / other.
+   - **Tone preference**: playful / serious / minimalist / warm / bold / professional / quirky.
+   - **Target audience**: 1-sentence description.
+   - **User intent summary**: 1-2 sentence distillation of the project's core value proposition.
 
 ## Save CLI skeleton
 

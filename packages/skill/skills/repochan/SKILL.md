@@ -86,32 +86,55 @@ When the user wants to create a brand new project (no existing repo, no code yet
 ### Greenfield pipeline
 
 ```
-① Interviewer (greenfield mode) → extract project intent from user description
+① Bootstrap repo      → mkdir <temp-name> && cd <temp-name> && git init && repochan init
+     ↓                   (temp-name derived from user's description; can be renamed at checkpoint)
+② Seed analysis stub  → construct minimal analysis from user's description, write via CLI
      ↓
-② Write greenfield analysis stub  → construct minimal valid analysis artifact from interview signals
+③ Interviewer         → greenfield mode: extract project intent, enrich signals
+     ↓                   repochan interview create (persisted — .repochan/ already exists!)
+④ Update analysis     → repochan analysis update with richer interview signals
      ↓
-③ Creative Team → repochan-persona → build persona from greenfield analysis
+⑤ Creative Team       → repochan-persona → build persona (repochan persona create, persisted)
      ↓
-④ ⏸ Checkpoint 1: persona + suggested repo name → user confirms
-     ↓
-⑤ Bootstrap repo → mkdir <repo-name> && cd <repo-name> && git init && repochan init
-     ↓
-⑥ [Everything below is identical to the standard pipeline]
+⑥ ⏸ Checkpoint 1: persona + suggested final repo name → user confirms
+     ↓                   if name changed: rename directory
+⑦ [Everything below is identical to the standard pipeline]
    Art Director → Painter → Page Designer → Deploy
 ```
 
-### Greenfield analysis stub
+**Key design decision — bootstrap before interview, not after**: By creating the directory and running `repochan init` first, the `.repochan/` protocol directory exists from the start. This means the interview report, analysis stub, and persona are all **properly persisted** via standard CLI commands — no floating context-only artifacts. The working directory name is temporary; the user can rename it at the checkpoint.
 
-Since `repochan persona create` requires a valid analysis artifact at `.repochan/analysis/current.json`, you must write one before invoking the persona skill. The analysis artifact schema allows most context fields to be empty objects — only `identity.namingSeeds` has required sub-structure.
+### Greenfield analysis stub (two-pass)
 
-**Procedure** (after interview completes):
+Since `repochan interview create` and `repochan persona create` both require a valid analysis artifact, you must write one **before** running the interview. Use a two-pass approach:
 
-1. Read the interview report (`repochan interview get`) to extract signals.
-2. Construct a minimal analysis JSON file and write it via CLI:
+**Pass 1 — Seed stub (before interview):**
+Construct a minimal analysis from the user's initial project description alone. This stub only needs to satisfy the schema validator so the interview can be created.
+
+**Pass 2 — Enrich (after interview):**
+Update the stub with richer signals from the interview responses.
+
+**Pass 1 procedure:**
+1. Extract what you can from the user's initial description: project category, key terms, naming hints.
+2. Construct and write the seed stub:
    ```bash
    repochan analysis update --data-file /tmp/greenfield-analysis.json
    ```
-   (This overwrites any existing analysis stub — safe since this is a new project.)
+   If `analysis update` fails because no analysis exists yet (the command may require an existing artifact), write the file directly as a one-time bootstrap exception:
+   ```bash
+   mkdir -p .repochan/analysis/versions
+   cat > .repochan/analysis/current.json << 'ENDOFFILE'
+   { ... greenfield analysis stub JSON ... }
+   ENDOFFILE
+   ```
+   This is the **only place** in the entire RepoChan pipeline where an agent directly writes a protocol file. It is justified because the greenfield scenario has no upstream analysis to update — it must be seeded. All subsequent protocol writes use standard CLI commands.
+
+**Pass 2 procedure:**
+1. After the interview completes, read the interview report (`repochan interview get`).
+2. Update the analysis stub with richer signals and write via CLI:
+   ```bash
+   repochan analysis update --data-file /tmp/greenfield-analysis-enriched.json
+   ```
 
 **Minimal valid greenfield analysis stub:**
 ```json
@@ -158,33 +181,32 @@ Since `repochan persona create` requires a valid analysis artifact at `.repochan
 }
 ```
 
-**Field population rules:**
-- `basic.project_name`: Use the user's preferred name, or derive a slug from the project description.
-- `identity.namingSeeds.primary`: Extract 3-5 key terms from the user's project description. These drive persona naming.
-- `preAnalysis.userIntent`: The user's own words about what they're building, distilled to 1-2 sentences.
-- `preAnalysis.projectCategory`: Map the user's description to a category label.
-- `abstract.tonePreference` / `abstract.targetAudience`: From interview responses, or infer reasonable defaults if the user didn't specify.
+**Field population rules (Pass 1 — seed):**
+- `basic.project_name`: Derive a working slug from the user's project description.
+- `identity.namingSeeds.primary`: Extract 3-5 key terms from the user's initial description.
+- `preAnalysis.userIntent`: The user's own words about what they're building.
+- `preAnalysis.projectCategory`: Map the user's description to a category label (CLI tool / web app / library / mobile app / desktop app / game / other).
 - All other `context.*` fields: leave as empty objects `{}`.
 
-### Repo bootstrapping at Checkpoint 1
+**Field population rules (Pass 2 — enrich):**
+- `preAnalysis.userIntent`: Refine with interview insights.
+- `abstract.tonePreference` / `abstract.targetAudience`: Populate from interview responses.
+- `identity.namingSeeds`: Add any new keywords from the interview.
+- Other fields: populate as interview signals allow.
 
-After the user confirms the persona, create the physical repo:
+### Repo bootstrapping (step ①)
+
+Create the working directory before any artifacts are written:
 
 ```bash
-mkdir <repo-name>
-cd <repo-name>
+# Derive a working name from the user's description
+mkdir <working-name>
+cd <working-name>
 git init
 repochan init
 ```
 
-Then write the confirmed persona artifact:
-```bash
-repochan persona create --data-file <(repochan persona get --json)
-```
-
-The project now has a `.repochan/` protocol directory with analysis + persona. From this point forward, the standard pipeline applies exactly — proceed to Art Director → Painter → Page Designer → Deploy.
-
-**Important:** the greenfield analysis stub is intentionally minimal. As the user writes actual code, they can run `repochan analysis run` later to replace it with a full deterministic scan. The stub's only purpose is to satisfy the protocol dependency chain so the creative pipeline can start before any code exists.
+The working name is provisional. Common derivation: slugify the most distinctive keyword from the user's description. The user renames at Checkpoint 1 if desired.
 
 ## Checkpoint design
 
@@ -294,19 +316,12 @@ When you need detail on a particular step, load the corresponding team skill's f
 **User**: "/repochan new a CLI tool for managing dotfiles across machines"
 
 **Your behavior** (Greenfield Mode):
-1. Detect: no `.git`, no `README` → this is greenfield. The user's description gives you initial signals: "CLI tool", "dotfiles", "cross-machine".
-2. Load `repochan-interviewer` in greenfield mode. Ask project intent questions: what problem does it solve? Who is the target user? What tone should the brand have? Any naming ideas?
-3. From interview responses, construct a greenfield analysis stub and write it:
-   ```bash
-   repochan analysis update --data-file /tmp/greenfield-analysis.json
-   ```
-4. Load `repochan-persona`. It reads the analysis stub (via `repochan analysis get`) and builds a persona from the greenfield signals.
-5. **Checkpoint 1**: Present the persona + suggest repo names (derived from naming seeds). Candidate: "dotvault", "crosshome", or the user's preferred name. Ask: "Does this persona feel right? What should we name the repo?"
-6. User confirms persona + repo name → bootstrap:
-   ```bash
-   mkdir dotvault && cd dotvault && git init && repochan init
-   repochan persona create --data-file <(...)
-   ```
-   Now the project has `.repochan/` with analysis + persona. From here, everything below is standard pipeline.
-7. Load `repochan-art-director` → Painter → Page Designer → Deploy (identical to standard flow).
+1. Detect: no `.git`, no `README` → this is greenfield. Signals from user's description: "CLI tool", "dotfiles", "cross-machine".
+2. Bootstrap: derive working name "dotvault" → `mkdir dotvault && cd dotvault && git init && repochan init`. Now `.repochan/` exists.
+3. **Pass 1 — Seed analysis stub**: construct minimal stub from description keywords, write to `.repochan/analysis/current.json`.
+4. Load `repochan-interviewer` in greenfield mode. Ask project intent questions. `repochan interview create` persists the report.
+5. **Pass 2 — Enrich analysis**: update stub with interview signals via `repochan analysis update`.
+6. Load `repochan-persona`. It reads the analysis (via `repochan analysis get`) and builds a persona. `repochan persona create` persists it.
+7. **Checkpoint 1**: Present the persona. "Working name is 'dotvault'. Finalize the repo name — keep it or change?" If changed, `mv` the directory.
+8. From here, identical to standard pipeline: Art Director → Painter → Page Designer → Deploy.
 
