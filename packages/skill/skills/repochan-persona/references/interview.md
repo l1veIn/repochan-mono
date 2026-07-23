@@ -1,54 +1,54 @@
-# 消费访谈报告
+# Consuming the Interview Report
 
-访谈报告（`repochan interview get` 读取）是与仓库分析并列的**第二大核心输入**。它承载用户意图——分析提供客观证据，访谈则告诉创意团队*用户想要什么样的灵魂*。
+The interview report (read via `repochan interview get`) is the **second major input** alongside the repo analysis. It carries user intent — analysis provides objective evidence, the interview tells the Creative Team *what kind of soul the user wants*.
 
-## 字段优先级
+## Field Priority
 
-1. **`keyConstraints` —— 硬约束（必须遵守）。** 不可协商。每个条目都必须满足。示例：年龄下限、要求的配色、文化方向、权重级别。与其他硬规则冲突 → **呈现给用户**，不静默取舍。
-2. **`preferences` —— 软约束（尽可能尊重）。** 在与仓库角色协调时融入；仅在会导致更差结果时才温和地覆盖。承载世界复杂度提示、参考角色特质、使用场景线索。
-3. **`avoidList` —— 禁止列表（不得出现）。** 硬性否定项——视觉母题、特质、命名、颜色、配饰、原型。
-4. **`summary` —— 用户意图综合。** 首先作为框架阅读。上方的结构化字段对单个约束具有权威性。
+1. **`keyConstraints` — Hard constraints (must obey).** Non-negotiable. Every entry must be satisfied. Examples: age floor, requested color palette, cultural direction, weight tier. When conflicting with other hard rules → **present to the user**, do not silently choose.
+2. **`preferences` — Soft constraints (respect where possible).** Integrate while harmonizing with the repo character; gently override only when doing so would produce a worse result. Carries world-complexity hints, reference character traits, use-case clues.
+3. **`avoidList` — Forbidden list (must not appear).** Hard negation items — visual motifs, traits, names, colors, accessories, archetypes.
+4. **`summary` — User intent synthesis.** Read as a frame first. The structured fields above have authority over individual constraints.
 
-用户硬约束（1、3）在全局优先级中高于仓库气质偏好；见 SKILL.md「规则优先级」。
+User hard constraints (1, 3) rank above repo temperament preferences in the global priority; see SKILL.md "Rule Priority."
 
-## 维度映射：访谈 → 团队决策
+## Dimension Mapping: Interview -> Team Decisions
 
-从 `keyConstraints`、`preferences` 和 `summary` 中提取这些维度：
+Extract these dimensions from `keyConstraints`, `preferences`, and `summary`:
 
-| 访谈维度 | 影响 | 如何应用 |
+| Interview Dimension | Impact | How to Apply |
 |---|---|---|
-| **角色权重级别**（如"日常普通级"、"高概念角色"） | 角色设计师、世界架构师 | **高概念**：conceptWeight→high 方向（戏剧性规则、强张力）。**日常型**：grounded——更轻规则、间接张力。须与 `projectWeight` 合成（见下）。 |
-| **世界复杂度与规则强度** | 世界架构师 | **强约束**：有清晰的定义法则。**弱约束/仅氛围**：由情绪定义，而非机制。 |
-| **使用场景与目标感受** | 角色设计师、守护者 | 品牌吉祥物 → 象征性。社区吉祥物 → 亲和力。故事主角 → 复杂性。 |
-| **参考角色与喜欢的特质**（如"喜欢XX角色的安静认真"） | 角色设计师、守护者 | 吸收具体的*特质*，绝不复制角色。一个参考 → 最多一个特质。守护者阻止任何"XX的低配版"或多角色缝合。 |
-| **性格基调与反差** | 角色设计师 | 直接输入到 personality、catchphrase、mes_example。 |
-| **约束与避免列表** | 全部（守护者验证） | 硬性边界——每个约束满足，每个 avoidList 条目不存在。 |
+| **Character weight tier** (e.g., "everyday grounded," "high-concept character") | Character Designer, World Architect | **High concept**: conceptWeight→high direction (dramatic rules, strong tension). **Everyday**: grounded — lighter rules, indirect tension. Must synthesize with `projectWeight` (see below). |
+| **World complexity & rule intensity** | World Architect | **Strong constraints**: clearly defined laws. **Weak constraints / atmosphere only**: defined by mood, not mechanics. |
+| **Use scenario & target feeling** | Character Designer, Guardian | Brand mascot → symbolic. Community mascot → approachable. Story protagonist → complex. |
+| **Reference characters & liked traits** (e.g., "like XX character's quiet seriousness") | Character Designer, Guardian | Absorb specific *traits*, never copy the character. One reference → at most one trait. Guardian blocks any "discount XX" or multi-character stitching. |
+| **Personality tone & contrast** | Character Designer | Direct input to personality, catchphrase, mes_example. |
+| **Constraints & avoid lists** | All (Guardian verifies) | Hard boundaries — every constraint satisfied, every avoidList entry absent. |
 
-## 与 projectWeight 的合成
+## Synthesis with projectWeight
 
-| 用户意图 | projectWeight | 动作 |
+| User Intent | projectWeight | Action |
 |---|---|---|
-| 要 high concept / 神话级 | **light** | **停下来问用户**：轻量项目默认禁止 high。请用户确认坚持高概念，或改为 elevated/日常。不要静默执行，也不要静默否决。 |
-| 要 high concept | medium / heavy | 允许；仍需仓库信号或用户请求支撑细节 |
-| 要日常型 / grounded | 任意 | 允许（含 heavy 项目用日常角色） |
-| 未指定权重 | 任意 | 按预算与仓库信号选择；light 默认 grounded/elevated |
+| Wants high concept / mythic-level | **light** | **Stop and ask the user**: light projects default-deny high. Ask the user to confirm they insist on high concept, or adjust to elevated/everyday. Do not silently execute, do not silently veto. |
+| Wants high concept | medium / heavy | Allowed; still needs repo signals or user request to support the details |
+| Wants everyday / grounded | any | Allowed (including heavy projects using everyday characters) |
+| Weight unspecified | any | Choose per budget and repo signals; light defaults to grounded/elevated |
 
-## 参考角色处理
+## Reference Character Handling
 
-- **提取特质，而非角色本身。** "喜欢薇尔莉特那种不懂人类情感但努力理解的感觉" → 吸收"情感失读 + 真诚努力"，而不是"金发 + 机械臂 + 代笔写信"。
-- **一个参考 → 最多一个特质。**
-- **仓库仍必须是灵魂。** 守护者检查："如果我移除参考角色，这个角色还能源自这个仓库吗？"如果不能 → 过度依赖。
-- **与仓库氛围矛盾的特质** → 标记、改编或舍弃（若该特质来自 keyConstraint，走「呈现给用户」而非静默丢弃）。
+- **Extract traits, not the character.** "Like Violet's feeling of not understanding human emotions but trying hard to" → absorb "emotional alexithymia + sincere effort," not "blonde + mechanical arm + letter-writing."
+- **One reference → at most one trait.**
+- **The repo must still be the soul.** Guardian checks: "If I remove the reference character, could this character still come from this repo?" If not → over-reliant.
+- **Traits that contradict the repo atmosphere** → flag, adapt, or discard (if the trait comes from a keyConstraint, follow "present to the user" rather than silent discard).
 
-## 权重级别校准（守护者）
+## Weight Tier Calibration (Guardian)
 
-- **指定日常型但角色是虚拟世界的中心** → 降低角色中心性：改成普通居民站位、间接张力，而不是世界核心存在。
-- **指定高概念但角色缺乏张力** → 增加戏剧摩擦。
-- **指定高概念且 projectWeight=light** → 不自动降级也不自动放行；确认用户是否坚持（见合成表）。
-- **未指定权重** → 创意团队根据预算与仓库信号选择。
+- **Everyday specified but character is the center of the virtual world** → reduce character centrality: adjust to ordinary-resident positioning, indirect tension, rather than world-core existence.
+- **High concept specified but character lacks tension** → add dramatic friction.
+- **High concept specified AND projectWeight=light** → do not auto-downgrade or auto-approve; confirm whether user insists (see synthesis table).
+- **Weight unspecified** → Creative Team chooses per budget and repo signals.
 
-## 当访谈缺失或不完整时
+## When Interview Is Missing or Incomplete
 
-- 缺失 → 完全的创作自由。`userIntentSummary.source` = `"creative_team"`。
-- 不完整（空回复、全部跳过）→ 当作缺失处理。
-- 没有正式访谈的会话级指示 → 轻量访谈。`userIntentSummary.source` = `"session"`。
+- Missing → complete creative freedom. `userIntentSummary.source` = `"creative_team"`.
+- Incomplete (empty responses, all skipped) → treat as missing.
+- Session-level directives without a formal interview → lightweight interview. `userIntentSummary.source` = `"session"`.

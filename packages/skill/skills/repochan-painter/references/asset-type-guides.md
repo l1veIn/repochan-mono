@@ -1,66 +1,66 @@
-# 按资产类型的特殊引导
+# Per Asset Type Special Guidance
 
-### 海报资产特殊引导（assetType=poster）
+### Poster Asset Special Guidance (assetType=poster)
 
-海报是**艺术释放型资产**——和设定集（信息载体）完全不同。海报的目标是一张有视觉冲击力的角色主视觉，不是展示角色信息。
+Posters are **artistic-release assets** — completely different from Foundation Sheets (which are information carriers). The goal of a poster is a visually striking character Key visual, not a character information display.
 
-**海报必须**：
-- **让所选模板的设计运动主导**：构成主义、故障艺术、Risograph 波普或孟菲斯的构图语言是海报骨架。读取 persona.artStyle 后，只把与模板兼容的材质、线条和渲染特征融入对应 slot，不要用通用“角色插画风”覆盖已选设计方向。
-- **构图自由**：动态姿势、戏剧性角度、环境叙事都鼓励。不受"全身立绘"约束——可以是特写、半身、俯仰角。
-- **背景要有氛围**：不是白底，是与模板风格 + 项目气质匹配的设计场域。
-- **不含设定集元素**：绝不出现 chibi、表情网格、配色卡、callout 标签。
-- **引用 foundation 保证角色一致**：仍先用 `repochan order resolve-references <orderId> --json` 确认 foundation 可解析；把 resolve 出的 foundation 图路径通过 `--reference <path>` 传给 `repochan image gen`，由参考图锚定角色身份，平面设计语言由所选模板决定，不受 foundation 的画风束缚。
-- **只借身份、不借设定集版式**：prompt 须写明 *single poster composition only*；**禁止**把 foundation 里的 chibi 网格、表情九宫格、配色卡、callout 标签搬进海报（常见失败：海报里塞满表情包）。
+**Poster must**:
+- **Let the selected template's design movement lead**: Constructivism, Glitch art, Risograph pop, or Memphis composition language is the poster's skeleton. After reading persona.artStyle, only blend material, linework, and rendering traits compatible with the template into the corresponding slots; do not override the chosen design direction with a generic "character illustration style."
+- **Free composition**: Dynamic poses, dramatic angles, environmental storytelling are all encouraged. Not constrained to "Full-body standing pose" — close-ups, half-body, high/low angles are all allowed.
+- **Atmospheric background**: Not a white background — a design field matching the template style + project temperament.
+- **No Foundation Sheet elements**: Absolutely no chibi, expression grids, color palette cards, or callout labels.
+- **Reference foundation for character consistency**: Still first use `repochan order resolve-references <orderId> --json` to confirm foundation is resolvable; pass the resolved foundation image path via `--reference <path>` to `repochan image gen`, letting the Reference image anchor character identity; the graphic design language is determined by the selected template, not constrained by the foundation's art style.
+- **Borrow identity only, not Foundation Sheet layout**: The prompt must specify *single poster composition only*; **prohibit** carrying over chibi grids, expression 3x3 grids, color palette cards, or callout labels from the foundation into the poster (common failure: posters crammed with Emoji packs).
 
-### 品牌纹理 / pattern 特殊引导（assetType=visual_pattern）
+### Brand Texture / Pattern Special Guidance (assetType=visual_pattern)
 
-Pattern 是**直接消费型资产**。每个 `official/pattern-tile` order 只交付一张 full-bleed 的 1×1 canonical tile；不得生成四格合集、标题板、样张边框或 gutter。你（Painter）负责候选图符合模板，页面侧负责复用与确定性 QA；不要自己跑 image-edit。
+Pattern is a **direct-consumption asset**. Each `official/pattern-tile` order delivers only one full-bleed 1x1 canonical tile; do not generate 4-grid compilations, title plates, sample borders, or gutters. You (Painter) are responsible for the candidate matching the template; the page side handles reuse and deterministic QA; do not run image-edit yourself.
 
-**必须**：
-- **单张出血到边界**：整幅就是 tile，没有画框、留白或分区。
-- **四方连续**：左右与上下均 seamless tileable，无透视、无场景插画。
-- **无角色主视觉**：抽象 motif / 几何 / 品牌符号为主。
-- **无文字与数字**：语义文本只能抽象为非语义几何节奏。
-- 模板 constraints 不削弱。
+**Must**:
+- **Single tile bleeding to edges**: The entire image is the tile, with no frames, margins, or partitions.
+- **Four-way seamless**: Left-right and top-bottom seamlessly tileable, no perspective, no scene illustration.
+- **No character Key visual**: Abstract motifs / geometric / brand symbols dominate.
+- **No text or numbers**: Semantic text can only be abstracted into non-semantic geometric rhythm.
+- Template constraints are not weakened.
 
-### 贴纸表特殊引导（assetType=chibi_emojis / sticker_sheet / web_state_stickers）
+### Sticker Sheet Special Guidance (assetType=chibi_emojis / sticker_sheet / web_state_stickers)
 
-贴纸表是**网格生产资产**。它既可承载表情，也可为网页批量生产 404、empty、loading、success、CTA cameo 等语义状态。切分质量取决于严格网格、uniform matte、间距和轮廓；你（Painter）只负责原图，不自己切格，也不承诺当前 CLI 已能自动投影多 slot。
+Sticker sheets are **grid production assets**. They carry expressions and can also mass-produce semantic states for web use (404, empty, loading, success, CTA cameo, etc.). Slicing quality depends on strict grid, uniform matte, spacing, and outlines; you (Painter) are only responsible for the original image — do not slice cells yourself, and do not promise the current CLI can auto-project multiple slots.
 
-**分工边界**：切分、QA、具名投影归 page-designer 的 `repochan starter asset-apply`；Painter **不**对 order 产物运行 `image edit extract*` 作为交付预检，也不把派生 alpha/切片写回 order——交付物始终是原图。asset-apply 的 QA 失败会按缺陷码回流重生请求，改法速查见 [extract-qa-retry.md](extract-qa-retry.md)。
+**Division of labor boundary**: Slicing, QA, and named projection belong to the Page Designer's `repochan starter asset-apply`; the Painter does **not** run `image edit extract*` on order deliverables as delivery pre-check, nor writes derived alpha/slices back to the order — the deliverable is always the original image. Asset-apply QA failures will loop back regeneration requests by defect code; for quick fix reference see [extract-qa-retry.md](extract-qa-retry.md).
 
-**贴纸表必须**：
-- **精简每个 cell 的内容**：每个表情 cell 只保留角色头像/半身 + 表情 + 简单配色。**不要**在 cell 内注入背景配饰、文字标签、复杂场景、额外道具。`{{key_motifs}}` 和 `{{color_palette}}` 只用于角色本身的配色呼应，不要变成 cell 内的装饰物。
-- **保证 uniform matte**：严格使用模板/订单指定的单一抠图底色，整张一致、平面、无渐变、纹理、投影或环境光污染；未指定时遵守模板默认，不擅自换色。
-- **matte 与主体色相分离**：matte 必须是非白纯色，且远离角色任何部位的颜色。按主体色相选 matte：粉/紫主体 → 绿 matte；绿主体 → 洋红 matte；深红主体 → 绿 matte。
-- **保证充足间距**：贴纸之间必须有大量 matte 留白，贴纸不得触碰 cell 边缘或彼此。间距太小会导致切分时贴纸被截断或粘连。
-- **cell 内安全边距约 10%**：每个 cell 四边内缩约 10% 作为安全区，贴纸主体（含道具、特效、描边）不进入该边距带。
-- **grid 订单使用 layout-guide reference**：先用 `repochan image edit layout-guide --rows R --cols C --out <guide.png>` 生成确定性构图参考，再把它与 foundation 一起作为 `repochan image gen --reference` 传入（多 reference 各传一次 flag）。guide 只约束构图——**不要**把 guide 的框线、安全区线、十字线或 cell 编号画进成图。
-- **保持正方形比例**：整体图像必须是 1:1 正方形，否则切分后 cell 比例变形。
-- **保持 cell 一致**：3×3/4×4 网格的行列、镜头、角色尺度与安全边距严格一致；每格只表达订单约定的一种状态。
-- **控制 alpha 风险**：避免与 matte 接近的角色颜色、大面积半透明、辉光、毛发溢色和跨 cell 元素；高风险状态改用独立 production order。
-- **constraints 是硬约束**：模板的 constraints（间距、uniform matte、无边框等）不可削弱或省略。
+**Sticker sheet must**:
+- **Simplify each cell's content**: Each expression cell only keeps character avatar/upper body + expression + simple colors. **Do not** inject background accessories, text labels, complex scenes, or extra props into cells. `{{key_motifs}}` and `{{color_palette}}` are only used for character color coordination, not turned into decorations inside cells.
+- **Ensure uniform matte**: Strictly use the single key-out background color specified by the template/order, consistent across the entire sheet, flat, with no gradient, texture, shadow, or ambient light pollution; follow template default when not specified, do not change color arbitrarily.
+- **Matte and subject hue separation**: Matte must be a non-white solid color, and far from any part of the character's colors. Choose matte by subject hue: pink/purple subject -> green matte; green subject -> magenta matte; deep red subject -> green matte.
+- **Ensure sufficient spacing**: Stickers must have abundant matte whitespace between them; stickers must not touch cell edges or each other. Insufficient spacing causes stickers to be truncated or stuck together during slicing.
+- **~10% safe margin inside cells**: Each cell has ~10% inset on all four sides as a safe zone; sticker subjects (including props, effects, outlines) must not enter this margin band.
+- **Grid orders use layout-guide reference**: First use `repochan image edit layout-guide --rows R --cols C --out <guide.png>` to generate a deterministic composition reference, then pass it together with the foundation as `repochan image gen --reference` (one flag per reference for multiple references). The guide only constrains composition — **do not** paint the guide's frame lines, safe zone lines, crosshairs, or cell numbers into the final image.
+- **Keep square aspect ratio**: The overall image must be 1:1 square, otherwise cell proportions deform after slicing.
+- **Keep cells consistent**: 3x3/4x4 grid rows, columns, camera distance, character scale, and safe margins are strictly consistent; each cell expresses only one state defined by the order.
+- **Control alpha risk**: Avoid character colors close to the matte, large semi-transparent areas, glow, hair color bleeding, and cross-cell elements; for high-risk states, split to separate production orders.
+- **Constraints are hard constraints**: Template constraints (spacing, uniform matte, no borders, etc.) must not be weakened or omitted.
 
-### 图标矩阵特殊引导（assetType=icon）
+### Icon Matrix Special Guidance (assetType=icon)
 
-**必须**：
-- 每个 cell 是完整 app icon，**主体不得溢出 cell 边界**（留安全边距）。
-- 严格 3×3 光谱（角色强→弱），勿与贴纸表混淆。
+**Must**:
+- Each cell is a complete app icon, **subject must not overflow cell boundaries** (leave safe margins).
+- Strict 3x3 spectrum (character strong -> weak), do not confuse with sticker sheets.
 
-### README 横幅特殊引导（assetType=readme_banner）
+### README Banner Special Guidance (assetType=readme_banner)
 
-横幅是**品牌展示型资产**——必须包含仓库名文字，作为 GitHub README 首屏的视觉锚点。
+Banners are **brand-display assets** — must include the repo name text, serving as the visual anchor for the GitHub README hero section.
 
-**横幅必须**：
-- **仓库名文字必须在图像内渲染**：不要留空白让后期 CSS 叠加文字。prompt 中的 `render the repository name` 指令要求图像模型直接渲染出可读的仓库名文字。如果模型第一次没渲染出文字，重试时加强文字指令。
-- **文字要大且清晰**：仓库名应作为画面的显眼标题元素，字号大、字体设计感强、与画面融合但不被遮挡。
-- **不是贴纸表**：不要塞 chibi 表情九宫格；单幅横构图 + 角色 + 标题。
+**Banner must**:
+- **Repo name text must be rendered within the image**: Do not leave blank space for later CSS text overlay. The `render the repository name` instruction in the prompt requires the image model to directly render readable repo name text. If the model fails to render text on the first attempt, strengthen the text instruction on retry.
+- **Text must be large and clear**: The repo name should serve as a prominent title element in the composition — large font size, strong typographic design, blending with the image but not obscured.
+- **Not a sticker sheet**: Do not cram chibi expression 3x3 grids; single horizontal composition + character + title.
 
-### 设定集封面特殊引导（assetType=foundation_sheet）
+### Foundation Sheet Cover Special Guidance (assetType=foundation_sheet)
 
-设定集是**信息载体型资产**——包含角色立绘、Q版、表情、配色卡、关键元素和图标，各区块需要文字标签。
+The Foundation Sheet is an **information-carrier asset** — containing a character Full-body standing pose, chibi, expressions, Color palette, key elements, and icons, with text labels required for each section.
 
-**设定集封面必须**：
-- **渲染文字标签**：角色名、配色卡的颜色名、关键元素的名称都应以可读文字渲染在图中。不要生成无文字的纯图——设定集的信息标注是正向价值。
-- **构图均衡**：各区块（全身立绘、Q版、表情、配色卡、关键元素、图标）的视觉权重应大致均衡。不要让单一元素（如全身立绘或某个 callout）占据过大画面。如果某个 keyMotif 是视觉密集型元素（如"调用图""数据流"），在 prompt 里限制其尺寸为小型 callout，不占主视觉。
-- **规避手写文字**：如果 persona 的 `signaturePose` 或 `signatureAction` 涉及写字、阅读、手持书本等动作，在 prompt 里改为不展示文字内容的替代姿态（如"holding a closed book/sketchbook"）。AI 图像模型渲染手写文字不稳定，容易写出反向或乱码文字，破坏画面。
+**Foundation Sheet cover must**:
+- **Render text labels**: Character name, color names on the Color palette, and key element names should all be rendered as readable text in the image. Do not generate a text-free pure image — the information annotation on the Foundation Sheet is positive value.
+- **Balanced composition**: The visual weight of each section (full-body standing pose, chibi, expressions, Color palette, key elements, icons) should be roughly balanced. Do not let a single element (such as the full-body standing pose or a particular callout) occupy excessive space. If a keyMotif is a visually intensive element (such as "call graph" or "data flow"), limit its size in the prompt to a small callout, not taking over the main visual.
+- **Avoid handwritten text**: If the persona's `signaturePose` or `signatureAction` involves writing, reading, holding a book, or similar actions, change it in the prompt to an alternative pose that does not display text content (such as "holding a closed book/sketchbook"). AI image models render handwritten text unreliably, easily producing reversed or garbled text that ruins the image.

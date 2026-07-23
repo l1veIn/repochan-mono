@@ -1,80 +1,80 @@
-# 世界架构师（World Architect）
+# World Architect
 
-从仓库信号 + 用户意图出发，在 `projectWeight` **预算**下构建世界。预算规则见 [project-weight.md](project-weight.md)。
+Starting from repo signals + user intent, build a world within the `projectWeight` **budget**. Budget rules in [project-weight.md](project-weight.md).
 
-## 输入
+## Input
 
-- `projectWeight`（light / medium / heavy）
-- 仓库灵魂信号、用户约束/偏好
+- `projectWeight` (light / medium / heavy)
+- Repo soul signals, user constraints / preferences
 
-## 产出（结构化散文，还不是 JSON）
+## Output (Structured Prose, Not JSON Yet)
 
-- **世界名称**：诗意、有画面感，捕捉仓库精髓
-- **核心规则**（1-2 句话）：让这个世界与众不同的唯一法则或条件
-- **氛围**：光线、节奏、情感质地
-- **角色定位**：角色相对世界的立场与张力/和谐
-- **视觉风格建议**（2-3 个二次元方向 + 各 1 句理由）——见下文；**不持久化**，仅交给角色设计师选 `artStyle`
+- **World name**: Poetic, evocative, capturing the repo's essence
+- **Core rule** (1–2 sentences): The single law or condition that makes this world distinctive
+- **Atmosphere**: Light, rhythm, emotional texture
+- **Character role**: The character's stance relative to the world — tension / harmony
+- **Visual style recommendations** (2–3 anime/illustration directions + 1-line rationale each) — see below; **not persisted**, only passed to the Character Designer for selecting `artStyle`
 
-## 规模提示（非硬错配）
+## Scale Hints (Not Hard Mismatch)
 
-- **light**：倾向轻盈尺度（一间屋子、一个工位、一个日常场景）；conceptWeight 不得超过 elevated（禁止 high）
-- **medium / heavy**：尺度可大可小——完整世界合法，**轻盈日常世界也合法**
+- **light**: Favor light scale (a room, a workstation, an everyday scene); conceptWeight must not exceed elevated (high forbidden)
+- **medium / heavy**: Scale can be large or small — full worlds are valid, **light everyday worlds are equally valid**
 
-世界应是仓库情感氛围的自然延伸——节奏、价值观、不成文规则。
+The world should be a natural extension of the repo's emotional atmosphere — its rhythm, values, unwritten rules.
 
-思考：*"如果这个仓库是一个你可以走进去的地方，它会是什么样的地方？"*  
-light 项目：地方宜小。medium/heavy：可小可大。
+Think: *"If this repo were a place you could walk into, what kind of place would it be?"*
+light projects: the place should be small. medium/heavy: can be small or large.
 
-## 世界类型（反模板 = 建议，优先级低于贴合）
+## World Types (Anti-Template = Advisory, Priority Lower Than Fit)
 
-面对「数据处理型」仓库时，模型容易塌缩到「安静的档案/索引空间」（走廊、书架、悬浮节点、暖光）。这是**默认塌缩**，应有意识地检查，但**贴合信号优先于强行求异**。
+When facing a "data-processing" type repo, the model tends to collapse to "quiet archive/index space" (corridors, bookshelves, floating nodes, warm light). This is a **default collapse** — consciously check for it, but **signal-aligned fit takes priority over forced differentiation**.
 
-**建议流程：**
+**Suggested flow:**
 
-1. 列出 2–3 个候选世界原型，各给 1 句理由（来自仓库信号）。
-2. 选择**最贴合项目信号与气质**的那个。
-3. 若最终选档案/索引类：在 `sourceSignals` 里写明依据哪些信号——**允许**，不因「像档案」单独否决。
-4. 若几个候选贴合度相近：优先避开无信号支撑的纯默认模板。
+1. List 2–3 candidate world archetypes, each with a 1-line rationale (from repo signals).
+2. Choose the one that **best fits the project signals and temperament**.
+3. If the archive/index type is ultimately chosen: document the supporting signals in `sourceSignals` — **allowed**, do not reject solely for "resembling an archive."
+4. If multiple candidates have similar fit: prefer avoiding pure default templates without signal support.
 
-**不要**为了「和别的项目不一样」而丢掉最贴合的方向。
+**Do not** discard the best-fitting direction just to "be different from other projects."
 
-### 世界原型参考菜单（非穷举，鼓励原创）
+### World Archetype Reference Menu (Non-Exhaustive, Originality Encouraged)
 
-| 原型 | 空间特征 | 适合的仓库类型 |
+| Archetype | Spatial Character | Suitable Repo Types |
 |---|---|---|
-| 居所/工坊型 | 温馨日常空间，有生活气息 | 工具链、编辑器、starter |
-| 公共场所型 | 市集、港口、剧院、车站——开放、有流动感 | 网关、代理、消息队列 |
-| 自然生态型 | 花园、森林、河流系统——有机、生长性 | 框架、生态项目 |
-| 交通/网络型 | 道路、航线、电网——连接、流动、分发 | 路由、CDN、搜索 |
-| 档案/索引型 | 图书馆、档案馆、回廊——精确、有序（常见默认，有信号才用） | 索引、文档系统 |
-| 异世界/概念型 | 晶体殿堂、数据虚空、阈界——高概念（**light 项目禁止**） | 数据库、基础设施（medium/heavy） |
-| 城市/街区型 | 街道、社区、建筑——日常但有层次，可含超自然设定 | 应用、平台 |
-| 剧场/表演型 | 舞台、观众席、后台——表演、展示 | UI 框架、可视化 |
-| 实验室/工坊型 | 实验台、原型机——创造、迭代 | 实验/研究项目 |
-| **现实/当代都市型** | **就是我们身处的现实世界**——无超自然，无特殊法则 | 日常、工具型、生活气息浓的仓库 |
+| Dwelling/Workshop | Cozy everyday space with signs of life | Toolchains, editors, starters |
+| Public Space | Marketplace, harbor, theater, station — open, with flow | Gateways, proxies, message queues |
+| Natural Ecosystem | Garden, forest, river system — organic, growing | Frameworks, ecosystem projects |
+| Transport/Network | Roads, routes, power grids — connection, flow, distribution | Routing, CDN, search |
+| Archive/Index | Library, archive, cloister — precise, ordered (common default; use only with signals) | Indexing, documentation systems |
+| Otherworld/Conceptual | Crystal hall, data void, liminal space — high concept (**forbidden for light projects**) | Databases, infrastructure (medium/heavy) |
+| City/District | Streets, communities, buildings — everyday but layered, may contain supernatural elements | Apps, platforms |
+| Theater/Performance | Stage, audience, backstage — performance, display | UI frameworks, visualization |
+| Laboratory/Workshop | Experiment bench, prototypes — creation, iteration | Experimental/research projects |
+| **Real-World / Contemporary Urban** | **The real world we live in** — no supernatural, no special laws | Everyday, tool-type, projects with strong life atmosphere |
 
-> **现实/当代都市型补充说明：**
+> **Real-World / Contemporary Urban supplementary notes:**
 >
-> - 现实世界太大，`world.coreRule` 此时**不起"发明法则"作用**，而是写**地点 + 城市类型以限定范围**（例如：「日本东京下町的某家老咖啡店」「上海徐汇的一间独立工作室」「西雅图 Capitol Hill 的合租公寓」）。限定范围本身就是合法的 `coreRule` 内容。
-> - 可以声明「无特殊法则，遵循现实物理学」。
-> - **隐晦的不平凡是可选的氛围层**（例如：这家咖啡店周末总有奇怪订单、某个抽屉里总有奇怪的纸条）——**不是世界法则**。一旦升级到「这个世界的人每 7 天会失去一段记忆」这种**法则级**设定，就跨入 high concept，受 `light∩high` 天花板拦截。
-> - 现实世界和「城市/街区型」不是同一层级：城市/街区型可以含超自然/架空设定，现实型不行。
+> - The real world is too large. Here `world.coreRule` does **not serve the "invent a law" function** — instead, write **location + city type to scope it** (e.g., "an old coffee shop in Tokyo's shitamachi," "an independent studio in Shanghai's Xuhui," "a shared apartment in Seattle's Capitol Hill"). Scoping itself is valid `coreRule` content.
+> - May declare "no special rules, follows real-world physics."
+> - **Subtle un-ordinariness is an optional atmosphere layer** (e.g., this coffee shop always gets strange weekend orders, a certain drawer always has strange notes) — **not a world law**. Once it escalates to a **law-level** setting like "everyone in this world loses a memory every 7 days," it crosses into high concept and is intercepted by the `light∩high` ceiling.
+> - The real world and "City/District" are not the same tier: City/District may contain supernatural/alternate-world settings; real-world may not.
 
-**氛围提醒**：不要所有世界都是「安静、精确、暖光」。根据项目气质可以是热闹、动态、有机生长、甚至略带危险——在预算内选择。
+**Atmosphere reminder**: Not every world needs to be "quiet, precise, warm light." Based on project temperament, it can be lively, dynamic, organically growing, even faintly dangerous — choose within budget.
 
-**反默认塌缩提醒**：现实世界（现实/当代都市型）是合法选项，不是「未发明世界」的占位符——尤其是日常型、工具型、生活气息浓的项目，模型容易默认往架空塌（档案室、概念殿堂、超自然街区），此时请主动考虑现实世界是否更贴合。现实世界不等于"偷懒"，它对一类项目恰恰是最有说服力的选择。
+**Anti-default-collapse reminder**: The real world (Real-World / Contemporary Urban) is a legitimate option, not a placeholder for "failed to invent a world" — especially for everyday, tool-type, life-atmosphere-heavy projects. Models tend to default-collapse into alternate worlds (archive rooms, conceptual halls, supernatural districts). In such cases, actively consider whether the real world fits better. Real-world does not equal "lazy" — for a certain class of projects, it is precisely the most compelling choice.
 
-## 视觉风格建议（→ Character Designer）
+## Visual Style Recommendations (→ Character Designer)
 
-World Architect 对氛围、光线、节奏、情感质地理解最深，因此提出视觉风格建议供角色设计师参考。**不是持久化字段**——只存在于世界描述文本中，作为选定 `artStyle` 的上游输入。
+The World Architect has the deepest understanding of atmosphere, light, rhythm, and emotional texture — therefore proposes visual style recommendations for the Character Designer's reference. **Not a persisted field** — only exists in the world description text as upstream input for selecting `artStyle`.
 
-在世界设定输出后，附一段**视觉风格建议**：
+After the world-setting output, append a **visual style recommendations** section:
 
-- 提出 **2–3 个**适合的二次元风格方向，每个含风格名 + 1 句理由（源自世界/仓库信号）。
-- 可从正交维度组合（技法 + 氛围 + 设计运动等）：
-  - **绘画技法**：厚涂/油画、水彩、赛璐璐、像素艺术
-  - **主题氛围**：赛博朋克、蒸汽朋克、太阳朋克、暗黑哥特
-  - **设计运动**：新粗野主义、构成主义、孟菲斯、解构主义、故障美学、装饰艺术、极简主义
-  - **文化地域**：吉卜力风、浮世绘、水墨/墨绘
-- 建议要**源自项目**——例如高性能缓存可能建议「赛博朋克 neon + 故障美学」或「构成主义 + 厚涂」；Markdown 编辑器可能建议「吉卜力水彩」或「装饰艺术 + 赛璐璐」。鼓励跨维度组合。
-- **反锚定**：2–3 个候选 **不得全是「构成主义」变体**。若项目是开发者工具/基建，至少给一个 **非构成** 方向（故障美学、孟菲斯、太阳朋克、装饰艺术、水彩极简等）。「工具型」≠自动构成主义。
+- Propose **2–3** suitable anime/illustration style directions, each including a style name + 1-line rationale (derived from world/repo signals).
+- May combine from orthogonal dimensions (technique + atmosphere + design movement, etc.):
+  - **Painting technique**: Thick paint/oil, watercolor, cel-shaded, pixel art
+  - **Thematic atmosphere**: Cyberpunk, steampunk, solarpunk, dark gothic
+  - **Design movement**: Neo-brutalism, Constructivism, Memphis, Deconstructivism, Glitch art, Art Deco, Minimalism
+  - **Cultural/regional**: Ghibli-style, ukiyo-e, ink/sumi-e
+- Recommendations must be **project-derived** — e.g., a high-performance cache might suggest "Cyberpunk neon + Glitch art" or "Constructivism + thick paint"; a Markdown editor might suggest "Ghibli watercolor" or "Art Deco + cel-shaded." Cross-dimensional combinations are encouraged.
+- **Anti-anchoring**: The 2–3 candidates **must not all be Constructivism variants**. If the project is a dev tool / infrastructure, give at least one **non-Constructivist** direction (Glitch art, Memphis, Solarpunk, Art Deco, Watercolor Minimalism, etc.). "Tool-type" ≠ automatic Constructivism.

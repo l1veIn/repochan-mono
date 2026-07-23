@@ -1,80 +1,80 @@
-# 输出规格、生成强制与协议保存
+# Output Specifications, Mandatory Generation, and Protocol Save
 
-## 输出规格解析
+## Output Spec Resolution
 
-在调用 `repochan image gen` 前解析输出规格，并映射到 CLI 支持的宽高比和尺寸参数：
+Before calling `repochan image gen`, resolve output specifications and map them to CLI-supported aspect ratio and size parameters:
 
-1. 如果用户为本次执行给出了明确的尺寸/宽高比指令，使用它（除非不安全或不可能）。
-2. 否则如果任务第一个 deliverable 声明了 `genSize`，**用它作为生成分辨率**——`genSize` ≥ 成品尺寸，后处理负责降采样，保证高 DPI 屏幕上的清晰度。
-3. 否则如果有模板，使用模板的 canonical `size`，并采用 `template get` 返回的派生宽高比。
-4. 否则使用任务第一个 deliverable 的 `width`、`height`、`aspectRatio`。
-5. 将解析出的尺寸映射到 `repochan image gen` 参数：
-   - `--size`：精确尺寸字符串，如 `2048x2048`、`1200x800`；`2K`/`4K` 关键字亦可。
-   - `--aspect`：`1:1` 或宽高相等 → `square`；宽大于高 → `landscape`；高大于宽 → `portrait`。
+1. If the user gave explicit size/aspect ratio instructions for this execution, use them (unless unsafe or impossible).
+2. Otherwise, if the order's first deliverable declares `genSize`, **use it as the generation resolution** — `genSize` >= output size, downsampling is left to post-processing, ensuring sharpness on high-DPI screens.
+3. Otherwise, if a template exists, use the template's canonical `size`, and adopt the derived aspect ratio returned by `template get`.
+4. Otherwise, use the order's first deliverable `width`, `height`, `aspectRatio`.
+5. Map the resolved dimensions to `repochan image gen` parameters:
+   - `--size`: exact dimension string, e.g. `2048x2048`, `1200x800`; `2K`/`4K` keywords also accepted.
+   - `--aspect`: `1:1` or equal width/height -> `square`; wider than tall -> `landscape`; taller than wide -> `portrait`.
 
-**清晰度纪律**：`genSize` 或模板 size 低于 `1024`（短边）时，除非用户明确要求小图，按短边 ≥ `1024` 生成（网格图按 ≥ `2048` 生成，cell 才有降采样空间）。交付的成品尺寸由 deliverable 的 `width`/`height` 约束，**生成尺寸永远 ≥ 成品尺寸**，不得反向。
+**Sharpness discipline**: When `genSize` or template size is below `1024` (short edge), unless the user explicitly requests small images, generate at short edge >= `1024` (grid images at >= `2048`, so cells have downsampling room). The delivered output size is constrained by the deliverable's `width`/`height`; **generation size is always >= output size**, never the reverse.
 
-**关键：同时传 `--size` 和 `--aspect`。** `--size` 保留目标像素规格，`--aspect` 为只支持粗粒度比例的 provider 提供降级语义。
+**Critical: Pass both `--size` and `--aspect`.** `--size` preserves target pixel specification, `--aspect` provides degraded semantics for providers that only support coarse ratios.
 
-调用示例：
+Call example:
 ```bash
-repochan image gen --prompt "<组装的 prompt>" --aspect square --size 2048x2048
+repochan image gen --prompt "<assembled prompt>" --aspect square --size 2048x2048
 ```
 
-不要为设定集封面发明特殊宽高比规则。设定集封面和所有其他任务一样遵循其模板。
+Do not invent special aspect ratio rules for Foundation Sheet covers. Foundation Sheet covers follow their template like all other orders.
 
 
-## 生成：强制工具使用
+## Generation: Mandatory Tool Usage
 
-**你必须调用 `repochan image gen` 来产出图像。**
+**You must call `repochan image gen` to produce the image.**
 
-不要：
-- 在生成前向用户确认——用户已经通过启动画师阶段批准了。
-- 写了简报就停——没有生成图像的简报是不完整的交付物。
-- 描述你"会"生成什么——实际调用 CLI。
+Do not:
+- Confirm with the user before generating — the user already approved by dispatching the Painter.
+- Write a brief and stop — a brief without a generated image is an incomplete deliverable.
+- Describe what you "would" generate — actually call the CLI.
 
-调用 `repochan image gen`（每个参考图一个独立的 `--reference` flag）：
+Call `repochan image gen` (one separate `--reference` flag per Reference image):
 ```bash
-repochan image gen --prompt "<你组装的 persona + order + template prompt>" \
-  --reference <resolve出的路径1> \
-  --reference <resolve出的路径2> \
+repochan image gen --prompt "<your assembled persona + order + template prompt>" \
+  --reference <resolved path 1> \
+  --reference <resolved path 2> \
   --aspect landscape|square|portrait --size 1024x1024
 ```
 
-如果是 foundation_sheet 或其他确实没有参考图的任务，省略 `--reference`：
+If foundation_sheet or another order truly has no Reference images, omit `--reference`:
 ```bash
-repochan image gen --prompt "<你组装的 persona + order + template prompt>" --aspect landscape|square|portrait --size 1024x1024
+repochan image gen --prompt "<your assembled persona + order + template prompt>" --aspect landscape|square|portrait --size 1024x1024
 ```
 
-写命令用管道 stdin 传 JSON，不要在项目目录创建临时文件；生图默认输出到 `~/.cache/repochan/`，命令会打印路径。在 `repochan order create-result` 的 payload `files` 字段中使用该路径。
+Write commands using pipe stdin for JSON, do not create temporary files in the project directory; generated images default output to `~/.cache/repochan/`, the command prints the path. Use that path in the `files` field of the `repochan order create-result` payload.
 
 
-### 生成后自检：解剖学错误的处理
+### Post-Generation Self-Check: Handling Anatomical Errors
 
-图像生成模型（包括 gpt-image-2）会产生解剖学错误——多指、三只手、肢体错位、漂浮的手等。这类错误有**两个主要诱因**：
+Image generation models (including gpt-image-2) produce anatomical errors — extra fingers, three hands, misaligned limbs, floating hands, etc. These errors have **two main causes**:
 
-1. **多手任务堆叠（可在 prompt 层预防，见上方 Pose writing technique 的"单手聚焦"原则）**——这是**最主要、最可避免**的诱因。当 prompt 给两只手各分配独立复杂任务时，模型会"长出"额外的手。遵守单手聚焦原则可以从源头大幅降低三只手发生率。
-2. **模型的固有概率错误（无法在 prompt 层消除）**——即使 prompt 完美，仍偶发多指/肢体错位。这是 diffusion 模型的固有性质。
+1. **Multi-hand task stacking (preventable at the prompt level, see the "single-hand focus" principle in Pose writing technique above)** — this is the **primary, most avoidable** cause. When the prompt assigns independent complex tasks to each hand, the model "grows" extra hands. Following the single-hand focus principle can dramatically reduce three-hand incidence at the source.
+2. **Model's inherent probabilistic errors (cannot be eliminated at the prompt level)** — even with a perfect prompt, extra fingers/limb misalignments still occur occasionally. This is inherent to diffusion models.
 
-**不要在 prompt 里堆 "no extra hands / correct anatomy" 类否定约束**来消除概率错误——实测表明这类约束效果不稳定，反而引入新问题（让模型过度关注"手"，产生其他异常）。
+**Do not pile on "no extra hands / correct anatomy" negative constraints** in the prompt to eliminate probabilistic errors — testing shows such constraints have unstable effects and instead introduce new problems (making the model over-focus on "hands", producing other anomalies).
 
-**处理机制**（按优先级）：
-1. **预防（最有效）**：写 pose 时遵守"单手聚焦"原则，从源头避免多手任务堆叠。
-2. **交付前自检**：拿到图后，如果模型有多模态能力就用 `read` 看一眼；如果肉眼明显有解剖学错误（且你确信 prompt 没有多手堆叠），**重生成一次**——概率错误重跑通常修复。如果 prompt 确有多手堆叠，先改 prompt 再重跑。
-3. **交付后由用户/AD review**：用户指出解剖学问题时，按"处理 review 回流订单"流程走图生图重绘。
+**Handling mechanism** (by priority):
+1. **Prevention (most effective)**: Follow the "single-hand focus" principle when writing poses, avoiding multi-hand task stacking at the source.
+2. **Pre-delivery self-check**: After receiving the image, if the model has multimodal capability, use `read` to take a look; if there is an obvious anatomical error visible to the naked eye (and you are confident the prompt has no multi-hand stacking), **regenerate once** — probabilistic errors usually fix on rerun. If the prompt does have multi-hand stacking, fix the prompt first then rerun.
+3. **Post-delivery user/AD review**: When the user points out anatomical issues, follow the "processing review loop orders" flow for image-to-image regeneration.
 
-简言之：**多手堆叠用 prompt 预防，概率错误用重跑/review 解决，永远不用否定约束。**
+In short: **multi-hand stacking is prevented via prompt, probabilistic errors are handled via rerun/review, never use negative constraints.**
 
 
-## 协议保存规则
+## Protocol Save Rules
 
-当输出被接受时：
+When the output is accepted:
 
-1. 使用 `repochan order create-result` 将二进制图像文件保存为新结果版本；通过 heredoc 管道 stdin 传 JSON payload，不要写临时 JSON 文件。payload 参数包括：`{ orderId, files, versionId?, tool?, promptBrief?, generationPrompt?, revisedPrompt?, notes?, meta?, provenance? }`。`files` 必须至少包含一个当前可读、非空的普通文件；core 会在创建版本目录和推进 `delivered` 前预检全部路径，不能用空数组、空文件、缺失路径或 notes 冒充交付物。每个 `versionId` 只能发布一次，修订必须使用新 id。
-2. 在 `meta.json` 中记录是否使用了参考图，以及它们来自哪个 foundation/order。
-3. **强制——`generationPrompt`**：将 `generationPrompt` 记录为你传给 `repochan image gen --prompt` 的精确完整 prompt。**这是 core 强制执行的硬性要求**——当 `tool` 字段涉及图像生成（任何包含 `image-gen` 的工具名）时，`repochan order create-result` 如果缺少或为空的 `generationPrompt`，将**抛出错误并拒绝保存**。**没有它你无法保存结果。** 不要用 `promptBrief` 替代 `generationPrompt`——`promptBrief` 是简短的人类可读摘要；`generationPrompt` 是逐字的完整 prompt 字符串。如果你组装了一个 500 词的 prompt 并传给了 `repochan image gen --prompt`，那整个 500 词的字符串都进入 `generationPrompt`。
-4. **绝不在 `meta` 中存储绝对文件系统路径**（如临时生成路径或 `/Users/.../generated-images/...`）。image-gen 配置缓存位于 `~/.repochan/image.json`，但结果元数据不应依赖本机缓存路径。图像已经被 `repochan order create-result` 复制到版本目录；`meta` 应只包含可移植信息：`referenceImagesUsed`（布尔值）、`references`（orderId/role 列表）、`templateId`、`aspectRatio`、`safetyConstraintsApplied`。
-5. `repochan order create-result` 原子创建当前结果并将任务推进为已交付；把交付说明放在 notes。
-6. 保留先前版本，绝不在没有用户明确批准的情况下覆盖现有结果版本。
-7. 同一 order 的结果发布、候选提升和普通状态修改必须串行。如果 CLI 报告 transaction/recovery 冲突，先运行 `repochan order recovery list <order-id>` 查看；活跃发布仍持锁时等待并重试，崩溃进程的 stale lock 会由 core 自动回收。`prepared` / `recovery_required` 可用 `repochan order recovery recover <order-id> <transaction-id>` 恢复事务前状态；`staging_unprepared` 尚未改写协议目标，只能用 `repochan order recovery abort <order-id> <transaction-id>` 丢弃暂存目录。其他情况下仅在确认接受当前完整状态时使用 `abort`。**禁止手改或删除 `.repochan/` 下的 transaction/recovery 文件。**
-8. 所有 order 状态与结果变更都必须调用对应的 `repochan order ...` 命令。结果版本发布后，版本目录与 `meta.json` 字节保持不变；切片、抠图、压缩等派生资产由 Page Designer 通过 `repochan starter asset-apply` 生成到 pulled Starter 的 `public/`，不回写 order result。
+1. Use `repochan order create-result` to save the binary image file as a new result version; pipe JSON payload via heredoc stdin, do not write temporary JSON files. Payload parameters include: `{ orderId, files, versionId?, tool?, promptBrief?, generationPrompt?, revisedPrompt?, notes?, meta?, provenance? }`. `files` must contain at least one currently readable, non-empty regular file; core pre-checks all paths before creating the version directory and advancing to `delivered` — cannot use empty arrays, empty files, missing paths, or notes to impersonate a deliverable. Each `versionId` can only be published once; revisions must use a new id.
+2. In `meta.json`, record whether Reference images were used and which foundation/order they came from.
+3. **Mandatory — `generationPrompt`**: Record `generationPrompt` as the exact full prompt you passed to `repochan image gen --prompt`. **This is a hard requirement enforced by core** — when the `tool` field involves image generation (any tool name containing `image-gen`), `repochan order create-result` will **throw an error and refuse to save** if `generationPrompt` is missing or empty. **You cannot save the result without it.** Do not substitute `promptBrief` for `generationPrompt` — `promptBrief` is a short human-readable summary; `generationPrompt` is the verbatim full prompt string. If you assembled a 500-word prompt and passed it to `repochan image gen --prompt`, that entire 500-word string goes into `generationPrompt`.
+4. **Never store absolute filesystem paths in `meta`** (such as temporary generated paths or `/Users/.../generated-images/...`). The image-gen config cache is at `~/.repochan/image.json`, but result metadata should not depend on local machine cache paths. Images are already copied to the version directory by `repochan order create-result`; `meta` should only contain portable information: `referenceImagesUsed` (boolean), `references` (orderId/role list), `templateId`, `aspectRatio`, `safetyConstraintsApplied`.
+5. `repochan order create-result` atomically creates the current result and advances the order to delivered; put delivery notes in notes.
+6. Preserve prior versions; never overwrite existing result versions without the user's explicit approval.
+7. Result publishing, candidate promotion, and normal status changes for the same order must be serial. If CLI reports transaction/recovery conflicts, first run `repochan order recovery list <order-id>` to view; wait and retry while an active publish still holds the lock; stale locks from crashed processes are auto-recovered by core. `prepared` / `recovery_required` can use `repochan order recovery recover <order-id> <transaction-id>` to restore the pre-transaction state; `staging_unprepared` has not yet written to the protocol target, only use `repochan order recovery abort <order-id> <transaction-id>` to discard the staging directory. In other cases only use `abort` when you confirm accepting the current complete state. **Prohibit manual modification or deletion of transaction/recovery files under `.repochan/`.**
+8. All order status and result changes must call the corresponding `repochan order ...` commands. After a result version is published, the version directory and `meta.json` bytes remain unchanged; derived assets like slices, background removal, compression are generated by the Page Designer via `repochan starter asset-apply` into the pulled Starter's `public/`, never written back to the order result.

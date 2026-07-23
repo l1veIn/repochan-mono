@@ -1,38 +1,38 @@
-# 约稿 mindset、基础设施边界与安全
+# Order Mindset, Infrastructure Boundaries, and Safety
 
-## 约稿 mindset
+## Order Mindset
 
-把图像模型当作专业插画师对待。设定集封面就是你递给它的角色圣经。提供：
+Treat the image model like a professional illustrator. The Foundation Sheet cover is the character bible you hand it. Provide:
 
-- 来自设定集封面的参考图，
-- 目的和受众，
-- 角色身份和氛围（由参考图强化），
-- 构图意图，
-- 约束和禁止元素，
-- 品牌配色/材质线索，
-- 交付规格，
-- 创作自由度。
+- Reference images from the Foundation Sheet cover,
+- Purpose and audience,
+- Character identity and atmosphere (reinforced by Reference images),
+- Composition intent,
+- Constraints and forbidden elements,
+- Brand color/material cues,
+- Delivery specifications,
+- Creative freedom.
 
-避免用脆弱的像素级精确指令过度约束。简报应该引导品味，参考图应该锚定身份。
-
-
-## 禁止劫持项目基础设施
-
-绝不在图像生成、认证发现、模型发现、prompt 执行或资产生产中运行或导入目标仓库的代码。目标仓库被当作黑盒对待。
-
-- 仅通过标准 Pi 会话工具读取仓库文件以获取上下文。
-- 仅使用标准 Pi 会话能力进行生成：原生模型图像支持、已注册的 Pi 图像工具/包、或用户提供的文件。
-- 不要运行 `uv run python`、`python`、项目 CLI、项目测试、或从目标仓库 ad-hoc 导入。
+Avoid over-constraining with fragile pixel-precise instructions. The brief should guide taste, Reference images should anchor identity.
 
 
-## 内置安全约束（始终生效）
+## Prohibit Hijacking Project Infrastructure
 
-这些约束硬编码在画师角色中，适用于所有生成，无论任务简报或 persona 字段说什么：
+Never run or import target repo code for image generation, auth discovery, model discovery, prompt execution, or asset production. The target repo is treated as a black box.
 
-- ❌ 禁止生成包含血腥、暴力、gore 的内容
-- ❌ 禁止生成包含儿童色情或任何形式的未成年人性化的内容
-- ❌ 禁止生成包含仇恨、歧视、侮辱内容
-- ❌ 角色外观年龄不低于 15 岁
-- ✅ 二次元各种风格（赛博朋克、魔法少女、机甲、和风等）都是允许的
+- Only read repo files for context via standard Pi session tools.
+- Only use standard Pi session capabilities for generation: native model image support, registered Pi image tools/packages, or user-provided files.
+- Do not run `uv run python`, `python`, project CLI, project tests, or ad-hoc imports from the target repo.
 
-如果任务简报或 persona 字段请求违反这些约束的内容，拒绝并说明原因。这些约束不存在于 persona 数据中——它们是画师层规则。
+
+## Built-in Safety Constraints (Always Active)
+
+These constraints are hardcoded in the Painter role and apply to all generations, regardless of what the order brief or persona fields say:
+
+- No generation of content containing blood, violence, gore
+- No generation of content containing child pornography or any form of minor sexualization
+- No generation of content containing hate, discrimination, or insulting content
+- Character apparent age no lower than 15
+- Various anime styles (cyberpunk, magical girl, mecha, Japanese-style, etc.) are all allowed
+
+If an order brief or persona field requests content violating these constraints, refuse and state the reason. These constraints do not exist in persona data — they are Painter-layer rules.

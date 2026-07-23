@@ -1,65 +1,65 @@
-# Prompt 方法论
+# Prompt Methodology
 
-## Avoid → positive transform
+## Avoid -> positive transform
 
 Image models treat "not X" as a directional push, not a wall. Each `avoid` entry must be either **converted to a positive anchor** or **dropped** before entering the prompt:
 
-| avoid 条目 | → 正向替换 | 或丢弃 |
+| avoid entry | -> positive replacement | or drop |
 |-------------|----------------------|---------|
 | not sci-fi / not cyberpunk | contemporary, modern-day | — |
-| not too clean | (保留 — 难以正向表达) | — |
+| not too clean | (keep — hard to express positively) | — |
 | not steampunk | present-day, 21st-century | — |
 
-规则：
-1. **【最高优先级·自检强制】禁止生成"避免文字"类约束**：在写 `avoid:` 块之前，先自检——你即将写的 avoid 条目里有没有任何关于"文字/字母/标签/no text/不要文字/无文字/words/letters"的内容？如果有，**全部删除，不要写进 prompt**。这是模型最容易犯的错误：把"避免文字"当成安全默认塞进 avoid，结果让设定图失去所有 callout 标签和配色卡文字。现代图像模型（尤其 codex image-2）渲染文字能力很强，设定图文字是正向价值。**写完 avoid 块后，再读一遍，确认没有任何文字相关的禁令——如果有，删掉。**
-2. **优先转化**：如果 avoid 项暗示了期望的正向状态，直接写正向状态。"not shabby" → "well-maintained, tidy"。"not futuristic" → "contemporary, modern era"。
-3. **绝不把原始否定传进 prompt。** 最终 prompt 必须读起来是一串正向的、陈述性的视觉描述。如果一个概念只能用否定表达，把它留在 `avoid` 里，让正向替换去做事。
-4. **不要过度堆叠限定词。** 每个 avoid 项最多 2-3 个正向替换——更多会导致形容词过载（见下方）。
+Rules:
+1. **[Highest priority - self-check mandatory] Prohibit generating "avoid text" type constraints**: Before writing the `avoid:` block, self-check — does any avoid entry you are about to write involve "text/letters/labels/no text/no words/words/letters" content? If so, **delete them all, do not write them into the prompt**. This is the model's easiest mistake: treating "avoid text" as a safe default and stuffing it into avoid, thus stripping all callout labels and Color palette text from the Foundation Sheet. Modern image models (especially codex image-2) render text very well, and Foundation Sheet text is positive value. **After writing the avoid block, read it again, confirm there are no text-related prohibitions — if there are, delete them.**
+2. **Prioritize transformation**: If the avoid item implies a desired positive state, write the positive state directly. "not shabby" -> "well-maintained, tidy". "not futuristic" -> "contemporary, modern era".
+3. **Never pass the original negation into the prompt.** The final prompt must read as a string of positive, declarative visual descriptions. If a concept can only be expressed negatively, keep it in `avoid` and let the positive replacement do the work.
+4. **Do not over-stack qualifiers.** At most 2-3 positive replacements per avoid entry — more leads to adjective overload (see below).
 
 
 ## Identity boundary before prompting
 
-Before finalizing the prompt, scan persona/order terms for language-to-aesthetic leakage. Natural-language evidence from README/docs/commits/UI copy must not add culture-coded visual tokens to the image prompt. Terms like rice paper, scroll, seal, lantern, bamboo, jade, kimono, shrine, quill, castle, etc. are allowed only when explicitly requested, directly tied to the repository/product domain, or already locked by a user-approved reference image/foundation anchor.
+Before finalizing the prompt, scan persona/order terms for language-to-aesthetic leakage. Natural-language evidence from README/docs/commits/UI copy must not add culture-coded visual tokens to the image prompt. Terms like rice paper, scroll, seal, lantern, bamboo, jade, kimono, shrine, quill, castle, etc. are allowed only when explicitly requested, directly tied to the repository/product domain, or already locked by a user-approved Reference image/foundation anchor.
 
-For foundation sheets with no reference image, be stricter: if a culture-coded prop only traces to document language, remove it or replace it with a repo-derived metaphor from `analysis.context.identity`, `preAnalysis`, `abstract`, color palette, product domain, or user request.
+For Foundation Sheets with no Reference image, be stricter: if a culture-coded prop only traces to document language, remove it or replace it with a repo-derived metaphor from `analysis.context.identity`, `preAnalysis`, `abstract`, Color palette, product domain, or user request.
 
-Template `prompt_template` 是唯一 prompt 结构。将 `signaturePatterns` / `signatureScenes` 仅填入模板实际声明的相应 slot；foundation sheet 模板没有这些 slot 时不得额外注入。填充后的结构化标签必须是完整、可读的描述，不要缩写成含混 tag。
+The template `prompt_template` is the sole prompt structure. Fill `signaturePatterns` / `signatureScenes` only into the corresponding slots actually declared by the template; do not inject extra when the Foundation Sheet template has no such slots. Filled structured labels must be complete, readable descriptions, not abbreviated ambiguous tags.
 
 
-## 中英文混排策略（English skeleton + Chinese flesh）
+## Chinese-English Mixing Strategy (English skeleton + Chinese flesh)
 
-现代图像模型（如 codex image-2）对中文描述的理解力很强。**不要把所有中文细节都翻译成英文 tag——中英文混排能保留更丰富的语义，生成质量更高。** 参考这个经过验证的混排模式：
+Modern image models (such as codex image-2) have strong Chinese description understanding. **Do not translate all Chinese details into English tags — Chinese-English mixing preserves richer semantics and produces higher generation quality.** Reference this validated mixing pattern:
 
-**用英文的部分（骨架——画风/构图/角色身份 tag）：**
-- 质量与风格标签：`masterpiece, best quality, anime style, detailed hair, dynamic pose`
-- 构图与布局：`single clean character concept sheet layout, full-body, chibi, expression headshots`
-- 角色身份骨架 tag：`1girl, long golden hair fading to silver gray, amber eyes`（发色/瞳色/性别等核心 tag 用英文，因为 Danbooru tag 体系对这些有精确映射）
-- 颜色 hex 值：`#FFD700`、`#1E293B`（与语言无关）
+**Use English for (skeleton — art style/composition/character identity tags):**
+- Quality and style tags: `masterpiece, best quality, anime style, detailed hair, dynamic pose`
+- Composition and layout: `single clean character concept sheet layout, full-body, chibi, expression headshots`
+- Character identity skeleton tags: `1girl, long golden hair fading to silver gray, amber eyes` (core tags like hair color/eye color/gender use English, because the Danbooru tag system has precise mappings for these)
+- Color hex values: `#FFD700`, `#1E293B` (language-agnostic)
 
-**可以用中文的部分（血肉——细节描述/姿势/心理/设计说明）：**
-- 角色名：`character name: 赫米亚`（中文名直接用，比音译保留更多身份感）
-- 年龄外观：`age appearance: 18`
-- 整体外貌细节：`overall appearance: 身高165cm，纤细匀称，姿态干练...`（中文描述比英文 tag 能承载更多细节层次）
-- 姿势动作：`main illustration must use signature pose: 右脚微踮，身体前倾，左手握拳在胸前，右手向前伸展...`（动作的连贯叙事用中文更精准）
-- 表情心理：`expression direction: 严谨可靠的外表下藏着灵活的思维...`
-- 设计说明：`design notes: 古典信使元素与现代扁平/科技感融合...`
-- avoid 列表：`avoid: 过度幼态, 暴露服装, 杂乱背景...`
+**Use Chinese for (flesh — detailed description/pose/psychology/design notes):**
+- Character name: `character name: 赫米亚` (use Chinese name directly, retains more identity than transliteration)
+- Age appearance: `age appearance: 18`
+- Overall appearance details: `overall appearance: 身高165cm，纤细匀称，姿态干练...` (Chinese descriptions carry more detail layers than English tags)
+- Pose and action: `main illustration must use signature pose: 右脚微踮，身体前倾，左手握拳在胸前，右手向前伸展...` (action narrative coherence is more precise in Chinese)
+- Expression psychology: `expression direction: 严谨可靠的外表下藏着灵活的思维...`
+- Design notes: `design notes: 古典信使元素与现代扁平/科技感融合...`
+- Avoid list: `avoid: 过度幼态, 暴露服装, 杂乱背景...`
 
-**原则**：tag 类信息（短、离散、有 Danbooru 映射）用英文；描述类信息（长、连贯、有叙事性）用中文。如果一个信息既能用英文 tag 又能用中文描述，优先中文描述——它承载的细节更丰富。最终 prompt 是中英混合的自然文本，不是纯英文 tag 列表，也不是纯中文。
+**Principle**: Tag-type information (short, discrete, with Danbooru mappings) uses English; description-type information (long, coherent, narrative) uses Chinese. If a piece of information could be expressed as either an English tag or a Chinese description, prefer Chinese description — it carries richer detail. The final prompt is a Chinese-English mixed natural text, not a pure English tag list, nor pure Chinese.
 
-**Pose writing technique** (critical for dynamic images): a good pose names 3-4 body parts + a facial/emotional cue, and **聚焦一只手的主要动作**。
+**Pose writing technique** (critical for dynamic images): a good pose names 3-4 body parts + a facial/emotional cue, and **focuses on one hand's main action**.
 
-**关键原则：单手聚焦，避免多手任务堆叠（防三只手）。** 实测证实：当一个 pose 描述里**两只手各有独立复杂任务**时（如"右手食指点下巴 + 左手抱胸 + 左手夹笔"），模型为了满足所有约束会"长出"第三只甚至第四只手。根因是模型把复合动作拆解成独立任务后无法用两只手完成。
+**Key principle: Single-hand focus, avoid multi-hand task stacking (prevent three hands).** Testing confirms: when a pose description has **independent complex tasks for each hand** (e.g., "right index finger on chin + left arm crossed over chest + left hand holding a pen"), the model "grows" a third or even fourth hand in order to satisfy all constraints. The root cause is that the model decomposes compound actions into independent tasks that cannot be completed with two hands.
 
-规则：
-- **一只手做"主要动作"**（拿道具/施法/指向/托举），描述要具体（手型 + 道具 + 位置）。
-- **另一只手做"自然状态"**（垂在体侧/轻搭桌面/自然摆放），描述要模糊简短。
-- **绝不让两只手都拿不同道具或都做精细动作。**
-- BAD: "右手食指轻点下巴，左手环抱胸前，指尖夹一支银色钢笔"（双手都精细 + 抱胸与夹笔被拆成两个动作 → 三只手）
-- GOOD: "右手持银色钢笔悬于脸颊旁作思考状，左手自然垂在体侧"（单手聚焦 → 双手正常）
-- GOOD: "右脚微踮，身体前倾，右手向前伸展掌心向上托起一团旋转的金色数据流，左手自然握拳轻搭腰侧，嘴角含笑"（主手拿数据流，副手简短状态）
+Rules:
+- **One hand does the "main action"** (holding a prop / casting / pointing / lifting), described concretely (hand shape + prop + position).
+- **The other hand does a "natural state"** (hanging at side / lightly resting on desk / naturally placed), described vaguely and briefly.
+- **Never let both hands hold different props or both do fine actions.**
+- BAD: "right index finger lightly on chin, left arm crossed over chest, fingertips holding a silver fountain pen" (both hands fine + crossed arm and holding pen decomposed into two actions -> three hands)
+- GOOD: "right hand holding a silver fountain pen suspended near cheek in a thinking pose, left hand hanging naturally at side" (single-hand focus -> normal two hands)
+- GOOD: "右脚微踮，身体前倾，右手向前伸展掌心向上托起一团旋转的金色数据流，左手自然握拳轻搭腰侧，嘴角含笑" (main hand holding data stream, off hand brief state)
 
-BAD: "standing at a workbench". Always convert static verbs ("standing", "sitting") into kinetic descriptions——但动态描述也要遵循上面的单手聚焦原则。
+BAD: "standing at a workbench". Always convert static verbs ("standing", "sitting") into kinetic descriptions — but dynamic descriptions must also follow the single-hand focus principle above.
 
 **Do NOT describe layout positions** (no "TOP-LEFT:", "CENTER:"). Image models don't follow spatial instructions well — use descriptive tags for content, not spatial coordinates.
 
@@ -78,9 +78,9 @@ Single English adjectives carry oversized semantic radius in image models — fa
 | tuning fork + oscilloscope | 19th-century physics lab | modern measurement instruments |
 
 Rules:
-1. **Never use a single adjective where a 2-3 word phrase carries tighter meaning.** "worn" → "with signs of everyday use". "shabby" → "lived-in, well-maintained".
-2. **Anchor nouns to a contemporary frame by default.** "notebook" alone can drift to scroll/manuscript; "modern notebook" or "spiral-bound notebook" pins it down. "building" → "contemporary building".
+1. **Never use a single adjective where a 2-3 word phrase carries tighter meaning.** "worn" -> "with signs of everyday use". "shabby" -> "lived-in, well-maintained".
+2. **Anchor nouns to a contemporary frame by default.** "notebook" alone can drift to scroll/manuscript; "modern notebook" or "spiral-bound notebook" pins it down. "building" -> "contemporary building".
 3. **Pair era-sensitive nouns with an era qualifier.** Any noun with historical range (building, instrument, book, tool, workshop, laboratory) gets an era word: "contemporary", "modern", "present-day", "21st-century".
 4. **When in doubt, describe function over aesthetic.** "measuring tool" is safer than "instrument" because the model has less room to wander into antique territory.
 
-**重要平衡（不要过度压缩）**：上面的规则是为了避免**单个模糊形容词**漂移，**不是**让你把所有描述压缩成最简短语。对于**角色定义要素**（signature pose、signature action、key motif callouts、expression direction、核心道具的功能叙事），要写得**丰富、具体、有画面感**——多个精确短语的组合远好于一个干瘪标签。压缩只针对**有漂移风险的模糊形容词**（shabby/worn/disheveled 这类），不是针对所有描述。判断标准：pose 和 action 块应该读起来像一段电影分镜，而不是一个标签。
+**Important balance (do not over-compress)**: The rules above are to avoid **single vague adjective** drift, **not** to compress all descriptions into the shortest possible phrase. For **character-defining elements** (signature pose, signature action, key motif callouts, expression direction, functional narrative of core props), write **rich, concrete, visually evocative** descriptions — combinations of multiple precise phrases are far better than a single dry tag. Compression only targets **vague adjectives with drift risk** (shabby/worn/disheveled and the like), not all descriptions. Litmus test: pose and action blocks should read like a film storyboard, not a tag.

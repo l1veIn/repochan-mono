@@ -1,45 +1,45 @@
-# 身份与命名
+# Identity & Naming
 
-### 语言字段不是创作身份
+### Language Fields Are Not Creative Identity
 
-仓库吉祥物没有母语字段。命名、服装、道具、文化、世界时代感与视觉母题只能来自产品身份、用户明确要求或已批准的视觉锚点，不能从文档语言推导。
+A repo mascot has no native-language field. Naming, clothing, props, culture, world era-feel, and visual motifs can only come from product identity, explicit user requests, or an approved visual anchor — they cannot be derived from documentation language.
 
-`rolePrompt` **始终是英文**，因为图像生成模型以这种方式消费效果最好。
+`rolePrompt` is **always in English**, because image generation models consume it best this way.
 
-### 叙事字段语言（中文优先）
+### Narrative Field Language
 
-叙事字段（`nameZh`、`appearance`、`hairColor`、`eyeColor`、`outfit`、`accessories`、`keyMotifs`、`signaturePose`、`signatureAction`、`signaturePatterns`、`signatureScenes`、`designNotes`、`personality`、`backstory`、`hobbies`、`characterFlaws`、`catchphrase`、`world.*` 等）的语言按以下优先级决定：
+The language of narrative fields (`nameZh`, `appearance`, `hairColor`, `eyeColor`, `outfit`, `accessories`, `keyMotifs`, `signaturePose`, `signatureAction`, `signaturePatterns`, `signatureScenes`, `designNotes`, `personality`, `backstory`, `hobbies`, `characterFlaws`, `catchphrase`, `world.*`, etc.) is decided by the following priority:
 
-1. **用户显式请求的语言**（访谈/会话中明确要求）——最高优先级。
-2. **仓库文档语言**——读取 `analysis` 里的文档/README 语言信号。**中文仓库 → 叙事字段必须用中文**（`name` 仍可英文/拼音用于 rolePrompt，但 `nameZh` 必填且用汉字）。
-3. 当前对话语言——仅当前两者都无信号时使用。
+1. **Language explicitly requested by the user** (stated clearly in interview/session) — highest priority.
+2. **Repo documentation language** — read the doc/README language signal from `analysis`. **English repo → narrative fields in English. Non-English repo (e.g., Chinese, Japanese) → narrative fields in that language** (`name` may still be English/romanized for rolePrompt, but `nameZh`/`nameJa` must be filled with native characters).
+3. Current conversation language — only used when the above two have no signal.
 
-**中文仓库判定**：README 主语言为中文、或 `analysis.context.identity.namingSeeds` 含显著中文术语、或用户用中文对话时，视为中文项目，叙事字段必须中文。
+**Repo language determination**: When the README's primary language or `analysis.context.identity.namingSeeds` contains significant terms in a given language, or the user converses in that language, treat it as a project in that language, and narrative fields must be in that language.
 
-**例外**：`rolePrompt`、`character_book`、`mes_example` 中的英文 tag 按 image-gen 需求保留英文。`mainColor`/`secondaryColor`/`accentColors` 是 hex 值，与语言无关。
+**Exceptions**: `rolePrompt`, `character_book`, `mes_example` English tags remain in English per image-gen requirements. `mainColor`/`secondaryColor`/`accentColors` are hex values, language-agnostic.
 
-Consistency Guardian 必须检查：中文仓库的叙事字段是否真的用了中文。英文叙事字段出现在中文仓库中视为缺陷。
+The Consistency Guardian must check: for a non-English repo, are the narrative fields actually in that language? English narrative fields in a non-English repo are treated as a defect.
 
-### 命名来源优先级
+### Naming Source Priority
 
-角色名字源自仓库身份，而非文档语言：
+Character names come from repo identity, not documentation language:
 
-1. 用户在访谈/会话中明确的命名请求。
-2. `analysis.context.identity.namingSeeds.primary` —— 仓库名、包名、产品名。
-3. `analysis.context.identity.namingSeeds.secondary` —— README 标题术语和领域词汇。
-4. 来自 `preAnalysis`、`abstract`、模块名或 README 标语的项目专属概念。
-5. 创意团队判断。
+1. Explicit naming requests from the user in interview/session.
+2. `analysis.context.identity.namingSeeds.primary` — repo name, package name, product name.
+3. `analysis.context.identity.namingSeeds.secondary` — README title terms and domain vocabulary.
+4. Project-specific concepts from `preAnalysis`, `abstract`, module names, or README taglines.
+5. Creative Team judgment.
 
-避免文化分桶选择，如"中文名/日文名/西文名"，除非用户明确要求。优先采用仓库名和领域的变形：缩写、吉祥物昵称、头衔 + 短名、谐音梗、语音融合或概念衍生称号。
+Avoid cultural-bucket choices like "Chinese name / Japanese name / Western name" unless the user explicitly requests. Prefer transformations of the repo name and domain: abbreviations, mascot nicknames, title + short name, wordplay, phonetic blends, or concept-derived designations.
 
-### 视觉身份来源优先级
+### Visual Identity Source Priority
 
-角色的视觉风格、文化母题和审美时代感来自：
+The character's visual style, cultural motifs, and aesthetic era-feel come from:
 
-1. 用户明确的风格偏好（访谈 `preferences` / `keyConstraints`，或会话指示）
-2. 项目的创作信号（仓库/产品名、技术栈、产品类别、README 基调、配色、抽象维度）
-3. 创意团队基于上述的判断
+1. Explicit user style preferences (interview `preferences` / `keyConstraints`, or session directives)
+2. The project's creative signals (repo/product name, tech stack, product category, README tone, color palette, abstract dimensions)
+3. Creative Team judgment based on the above
 
-**视觉母题来自项目，而非语言刻板印象。** 中文 README 不意味着毛笔；英文 README 不意味着羽毛笔；日文 README 不意味着和服或神社。
+**Visual motifs come from the project, not language stereotypes.** A Chinese README does not mean a calligraphy brush; an English README does not mean a quill pen; a Japanese README does not mean a kimono or shrine.
 
-人设 schema 中没有 `language` 或 `nativeLanguage` 字段。不要写它们。
+There are no `language` or `nativeLanguage` fields in the persona schema. Do not write them.

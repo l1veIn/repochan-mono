@@ -1,127 +1,127 @@
-# 一致性守护者（Consistency Guardian）与防过拟合
+# Consistency Guardian & Anti-Overfit
 
-对世界架构师和角色设计师的产出进行对抗式严格审查。最多 **1 轮**迭代。
+Adversarial-style strict review of World Architect and Character Designer outputs. Maximum **1 round** of iteration.
 
-## 审查顺序（对齐全局优先级）
+## Review Order (Aligned with Global Priority)
 
-按下列顺序检查。**低优先级不得覆盖高优先级。**「不够独特 / 和其他项目有点像」**不能单独**算作必须修正的缺陷。
+Check in the following order. **Lower priority must not override higher priority.** "Not unique enough / somewhat similar to another project" **may not** independently count as a mandatory defect.
 
-### 1. 安全与产品定位
+### 1. Safety & Product Positioning
 
-- 安全约束（见文末）是否触犯
-- `rolePrompt` 是否有明确女性锚点（`1girl` / `female` / `girl`），除非用户显式覆盖性别默认
-- 叙事是否用「她」（在默认女性路径下）
+- Whether safety constraints (see end of document) are violated
+- Whether `rolePrompt` has an explicit female anchor (`1girl` / `female` / `girl`), unless the user explicitly overrides the gender default
+- Whether the narrative uses "she" (under the default female path)
 
-### 2. 用户硬约束
+### 2. User Hard Constraints
 
-- 每个 `keyConstraint` 是否满足
-- 每个 `avoidList` 条目是否缺席
-- **用户硬约束优先于仓库信号。** 若硬约束覆盖了某些仓库方向，在 `userIntentSummary` 中记录即可，不要为了「保护仓库」推翻用户硬约束。
+- Whether every `keyConstraint` is satisfied
+- Whether every `avoidList` entry is absent
+- **User hard constraints take priority over repo signals.** If a hard constraint overrides a certain repo direction, simply record it in `userIntentSummary` — do not override user hard constraints to "protect the repo."
 
-### 3. 分量错配（定义唯一，见 [project-weight.md](project-weight.md)）
+### 3. Weight Mismatch (Single Definition, See [project-weight.md](project-weight.md))
 
-复核 `projectWeight` 与当前 conceptWeight：
+Re-check `projectWeight` against current conceptWeight:
 
-- **仅当** `projectWeight=light` **且** conceptWeight 已到 **high**（神话/阈界/史诗级）→ **必须修正**：降低 conceptWeight 到 grounded 或 elevated。
-- medium/heavy 使用轻松世界或日常角色 → **不是错配**，不要因此打回。
-- medium/heavy 使用高概念 → 合法（仍须通过第 4 步：高概念要有信号或用户请求支撑）。
+- **Only when** `projectWeight=light` **AND** conceptWeight has reached **high** (mythic/liminal/epic-level) → **must correct**: lower conceptWeight to grounded or elevated.
+- medium/heavy using a light world or everyday character → **not a mismatch**, do not reject for this.
+- medium/heavy using high concept → valid (still must pass Step 4: high concept must be supported by signals or user request).
 
-### 4. 防过拟合与气质贴合
+### 4. Anti-Overfit & Tonal Alignment
 
-执行下文「防过拟合规则」。标记：技术→特质机械映射、「默认仓库管理员」、无仓库专属转折的通用 ACG 堆砌、语言→审美泄漏。
+Execute the "Anti-Overfit Rules" below. Flag: tech→trait mechanical mapping, "default repo administrator," generic ACG stacking without repo-specific twists, language→aesthetic leak.
 
-**高概念 / 魔法 / 神话 / 科幻：**
+**High-concept / magical / mythic / sci-fi:**
 
-- **不要**把它们自动当成「通用 ACG 老套」来 flag。
-- 合法条件：`projectWeight` 为 medium/heavy（或 light 但仅 elevated 以内）、**且**有仓库信号或用户请求支撑。
-- 非法：凭空堆砌的装饰性奇幻，既无信号也无用户请求 → 要求仓库专属转折或降级。
+- **Do not** automatically flag these as "generic ACG cliché."
+- Valid conditions: `projectWeight` is medium/heavy (or light but only within elevated), **AND** supported by repo signals or user request.
+- Invalid: decorative fantasy piled on with no signal or user request → demand a repo-specific twist or downgrade.
 
-### 5. 用户软偏好
+### 5. User Soft Preferences
 
-`preferences` 在合理处被尊重；仅为软约束。
+`preferences` honored where reasonable; soft constraint only.
 
-### 6. 反模板 / 多样性（建议项）
+### 6. Anti-Template / Diversity (Advisory Only)
 
-性格塌缩、工装默认、档案默认等可**记一笔建议**，但：
+Personality collapse, workwear default, archive default, etc. may be **noted as a suggestion**, but:
 
-- **不得**仅因「跨项目不够多样化」要求推倒重来或强行升高 conceptWeight。
-- 贴合信号的「安静精确」等方向可以保留。
+- **Must not** demand a full redo or forcibly raise conceptWeight just because of "insufficient cross-project diversity."
+- Signal-aligned directions like "quiet and precise" may be kept.
 
-### 输出协议（替代「凑满 N 个问题」）
+### Output Protocol (Replaces "Fabricating N Issues")
 
-**强制完成审查，不强制凑缺陷数。**
+**Review is mandatory; fabricating a target defect count is not.**
 
-对上述 1–6 类（及下文防过拟合相关项）逐项给出：
+For each of categories 1–6 above (and the anti-overfit items below), provide:
 
-- `pass` — 该项无必须修订问题  
-- `fail` — 必须修订；附**具体引用**（哪段设定/哪个字段）与改法  
+- `pass` — no mandatory revision needed for this item
+- `fail` — must revise; include **specific citation** (which setting passage / which field) and fix direction
 
-规则：
+Rules:
 
-- **fail 的条数 = 问题数**；可以为 **0**。全 pass → **审查通过**，写一句「无必须修订项」，**不要**为表演对抗而硬找假问题。
-- 可选：附 0–2 条 `suggestion`（非 blocking，如多样性启发）。**suggestion 不触发必须重做。**
-- 禁止用「不够独特 / 和其他项目有点像」单独作为 fail。
-- 有 fail → 角色设计师处理；Guardian 再审一轮。**最多 1 轮**迭代。仍未解决的 fail → 记入 `designNotes`。
+- **Number of fail items = number of issues**; may be **0**. All pass → **review approved**, write one line "No mandatory revisions," **do not** fabricate fake issues to perform adversarial rigor.
+- Optional: attach 0–2 `suggestion` items (non-blocking, e.g., diversity inspiration). **Suggestions do not trigger a mandatory redo.**
+- Forbidden: using "not unique enough / somewhat similar to another project" alone as a fail.
+- Has fails → Character Designer processes; Guardian reviews one more round. **Maximum 1 round** of iteration. Unresolved fails → record in `designNotes`.
 
 ---
 
 
-## 防过拟合规则（守护者严格执行）
+## Anti-Overfit Rules (Guardian Enforces Strictly)
 
-仓库证据是角色的土壤，不是牢笼。
+Repo evidence is the character's soil, not her prison.
 
-1. **禁止机械映射**：不允许一对一翻译技术信息为人设。
-   - ❌ "项目用了 Python" → 性格写"像 Python 一样温和灵活"
-   - ❌ "项目有 core/infra/interface 三层" → 爱好写"喜欢整理三层架构"
-   - ❌ "项目有 analyzer/generator 模块" → 能力写"Repository Insight"
-   - ✅ 先想象一个活人，再用技术细节做萌点调味
+1. **No mechanical mapping**: One-to-one translation of technical information into persona traits is forbidden.
+   - "Project uses Python" → personality writes "gentle and flexible like Python"
+   - "Project has core/infra/interface three layers" → hobby writes "likes organizing three-tier architecture"
+   - "Project has analyzer/generator modules" → ability writes "Repository Insight"
+   - First imagine a living person, then use technical details as moe-seasoning
 
-2. **她不是默认的仓库管理员**：不要默认她会写代码、看日志、修 bug。她完全不懂代码也可以成立。
+2. **She is not the default repo administrator**: Do not default to her writing code, reading logs, fixing bugs. She can be valid without knowing any code at all.
 
-3. **README 文风映射性格**：README 的语气（幽默/严谨/热情/极简）映射到角色的性格底色，不是功能列表。
+3. **README writing style maps to personality**: The tone of the README (humorous/rigorous/enthusiastic/minimal) maps to the character's personality undertone, not the feature list.
 
-4. **能力命名要有二次元味道**：
-   - ✅ 用项目信号做灵感，起有中二感的名字（如"XX·YY"格式，结合项目特性）
-   - ❌ 直接用工程术语（如 "Repository Insight"、"Asset Pipeline"）
+4. **Ability naming must have an anime flavor**:
+   - Use project signals as inspiration, create names with a chuunibyou feel (e.g., "XX·YY" format, combining project characteristics)
+   - Do not directly use engineering terms (e.g., "Repository Insight," "Asset Pipeline")
 
-5. **设计说明给后续资产复用**：designNotes 是给 Logo/Banner/表情包复用的视觉规范，不是角色自述。
+5. **Design notes are for downstream asset reuse**: `designNotes` is a visual specification for Logo/Banner/reaction pack reuse, not a character self-description.
 
-6. **视觉符号的原创性分层（accessories / keyMotifs）**：
-   - **Tier 1（首选）**：从项目独特气质生发原创视觉符号。视觉符号的**材质和形态**应源自该项目自己的证据，不要套用一组安全默认（"黄铜怀表 + 皮革笔记本 + 链挂坠饰"是模型最常退回的模板组合）。同一类概念可以有多种视觉表达，应**根据这个项目的配色、领域、气质**选一个匹配的，而非套用复古手作风格：
-     - 版本控制 → 发条怀表（复古）/ 版本号全息标签（科幻）/ 带时间戳的织线（奇幻）/ Git DAG 投影手环（赛博）
-     - 实时通信 → 纸鹤链条（和风）/ 跳动的光纤发辫（科技）/ 风铃矩阵（日常）/ 信号波形耳坠（现代）
-     - 数据可视化 → 星图指南针（古典）/ 棱镜光谱项链（光学）/ 数据流刺青（赛博）/ 调色板指纹（艺术）
-     - 搜索/索引 → 编织索引（手作）/ 雷达扫描护目镜（科技）/ 嗅觉猎犬伙伴（生物）/ 共鸣音叉（声学）
-   - **反模板自检**（每次设计时问自己）：如果我把我选的 2-3 个核心道具材质词（如"黄铜"、"皮革"、"怀表"）替换成"木制 + 棉布 + 书签"，角色气质会变吗？如果不会——说明这些材质是无关紧要的模板填充，不是源自项目。**材质应该源自项目证据**：科技项目用现代材质（玻璃/光纤/全息/阳极氧化铝），手作项目用复古材质（黄铜/皮革/木），自然项目用有机材质（棉麻/石/植物）。
-   - **瞳色应源自项目配色，不是"温暖有故事感"的默认**：琥珀色/金色是模型最容易退回的"安全有故事感"瞳色，不要默认使用。先看 `analysis` 的配色卡，从项目的实际主色/辅色提炼瞳色——一个缓存框架项目（红/服务器感）可以是深红宝石或数据库蓝；一个多平台 UI 示例集项目可以是渐变或异色。
-   - **发色应多样化，不要默认"挑染/渐变"**：实测中模型对发色极易退回"主色+一缕对比色挑染"或"渐变到另一色"的模板（这被视为"有故事感"的安全选择，但 8/9 角色都这样就成了模板）。纯色发色同样有表现力——深棕、纯黑、银白、亚麻、赤红纯色都很好。只有当项目有明确的"双值/过渡/混合"信号（如主题切换、双语、混合栈）时，挑染或渐变才是源自项目的选择，而非默认装饰。
-   - **Tier 2（可用）**：计算机符号**转化**成想象力形态。光标→缝衣针；终端→墨水瓶；代码块→符文砖。
-   - **Tier 3（慎用）**：直白计算机符号仅作小点缀，必须前两层已建立主要视觉身份，且不是最显眼配件。
+6. **Visual symbol originality tiers (accessories / keyMotifs)**:
+   - **Tier 1 (preferred)**: Derive original visual symbols from the project's unique temperament. The **material and form** of visual symbols should come from this project's own evidence — do not apply a set of safe defaults ("brass pocket watch + leather notebook + chain pendant" is the combination models most frequently default to). The same class of concept can have many visual expressions — **choose one matching this project's color palette, domain, and temperament** rather than defaulting to vintage handcraft style:
+     - Version control → spring-driven pocket watch (vintage) / version-number holographic tag (sci-fi) / timestamped weave-thread (fantasy) / Git DAG projection bracelet (cyber)
+     - Real-time communication → origami crane chain (Japanese-inspired) / pulsing fiber-optic hair braids (tech) / wind chime matrix (everyday) / signal-waveform earrings (modern)
+     - Data visualization → star-chart compass (classical) / prismatic spectrum necklace (optical) / data-stream tattoo (cyber) / palette-fingerprint (artistic)
+     - Search/index → woven index (handcraft) / radar-scan goggles (tech) / scent-hound companion (biological) / resonance tuning fork (acoustic)
+   - **Anti-template self-check** (ask yourself every design): If I replace the material words of the 2–3 core props I chose (e.g., "brass," "leather," "pocket watch") with "wooden + cotton + bookmark," does the character's temperament change? If not — these materials are irrelevant template filler, not derived from the project. **Materials should come from project evidence**: tech projects use modern materials (glass/fiber-optic/holographic/anodized aluminum), handcraft projects use vintage materials (brass/leather/wood), nature projects use organic materials (linen/stone/plant).
+   - **Eye color should derive from project palette, not the default "warm and storied"**: Amber/gold is the model's most frequently defaulted "safe and storied" eye color — do not default to it. First look at the `analysis` color palette, extract eye color from the project's actual main/secondary colors — a cache framework project (red/server-feel) could be deep ruby or database blue; a multi-platform UI example set project could be gradient or heterochromia.
+   - **Hair color should be diverse, do not default to "streak/gradient"**: In practice, models easily collapse hair color to "main color + one streak of contrasting color" or "gradient to another color" templates (treated as the "storied" safe choice, but if 8/9 characters do this, it becomes a template). Solid hair colors are equally expressive — deep brown, pure black, silver white, flaxen, crimson are all fine. Only when the project has clear "dual-value/transition/mixing" signals (e.g., theme switching, bilingual, mixed stack) are streaks or gradients a project-derived choice rather than default decoration.
+   - **Tier 2 (usable)**: Computer symbols **transformed** into imaginative forms. Cursor → sewing needle; terminal → ink bottle; code block → rune brick.
+   - **Tier 3 (use sparingly)**: Literal computer symbols as small accents only — the first two tiers must already have established the primary visual identity, and they must not be the most prominent accessories.
 
-7. **二次元角色参考**：只吸收**单一特质**，绝不缝合多个角色。禁止"XX 的发型 + YY 的性格 + ZZ 的背景"。
+7. **Anime character references**: Only absorb a **single trait**, never stitch multiple characters together. Forbidden: "XX's hair + YY's personality + ZZ's backstory."
 
-8. **禁止语言到审美的泄漏**：README、文档、commit、UI copy 使用什么自然语言，不决定角色名字、服装、道具、文化身份或时代感。
-   - ❌ 中文文档 → 宣纸、卷轴、灯笼、印章、中式古风
-   - ❌ 日文文档 → 和服、武士刀、樱花、鸟居
-   - ❌ 英文文档 → 西式贵族、羽毛笔、维多利亚
-   - ✅ 命名来自 `analysis.context.identity.namingSeeds` 与仓库领域；视觉来自项目信号 + 用户偏好
-   - Guardian 审查时必问：*"如果把这些文档翻译成另一种语言，这个名字/视觉元素还会成立吗？"* 如果答案是否，删除或替换。
+8. **No language-to-aesthetic leak**: Whatever natural language the README, docs, commits, or UI copy are written in does not determine the character's name, clothing, props, cultural identity, or era feel.
+   - Chinese docs → rice paper, scroll, lantern, seal, Chinese ancient style
+   - Japanese docs → kimono, katana, sakura, torii
+   - English docs → Western nobility, quill pen, Victorian
+   - Naming comes from `analysis.context.identity.namingSeeds` and the repo domain; visuals come from project signals + user preferences
+   - Guardian must ask during review: *"If these docs were translated into another language, would this name / visual element still hold up?"* If the answer is no, delete or replace.
 
-## 贴合优先（改写）
+## Fit Priority (Reformulated)
 
-目标是**灵魂贴合**，不是最大化跨项目差异。
+The goal is **soul-level fit**, not maximizing cross-project difference.
 
-- 防雷同是**结果**，不是目标。不同项目信号不同，差异会自然出现。
-- **绝不要为了「不雷同」而把 light 项目推到 high concept**——那是错配。
-- medium/heavy 项目即使用日常角色、轻盈世界，也完全合格。
-- 一个贴合但和其他项目略像的接地气角色，好过一个「独特」但与 light 项目错配的神话角色，也好过为求异而丢掉仓库信号的设计。
+- Avoiding sameness is a **result**, not a goal. Different projects have different signals — difference emerges naturally.
+- **Never push a light project to high concept** just to "avoid being too similar" — that is a mismatch.
+- Medium/heavy projects using everyday characters and light worlds are fully valid.
+- A grounded character that fits but slightly resembles another project is better than a "unique" mythic character that mismatches a light project, and better than a design that discards repo signals for the sake of differentiation.
 
-## 内置安全约束
+## Built-in Safety Constraints
 
-始终生效。不存储在人设数据中——存在于这里和 Painter 技能中：
+Always active. Not stored in persona data — lives here and in the Painter skill:
 
-- ❌ 禁止血腥、暴力、gore
-- ❌ 禁止儿童色情或未成年人性化
-- ❌ 禁止仇恨、歧视、侮辱性内容
-- ❌ 角色外观年龄不低于 14 岁，不超过 26 岁（除非用户显式指定其他年龄）
-- ✅ 二次元各种风格（赛博朋克、魔法少女、机甲、和风等）均允许
+- No blood, violence, gore
+- No child pornography or sexualization of minors
+- No hate, discrimination, or offensive content
+- Character appearance age not below 14, not above 26 (unless user explicitly specifies otherwise)
+- All anime styles (cyberpunk, magical girl, mecha, Japanese-inspired, etc.) are permitted

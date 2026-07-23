@@ -1,15 +1,15 @@
-# Extract QA 缺陷码 → 重生改法速查
+# Extract QA Defect Codes -> Regeneration Fix Quick Reference
 
-page-designer 的 `repochan starter asset-apply` 失败时，会按结构化信封里的 `defects[].code` 回流重生请求。本表只有 Painter 视角的「如何改 prompt / matte / 拆单」。切分与 QA 本身归 page-designer 拥有：Painter **不**对 order 产物运行 `image edit extract*` 做交付预检，也不把派生 alpha 写回 order——每次回流只交付新的原图 version。
+When the Page Designer's `repochan starter asset-apply` fails, it loops back a regeneration request by `defects[].code` in a structured envelope. This table only covers the Painter's perspective of "how to adjust prompt / matte / split orders." Slicing and QA itself belong to the Page Designer: the Painter does **not** run `image edit extract*` on order deliverables for delivery pre-check, nor writes derived alpha back to the order — each loop-back only delivers a new original image version.
 
-| defect code | 含义 | 重生时怎么改 |
+| defect code | meaning | what to adjust on regeneration |
 |------|------|------|
-| `edge_touch` / `sheet_edge_touch` | 主体碰到 cell 内缘或整表外缘 | 加强 margin prompt（generous margin on all four sides, subject never touches any cell edge）；cell 内缩约 10% 作为安全区，主体含道具/特效/描边都不进入边距带；整表外圈加留白；把 layout-guide PNG 与 foundation 一起作为 `--reference` |
-| `empty_cell` | 某个 cell 没有可提取的前景 | 检查该 cell 的语义是否被省略、画得太小或与邻格粘连；prompt 明确每个 cell 必须各有一个完整、居中的主体 |
-| `frame_count_mismatch` | ML 检出的 blob 数 ≠ 格子数 | 贴纸粘连或碎裂：加大间距、合并跨 cell 连体元素、去掉碎装饰/散落小物件，让每个贴纸是单一连通轮廓 |
-| `matte_subject_collision` | matte 与主体颜色距离太近 | 换 matte hex：按主体色相选——粉/紫主体 → 绿 matte；绿主体 → 洋红 matte；深红主体 → 绿 matte。确保 matte 不出现在角色、服装、道具、描边和特效里，且非白/近白 |
-| `chroma_residue` | matte 没抠净，贴边残留 key 色 | 加强 flat matte prompt：perfectly flat uniform matte, no gradient/texture/shadow/vignette/ambient light；避免辉光、溢色、环境光污染和背景色细节 |
-| `foreground_ratio_low` / `foreground_ratio_high` | 前景占比过低/过高 | 过低：主体画大一些、填满安全区，检查是否被 matte 污染吞掉；过高：主体收小，留出安全边距 |
-| `ml_unavailable` / `invalid_options` | 环境或参数问题，非生成问题 | 不需要重生；由 page-designer 修 ML 环境或 starter 的 extract-grid args |
+| `edge_touch` / `sheet_edge_touch` | Subject touches cell inner edge or sheet outer edge | Strengthen margin prompt (generous margin on all four sides, subject never touches any cell edge); ~10% cell inset as safe zone, subject including props/effects/outlines must not enter margin band; add padding around sheet outer edge; pass layout-guide PNG together with foundation as `--reference` |
+| `empty_cell` | A cell has no extractable foreground | Check whether that cell's semantics were omitted, drawn too small, or stuck to adjacent cells; prompt must explicitly state each cell must have one complete, centered subject |
+| `frame_count_mismatch` | ML-detected blob count != cell count | Stickers stuck or fragmented: increase spacing, merge cross-cell connected elements, remove scattered decorations/loose small objects, ensure each sticker is a single connected contour |
+| `matte_subject_collision` | Matte and subject color distance too close | Change matte hex: choose by subject hue — pink/purple subject -> green matte; green subject -> magenta matte; deep red subject -> green matte. Ensure matte does not appear in character, outfit, props, outlines, or effects, and is non-white/near-white |
+| `chroma_residue` | Matte not cleanly keyed out, key color residue at edges | Strengthen flat matte prompt: perfectly flat uniform matte, no gradient/texture/shadow/vignette/ambient light; avoid glow, color bleeding, ambient light pollution, and background color detail |
+| `foreground_ratio_low` / `foreground_ratio_high` | Foreground ratio too low/too high | Too low: draw subject larger, fill safe zone, check if swallowed by matte pollution; too high: shrink subject, leave safe margins |
+| `ml_unavailable` / `invalid_options` | Environment or parameter issue, not generation issue | No regeneration needed; Page Designer fixes ML environment or starter's extract-grid args |
 
-**连续 2 次 apply 失败**：按 page-designer 的决定拆单——把整表订单拆成按 row 或 single-cell 的多个订单分别生成，各单仍遵守本表与模板 constraints。
+**Consecutive 2 apply failures**: Split order as decided by Page Designer — split the full-sheet order into per-row or single-cell orders to generate individually, each still observing this table and template constraints.

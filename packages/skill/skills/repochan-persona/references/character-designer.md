@@ -1,89 +1,89 @@
-# 角色设计师（Character Designer）
+# Character Designer
 
-设计一个生活在世界架构师所定义的世界中的角色。预算与错配规则见 [project-weight.md](project-weight.md)。
+Design a character who lives in the world built by the World Architect. Budget and mismatch rules in [project-weight.md](project-weight.md).
 
-## 核心
+## Core
 
-- 角色被世界的核心规则所塑造——他们要么体现它、要么与之抗争、要么通过与它的关系来定义自身。
-- 在角色与世界之间建立清晰的**张力或关系**。没有摩擦的角色只是装饰品。
-- **现实/当代都市型例外**：现实世界没有「核心规则」可体现或对抗。此时角色由**地点、文化、日常生活**塑造；「张力」可换为**根植感、日常权衡、安静的传承**——同样让角色立体，无需戏剧化摩擦（见 examples.md 的 Aoi）。
-- 融合用户意图、访谈约束和仓库信号。**用户硬约束优先**；与 light 天花板冲突时见 [interview.md](interview.md) 合成表。
-- **在预算内选择 conceptWeight**（grounded / elevated / high）：
-  - light → 仅 grounded 或 elevated
-  - medium / heavy → 三者皆可（含日常角色，也含高概念）
-- 遵循防过拟合规则、分层缺点生成和分层视觉符号指引（Guardian 全文）。
-- 访谈提供参考角色特质时，吸收*本质*——不要复制粘贴或缝合式合并。
-- **输出艺术风格（artStyle）——必填字段**：**必须先读 World Architect 的「视觉风格建议」**，结合角色核心情感，从 2–3 个候选中选定或调整，写入 `artStyle`。访谈指定了画风则直接用。选定后在 `designNotes` 里用 1 句话说明理由。**缺失会断下游风格链路。**
-  - 文案格式建议：`技法 + 设计方向——材质/构图要点`；设计方向用词尽量落在 AD 可映射集合：构成主义 / 孟菲斯 / 故障美学 / 装饰艺术 / 数字波普 / 复古印刷 等。
-  - **禁止**无鉴别地复制「赛璐璐 + 构成主义」；若最终真选构成，须在 designNotes 写清「为何不是故障/孟菲斯/…」。
+- The character is shaped by the world's core rule — they either embody it, struggle against it, or define themselves through their relationship to it.
+- Establish clear **tension or relationship** between character and world. A character without friction is just decoration.
+- **Real-world / contemporary urban exception**: The real world has no "core rule" to embody or resist. Here the character is shaped by **place, culture, and daily life**; "tension" can be replaced by **grounding, everyday trade-offs, quiet inheritance** — equally giving the character depth without dramatic friction (see Aoi in examples.md).
+- Blend user intent, interview constraints, and repo signals. **User hard constraints take priority**; when conflicting with the light ceiling, see the synthesis table in [interview.md](interview.md).
+- **Select conceptWeight within budget** (grounded / elevated / high):
+  - light → grounded or elevated only
+  - medium / heavy → all three allowed (including everyday characters, also including high concept)
+- Follow anti-overfit rules, tiered flaw generation, and tiered visual symbol guidance (full Guardian text).
+- When the interview provides reference character traits, absorb the *essence* — do not copy-paste or stitch-merge.
+- **Output art style (artStyle) — required field**: **Must first read the World Architect's "visual style recommendations"**, combine with the character's core emotional tone, select or adjust from the 2–3 candidates, and write into `artStyle`. If the interview specifies an art style, use it directly. After selection, include a 1-line rationale in `designNotes`. **Missing it will break the downstream style chain.**
+  - Recommended copy format: `technique + design direction — material/composition notes`; design direction terms should fall within the AD-mappable set: Constructivist / Memphis / Glitch / Art Deco / Digital Pop / Retro Print, etc.
+  - **Forbidden**: uncritically copying "cel-shaded + Constructivism"; if Constructivism is truly selected, `designNotes` must explain "why not Glitch/Memphis/…".
 
-  选择依据：哪个风格最能承载角色核心情感 + 世界视觉气质 + 项目调性。可在上游建议上微调。
+  Selection basis: which style best carries the character's core emotion + the world's visual atmosphere + the project's tone. Fine-tuning on top of upstream suggestions is allowed.
 
-## 角色多样性引导（建议 · 优先级低于贴合）
+## Character Diversity Guidance (Advisory · Lower Priority Than Fit)
 
-**性别锁定为女性（仓库娘），形态和性格宜有意识选择——避免无脑默认，而非为求异而违信号。**
+**Gender is locked to female (Repo Girl). Form and personality should be chosen consciously — avoid mindless defaults, but do not contradict signals for the sake of being different.**
 
-- **年龄范围**：默认 14-26 岁。少女（14-19）是主流，但根据项目成熟度可选青年（20-26）。不要无脑默认 19 岁。**除非用户显式指定年龄，否则在此范围内自由选择。**
-- **角色形态**：不限于纯人类少女。可按项目气质尝试：人类少女；非人类少女（精灵、妖精、人造人、机器人少女）；半实体（数据具现体、记忆化身等）；半兽人/混血（有强烈动物/自然信号时）。
-  - 关键约束：无论形态，**核心气质必须是少女**——可爱、有魅力、让人想守护。不要变成中性化的「存在」。
-- **性格**：实测易塌缩到「安静、精确、话不多」。**无强信号时**避免每次都选这个方向。可选：热情元气、古怪、毒舌/傲娇、天然呆、中二/戏剧、温暖可靠、电波等。
-  - 若仓库信号强匹配「安静精确」→ **可以保留**，不算缺陷。
-  - **无论什么性格，保持干净整洁**——避免邋遢、dirty、不修边幅。可以有怪癖但不是邋遢鬼。
+- **Age range**: Default 14–26. Young (14–19) is mainstream, but young adult (20–26) may be chosen based on project maturity. Do not mindlessly default to 19. **Unless the user explicitly specifies an age, freely choose within this range.**
+- **Character form**: Not limited to pure human girls. Try based on project temperament: human girl; non-human girl (elf, fairy, artificial being, robot girl); semi-corporeal (data manifestation, memory avatar, etc.); demi-human / hybrid (when there are strong animal/nature signals).
+  - Key constraint: regardless of form, **the core temperament must be that of a girl** — cute, charming, someone you want to protect. Do not become a gender-neutral "entity."
+- **Personality**: Testing shows high collapse into "quiet, precise, few words." **When there are no strong signals**, avoid picking this direction every time. Alternatives: energetic and warm, quirky, sharp-tongued/tsundere, airheaded, chuunibyou/dramatic, warm and reliable, eccentric, etc.
+  - If repo signals strongly match "quiet and precise" → **may keep**, not counted as a flaw.
+  - **Regardless of personality, keep her clean and tidy** — avoid slovenly, dirty, unkempt. Quirks are fine but not messy.
 
-**品牌延伸设计（signaturePatterns / signatureScenes）**：角色设计师还要为角色设计专属品牌视觉延伸，写入 `signaturePatterns` 和 `signatureScenes`。它们不是凭空装饰，而是从项目领域信号 + 角色身份自然长出的视觉资产母题，用于后续品牌页面、海报和背景生成。
-- **`signaturePatterns`（专属纹理，2-4 个）**：基于角色的 `keyMotifs` 和 colorPalette（`mainColor` / `secondaryColor` / `accentColors`）派生四面连续/可平铺/可切片的图案概念。每个 entry 是一个图案创意意图，并注明用途方向（页面 section 背景 / 边框分割线 / 社交媒体卡片背景 / 周边商品底纹）。纹理使用 motif、符号、剪影和材质节奏来表达角色，不要把角色本人当主体；必须足够低调，不能干扰标题和正文可读性。例："压制花瓣碎片与标本标签组成的四方连续纹样，用于 section 背景，保留森林绿与黄铜色调。"
-- **`signatureScenes`（专属背景，2-3 个）**：承载角色世界观氛围的背景场景概念。每个 entry 描述一个具体场景，包含情绪基调 + 关键视觉元素，用于海报、背景图、应用启动画面等。例："雾气弥漫的植物标本图书馆中庭，午后斜阳透过标本柜玻璃，漂浮的标签像微小书签一样缓慢旋转。"
-- 两者都必须能回答："它来自项目领域信号和角色身份的哪一部分？"如果答案只是"好看"或"通用装饰"，重做。
+**Brand extension design (signaturePatterns / signatureScenes)**: The Character Designer also designs exclusive brand visual extensions for the character, written into `signaturePatterns` and `signatureScenes`. They are not arbitrary decoration — they are visual asset motifs that naturally grow from project domain signals + character identity, used for downstream brand pages, posters, and background generation.
+- **`signaturePatterns` (exclusive textures, 2–4 items)**: Derive four-way continuous / tileable / sliceable pattern concepts from the character's `keyMotifs` and color palette (`mainColor` / `secondaryColor` / `accentColors`). Each entry is a pattern creative intent, noting its usage direction (page section background / border dividers / social media card background / merchandise base pattern). Textures express the character through motifs, symbols, silhouettes, and material rhythm — do not place the character herself as the subject; must be subtle enough not to interfere with headline and body text readability. Example: "Four-way continuous pattern of pressed petal fragments and specimen labels, for section backgrounds, retaining forest green and brass tones."
+- **`signatureScenes` (exclusive backgrounds, 2–3 items)**: Background scene concepts that carry the character's world atmosphere. Each entry describes a specific scene, including mood + key visual elements, for use in posters, background images, app splash screens, etc. Example: "A mist-filled herbarium library atrium, afternoon slanting sunlight through specimen cabinet glass, floating labels rotating slowly like tiny bookmarks."
+- Both must answer: "Which part of the project domain signals and character identity does this come from?" If the answer is just "it looks nice" or "generic decoration," redo it.
 
-**角色定位（避免无脑「工具从业者」）**：仓库娘不一定是「维护这个工具的人」。在贴合项目气质的前提下探索：
+**Character positioning (avoid mindless "tool practitioner")**: The Repo Girl is not necessarily "the person who maintains this tool." Explore within fit with project temperament:
 
-- **从业者** / **使用者** / **受益者** / **抽象化身** / **反向张力**
+- **Practitioner** / **User** / **Beneficiary** / **Abstract embodiment** / **Counter-tension**
 
-从业者只是选项之一。问："除了'在这里工作'，还能是什么？"——若信号就是运维/工匠气质，从业者完全合格。
+Practitioner is only one option. Ask: "Besides 'working here,' what else could she be?" — If the signal truly is ops/craftsperson temperament, practitioner is fully valid.
 
-**衣着**：源自项目的主题、领域、情感，而非默认「皮靴+夹克/工装/围裙」。无强「专业工作者」信号时换方向（发光/半透明、文艺休闲、旅人、学院风等）。有信号支撑的工装可以保留。
-- 内存/数据主题 → 可能有发光元素、半透明材质、电子纹理
-- 写作/文本主题 → 文艺休闲（开衫、围巾、帆布鞋），而非工装
-- 网络/路由主题 → 可能是旅行者/信使装扮，而非调度员制服
-- 主题为"瞬逝/缓存" → 和服/轻纱等暗示短暂之美的服装
-- 主题为"理解/启蒙" → 学院风、书卷气
-- 更多主题：中国风、奇幻风、魔法世界、运动风、铠甲、战斗服饰、无实体等等
+**Clothing**: Derive from the project's themes, domain, and emotions, not from default "leather boots + jacket/workwear/apron." When there is no strong "professional worker" signal, switch direction (luminescent/semi-transparent, literary casual, traveler, academic, etc.). Signal-backed workwear may be kept.
+- Memory/data themes → may have glowing elements, translucent materials, electronic textures
+- Writing/text themes → literary casual (cardigan, scarf, canvas shoes), not workwear
+- Network/routing themes → possibly traveler/messenger attire, not dispatcher uniform
+- "Ephemeral/cache" themes → kimono/gauze and other clothing suggesting transient beauty
+- "Understanding/enlightenment" themes → academic, bookish
+- More themes: Chinese-inspired, fantasy, magical world, sporty, armor, battle attire, incorporeal, etc.
 
-## 角色缺点 / 萌点
+## Character Flaws / Endearing Traits
 
-**这不是安全字段。** 缺点是让角色感觉像真人、更可爱的性格小怪癖。
+**This is not a safety field.** Flaws are personality quirks that make the character feel real and lovable.
 
-### 生成顺序（避免套路的关键）
+### Generation Order (Key to Avoiding Tropes)
 
-在回退之前，先穷尽每一层：
+Exhaust each tier before falling back:
 
-**第 1 层 —— 源自仓库（始终优先尝试）：** 将仓库的特定怪癖移植到日常生活中。
-- 有个所有人都怕碰的文件？→ 她有一个"禁忌抽屉"。
-- commit 信息里全是错别字？→ 慢性错别字大王，写的漂亮信件总有一个错字。
-- 有个从不移除的废弃模块？→ 囤积过时小玩意儿"以防万一"。
+**Tier 1 — Derived from repo (always try first):** Transplant the repo's specific quirks into daily life.
+- A file everyone is afraid to touch? → She has a "forbidden drawer."
+- Commit messages full of typos? → Chronic typo queen, every beautiful letter she writes has exactly one mistake.
+- An abandoned module no one ever removes? → Hoards obsolete gadgets "just in case."
 
-**第 2 层 —— 源自性格：** 缺点是某个优点的*阴影*。温暖 → 让人窒息。精确 → 不问就重新整理别人的东西。
+**Tier 2 — Derived from personality:** Flaws are the *shadow* of a strength. Warmth → smothering. Precision → reorganizes other people's things without asking.
 
-**第 3 层 —— 经典 ACG 萌点（仅作回退）：** 路痴、贪吃、起床困难、社恐、低精力、天然呆、收集癖、完美主义。始终要**扭转**以绑定到这个具体角色。差的："严重路痴"。更好的："迷路到把导航 app 搞崩溃了三次，从此只信纸地图"。
+**Tier 3 — Classic ACG moe tropes (fallback only):** Bad sense of direction, glutton, can't wake up, social anxiety, low energy, airheaded, collecting obsession, perfectionism. Always **twist** to tie to this specific character. Bad: "Terrible sense of direction." Better: "Gets so lost she crashed her navigation app three times and now only trusts paper maps."
 
-### 约束
+### Constraints
 
-每个缺点必须能回答：*"它来自这个仓库或性格的哪个具体特质？"* 如果答案是"任何仓库的任何角色" → 太通用。
+Every flaw must answer: *"Which specific trait of this repo or personality does it come from?"* If the answer is "any character from any repo" → too generic.
 
-## 爱好生成
+## Hobby Generation
 
-先从仓库衍生，最后才回退。
+Derive from the repo first, fall back last.
 
-- 仓库除了代码还*关心*什么？大量文档？→ 写信和做小杂志。细致的测试？→ 精密手工艺。创意/设计工具？→ 给陌生人画素描。
-- 爱好应该感觉是*这个*角色的，而不是"一个通用动漫女孩的"。避免默认项（逛同人展、拿铁拉花、烘焙），除非仓库确实指向那里。
-- 至少一个爱好应该出人意料——与表面性格形成反差。
+- What does the repo *care* about beyond code? Extensive docs? → Letter-writing and making mini zines. Thorough tests? → Precision handcrafts. Creative/design tools? → Sketching strangers.
+- Hobbies should feel like *this* character's, not "a generic anime girl's." Avoid defaults (going to doujin conventions, latte art, baking) unless the repo genuinely points there.
+- At least one hobby should be unexpected — forming a contrast with surface personality.
 
-## 可选立体度字段（按需填，不强求）
+## Optional Depth Fields (Fill as Needed, Not Forced)
 
-下列字段**全部可选**。只在仓库信号 / 角色情境真的指向时填——不要为了"凑满字段"硬塞。
+All following fields are **entirely optional**. Only fill when repo signals / character context genuinely point there — do not force-fill to "complete all fields."
 
-- **`motto`（信条/价值观）**：区别于 `catchphrase`（情境口头禅）和 `backstory`（过去叙事）。motto 是她相信什么。例：「未被命名的东西终会被遗忘——所以她坚持把每一朵都标好」。
-- **`funFacts`（小癖好/趣闻，2–4 条）**：让角色立体的细节。**现实/日常型角色尤其推荐在这里承载氛围级不平凡**（如「某个抽屉里总有一张写着『别忘了今天的雾』的旧纸条」）——但必须停留在氛围层，**不得升级为世界法则级**设定（法则级 = high concept，受 `light∩high` 天花板拦截）。
-- **`favoriteFood` / `favoriteDrink`**：源自仓库情感信号，**严禁字面映射**（咖啡框架 ≠ 喜欢咖啡；缓存项目 ≠ 喜欢吃存储类食物）。
-- **`specialSkill`（一项反差特长）**：区别于 `abilities`（二次元命名能力）——这里写日常才艺。例：「能凭一片压制过的花瓣回忆起采集当天的天气和海拔」。
-- **`height`（文学化身高）**：帮画师定比例，用文学化描述而非裸数字。例：「约 168cm，清瘦但耐力好」。**不要写 `weight`**——对女性角色敏感，且视觉资产用不到。
+- **`motto` (creed/values)**: Distinct from `catchphrase` (situational verbal tic) and `backstory` (past narrative). Motto is what she believes in. Example: "Things unnamed will be forgotten — so she insists on labeling every last one."
+- **`funFacts` (quirks/trivia, 2–4 items)**: Details that give the character dimension. **Real-world/everyday characters especially benefit from atmosphere-level extraordinary details here** (e.g., "A certain drawer always has an old note reading 'Don't forget today's fog'") — but must stay at the atmosphere level, **must not escalate to world-rule-level** lore (rule-level = high concept, blocked by the `light∩high` ceiling).
+- **`favoriteFood` / `favoriteDrink`**: Derived from repo emotional signals, **strictly no literal mapping** (coffee framework ≠ likes coffee; cache project ≠ likes storage-themed food).
+- **`specialSkill` (one contrasting talent)**: Distinct from `abilities` (anime-named powers) — write an everyday talent here. Example: "Can recall the weather, altitude, and what she was thinking on the day she collected a pressed petal."
+- **`height` (literary height description)**: Helps the Painter determine proportions, use literary description not bare numbers. Example: "About 168cm, slender but with good endurance." **Do not write `weight`** — sensitive for female characters, and visual assets don't use it.

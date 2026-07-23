@@ -1,53 +1,53 @@
-# 候选态工作流：多方案生成
+# Candidate Workflow: Multi-Option Generation
 
-正常流程下，每次 `repochan order create-result` 会直接把新版本设为 current 并交付。但有时用户想看**几个备选方案**再决定——"给我三个不同表情的版本选一个"。
+In the normal flow, each `repochan order create-result` directly sets the new version as current and delivers. But sometimes the user wants to see **several alternatives** before deciding — "give me three versions with different expressions to choose from."
 
-这种场景用候选态（candidate）：每个备选版本 id 记录在 order 的 `candidateVersions`，不 promote、不交付，用户/AD 选定后再 promote 一个为 current。
+For this scenario, use candidate state: each alternative version id is recorded in the order's `candidateVersions`, not promoted, not delivered; after the user/AD chooses, promote one as current.
 
-### 何时使用
+### When to Use
 
-- **用户明确要求多个方案**——"给我几个选项""试两个不同的构图"。
-- **图像生成因成本需要用户控制**——不要默认生成多个候选。每次生图都有时间和 API 成本，候选数量由用户决定。
+- **User explicitly requests multiple options** — "give me a few options", "try two different compositions."
+- **Image generation needs user control due to cost** — do not default to generating multiple candidates. Each generation has time and API cost; the candidate count is determined by the user.
 
-不要主动提议候选态。只在用户要求时使用。
+Do not proactively suggest candidate state. Only use it when the user requests it.
 
-### 流程
+### Flow
 
-1. **用 `order candidate create` 生成每个备选**（而非 `order create-result`）：
+1. **Use `order candidate create` for each alternative** (not `order create-result`):
    ```bash
    repochan order candidate create <<'EOF'
    {
      "orderId": "<orderId>",
      "versionId": "c1",
-     "files": ["<生成图像路径>"],
+     "files": ["<generated image path>"],
      "generationPrompt": "<prompt>",
-     "notes": "候选方案 A：温暖色调"
+     "notes": "Candidate A: warm tones"
    }
    EOF
    ```
-   每个 candidate 用不同的 versionId（如 c1、c2、c3）。它们不会改变 order 的 `currentVersion` 或 `status`——order 保持原状态，candidate 只是被记录为备选。
+   Each candidate uses a different versionId (e.g., c1, c2, c3). They do not change the order's `currentVersion` or `status` — the order stays in its current state, candidates are only recorded as alternatives.
 
-2. **用户/AD 可以对每个 candidate 先 review**（可选）：
+2. **User/AD can first review each candidate** (optional):
    ```bash
    repochan review create <<'EOF'
    { "orderId": "<orderId>", "versionId": "c1", "verdict": "pass", "notes": "..." }
    EOF
    ```
-   review 能直接作用于 candidate；core 会严格读取其 `meta.json` 和实际交付文件。
+   Reviews work directly on candidates; core strictly reads their `meta.json` and actual delivery files.
 
-3. **用户选定后，promote 一个为 current**：
+3. **After user selects, promote one as current**:
    ```
    repochan order candidate promote <orderId> <versionId>
    ```
-   例：`repochan order candidate promote ord-readme-hero-001 c2`
-   promote 只更新 order 的 `currentVersion`、`candidateVersions` 和交付状态；所有版本 `meta.json` 保持不变，之前的 current 自然成为历史结果。
+   Example: `repochan order candidate promote ord-readme-hero-001 c2`
+   Promote only updates the order's `currentVersion`, `candidateVersions`, and delivery status; all version `meta.json` stays unchanged, and the previous current naturally becomes a historical result.
 
-4. **未选中的 candidate 怎么处理**：留着。它们是"备选方案"的历史记录，用户可能改主意。不需要主动删除或归档。
+4. **What to do with unselected candidates**: Leave them. They are historical records of "alternatives" — the user may change their mind. No need to proactively delete or archive.
 
-### 候选态 vs review 回流
+### Candidate State vs Review Loop
 
-这两个工作流解决不同问题：
-- **候选态**：还没有定稿，生成多个方案让用户**初选**。
-- **review 回流**：已经定稿交付，用户反馈后**修改**（图生图）。
+These two workflows solve different problems:
+- **Candidate state**: Not yet finalized, generate multiple options for the user to **make an initial choice**.
+- **Review loop**: Already finalized and delivered, modify based on user feedback (**image-to-image**).
 
-两者可以组合：先候选态选一个，promote 后用户再 review 反馈修改。
+The two can be combined: first use candidate state to pick one, then after promotion the user reviews and gives feedback for revision.

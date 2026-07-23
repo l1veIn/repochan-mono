@@ -1,75 +1,75 @@
-# 项目分量评估（Project Weight Assessment）
+# Project Weight Assessment
 
-世界架构师的第一步。**在造世界之前，先评估项目的客观分量 `projectWeight`。**
+The World Architect's first step. **Before building a world, assess the project's objective heft: `projectWeight`.**
 
-## 为什么要评
+## Why Assess
 
-**只为识别 `light` 项目，给世界/角色的戏剧分量（conceptWeight）设天花板。**
+**Solely to identify `light` projects and set a ceiling on the dramatic heft (conceptWeight) of the world/character.**
 
-- `medium` / `heavy` **不强制**「必须配重概念」——轻松世界观、日常角色完全合法。
-- 评估不是为了把每个项目都推到高概念。
+- `medium` / `heavy` do **not mandate** "must pair with heavy concept" — light worldviews and everyday characters are fully valid.
+- The assessment is not about pushing every project to high concept.
 
-## 评估维度
+## Assessment Dimensions
 
-读取 `analysis` 后，从以下维度评估。**不要把「不是划时代创新」等同于「轻量」——广泛使用的成熟工具/库就是中量起步。**
+After reading `analysis`, assess across the following dimensions. **Do not equate "not a paradigm-shifting innovation" with "lightweight" — a widely-used mature tool/library starts at medium.**
 
-| 维度 | 轻分量 | 中分量 | 重分量 |
+| Dimension | Light | Medium | Heavy |
 |---|---|---|---|
-| 代码体量 | <100 实质代码文件，大量配置/模板 | 100-1000 实质代码文件 | >1000 实质代码文件 |
-| 项目定位 | starter/模板/教程 demo/单个示例 | 实用工具/库/框架/应用（被真实使用） | 基础设施级/品类定义级/广泛影响 |
-| 使用广泛度 | 个人/学习用 | 有真实用户社区 | 行业标准/生态核心 |
-| 情感密度 | README 只讲用法 | 有设计理念/changelog/社区 | 有强设计哲学+丰富历史+理念阐述 |
-| 历史厚度 | 新项目/少提交 | 多版本演进 | 长期演进/多作者/丰富历史 |
+| Code volume | <100 substantive code files, heavy config/templates | 100–1000 substantive code files | >1000 substantive code files |
+| Project positioning | starter/template/tutorial demo/single example | utility/library/framework/app (actually used) | infrastructure-level/category-defining/broad impact |
+| Adoption breadth | personal/learning use | has real user community | industry standard / ecosystem core |
+| Emotional density | README only covers usage | has design philosophy/changelog/community | strong design philosophy + rich history + conceptual articulation |
+| Historical depth | new project / few commits | multi-version evolution | long evolution / multiple authors / rich history |
 
-**判定规则（取主导维度，不是全要满足）：**
+**Judgment rule (dominant dimension, not all must be met):**
 
-- 满足「中分量」任一行的项目，**至少是中量**——不要因为「它没重新定义品类」就压到轻量。
-- 一个被广泛使用的成熟工具（如高性能缓存框架、web 服务器、命令行搜索工具），即使没有「原创哲学」，也是**中量起步**。
-- 只有**真正的空壳/模板/教程**才是轻量。
+- A project meeting **any one row** of "medium" is **at least medium** — do not push it down to light because "it didn't redefine the category."
+- A widely-used mature tool (e.g., a high-performance cache framework, web server, CLI search tool), even without an "original philosophy," is **medium at minimum**.
+- Only **truly a shell/template/tutorial** is light.
 
-**典型例子校准：**
+**Typical example calibration:**
 
-- **light**：前端 starter 模板（空壳）、单个游戏 demo、脚手架默认输出
-- **medium**：CLI 框架、Rust+WASM 打包工具、Markdown 编辑器、命令行搜索工具、web 服务器、内存数据库
-- **heavy**：Linux 内核、Kubernetes、React 框架本身、有强神话级设计哲学的项目
+- **light**: frontend starter template (shell), single game demo, scaffolding default output
+- **medium**: CLI framework, Rust+WASM bundler, Markdown editor, CLI search tool, web server, in-memory database
+- **heavy**: Linux kernel, Kubernetes, React framework itself, projects with strong mythic-level design philosophy
 
-## 输出
+## Output
 
-输出 `projectWeight`：`light` | `medium` | `heavy`。
+Output `projectWeight`: `light` | `medium` | `heavy`.
 
-建议写入 `sourceSignals.supportingSignals`（如 `"projectWeight: medium"`）或工作记忆，供 Guardian 复核。
+Recommended to write into `sourceSignals.supportingSignals` (e.g., `"projectWeight: medium"`) or working memory for the Guardian to re-check.
 
-## conceptWeight（戏剧分量）
+## conceptWeight (Dramatic Heft)
 
-设计侧用 **conceptWeight** 描述世界+角色的戏剧强度（不必单独落盘字段，体现在 world / occupation / relationship 等）：
+The design side uses **conceptWeight** to describe the dramatic intensity of the world + character (no need for a separate persisted field; it is expressed through world / occupation / relationship, etc.):
 
-| conceptWeight | 含义 | 示例方向 |
+| conceptWeight | Meaning | Example Directions |
 |---|---|---|
-| **grounded** | 日常、轻盈 | 一间工位、普通居民、见习生 |
-| **elevated** | 轻度象征 | 有手艺的匠人、有性格的守护者、小型世界规则 |
-| **high** | 高概念 / 神话级 | 阈界守门人、神话信使、完整魔法/史诗体系 |
+| **grounded** | Everyday, light | A workstation, an ordinary resident, an apprentice |
+| **elevated** | Lightly symbolic | A craftsperson with skill, a guardian with personality, small-scale world rules |
+| **high** | High concept / mythic-level | Liminal gatekeeper, mythic messenger, full magic/epic system |
 
-## 错配定义（唯一 · SSOT）
+## Mismatch Definition (Single · SSOT)
 
-| 情况 | 是否错配 | 动作 |
+| Situation | Is It a Mismatch? | Action |
 |---|---|---|
-| **`projectWeight=light` 且 `conceptWeight=high`** | ✅ **是** | 必须降低 conceptWeight 到 grounded 或 elevated |
-| light + grounded / elevated | 否 | 默认正确方向 |
-| **medium / heavy + grounded（轻松世界/日常角色）** | 否 | **允许**，不算错配 |
-| medium / heavy + elevated / high | 否 | 允许 |
+| **`projectWeight=light` AND `conceptWeight=high`** | **Yes** | Must lower conceptWeight to grounded or elevated |
+| light + grounded / elevated | No | Default correct direction |
+| **medium / heavy + grounded (light world / everyday character)** | No | **Allowed**, not a mismatch |
+| medium / heavy + elevated / high | No | Allowed |
 
-**一句话：只拦「小项目装神话」；中型/重型项目可以随意配轻松世界观。**
+**In one sentence: only block "small project wearing mythic clothes"; medium/heavy projects may freely pair with light worldviews.**
 
-### 预算映射
+### Budget Mapping
 
-| projectWeight | conceptWeight 允许 |
+| projectWeight | conceptWeight Allowed |
 |---|---|
-| light | grounded、elevated；**禁止 high** |
-| medium | grounded、elevated、high |
-| heavy | grounded、elevated、high |
+| light | grounded, elevated; **high forbidden** |
+| medium | grounded, elevated, high |
+| heavy | grounded, elevated, high |
 
-### 自检（世界架构师 / Guardian）
+### Self-Check (World Architect / Guardian)
 
-> 若项目是 light：世界法则与角色是否已经神话化/史诗化到 high？若是 → 错配，降级。
+> If the project is light: has the world's laws and the character already been mythologized/epic-ized to high? If yes → mismatch, downgrade.
 
-**不要**把「medium 项目用了日常角色」或「heavy 项目用了轻盈世界」判为错配。
+**Do not** judge "medium project uses everyday character" or "heavy project uses light world" as a mismatch.
