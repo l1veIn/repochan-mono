@@ -1,81 +1,81 @@
 ---
 name: repochan-page-designer
 description: >
-  RepoChan Starter 本地化与装配工程师。选择并 pull 已设计好的完整 Starter，
-  投影项目配置、改写完整 locale、创建并应用 slot 资产、执行本地化验收。
+  RepoChan Starter Localizer. Select and pull a pre-designed complete Starter,
+  apply project configuration, rewrite full locale, create and apply slot assets, run localization validation.
   Use when localizing or assembling an existing starter, running repochan starter commands,
   or adapting project content and delivered assets without changing the site design.
 ---
 
-# RepoChan Starter 本地化与装配工程师
+# RepoChan Starter Localizer
 
-把一个完整成品 Starter 应用到具体项目，不负责原创网页设计。Starter 的设计已经存在于预览、源码和图片中；不要重新推断或重写它。
+Apply a complete production Starter to a specific project; not responsible for original website design. The Starter's design already exists in previews, source code, and images; do not re-infer or rewrite it.
 
-不得新增/删除 section、改变信息架构、重做艺术方向或核心构图。没有合适 Starter 时转 `repochan-web-designer`。
+Do not add/remove sections, change information architecture, redo art direction, or alter core composition. When no suitable Starter exists, hand off to `repochan-web-designer`.
 
-## 工作流
+## Workflow
 
-### 1. 选择并拉取成品
+### 1. Select and pull production
 
 ```bash
 repochan analysis get --json
 repochan persona get --json
-repochan starter sync          # starters 未同步到本地缓存时必须先跑（fresh install 后首次使用）
+repochan starter sync          # Required when starters haven't been synced to local cache (first use after fresh install)
 repochan starter list
 repochan starter get <id> --json
-repochan starter preview <id>  # 构建并在浏览器里直接预览候选 starter 的真实页面
+repochan starter preview <id>  # Build and preview the candidate starter's live page directly in browser
 repochan starter pull --starter <id>
 ```
 
-starters 不随 CLI 捆绑：`starter list` 显示 none 或提示 sync 时先 `repochan starter sync`（下载到 `~/.repochan/starters/` 缓存；之后全部本地可用）。选 starter 时不要只看静态预览图——用 `repochan starter preview <id>` 把候选站点真实构建出来走一遍（桌面/移动、locale 切换），判断其 section 容量、内容结构和视觉关系是否适合当前项目。必要时 pull 后运行并检查源码；直接以成品为准。如果需要改设计才能适配，换 Starter 或转 Web Designer。
+Starters are not bundled with the CLI: when `starter list` shows none or prompts sync, first run `repochan starter sync` (downloads to `~/.repochan/starters/` cache; all subsequent operations are local). When choosing a starter, don't rely on static screenshots alone — use `repochan starter preview <id>` to build and walk through the candidate site live (desktop/mobile, locale switching), evaluating whether its section capacity, content structure, and visual relationships fit the current project. If needed, pull and inspect source code; always treat the production artifact as authoritative. If adapting would require design changes, switch starters or hand off to Web Designer.
 
-也可以消费创作者提供的可信本地 Starter（`--from` 路径不经过 sync 缓存）：
+You may also consume a trusted local Starter provided by a creator (`--from` path, bypassing the sync cache):
 
 ```bash
 repochan starter pull --from <creator-starter-dir>
 ```
 
-默认实例目录是 `.repochan/web-starter/`。已存在时先检查；未获明确授权不要 `--overwrite`。实例内 `repochan/starter.json` 是唯一 manifest。
+The default instance directory is `.repochan/web-starter/`. If it already exists, inspect first; do not `--overwrite` without explicit authorization. `repochan/starter.json` inside the instance is the sole manifest.
 
-### 2. 投影项目配置
+### 2. Apply project configuration
 
 ```bash
 repochan starter configure
 ```
 
-CLI 将 analysis/persona 的确定性字段写入 `repochan/site.json`。不要手改 `src/lib/site.ts`，也不要手工搬运机械字段。
+The CLI writes deterministic fields from analysis/persona into `repochan/site.json`. Do not manually edit `src/lib/site.ts`, nor manually copy mechanical fields.
 
-### 3. 改写完整 locale
+### 3. Rewrite full locale
 
-读取每个 `repochan/i18n/<locale>.json` 作为结构模板，保留全部键、值类型和数组长度，只替换内容。为所有 supported locale 提供完整文案；不得删除看似不需要的字段或增减卡片来改变信息架构。
+Read each `repochan/i18n/<locale>.json` as a structural template; keep all keys, value types, and array lengths, only replace content. Provide complete copy for all supported locales; do not delete fields that seem unnecessary or add/remove cards, which would change the information architecture.
 
 ```bash
 repochan starter configure --content-file /tmp/repochan-content.json --overwrite
 ```
 
-CLI 会对完整结构进行递归校验。字段来源与文案规则见 [data-mapping.md](references/data-mapping.md) 和 [copy-and-structure.md](references/copy-and-structure.md)。
+The CLI performs recursive validation on the full structure. See [data-mapping.md](references/data-mapping.md) and [copy-and-structure.md](references/copy-and-structure.md) for field sources and copy rules.
 
-### 4. 定制 required asset slot
+### 4. Customize required asset slots
 
-`repochan/assets.json` 中 `source` 表示 Starter 原成品资产，保证 pull 后可运行；`customized` 表示已经为当前项目替换。所有 required slot 必须完成定制。
+In `repochan/assets.json`, `source` indicates the Starter's original production assets, ensuring runnability after pull; `customized` indicates replacement for the current project. All required slots must be customized.
 
 ```bash
-repochan starter create-order <slot> --intent "<项目特定意图>" --foundation <foundation-order-id>
+repochan starter create-order <slot> --intent "<project-specific intent>" --foundation <foundation-order-id>
 repochan order set-status <order-id> approved
 repochan starter asset-apply <slot> --order <delivered-order-id> --overwrite
 ```
 
-`create-order` 负责机械字段和 manifest 中已有的迁移参考；Painter 交付原图；`asset-apply` 完成声明的后处理、文件投影和 `customized` 状态。不要直接用 Source Starter 的角色资产冒充当前项目定制，也不要手工拼协议状态。
+`create-order` handles mechanical fields and migration references already in the manifest; Painter delivers raw images; `asset-apply` completes declared post-processing, file projection, and `customized` status. Do not use Source Starter character assets as-is for current project customization, nor manually assemble protocol state.
 
-已经是最终格式的真实截图等本地资产，可用 `repochan starter asset-import <slot> --file <path> --overwrite`。Bundle 的切格、chroma、alpha QA、normalize 和具名 PNG 投影必须由 `asset-apply` 原子完成。
+For local assets already in final format such as real screenshots, use `repochan starter asset-import <slot> --file <path> --overwrite`. Bundle slice-grid, chroma, alpha QA, normalize, and named PNG projection must be completed atomically by `asset-apply`.
 
-`asset-apply` 因 extract QA 失败时，按 `--json` 信封中的 `defects` 决定回流动作（加强留白/换 matte/layout-guide reference/拆单），要求 Painter 重生新版本后重跑 apply；不要自己手切 PNG 或手改 `public/`。失败映射表见 [phase2-assemble.md](references/phase2-assemble.md)。
+When `asset-apply` fails due to extract QA, determine the feedback action (increase padding / swap matte / layout-guide reference / split order) based on `defects` in the `--json` envelope, request Painter regenerate a new version, then re-run apply; do not manually slice PNGs or hand-edit `public/`. See [phase2-assemble.md](references/phase2-assemble.md) for the failure mapping table.
 
-如果失败是 `MissingImageMlCapabilityError`（错误码 `REPOCHAN_IMAGE_ML_MISSING`），它是 Page Designer 所在机器缺少可选 ML runtime，不是 Painter 原图缺陷。只执行一次 `repochan image edit ml install`；安装成功后原样重试刚才的 `starter asset-apply` 命令。安装失败时停止并报告，不要循环安装，也不要要求 Painter 重生。当前官方 Starters 的网格装配使用离线 `chroma-grid`，不要为普通流程预装 ML；只有 manifest 显式选择 `bg-remove`、`extract-stickers`、`ml-blobs` 或 `hybrid` 时才可能需要它。网络下载只发生在显式 install；安装后的 ML 操作从 capability cache 读取本地 runtime 和模型。
+If the failure is `MissingImageMlCapabilityError` (error code `REPOCHAN_IMAGE_ML_MISSING`), it means the Page Designer's machine lacks the optional ML runtime, not a defect in Painter's raw image. Run `repochan image edit ml install` exactly once; on success, retry the previous `starter asset-apply` command as-is. If installation fails, stop and report — do not loop installation, nor request Painter regeneration. Current official Starters use offline `chroma-grid` for grid assembly; do not pre-install ML for normal workflows. It is only potentially needed when the manifest explicitly selects `bg-remove`, `extract-stickers`, `ml-blobs`, or `hybrid`. Network downloads only occur during explicit install; post-install ML operations read from the capability cache using local runtime and models.
 
-完整边界见 [phase2-assemble.md](references/phase2-assemble.md)。
+See [phase2-assemble.md](references/phase2-assemble.md) for full boundaries.
 
-### 5. 本地化验收
+### 5. Localization validation
 
 ```bash
 repochan starter validate --output-dir .repochan/web-starter --localized
@@ -83,11 +83,11 @@ pnpm --dir .repochan/web-starter install --ignore-workspace --ignore-scripts
 pnpm --dir .repochan/web-starter build
 ```
 
-最后对照 Source Starter 预览检查桌面/移动、全部 locale、键盘、可读性、裁切、overflow 和 reduced-motion。内容、配置或资产映射问题由你修复；设计结构缺陷转 Web Designer，Source Starter 合同缺陷反馈给 Starter Designer。
+Finally, cross-check against the Source Starter preview: desktop/mobile, all locales, keyboard, readability, clipping, overflow, and reduced-motion. Fix content, configuration, or asset mapping issues yourself; hand off design structure defects to Web Designer, and report Source Starter contract defects to Starter Designer.
 
-## 完成标准
+## Completion criteria
 
-- `site.json`、每个完整 locale 和所有 required slot 已针对项目替换。
-- `starter validate --localized` 与 build 通过。
-- 页面保持 Source Starter 的设计关系，没有临场重做 section。
-- 派生资产只进入实例 `public/`，原始订单结果保持不可变。
+- `site.json`, every full locale, and all required slots have been replaced for the project.
+- `starter validate --localized` and build pass.
+- The page preserves the Source Starter's design relationships, with no impromptu section redesign.
+- Derived assets only go into the instance `public/`; original order results remain immutable.
