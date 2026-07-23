@@ -1,9 +1,11 @@
 ---
 name: repochan-interviewer
 description: >
-  Interviewer role. Reads the analysis report, asks the user 7-14 structured questions
+  Interviewer role. In standard mode: reads the analysis report, asks the user 7-14 structured questions
   across 8 dimensions (tone, audience/usage, weight, world, style, reference, naming, constraints)
   via ask_user_question, then distills answers into an interview report for the Creative Team.
+  In greenfield mode (no existing repo): extracts project intent from the user's vision using
+  greenfield-specific dimensions (project essence, target audience, tone, naming, visual style, scope, tech, constraints).
   Use when running interviews, repochan interview create/append, or when the user asks about interview/questionnaire/preference collection.
 ---
 
@@ -25,14 +27,18 @@ The interview is an **optional pre-step**, not a hard block. When the user skips
 
 ## Pre-execution checks
 
-1. Confirm the analysis report is ready (`repochan analysis get`). Stop if missing.
-2. Read the essentials: `preAnalysis.summary` / `project_category`, `abstract.dimensions`, color / naming / tech stack signals.
-3. Check whether an interview already exists (`repochan interview get`):
+1. Check whether an analysis report exists (`repochan analysis get`).
+   - **Analysis exists** → standard interview mode: read analysis signals and design questions from them.
+   - **Analysis missing + wizard signaled greenfield** → greenfield mode (see Greenfield mode section below).
+   - **Analysis missing + no greenfield signal** → stop and report: "No analysis report found. Run repochan analysis first, or use /repochan new if you're starting a new project."
+2. For standard mode: read the essentials: `preAnalysis.summary` / `project_category`, `abstract.dimensions`, color / naming / tech stack signals.
+3. For greenfield mode: extract signals from the user's project description and wizard-provided context instead of analysis.
+4. Check whether an interview already exists (`repochan interview get`):
    - Does not exist → first interview
    - Already exists → ask: restart from scratch / append to existing / skip and use existing
-4. Ask whether to skip the entire interview; if skipped, do not create files.
+5. Ask whether to skip the entire interview; if skipped, do not create files.
 
-Hard blocks: missing analysis, missing tools. Non-blocking: skip, use existing report.
+Hard blocks: missing analysis (in standard mode), missing tools. Non-blocking: skip, use existing report.
 
 ## Key hard rules checklist
 
@@ -56,6 +62,48 @@ Dimension details and design rules → [question-dimensions.md](references/quest
 8. Notify that the interview is complete and the Creative Team can proceed.
 
 Skip phrasing: interview skipped; the Creative Team will work from analysis alone; you can always come back to supplement the interview later.
+
+## Greenfield mode
+
+When the wizard signals a greenfield project (no existing repo, user wants to create something new), your role shifts from "extract preferences from analysis signals" to "extract project intent from the user's vision." The interview output will be used by the wizard to construct a greenfield analysis stub, which then feeds the persona pipeline.
+
+### Greenfield question dimensions
+
+Replace the standard 8 dimensions with these greenfield-specific dimensions:
+
+| Dimension | Purpose | Example question |
+|---|---|---|
+| **Project essence** | What problem does it solve? What's the core value? | "Your dotfiles manager — what's the one thing it does that existing tools get wrong?" |
+| **Target audience** | Who will use this? What's their skill level / context? | "Who's the primary user — a seasoned dev tweaking their neovim config, or someone setting up a new machine for the first time?" |
+| **Tone & personality** | What should the brand feel like? | "Should the tool feel like a precise surgeon, a friendly assistant, or a playful companion?" |
+| **Naming direction** | Any name ideas? Preferences for naming style? | "Do you have a name in mind? Prefer something technical (dotmap), metaphorical (homebase), or playful (dotfriend)?" |
+| **Visual style lean** | Any stylistic preferences for the eventual mascot/art? | "For the mascot art style — lean towards clean and modern, warm and hand-drawn, or bold and geometric?" |
+| **Scope & scale** | Is this a focused micro-tool or an ambitious platform? | "Is this a single-purpose tool or the start of a larger ecosystem?" |
+| **Technical preferences** | Language, platform, or tech constraints? | "Any language or platform preferences? Rust, Go, Python, cross-platform requirements?" |
+| **Constraints** | Any hard no-go areas or requirements? | "Anything you definitely don't want — a mascot that's too cute, a name that's hard to spell, etc.?" |
+
+### Greenfield workflow
+
+1. Receive greenfield signal + user's project description from the wizard.
+2. Design 5-8 questions across the greenfield dimensions above. Prioritize **project essence** and **naming direction** — these drive the analysis stub's naming seeds.
+3. Ask in batches via `ask_user_question`.
+4. Distill the responses into the interview report, with special attention to:
+   - `summary`: A concise description of the project the user wants to build. This becomes `preAnalysis.userIntent` in the analysis stub.
+   - `preferences`: Include project category, tone, and target audience. These become `preAnalysis.projectCategory` and `abstract.*` fields.
+   - `keyConstraints`: Any hard constraints the user stated.
+5. Save via `repochan interview create` (standard CLI, same as normal mode).
+6. Notify that the interview is complete. The wizard will use the interview report to construct the greenfield analysis stub, then proceed to persona creation.
+
+### Greenfield signal extraction (for the wizard's analysis stub)
+
+After the interview is saved, provide the wizard with a clear signal summary. The wizard needs these specific pieces to construct the analysis stub:
+
+- **Project name candidate**: the user's preferred name, or derive one from keywords.
+- **Naming seeds (primary)**: 3-5 key terms from the project description.
+- **Project category**: CLI tool / web app / library / mobile app / desktop app / game / other.
+- **Tone preference**: playful / serious / minimalist / warm / bold / professional / quirky.
+- **Target audience**: 1-sentence description.
+- **User intent summary**: 1-2 sentence distillation of the project's core value proposition.
 
 ## Save CLI skeleton
 

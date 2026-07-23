@@ -33,6 +33,12 @@ When the user runs `/repochan` or says something like the following, enter **Gui
 - "Build a mascot and website for this repo"
 - "/repochan build a chibi mascot for my CLI tool"
 
+When the user runs `/repochan new` or describes a project idea they want to start from scratch (no existing repo), enter **Greenfield Mode** — see the Greenfield section below.
+- `/repochan new` (bare)
+- `/repochan new a CLI tool for managing dotfiles`
+- "I want to create a new project — a markdown-based note-taking app — and build its brand from day one"
+- "Help me start a new open-source project with a mascot-first approach"
+
 In Guided Mode, your job is to **advance through the full pipeline stage by stage, but stop at 3 checkpoints to show the user the artifact and ask "Continue / what should I change?"**. Do not run to completion when the user only says `/repochan` or a single high-level instruction — that requires the user to explicitly say "yolo" (see Three-tier experience).
 
 Only enter yolo mode (no stopping) when the user **explicitly** says things like:
@@ -70,6 +76,115 @@ Choose the mode based on what the user says:
 | **Per-team (advanced)** | User says "just do analysis / just show me the persona / tweak this image" | Execute the single step, load the corresponding team skill, do not auto-advance |
 
 ⚠️ **yolo is the user's explicit choice to accept the risk of default creative decisions** — it is not your default, nor is it a blanket external write permission. Running in CI or without a TTY does not auto-upgrade to yolo.
+
+## Greenfield: new project from scratch
+
+When the user wants to create a brand new project (no existing repo, no code yet), RepoChan runs a modified pipeline that starts with project intent extraction and converges back to the standard pipeline after the persona checkpoint.
+
+**Core principle**: the greenfield pipeline differs only in the *upstream* (analysis source). Once a valid analysis artifact exists and the persona is confirmed, everything downstream (art director → painter → page designer → deploy) is identical to the standard pipeline. The convergence point is the persona checkpoint.
+
+### Greenfield pipeline
+
+```
+① Interviewer (greenfield mode) → extract project intent from user description
+     ↓
+② Write greenfield analysis stub  → construct minimal valid analysis artifact from interview signals
+     ↓
+③ Creative Team → repochan-persona → build persona from greenfield analysis
+     ↓
+④ ⏸ Checkpoint 1: persona + suggested repo name → user confirms
+     ↓
+⑤ Bootstrap repo → mkdir <repo-name> && cd <repo-name> && git init && repochan init
+     ↓
+⑥ [Everything below is identical to the standard pipeline]
+   Art Director → Painter → Page Designer → Deploy
+```
+
+### Greenfield analysis stub
+
+Since `repochan persona create` requires a valid analysis artifact at `.repochan/analysis/current.json`, you must write one before invoking the persona skill. The analysis artifact schema allows most context fields to be empty objects — only `identity.namingSeeds` has required sub-structure.
+
+**Procedure** (after interview completes):
+
+1. Read the interview report (`repochan interview get`) to extract signals.
+2. Construct a minimal analysis JSON file and write it via CLI:
+   ```bash
+   repochan analysis update --data-file /tmp/greenfield-analysis.json
+   ```
+   (This overwrites any existing analysis stub — safe since this is a new project.)
+
+**Minimal valid greenfield analysis stub:**
+```json
+{
+  "schemaVersion": "repochan.analysis.v1",
+  "generatedAt": "<ISO timestamp>",
+  "context": {
+    "basic": {
+      "project_name": "<name candidate from interview>",
+      "source": "greenfield",
+      "readme_exists": false,
+      "has_git": false
+    },
+    "identity": {
+      "namingSeeds": {
+        "primary": ["<keyword1>", "<keyword2>", ...],
+        "secondary": [],
+        "rationale": ["Greenfield project — signals extracted from user interview"]
+      }
+    },
+    "file_structure": {},
+    "inventory": {},
+    "tech_stack": {},
+    "pre_analysis": {},
+    "git_profile": { "has_git": false },
+    "docs_narrative": {},
+    "github_meta": {},
+    "color_palette": {},
+    "core_samples": {},
+    "deterministic_tooling": {}
+  },
+  "persona": null,
+  "error": null,
+  "preAnalysis": {
+    "source": "greenfield-interview",
+    "userIntent": "<1-2 sentence summary of what the user wants to build>",
+    "projectCategory": "<category from interview: CLI tool / web app / library / ...>"
+  },
+  "abstract": {
+    "source": "greenfield-interview",
+    "tonePreference": "<tone from interview: playful / serious / minimalist / ...>",
+    "targetAudience": "<audience from interview>"
+  }
+}
+```
+
+**Field population rules:**
+- `basic.project_name`: Use the user's preferred name, or derive a slug from the project description.
+- `identity.namingSeeds.primary`: Extract 3-5 key terms from the user's project description. These drive persona naming.
+- `preAnalysis.userIntent`: The user's own words about what they're building, distilled to 1-2 sentences.
+- `preAnalysis.projectCategory`: Map the user's description to a category label.
+- `abstract.tonePreference` / `abstract.targetAudience`: From interview responses, or infer reasonable defaults if the user didn't specify.
+- All other `context.*` fields: leave as empty objects `{}`.
+
+### Repo bootstrapping at Checkpoint 1
+
+After the user confirms the persona, create the physical repo:
+
+```bash
+mkdir <repo-name>
+cd <repo-name>
+git init
+repochan init
+```
+
+Then write the confirmed persona artifact:
+```bash
+repochan persona create --data-file <(repochan persona get --json)
+```
+
+The project now has a `.repochan/` protocol directory with analysis + persona. From this point forward, the standard pipeline applies exactly — proceed to Art Director → Painter → Page Designer → Deploy.
+
+**Important:** the greenfield analysis stub is intentionally minimal. As the user writes actual code, they can run `repochan analysis run` later to replace it with a full deterministic scan. The stub's only purpose is to satisfy the protocol dependency chain so the creative pipeline can start before any code exists.
 
 ## Checkpoint design
 
@@ -120,7 +235,14 @@ At each step, use the corresponding `repochan <entity> get` to check whether ups
 ## Pre-flight checks
 
 Upon receiving a high-level instruction, first:
-1. Check whether the project is initialized and what artifacts exist (`repochan status`). If status reports "Skill version drift", **only care about the agent the user is actually using right now** — the drift list shows all agents ever set up historically, most of which are irrelevant to this session. Only prompt the user to run `repochan setup --agent <that agent>` to refresh if the agent they are currently using appears in the list and its version is older than the CLI; ignore all others (agents the user no longer uses), no need to prompt for those.
+
+1. **Detect project type:**
+   - Check for `.git` directory and `README.md` (any casing).
+   - If **neither exists AND** the user is describing a new project idea (or explicitly used `/repochan new`), this is a **greenfield project**. Enter the Greenfield pipeline (see Greenfield section above).
+   - If `.git` or `README.md` exists, this is an **existing project**. Run the standard pipeline.
+   - If neither exists but the user hasn't indicated a new project, ask: "This doesn't look like an existing project repo. Would you like to create a new project from scratch with RepoChan? Or is there a repo URL you'd like me to clone?"
+
+2. Check whether the project is initialized and what artifacts exist (`repochan status`). If status reports "Skill version drift", **only care about the agent the user is actually using right now** — the drift list shows all agents ever set up historically, most of which are irrelevant to this session. Only prompt the user to run `repochan setup --agent <that agent>` to refresh if the agent they are currently using appears in the list and its version is older than the CLI; ignore all others (agents the user no longer uses), no need to prompt for those.
 2. If artifacts already exist, summarize current progress and determine which step to resume from.
 3. Check whether a visual anchor already exists via `repochan foundation find` — if so, jump to downstream orders.
 4. Confirm the user's desired endpoint (full asset suite? up to images? deploy?).
@@ -168,3 +290,23 @@ When you need detail on a particular step, load the corresponding team skill's f
 **User**: "yolo, full send, don't ask me"
 
 → Same pipeline, default decisions at creative checkpoints; **AD creates orders directly with `"status": "approved"`**, then painter immediately generates images (foundation first, then downstream), advancing to deployable artifacts. Only execute deployment if the original request simultaneously and explicitly asked for it; otherwise deliver the deployable result and stop. Never end the session with orders still in draft state.
+
+**User**: "/repochan new a CLI tool for managing dotfiles across machines"
+
+**Your behavior** (Greenfield Mode):
+1. Detect: no `.git`, no `README` → this is greenfield. The user's description gives you initial signals: "CLI tool", "dotfiles", "cross-machine".
+2. Load `repochan-interviewer` in greenfield mode. Ask project intent questions: what problem does it solve? Who is the target user? What tone should the brand have? Any naming ideas?
+3. From interview responses, construct a greenfield analysis stub and write it:
+   ```bash
+   repochan analysis update --data-file /tmp/greenfield-analysis.json
+   ```
+4. Load `repochan-persona`. It reads the analysis stub (via `repochan analysis get`) and builds a persona from the greenfield signals.
+5. **Checkpoint 1**: Present the persona + suggest repo names (derived from naming seeds). Candidate: "dotvault", "crosshome", or the user's preferred name. Ask: "Does this persona feel right? What should we name the repo?"
+6. User confirms persona + repo name → bootstrap:
+   ```bash
+   mkdir dotvault && cd dotvault && git init && repochan init
+   repochan persona create --data-file <(...)
+   ```
+   Now the project has `.repochan/` with analysis + persona. From here, everything below is standard pipeline.
+7. Load `repochan-art-director` → Painter → Page Designer → Deploy (identical to standard flow).
+
