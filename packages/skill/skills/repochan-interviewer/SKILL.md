@@ -76,7 +76,7 @@ Replace the standard 8 dimensions with these greenfield-specific dimensions:
 | **Project essence** | What problem does it solve? What's the core value? | "Your dotfiles manager — what's the one thing it does that existing tools get wrong?" |
 | **Target audience** | Who will use this? What's their skill level / context? | "Who's the primary user — a seasoned dev tweaking their neovim config, or someone setting up a new machine for the first time?" |
 | **Tone & personality** | What should the brand feel like? | "Should the tool feel like a precise surgeon, a friendly assistant, or a playful companion?" |
-| **Naming direction** | Any name ideas? Preferences for naming style? | "Do you have a name in mind? Prefer something technical (dotmap), metaphorical (homebase), or playful (dotfriend)?" |
+| **Naming & identity** | RepoChan's convention: persona name = repo name = app name. The mascot IS the brand. | "RepoChan convention: the mascot's name becomes the repo name, and the icon is the character's face. So 'Linnea' → github.com/you/linnea. Does that approach work for you, or do you have a different naming preference?" |
 | **Visual style lean** | Any stylistic preferences for the eventual mascot/art? | "For the mascot art style — lean towards clean and modern, warm and hand-drawn, or bold and geometric?" |
 | **Scope & scale** | Is this a focused micro-tool or an ambitious platform? | "Is this a single-purpose tool or the start of a larger ecosystem?" |
 | **Technical preferences** | Language, platform, or tech constraints? | "Any language or platform preferences? Rust, Go, Python, cross-platform requirements?" |
@@ -94,7 +94,8 @@ Replace the standard 8 dimensions with these greenfield-specific dimensions:
    - `keyConstraints`: Any hard constraints the user stated.
 6. **Save via `repochan interview create`** — the interview is properly persisted, same as standard mode.
 7. Notify that the interview is complete. Provide a clear **signal summary** for the wizard to use in Pass 2 analysis enrichment:
-   - **Project name candidate**: the user's preferred name, or derive one from keywords.
+   - **Naming strategy**: Did the user accept the RepoChan convention (persona name = repo name), or prefer a different name? If the user has no strong preference, default to the convention.
+   - **Project name candidate**: the user's preferred name, or defer to the persona name per convention.
    - **Naming seeds to add**: new keywords from the interview beyond what's already in the seed stub.
    - **Project category**: CLI tool / web app / library / mobile app / desktop app / game / other.
    - **Tone preference**: playful / serious / minimalist / warm / bold / professional / quirky.

@@ -25,6 +25,8 @@ When the user wants to create a brand new project (no existing repo, no code yet
 
 **Key design decision — bootstrap before interview, not after**: By creating the directory and running `repochan init` first, the `.repochan/` protocol directory exists from the start. This means the interview report, analysis stub, and persona are all **properly persisted** via standard CLI commands — no floating context-only artifacts. The working directory name is temporary; the user can rename it at the checkpoint.
 
+**Naming convention — persona name = repo name**: RepoChan's default identity strategy is that the mascot's name IS the repo name. A persona named "Linnea" belongs in `github.com/user/linnea`. The app icon is the character's face. This creates a tight, consistent brand: one name, one face, one identity. At Checkpoint 1, **default to using the persona name as the final repo name** unless the user explicitly chose a different name during the interview. Present it as the natural choice: "Linnea feels right — shall we name the repo `linnea`?"
+
 ## Greenfield analysis stub (two-pass)
 
 Since `repochan interview create` and `repochan persona create` both require a valid analysis artifact, you must write one **before** running the interview. Use a two-pass approach:

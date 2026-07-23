@@ -197,11 +197,11 @@ When you need detail on a particular step, load the corresponding team skill's f
 
 **Your behavior** (Greenfield Mode):
 1. Detect: no `.git`, no `README` → this is greenfield. Signals from user's description: "CLI tool", "dotfiles", "cross-machine".
-2. Bootstrap: derive working name "dotvault" → `mkdir dotvault && cd dotvault && git init && repochan init`. Now `.repochan/` exists.
+2. Bootstrap: derive working name from a key term → `mkdir dotvault && cd dotvault && git init && repochan init`. Now `.repochan/` exists.
 3. **Pass 1 — Seed analysis stub**: construct minimal stub from description keywords, write to `.repochan/analysis/current.json`.
-4. Load `repochan-interviewer` in greenfield mode. Ask project intent questions. `repochan interview create` persists the report.
+4. Load `repochan-interviewer` in greenfield mode. During the interview, ask about naming: present the RepoChan convention (persona name = repo name) as the default. The user agrees — they like the idea of the mascot being the brand.
 5. **Pass 2 — Enrich analysis**: update stub with interview signals via `repochan analysis update`.
-6. Load `repochan-persona`. It reads the analysis (via `repochan analysis get`) and builds a persona. `repochan persona create` persists it.
-7. **Checkpoint 1**: Present the persona. "Working name is 'dotvault'. Finalize the repo name — keep it or change?" If changed, `mv` the directory.
+6. Load `repochan-persona`. It reads the analysis and builds a persona named "Linnea".
+7. **Checkpoint 1**: Present the persona. "Linnea feels right — shall we name the repo `linnea`? (The icon will be her face, the app name will be her name.)" User confirms. `mv ../dotvault ../linnea`.
 8. From here, identical to standard pipeline: Art Director → Painter → Page Designer → Deploy.
 
