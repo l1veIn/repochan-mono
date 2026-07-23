@@ -1,72 +1,72 @@
-# Bake-mask 分层方法论
+# Bake-Mask Layer Methodology
 
-## 核心模型
+## Core Model
 
-完整设计稿包含四个逻辑层：
+A complete master design contains four logical layers:
 
-| 层 | 内容 | 默认策略 |
+| Layer | Content | Default Strategy |
 |---|---|---|
-| L1 | 背景、空间、纹理、氛围 | CSS/live 或与 L2 合成 |
-| L2 | 角色、插画、项目视觉资产 | 合成或透明独立资产 |
-| L3 | 标题、正文、艺术文字 | 默认 HTML；强耦合时可烘焙 |
-| L4 | 按钮、卡片、导航、交互 UI | 必须 HTML/live |
+| L1 | Background, space, texture, atmosphere | CSS/live or composite with L2 |
+| L2 | Character, illustration, project visual assets | Composite or transparent standalone asset |
+| L3 | Titles, body text, artistic typography | Default HTML; may bake when tightly coupled |
+| L4 | Buttons, cards, navigation, interactive UI | Must be HTML/live |
 
-用 `bakedLayers` 表示生产图片包含哪些层，用 `liveLayers` 表示网页重建哪些层。不要把策略名称当成固定模板；每个 section 单独决定 bake mask。
+Use `bakedLayers` to represent which layers a production image includes, and `liveLayers` to represent which layers the web page rebuilds. Do not treat strategy names as fixed templates; each section decides its bake mask independently.
 
-L1 可进一步区分基础色面 L1a、共享 seamless pattern L1b、section 局部氛围/转场 L1c。它们可以分别由 CSS、共享 tile、mask/SVG/atmosphere asset 实现，不必合并成一张固定背景图。
+L1 can be further distinguished as base color plane L1a, shared seamless pattern L1b, and section-local atmosphere/transition L1c. These can be implemented separately via CSS, a shared tile, or mask/SVG/atmosphere assets, without needing to be merged into a single fixed background image.
 
-## 决策顺序
+## Decision Order
 
-1. L4 是否交互？是则保持 live。
-2. L3 是否需要 i18n、SEO、频繁修改？是则优先 live。
-3. L3 是否与角色发生遮挡、穿插、极端透视或字形互动？是则考虑烘焙。
-4. L2 是否有干净 gutter、硬边、matte 或可控轮廓？是则可独立提取。
-5. L2 是否包含头发、透明衣料、辉光、粒子或环境反射？是则优先与 L1 合成。
-6. 角色是否需要独立视差/跨 section 运动？是则提高独立 L2 的优先级，并接受提取成本。
-7. 移动端能否通过裁切和重排成立？不能则生成独立 responsive variant。
+1. Is L4 interactive? If yes, keep it live.
+2. Does L3 need i18n, SEO, or frequent modification? If yes, prioritize live.
+3. Does L3 involve occlusion, interleaving, extreme perspective, or glyph interaction with the character? If yes, consider baking.
+4. Does L2 have clean gutters, hard edges, a matte, or controllable silhouettes? If yes, it can be independently extracted.
+5. Does L2 contain hair, translucent fabric, glow, particles, or environmental reflections? If yes, prioritize compositing with L1.
+6. Does the character need independent parallax/cross-section motion? If yes, raise the priority of standalone L2 and accept the extraction cost.
+7. Can the mobile viewport be satisfied through cropping and reflow? If not, generate a separate responsive variant.
 
-## 母版与生产资产的职责边界
+## Responsibility Boundary Between Master Design and Production Assets
 
-视觉母版负责验证构图、节奏、层级和 section 关系，不负责同时提供可直接上线的位图。即使 prompt 要求角色轮廓可提取，也必须根据实际像素判断：
+The visual master design is responsible for validating composition, rhythm, hierarchy, and section relationships — it is not responsible for simultaneously providing go-live-ready bitmaps. Even if the prompt requests an extractable character silhouette, judgment must be based on actual pixels:
 
-- 头发丝、半透明衣料、辉光、粒子和环境反射与背景耦合时，母版不可直接作为独立 L2 来源。
-- 需要独立 L2 时，另建 uniform-matte production order，再通过 CLI 执行 chroma-key/bg-remove 和 alpha QA。优先使用离线、确定性的 chroma-key；`bg-remove` 需要可选 ML runtime。直接调用时若收到 `MissingImageMlCapabilityError` / `REPOCHAN_IMAGE_ML_MISSING`，只执行一次 `repochan image edit ml install`，成功后原样重试；安装失败就停止报告，不要循环。网络下载只发生在显式 install；运行时从 capability cache 读取本地 runtime 和模型。
-- alpha QA 失败时，优先生成无文字、无 UI 的 L1+L2 composite，而不是反复修补母版截图。
-- 角色跨 section 的视觉动势不要求角色像素真的跨界；可让 Git DAG、能量轨迹、几何边界或 CSS/SVG seam 承担连接，从而降低耦合。
+- When hair strands, translucent fabric, glow, particles, and environmental reflections are coupled with the background, the master design must not be used directly as a standalone L2 source.
+- When standalone L2 is needed, create a separate uniform-matte production order, then execute chroma-key/bg-remove and alpha QA via the CLI. Prefer offline, deterministic chroma-key; `bg-remove` requires an optional ML runtime. If `MissingImageMlCapabilityError` / `REPOCHAN_IMAGE_ML_MISSING` is received during a direct call, run `repochan image edit ml install` exactly once, then retry the original command; if installation fails, stop and report, do not loop. Network download only occurs during explicit install; at runtime the capability cache reads the local runtime and model.
+- When alpha QA fails, prioritize generating a text-free, UI-free L1+L2 composite rather than repeatedly patching master design screenshots.
+- The character's cross-section visual momentum does not require character pixels to actually cross boundaries; Git DAGs, energy trails, geometric borders, or CSS/SVG seams can carry the connection, thereby reducing coupling.
 
-## 四个现有案例
+## Four Existing Cases
 
-### 001：`baked=[L1,L2]`, `live=[L3,L4]`
+### 001: `baked=[L1,L2]`, `live=[L3,L4]`
 
-角色与背景融合，左侧有规则内容区。文字、导航、按钮、stats 都能用 HTML 精确复刻。这是生产级默认模式。
+Character is fused with the background; a regular content zone sits on the left. Text, navigation, buttons, and stats can all be accurately reproduced with HTML. This is the production-grade default pattern.
 
-### 002：`baked=[L1,L2,L3]`, `live=[L4]`
+### 002: `baked=[L1,L2,L3]`, `live=[L4]`
 
-超大文字是空间结构，角色坐在字形之间，透视和遮挡不可分。只在左下角保留 CTA live。此模式必须确认 locale 与可访问性成本。
+Oversized typography is a spatial structure; the character sits between glyphs; perspective and occlusion are inseparable. Only the bottom-left CTA remains live. This pattern must confirm locale and accessibility costs.
 
-### 003：`baked=[]` 或仅装饰 L1，`live=[L1,L2,L3,L4]`
+### 003: `baked=[]` or decorative L1 only, `live=[L1,L2,L3,L4]`
 
-角色周围有白色 gutter，轮廓接近天然 matte，可用 chroma-key 提取 L2。背景几何、文字和 UI 可以分别用 CSS/HTML 重建，动效自由度最高。
+The character has a white gutter around it; the silhouette approaches a natural matte and can be extracted as L2 via chroma-key. The background geometry, text, and UI can each be rebuilt with CSS/HTML, maximizing motion freedom.
 
-### 004：从完整稿转为 `baked=[L1,L2]`, `live=[L3,L4]`
+### 004: Full master converted to `baked=[L1,L2]`, `live=[L3,L4]`
 
-先用完整设计稿锁定自然构图，再提取去身份姿态线稿，结合目标 foundation 重绘无文字/UI 的 L1+L2 composite。minimal 的 Hero 是这一工艺的首个完成样本。
+First, lock in a natural composition using the full master design, then extract a de-identified pose lineart, and redraw an L1+L2 composite without text/UI, referencing the target foundation. The minimal Hero is the first completed sample of this craft.
 
-## 留白即接口
+## Whitespace as Interface
 
-Safe zone 不是“空白矩形”，而是 image layer 与 live layer 的接口。它应记录 normalized 坐标，并满足：
+A safe zone is not a "blank rectangle" — it is the interface between the image layer and live layer. It should record normalized coordinates and satisfy:
 
-- 不包含面部、手、主要轮廓或高频装饰。
-- 背景仍有连续氛围、微纹理或辉光，不是一块死色。
-- 文字对比度在目标 palette 下可成立。
-- 内容增长约 30% 时仍不碰撞 baked layer。
-- 窄屏有明确的移动、隐藏、裁切或替代方案。
+- Excludes face, hands, main silhouettes, or high-frequency decoration.
+- The background still has continuous atmosphere, micro-texture, or glow, not a dead flat color.
+- Text contrast is viable under the target palette.
+- Content growth of approximately 30% still does not collide with the baked layer.
+- Narrow viewports have a clear move, hide, crop, or alternative strategy.
 
-## 不可违反的边界
+## Inviolable Boundaries
 
-- 不把可点击 UI 烘焙进图片。
-- 不因视觉稿存在文字就默认烘焙 L3。
-- 不用其他项目的角色成图直接作为当前项目的 identity reference。
-- 不把视觉母版中的角色直接抠出并宣称为生产级透明 L2。
-- 不把一张桌面设计稿等比缩放成移动端。
-- 不以“像素一致”为理由牺牲语义、键盘、i18n 或可读性。
+- Do not bake clickable UI into images.
+- Do not default to baking L3 just because the master design contains text.
+- Do not use another project's finished character image directly as the current project's identity reference.
+- Do not directly cut out the character from the visual master design and claim it as a production-grade transparent L2.
+- Do not proportionally scale a desktop master design into a mobile viewport.
+- Do not sacrifice semantics, keyboard, i18n, or readability in the name of "pixel fidelity."

@@ -1,59 +1,59 @@
-# 整页艺术指导与 section 覆盖
+# Full-Page Art Direction and Section Coverage
 
-## 三种执行深度
+## Three Execution Depths
 
 ### HTML-first
 
-适合结构简单、section 刻意硬切、角色与图像很少的网站。整页方向稿可以覆盖 Nav/Footer 和低复杂度 sections，但每个未生成 section 母稿的区域必须记录 HTML-first 理由与视觉依据。
+Suitable for websites with simple structure, deliberately hard-cut sections, and few characters or images. The full-page direction master may cover Nav/Footer and low-complexity sections, but every area without its own section master design must record an HTML-first rationale with a visual basis.
 
 ### Section-driven
 
-适合各 section 相对独立的页面。为每个关键 section 生成视觉母稿，逐个做 bake-mask；最终组装后统一校正节奏。
+Suitable for pages where sections are relatively independent. Generate a visual master design for each key section, perform bake-mask section by section; after final assembly, uniformly calibrate rhythm.
 
 ### Continuous art direction
 
-适合连续场景、角色多次出现、复杂过渡、色彩逐屏演进或漫画长卷。先锁定整页母稿，再生成带相邻上下文的 section 母稿。
+Suitable for continuous scenes, multiple character appearances, complex transitions, color evolution across screens, or scrolling comic strips. First lock in the full-page master, then generate section master designs with adjacent context.
 
-## Continuous 工作流
+## Continuous Workflow
 
-1. 定义真实内容骨架、section 职责与大致高度比例。
-2. 生成整页方向稿，解决明暗节奏、密度、高低潮、角色频率、色彩演进和首尾呼应。
-3. 在 Human Gate 1A 选择整页方向；整页稿不是生产资产。
-4. 为每个关键 section 准备参考：整页局部、上一 section 底部、下一 section 顶部、foundation、共享 pattern 与真实内容。
-5. 分别生成 section 母稿，解决局部 L1–L4、safe zone 和响应式接口。
-6. 在 Human Gate 1B 检查 section 组合板与转场，再开始大规模生产资产。
-7. 逐 section 做 bake-mask、生成生产资产、重建 live layers。
-8. 整页组装后做 Gate 2。
+1. Define the real content skeleton, section responsibilities, and approximate height ratios.
+2. Generate the full-page direction master, resolving light/dark rhythm, density, peaks and valleys, character frequency, color evolution, and opening/closing echoes.
+3. At Human Gate 1A, select the full-page direction; the full-page master is not a production asset.
+4. For each key section, prepare references: full-page crop, bottom of the previous section, top of the next section, foundation, shared pattern, and real content.
+5. Generate section master designs separately, resolving local L1–L4, safe zones, and responsive interfaces.
+6. At Human Gate 1B, inspect the section composition board and transitions before starting large-scale production assets.
+7. Section by section, perform bake-mask, generate production assets, and rebuild live layers.
+8. After full-page assembly, proceed to Gate 2.
 
-整页长图受生成尺寸限制时，可用压缩的 portrait overview 表达节奏，或生成带重叠区域的多个 viewport bands。不要把 overview 中失真的文字、像素高度或细节当成实现约束。
+When the full-page long image is constrained by generation size limits, use a compressed portrait overview to express rhythm, or generate multiple viewport bands with overlap regions. Do not treat distorted text, pixel heights, or details in the overview as implementation constraints.
 
-## Section provenance
+## Section Provenance
 
-每个非平凡 section 必须满足二者之一：
+Every non-trivial section must satisfy one of:
 
-- `designReference`: 指向 section 母稿 order/version，并记录整页/相邻上下文来源。
-- `htmlFirstDecision`: 记录为什么图像生成没有额外收益，以及该 section 继承哪份整页或相邻视觉依据。
+- `designReference`: points to the section master design order/version, and records the full-page/adjacent context sources.
+- `htmlFirstDecision`: records why image generation yields no additional benefit, and which full-page or adjacent visual basis the section inherits.
 
-Hero 与其他 sections 同级。Hero 可以最先完成，但不能成为其他 sections 唯一的设计证据。
+Hero is a peer of other sections. Hero may be completed first, but must not become the sole design evidence for other sections.
 
-## Transition contract
+## Transition Contract
 
-把相邻 section 边界作为设计对象，至少记录：
+Treat adjacent section boundaries as design objects. At minimum, record:
 
-- `from` / `to` section。
-- 连续 motif、运动方向和视觉能量变化。
-- 图像侧与 live CSS/SVG 侧的 normalized anchors。
-- pattern tile 的 scale/phase 是否连续。
-- desktop 与 mobile 的简化、隐藏或替代策略。
-- 实现方式：hard cut、gradient/mask、composite+SVG、独立 transition asset 等。
+- `from` / `to` section.
+- Continuous motif, motion direction, and visual energy change.
+- Normalized anchors on the image side vs. live CSS/SVG side.
+- Whether the pattern tile's scale/phase is continuous.
+- Simplification, hide, or alternative strategy for desktop vs. mobile.
+- Implementation method: hard cut, gradient/mask, composite+SVG, standalone transition asset, etc.
 
-Transition contract 描述关系，不要求所有网站使用连续转场。硬切色面也是有效设计选择，但必须是有意选择。
+The transition contract describes relationships; it does not require every website to use continuous transitions. Hard-cut color planes are also a valid design choice, but must be a deliberate choice.
 
-## 覆盖检查
+## Coverage Check
 
-进入生产前建立 section coverage 表：
+Before entering production, establish a section coverage table:
 
 | Section | Design source | Bake mask | Shared L1 | Transition in/out | Responsive |
 |---|---|---|---|---|---|
 
-如果 Workflow、Proof、CTA 等仅由代理根据 Hero 风格直接写出，coverage 不成立；它们只能作为结构原型，不能宣称完成 section 设计。
+If Workflow, Proof, CTA, etc. are written directly by the agent based solely on Hero styles, coverage is not satisfied; they can only serve as structural prototypes and must not claim completed section design.

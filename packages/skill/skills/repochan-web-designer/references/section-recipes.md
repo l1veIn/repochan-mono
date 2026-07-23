@@ -1,55 +1,55 @@
-# Section composition recipes
+# Section Composition Recipes
 
-Recipes 是起点，不是固定 schema。每个 section 仍需 bake-mask 审计。
+Recipes are starting points, not a fixed schema. Each section still requires a bake-mask audit.
 
 ## Nav / Footer
 
-- 默认：HTML-first，全部 live。
-- Image gen 用途：只提供整页视觉母版。
-- 禁止：把导航文字或链接烘焙成图。
+- Default: HTML-first, all live.
+- Image gen purpose: only to provide the full-page visual master design.
+- Forbidden: baking navigation text or links into an image.
 
 ## Hero
 
-- 默认：`baked=[L1,L2]`, `live=[L3,L4]`。
-- 资产：composition/pose reference + hero composite。
-- 条件变体：艺术文字与角色强耦合时烘焙 L3；角色有干净 gutter 且需要动效时独立 L2。
-- Safe zone：主要文案区、CTA 区、导航避让区。
+- Default: `baked=[L1,L2]`, `live=[L3,L4]`.
+- Assets: composition/pose reference + hero composite.
+- Conditional variants: bake L3 when artistic typography is tightly coupled with the character; standalone L2 when the character has a clean gutter and needs motion.
+- Safe zone: main copy area, CTA area, navigation clearance area.
 
 ## Capabilities / Features
 
-- 默认：L1a CSS + 可复用 L1b pattern，多个独立 L2 chibi/icon，L3/L4 live。
-- 资产：可切片表情、角色小姿态或卡片装饰，不使用整张“功能区截图”作为背景。
-- 目标：每张卡片真实表达功能，不把角色人设当项目功能。
+- Default: L1a CSS + reusable L1b pattern, multiple standalone L2 chibi/icons, L3/L4 live.
+- Assets: sliceable expressions, small character poses, or card decorations; do not use a whole "feature-area screenshot" as a background.
+- Goal: each card genuinely expresses a feature; do not treat the character persona as a project feature.
 
 ## Workflow / Architecture
 
-- 默认：共享 L1b pattern 或局部 L1c 装饰，流程节点、连接线、标题和说明 live；连接线优先 SVG/CSS。
-- L2：可用一个角色在流程起点/终点引导，不遮挡步骤文本。
-- 禁止：把需要响应式重排的流程图整体烘焙。
+- Default: shared L1b pattern or local L1c decoration; flow nodes, connecting lines, titles, and descriptions live; prefer SVG/CSS for connecting lines.
+- L2: may use one character at the flow start/end for guidance, without occluding step text.
+- Forbidden: baking the entire flowchart that needs responsive reflow.
 
 ## Proof / Gallery
 
-- 默认：真实内容和项目资产 live；共享 pattern 可作为低对比 L1，只烘焙必要的背景氛围和边缘装饰。
-- L4：筛选、lightbox、链接必须 live。
-- 目标：展示可验证产物，不做无来源的装饰图库。
+- Default: real content and project artifacts live; shared pattern may serve as low-contrast L1; only bake necessary background atmosphere and edge decoration.
+- L4: filters, lightbox, links must be live.
+- Goal: showcase verifiable deliverables; do not build an unsourced decorative image gallery.
 
-## Narrative band / Section transition
+## Narrative Band / Section Transition
 
-- 默认：独立 L2 cutout 跨越 section 边界，L1/L3/L4 live。
-- 适用：角色探出、指向下一段、跨色块衔接。
-- 风险：alpha 边缘和移动端遮挡；必须定义窄屏隐藏或替代位置。
+- Default: standalone L2 cutout crossing section boundaries, L1/L3/L4 live.
+- Applicable: character peeking out, pointing to the next segment, bridging across color blocks.
+- Risk: alpha edges and mobile occlusion; must define a narrow-viewport hide or alternative placement.
 
 ## CTA
 
-- 默认：`baked=[L1,L2]`, `live=[L3,L4]`。
-- Safe zone：中央或单侧 headline/CTA 区。
-- 目标：视觉强度可以高，但按钮、链接和法律信息保持 live。
+- Default: `baked=[L1,L2]`, `live=[L3,L4]`.
+- Safe zone: centered or single-side headline/CTA zone.
+- Goal: visual intensity may be high, but buttons, links, and legal copy remain live.
 
-## 页面节奏
+## Page Rhythm
 
-- 连续两个 section 不要都使用全幅 L1+L2 大图。
-- 在高图像密度 section 后安排 HTML-first 或低噪声 section。
-- 角色不必每屏出现；出现时应承担引导、解释或转场职责。
-- Palette 节奏来自 `site.json` token 的组合，不创建 section 私有颜色。
-- 共享 pattern 是视觉词汇，不是每个 section 使用相同尺寸、透明度和相位的重复壁纸。
-- 每个非平凡 section 都需要独立 design reference 或 HTML-first 决策；不得只从 Hero 外推。
+- Do not place two full-bleed L1+L2 large images in consecutive sections.
+- After a high-image-density section, arrange an HTML-first or low-noise section.
+- The character does not need to appear on every screen; when present, it should serve guidance, explanation, or transition duties.
+- Palette rhythm comes from combinations of `site.json` tokens; do not create section-private colors.
+- The shared pattern is a visual vocabulary, not a repeated wallpaper at the same size, opacity, and phase in every section.
+- Every non-trivial section needs an independent design reference or HTML-first decision; do not extrapolate solely from the Hero.

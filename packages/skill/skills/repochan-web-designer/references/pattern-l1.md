@@ -1,60 +1,60 @@
-# Persona 驱动的共享 L1 pattern
+# Persona-Driven Shared L1 Pattern
 
-## 定位
+## Positioning
 
-四方连续纹理是项目级共享 L1，不是某个 section 的固定截图。它适合 Capabilities、Workflow、Proof、CTA 周边等低图像密度区域，用较低资产成本维持 Persona 视觉身份。
+The seamless repeating texture is a project-level shared L1, not a fixed screenshot of one section. It suits low-image-density areas such as Capabilities, Workflow, Proof, and around CTA — maintaining the Persona's visual identity at low asset cost.
 
-把 L1 拆成：
+Break L1 into:
 
-| 子层 | 内容 | 推荐实现 |
+| Sub-layer | Content | Recommended Implementation |
 |---|---|---|
-| L1a | 基础色面与大尺度明暗 | `site.json` token + CSS gradient |
-| L1b | 共享主题纹理 | delivered seamless pattern tile |
-| L1c | section 局部氛围与转场 | CSS mask/glow/SVG 或独立 atmosphere asset |
+| L1a | Base color plane and large-scale light/dark | `site.json` token + CSS gradient |
+| L1b | Shared thematic texture | Delivered seamless pattern tile |
+| L1c | Section-local atmosphere and transitions | CSS mask/glow/SVG or standalone atmosphere asset |
 
-## 生成路径
+## Generation Paths
 
 ### Persona-first
 
-1. 读取 `signaturePatterns`、`keyMotifs`、palette、art style。
-2. 选择 1–2 个能跨 section 使用的低对比概念。
-3. 使用 `official/pattern-tile` 创建 `visual_pattern` 订单。
-4. 将 delivered tile 作为后续 section-design 的 style reference。
+1. Read `signaturePatterns`, `keyMotifs`, palette, and art style.
+2. Select 1–2 low-contrast concepts that can work across sections.
+3. Use `official/pattern-tile` to create a `visual_pattern` order.
+4. Use the delivered tile as a style reference for subsequent section design.
 
-适合先建立统一品牌语汇。
+Suited for establishing a unified brand vocabulary first.
 
 ### Section-discovered
 
-1. 先完成 section 或整页母稿。
-2. 识别其中值得复用的背景语言。
-3. 将母稿作为 style reference，用 `official/pattern-tile` 抽象为 seamless tile。
-4. 验证后晋升为共享 L1，并回填其他 sections。
+1. Complete a section or full-page master design first.
+2. Identify background language within it worth reusing.
+3. Use the master design as a style reference and abstract it into a seamless tile with `official/pattern-tile`.
+4. After validation, promote it to shared L1 and backfill other sections.
 
-适合避免提前生成无用纹理。两条路径可以并存，但同一视觉概念只保留一个 canonical delivered 来源。
+Suited for avoiding the premature generation of useless textures. Both paths can coexist, but the same visual concept retains only one canonical delivered source.
 
-## 模板约束优先
+## Template Constraints First
 
-`official/pattern-tile` 禁止文字、数字、标签和水印。Persona 描述中的版本号、JSON 字段名或语义文本只能转译为菱形、短线、节点、伪字形密度或非语义网格，不能原样进入 prompt。Pattern 是材质，不是信息层。
+`official/pattern-tile` forbids text, numbers, labels, and watermarks. Version numbers, JSON field names, or semantic text from the Persona description must only be translated into diamonds, dashes, nodes, pseudo-glyph density, or non-semantic grids, and must not enter the prompt verbatim. A pattern is a material, not an information layer.
 
-## 复用而不重复
+## Reuse Without Duplication
 
-同一 tile 可通过 tokenized CSS 参数产生不同 section 状态：
+The same tile can produce different section states through tokenized CSS parameters:
 
-- `background-size` 控制图案尺度。
-- opacity/overlay 控制密度与文字对比度。
-- `background-position` 与 mask 控制局部显现。
-- blend 与 L1a 色面形成不同色彩状态。
-- animation direction/speed 表达不同叙事方向。
+- `background-size` controls pattern scale.
+- opacity/overlay controls density and text contrast.
+- `background-position` and mask control local visibility.
+- Blend with the L1a color plane to form different color states.
+- animation direction/speed expresses different narrative directions.
 
-不要为每个 section 复制一份仅参数不同的图片。参数属于 section composition；图像仍指向同一资产 slot。
+Do not copy a parameter-only-different image for each section. Parameters belong to section composition; the image still points to the same asset slot.
 
-## 动效边界
+## Motion Boundaries
 
-- 只移动装饰层，不承载状态或流程信息。
-- 默认慢速、低对比，不能与 L2 角色争夺焦点。
-- `prefers-reduced-motion: reduce` 时停止运动且静态构图仍成立。
-- 相邻 sections 需要连续背景时，共享 tile、scale 和相位；用 mask/gradient 改变局部密度，不在边界重新随机起点。
+- Only move decorative layers; do not carry state or process information.
+- Default to slow speed, low contrast; must not compete with the L2 character for attention.
+- When `prefers-reduced-motion: reduce`, stop motion and the static composition still holds.
+- When adjacent sections need a continuous background, share the tile, scale, and phase; use mask/gradient to change local density, without re-randomizing the starting point at boundaries.
 
-## 验证
+## Validation
 
-生成结果必须运行 `repochan image edit validate-seams <tile> --out <qa-board.png>`，记录 edge metric 与 threshold，并检查 3×3 board 的中心重复热点、文字可读性和动效循环。数值通过不能替代人眼 hotspot/readability QA；模板声称 seamless 也不是验证证据。检查板只属于 QA evidence，不是生产资产。
+Generated results must run `repochan image edit validate-seams <tile> --out <qa-board.png>`, record the edge metric and threshold, and inspect the 3x3 board for center-repeating hotspots, text readability, and motion loops. A passing numeric score does not replace human-eye hotspot/readability QA; a template claiming "seamless" is also not validation evidence. The check board belongs to QA evidence only — it is not a production asset.
