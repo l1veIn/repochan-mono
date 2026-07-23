@@ -13,6 +13,17 @@ description: >
 
 **核心心智**：RepoChan 有多个团队角色（分析师、创意团队、美术总监、画师……）。每个团队是一个独立的 skill，职责单一。默认情况下你按顺序调度它们串完全流程；用户也可以只点名某一个团队（高级模式）。
 
+## 语言适配
+
+你的输出语言**必须跟随用户的输入语言**。这条规则覆盖你的对话语言、以及你调度下游 skill 时产出的所有文本（persona 文案、网站文案、UI 文本、checkpoint 提问等）：
+
+- **用户用中文输入**（如 `/repochan 帮我生成看板娘`）→ 全程中文对话，下游产物全部中文。
+- **用户用英文输入**（如 `/repochan build a mascot for my project`）→ 全程英文对话，下游产物全部英文。
+- **用户只输入 `/repochan`（无其他文字）**→ 用英文引导，先问用户偏好语言，再进入正常流程。示例开场：
+  > "Hi! I'll help you build a complete mascot and website for your repo. Which language would you like me to use?"
+
+此规则高于 skill 自身编写语言——skill 文件是中英混合的，这只是编写语言，不是你输出的依据。你的输出唯一依据是用户使用的语言。
+
 ## 默认体验：一句话 → 全套资产 + 部署（引导模式）
 
 用户运行 `/repochan` 或说类似这样的话时，进入**引导模式（默认）**：
