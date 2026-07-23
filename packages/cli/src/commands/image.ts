@@ -103,6 +103,14 @@ export async function runImageGen(
     console.log("OpenAI-compatible auto mode: classic submit; polls if the relay returns a job id.");
     console.log("No automatic re-generation on failure. Do not start a second gen for the same order.");
     console.log(`Agent bash timeout recommendation: ≥ ${bashHintSec}s (${IMAGE_AGENT_BASH_TIMEOUT_MS} ms).`);
+    const inRepochanProject = await fs.stat(path.join(cwd, ".repochan")).then(() => true, () => false);
+    if (inRepochanProject) {
+      console.log(
+        "Order check: .repochan/ project detected — if this image is a project asset, an approved Asset Order must exist " +
+          "(repochan order create → approve → Painter → order create-result). Ad-hoc gen output is NOT saved to the protocol; " +
+          "proceed only for scratch/non-protocol output.",
+      );
+    }
   }
 
   const spinner = ora(`Waiting for image… (may take several minutes; async poll up to ~${waitHintMin} min)`).start();

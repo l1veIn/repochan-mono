@@ -127,6 +127,7 @@ At each step, use the corresponding `repochan <entity> get` to check whether ups
 - When AD creates orders, the JSON must include `"status": "approved"` (core supports this; default without it is `draft`).
 - **Do not** create drafts and then expect a separate set-status step — with enough context length this is easy to miss, and the agent may mistake a draft for "waiting for confirmation" and stall, or even fabricate excuses like "missing API key."
 - For image generation, only call `repochan image gen`; **never** proactively ask for an API key. If not configured, the CLI will error — relay the message verbatim to the user.
+- **Order before generation**: never call `repochan image gen` for a project asset without an approved Asset Order. If the user asks for an image directly ("make me an icon/illustration"), route through the team flow instead of generating ad-hoc: AD creates the order with `"status": "approved"`, then the Painter executes it and saves via `order create-result`. Ad-hoc `image gen` output is not saved to the `.repochan` protocol — no version history, no QA loop, no foundation anchoring — so it is only acceptable for scratch output the user explicitly wants outside the protocol. The CLI prints an order-check reminder whenever `image gen` runs inside a `.repochan/` project.
 
 ## Boundaries
 
