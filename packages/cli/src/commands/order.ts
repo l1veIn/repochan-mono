@@ -1,3 +1,6 @@
+import { promises as fs } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import {
   createOrders,
   listOrders,
@@ -15,12 +18,21 @@ import {
   resolveOrderReferences,
   readOrder,
   inspectProtocol,
+  exists,
+  orderVersionDir,
   OrderAddRevisionParamsSchema,
   validateInput,
   type OrderStatus,
 } from "@repochan/core";
 import { asArray, bullet, dim, heading, emitResult, printJson, type OutputOptions, UsageError } from "../lib/output.js";
 import { readDataFile } from "../lib/data-file.js";
+import { archiveOrderDerivedRun } from "../lib/order-derived-archive.js";
+import { getBuiltinTemplatesDir, loadAllTemplates, type TemplateGrid } from "../lib/template-loader.js";
+import {
+  contextualizeImageMlCapabilityError,
+  ensureImageMlCapability,
+  type ImageMlCapabilityDeps,
+} from "../lib/image-ml-capability.js";
 
 // repochan order list
 export async function runOrderList(cwd: string, options: OutputOptions) {
@@ -147,4 +159,202 @@ export async function runOrderRecoveryAbort(cwd: string, orderId: string, transa
   if (!orderId || !transactionId) throw new UsageError("Usage: repochan order recovery abort <id> <transaction>");
   const result = await abortOrderRecovery(cwd, orderId, transactionId);
   emitResult(options, `Accepted current state and aborted ${transactionId}.`, result);
+}
+
+// ---------------------------------------------------------------------------
+// repochan order extract <orderId> [--result-version vN]
+//   [--strategy chroma-grid|equal-cell|ml-blobs|hybrid] [--rows R] [--cols C]
+//   [--pipeline v1|v2] [--ml-fallback] [--model small|medium] [--json]
+//
+// Manual cutout extraction against a delivered order result version, archived
+// into the order's derived/ audit copy + derived.json (repochan.order-derived.v1)
+// via the same append-only mechanism as `starter asset-apply` — without any
+// starter/site. Never touches the immutable versions/ directory. Entry fields:
+// slot "manual", starter "image-edit"; the step op is "extract-grid" and args
+// record the actual run parameters (strategy/pipeline/rows/cols/source version).
+// ---------------------------------------------------------------------------
+
+const ORDER_EXTRACT_STRATEGIES = ["equal-cell", "chroma-grid", "ml-blobs", "hybrid"] as const;
+
+type OrderExtractOptions = OutputOptions & {
+  resultVersion?: string;
+  rows?: number | string;
+  cols?: number | string;
+  strategy?: string;
+  pipeline?: string;
+  mlFallback?: boolean;
+  model?: string;
+};
+
+function optionalPositiveInt(value: number | string | undefined, flag: string): number | undefined {
+  if (value === undefined) return undefined;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    throw new UsageError(`${flag} must be a positive integer (got "${String(value)}")`);
+  }
+  return parsed;
+}
+
+/** Positional fallback keys, matching the ml-blobs naming convention (s00, s01, …). */
+function positionalExtractKeys(count: number): string[] {
+  return Array.from({ length: count }, (_, index) => `s${String(index).padStart(2, "0")}`);
+}
+
+export async function runOrderExtract(
+  cwd: string,
+  orderId: string | undefined,
+  options: OrderExtractOptions,
+  deps: ImageMlCapabilityDeps = {},
+) {
+  if (!orderId) {
+    throw new UsageError(
+      "Usage: repochan order extract <orderId> [--result-version <v>] [--rows <n> --cols <n>] " +
+      "[--strategy chroma-grid|equal-cell|ml-blobs|hybrid] [--pipeline v1|v2] [--ml-fallback] [--model small|medium] [--json]",
+    );
+  }
+  const order = await readOrder(cwd, orderId);
+  if (order.status !== "delivered") {
+    throw new UsageError(`Order ${orderId} must be delivered before order extract (status: ${order.status}). Deliver a result first (order create-result / candidate promote, then set-status delivered).`);
+  }
+  const result = await readOrderResult(cwd, orderId, options.resultVersion);
+  const versionId = result.version.versionId;
+  const versionDir = orderVersionDir(cwd, orderId, versionId);
+  const sourceFiles = result.version.files.map((file) => path.isAbsolute(file) ? file : path.join(versionDir, file));
+  if (!sourceFiles.length || !(await exists(sourceFiles[0]))) {
+    throw new UsageError(`Order ${orderId}/${versionId} has no readable result files to extract from.`);
+  }
+  const sourceFile = sourceFiles[0];
+
+  // rows/cols: explicit flags win; otherwise default from the order template's grid.
+  let templateGrid: TemplateGrid | undefined;
+  if (order.templateId) {
+    const templates = await loadAllTemplates(await getBuiltinTemplatesDir(), cwd);
+    templateGrid = templates.find((template) => template.id === order.templateId)?.grid;
+  }
+  const rows = optionalPositiveInt(options.rows, "--rows") ?? templateGrid?.rows;
+  const cols = optionalPositiveInt(options.cols, "--cols") ?? templateGrid?.cols;
+  if (rows === undefined || cols === undefined) {
+    throw new UsageError(
+      `--rows and --cols are required: order ${orderId} has ${order.templateId ? `template ${order.templateId} without a grid` : "no templateId"} to default from. Pass --rows <n> --cols <n>.`,
+    );
+  }
+
+  const strategyRaw = options.strategy ?? "chroma-grid";
+  if (!(ORDER_EXTRACT_STRATEGIES as readonly string[]).includes(strategyRaw)) {
+    throw new UsageError(`--strategy must be ${ORDER_EXTRACT_STRATEGIES.join(" | ")} (got "${options.strategy}")`);
+  }
+  const strategy = strategyRaw as import("@repochan/image-edit").ExtractStrategy;
+  const pipeline = options.pipeline ?? "v2";
+  if (pipeline !== "v1" && pipeline !== "v2") {
+    throw new UsageError(`--pipeline must be v1 | v2 (got "${options.pipeline}")`);
+  }
+  if (options.mlFallback && strategy !== "hybrid") {
+    throw new UsageError(`--ml-fallback only applies to --strategy hybrid (got "${strategy}")`);
+  }
+  if (strategy === "hybrid" && options.mlFallback !== true) {
+    throw new UsageError("--strategy hybrid requires --ml-fallback (ML assist is always explicit); use --strategy chroma-grid otherwise");
+  }
+  if (options.model !== undefined && options.model !== "small" && options.model !== "medium") {
+    throw new UsageError(`--model must be small | medium (got "${options.model}")`);
+  }
+  const model = options.model as import("@repochan/image-edit").MatteModel | undefined;
+
+  const requiredBy = `order extract --strategy ${strategy}`;
+  if (strategy === "ml-blobs" || strategy === "hybrid") {
+    await ensureImageMlCapability(requiredBy, deps);
+  }
+
+  // extractAssets requires a semantic mapping + normalize canvas for named
+  // strategies. No starter manifest exists here, so derive both: mapping from
+  // the template grid's cell_keys when it covers the resolved grid, else
+  // positional keys; canvas from the source sheet's cell size (no rescale).
+  const named = strategy !== "ml-blobs";
+  let mapping: string[] | undefined;
+  let normalize: { canvasSize: number; padding: number } | undefined;
+  if (named) {
+    mapping = templateGrid?.cellKeys && templateGrid.cellKeys.length === rows * cols
+      ? templateGrid.cellKeys
+      : positionalExtractKeys(rows * cols);
+    const { inspectImage } = await import("@repochan/image-edit");
+    const inspection = await inspectImage(sourceFile);
+    const canvasSize = Math.max(Math.ceil(inspection.width / cols), Math.ceil(inspection.height / rows));
+    normalize = { canvasSize, padding: 0 };
+  }
+
+  const { extractAssets, matteColorToHex } = await import("@repochan/image-edit");
+  const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "repochan-order-extract-"));
+  try {
+    const extractOut = path.join(tempRoot, "assets");
+    const extracted = await (async () => {
+      try {
+        return await extractAssets(sourceFile, extractOut, {
+          strategy,
+          rows,
+          cols,
+          mapping,
+          chroma: { pipeline },
+          normalize,
+          hybrid: strategy === "hybrid"
+            ? { mlFallback: true, ...(model ? { model } : {}) }
+            : model ? { model } : undefined,
+          overwrite: true,
+        });
+      } catch (err) {
+        const missing = contextualizeImageMlCapabilityError(err, requiredBy);
+        if (missing) throw missing;
+        throw err;
+      }
+    })();
+
+    // Archiving is this command's primary purpose: a failure here is fatal
+    // (unlike asset-apply's best-effort warning) and surfaces as a thrown error.
+    const archiveDir = await archiveOrderDerivedRun({
+      cwd,
+      orderId,
+      slot: "manual",
+      starter: "image-edit",
+      resultVersion: versionId,
+      archiveLabel: "extract",
+      steps: [{
+        op: "extract-grid",
+        args: {
+          strategy,
+          pipeline,
+          rows,
+          cols,
+          sourceVersion: versionId,
+          source: result.version.files[0],
+          ...(model ? { model } : {}),
+        },
+        out: "assets",
+        copies: [{ out: "assets", sourceBase: tempRoot }],
+      }],
+    });
+
+    const warnings = extracted.qa.metrics?.warnings ?? [];
+    emitResult(
+      options,
+      `Extracted ${extracted.items.length} assets from order ${orderId}/${versionId} (${extracted.qa.strategyUsed}, chroma ${extracted.qa.pipeline}, matte ${matteColorToHex(extracted.matteColor)} ${extracted.matteColorSource}) → archived at .repochan/orders/${orderId}/${archiveDir}` +
+      (warnings.length ? `\nqa warnings:\n- ${warnings.join("\n- ")}` : ""),
+      {
+        orderId,
+        version: versionId,
+        sourceFile: extracted.sourceFile,
+        rows: extracted.rows,
+        cols: extracted.cols,
+        strategy: extracted.qa.strategyUsed,
+        pipeline: extracted.qa.pipeline,
+        matteColor: matteColorToHex(extracted.matteColor),
+        matteColorSource: extracted.matteColorSource,
+        items: extracted.items.length,
+        itemKeys: extracted.items.map((item) => item.key),
+        derived: archiveDir,
+        qa: extracted.qa,
+        ...(warnings.length ? { warnings } : {}),
+      },
+    );
+    return extracted;
+  } finally {
+    await fs.rm(tempRoot, { recursive: true, force: true });
+  }
 }

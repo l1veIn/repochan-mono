@@ -105,7 +105,13 @@ cli.command("order <sub>", "Manage creation orders")
   .option("--json", "Machine-readable JSON output")
   .option("--data-file <path>", "JSON payload from file, - for stdin, or omit when piping")
   .option("--text <text>", "Inline text (order add-revision)")
-  .option("--result-version <v>", "Result version id (get-result)")
+  .option("--result-version <v>", "Result version id (get-result / extract; default: currentVersion)")
+  .option("--rows <n>", "Grid rows (order extract; default: order template grid)")
+  .option("--cols <n>", "Grid cols (order extract; default: order template grid)")
+  .option("--strategy <s>", "Extract strategy: chroma-grid (default) | equal-cell | ml-blobs | hybrid (order extract)")
+  .option("--pipeline <v>", "Chroma pipeline: v2 (default) | v1 (order extract)")
+  .option("--ml-fallback", "Allow ML assist fallback; required with --strategy hybrid (order extract)")
+  .option("--model <model>", "ISNet model small | medium for ML strategies (order extract)")
   .option("--overwrite", "Overwrite existing")
   .action(async (_p: any, opts: any) => {
     const args = cli.args; // [sub, id?, more?]
@@ -125,6 +131,7 @@ cli.command("order <sub>", "Manage creation orders")
         return await order.runOrderGetResult(process.cwd(), id, opts.resultVersion, opts);
       }
       case "resolve-references": return await order.runOrderResolveReferences(process.cwd(), id, opts);
+      case "extract": return await order.runOrderExtract(process.cwd(), id, opts);
       case "recovery":
         if (id === "list") return await order.runOrderRecoveryList(process.cwd(), args[2], opts);
         if (id === "recover") return await order.runOrderRecoveryRecover(process.cwd(), args[2], args[3], opts);
@@ -134,7 +141,7 @@ cli.command("order <sub>", "Manage creation orders")
         if (id === "create") return await order.runOrderCandidateCreate(process.cwd(), opts.dataFile, opts);
         if (id === "promote") return await order.runOrderCandidatePromote(process.cwd(), args[2], args[3], opts);
         throw new Error(`Unknown order candidate subcommand: ${id}. Use: create | promote <id> <version>`);
-      default: throw new Error(`Unknown order subcommand: ${sub}. Use: list | get | create | update | set-status | add-revision | create-result | list-results | get-result | resolve-references | recovery | candidate`);
+      default: throw new Error(`Unknown order subcommand: ${sub}. Use: list | get | create | update | set-status | add-revision | create-result | list-results | get-result | resolve-references | extract | recovery | candidate`);
     }
   });
 

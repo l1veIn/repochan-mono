@@ -2,7 +2,6 @@ import { promises as fs } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import {
-  appendOrderDerivedEntry,
   createOrders,
   exists,
   listOrders,
@@ -20,8 +19,6 @@ import {
   validateStarterLocaleStructures,
   validateStarterPresentationColors,
   validateStarterSiteConfig,
-  type OrderDerivedArtifact,
-  type OrderDerivedStep,
   type StarterAssetSlot,
   type StarterLocaleContent,
   type StarterManifest,
@@ -47,6 +44,7 @@ import {
   type ExtractStrategy,
 } from "@repochan/image-edit";
 import { emitResult, dim, printJson, isExtractError, ApplyFailurePrintedError, type OutputOptions, UsageError } from "../lib/output.js";
+import { archiveOrderDerivedRun, type OrderDerivedArchiveStep } from "../lib/order-derived-archive.js";
 import {
   contextualizeImageMlCapabilityError,
   ensureImageMlCapability,
@@ -530,48 +528,14 @@ function imageMlRequirement(slot: StarterAssetSlot, gridStep: StarterPostprocess
   return mlStep ? `starter asset-apply slot ${slot.slot} (${mlStep.op})` : undefined;
 }
 
-async function listFilesRecursive(root: string): Promise<string[]> {
-  const found: string[] = [];
-  for (const entry of await fs.readdir(root, { withFileTypes: true })) {
-    const absolute = path.join(root, entry.name);
-    if (entry.isDirectory()) found.push(...await listFilesRecursive(absolute));
-    else if (entry.isFile()) found.push(absolute);
-  }
-  return found.sort();
-}
-
-/**
- * Copy one postprocess step's output (single file or directory tree) into the
- * order's derived archive. Directory outputs (slice / resize / iconfont)
- * are archived recursively with one artifact record per file.
- */
-async function archiveStepOutput(
-  orderRoot: string,
-  archiveDir: string,
-  sourceBase: string,
-  out: string,
-): Promise<OrderDerivedArtifact[]> {
-  const source = sitePath(sourceBase, out);
-  const stat = await fs.stat(source).catch(() => undefined);
-  if (!stat) throw new Error(`Derived archive source is missing: ${out}`);
-  const files = stat.isDirectory() ? await listFilesRecursive(source) : [source];
-  const artifacts: OrderDerivedArtifact[] = [];
-  for (const file of files) {
-    const artifactOut = stat.isDirectory() ? `${out}/${path.relative(source, file).split(path.sep).join("/")}` : out;
-    const stored = `${archiveDir}/${artifactOut}`;
-    const destination = path.join(orderRoot, ...stored.split("/"));
-    await fs.mkdir(path.dirname(destination), { recursive: true });
-    await fs.copyFile(file, destination);
-    artifacts.push({ out: artifactOut, stored });
-  }
-  return artifacts;
-}
-
 /**
  * Archive a completed asset-apply into the order's derived/ audit copy and
  * append derived.json. Runs AFTER publishFilesWithRollback, so published
  * outputs are read back from the site while intermediate step outputs are
  * still staged in tempRoot. Never touches the immutable versions/ directory.
+ * The copy + append mechanics are shared with `order extract` via
+ * archiveOrderDerivedRun; this function only binds the apply context
+ * (slot / starter / per-step source bases) into that shared run.
  */
 async function archiveDerivedApply(input: {
   cwd: string;
@@ -584,45 +548,40 @@ async function archiveDerivedApply(input: {
   target: string;
   publicationOutputs: string[];
 }): Promise<string> {
-  const appliedAt = new Date().toISOString();
-  const archiveDir = `derived/${appliedAt.replace(/[:.]/g, "-")}--${input.slot.slot}`;
-  const orderRoot = path.join(input.cwd, ".repochan", "orders", input.orderId);
   const published = new Set(input.publicationOutputs);
-  const record = (step: StarterPostprocessStep, artifacts: OrderDerivedArtifact[]): OrderDerivedStep => ({
-    op: step.op,
-    ...(step.args !== undefined ? { args: step.args } : {}),
-    out: step.out,
-    ...(step.keep !== undefined ? { keep: step.keep } : {}),
-    artifacts,
-  });
-  const steps: OrderDerivedStep[] = [];
+  const steps: OrderDerivedArchiveStep[] = [];
   if (input.slot.kind === "bundle" && input.gridStep) {
-    const artifacts: OrderDerivedArtifact[] = [];
-    if (input.gridStep.keep !== false) {
-      for (const publication of input.slot.publications) {
-        artifacts.push(...await archiveStepOutput(orderRoot, archiveDir, input.target, publication.output));
-      }
-    }
-    steps.push(record(input.gridStep, artifacts));
+    steps.push({
+      op: input.gridStep.op,
+      ...(input.gridStep.args !== undefined ? { args: input.gridStep.args } : {}),
+      out: input.gridStep.out,
+      ...(input.gridStep.keep !== undefined ? { keep: input.gridStep.keep } : {}),
+      copies: input.gridStep.keep === false
+        ? []
+        : input.slot.publications.map((publication) => ({ out: publication.output, sourceBase: input.target })),
+    });
   } else if (input.slot.kind === "scalar") {
     for (const step of input.slot.postprocess ?? []) {
-      const artifacts = step.keep === false
-        ? []
+      steps.push({
+        op: step.op,
+        ...(step.args !== undefined ? { args: step.args } : {}),
+        out: step.out,
+        ...(step.keep !== undefined ? { keep: step.keep } : {}),
         // Published outputs were renamed out of tempRoot into the site;
         // intermediate step outputs are still staged in tempRoot.
-        : await archiveStepOutput(orderRoot, archiveDir, published.has(step.out) ? input.target : input.tempRoot, step.out);
-      steps.push(record(step, artifacts));
+        copies: step.keep === false ? [] : [{ out: step.out, sourceBase: published.has(step.out) ? input.target : input.tempRoot }],
+      });
     }
   }
-  await appendOrderDerivedEntry(input.cwd, input.orderId, {
+  return await archiveOrderDerivedRun({
+    cwd: input.cwd,
+    orderId: input.orderId,
     slot: input.slot.slot,
     starter: input.manifest.id,
     resultVersion: input.versionId,
-    appliedAt,
-    archiveDir,
+    archiveLabel: input.slot.slot,
     steps,
   });
-  return archiveDir;
 }
 
 export async function runStarterAssetApply(

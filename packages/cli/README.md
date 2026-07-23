@@ -83,6 +83,24 @@ repochan order recovery recover <order-id> <transaction-id>
 repochan order recovery abort <order-id> <transaction-id>
 ```
 
+`repochan order extract <orderId>` runs cutout extraction (`@repochan/image-edit`
+`extractAssets`, default strategy `chroma-grid` + pipeline `v2`) directly against a
+delivered order result version — no starter/site required — and archives the output
+into the order's derived audit copy (`.repochan/orders/<id>/derived/<ts>--extract/`
+plus an append-only `derived.json` entry, same `repochan.order-derived.v1` mechanism
+as `starter asset-apply`, recorded with slot `manual` / starter `image-edit`). The
+immutable `versions/` directory is never touched. `--rows`/`--cols` default from the
+order template's `grid` when the order has a `templateId`; pass both explicitly
+otherwise. `--result-version` selects a non-current version; `ml-blobs`/`hybrid`
+require the optional image ML capability. QA defects (`ExtractError`) fail the
+command with structured defects (JSON under `--json`) and archive nothing.
+
+```bash
+repochan order extract ord-stickers-001                          # grid from the order template
+repochan order extract ord-stickers-001 --rows 4 --cols 4        # explicit grid override
+repochan order extract ord-stickers-001 --result-version v2 --json
+```
+
 ## Image endpoints
 
 Config: `~/.repochan/image.json` (credentials stay in image-gen; not in project protocol).
