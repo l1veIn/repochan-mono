@@ -45,7 +45,7 @@ Before starting actual generation, explicitly switch the current order to `in_pr
 4. **`repochan image gen` wait rules**: Complex/landscape images often need 2–5 minutes; async mode poll budget is approximately **20 minutes**. The CLI does **not** auto-regenerate the entire order on failure (to avoid billing for already-generated images stuck in transit). Bash `timeout` should be ≥ **1320000** (22 minutes, covering async budget). **Only one gen per order at a time**. On failure, if output contains `jobId` or mentions `billedRisk`, first check the relay backend/completed results, **do not immediately re-send the same prompt**. When configuration is missing, have the user run `repochan image configure` / `repochan image status`, **do not** ask the user for an API key.
 5. **If status is `needs_revision`, this is a review-loop order.** Enter the review loop flow — read [workflows-review.md](references/workflows-review.md), use the previous version artifact for img2img, not generation from scratch.
 6. **Check whether the order has `references`.** If so, resolve them.
-7. **Read the order's `templateId`** (if present): `repochan template get <templateId>`. This gives you the authoritative `prompt_template`, output dimensions, grid layout, and technical constraints.
+7. **Read the order's `templateId`** (if present): `repochan template get <templateId>`. This gives you the authoritative `prompt_template`, output dimensions, grid layout, and technical constraints. **If the template declares a `grid` (`rows`/`cols`), a layout-guide reference is mandatory** — see Step 3.
 8. **If the order has no references and is not a Foundation Sheet cover, warn the user** (see edge cases below).
 9. Check relevant existing order result versions.
 10. Ask before changing `currentVersion`. Prefer adding new versions.
@@ -68,6 +68,7 @@ Full rules are in references; references take precedence in case of conflict.
 9. **Do not hijack the target repo** — do not run project code for image generation/auth.
 10. **Do not store absolute paths in meta** — only record portable information like `referenceImagesUsed`, orderId, etc.
 11. **Do not install or run image-edit ML** — Painter only delivers original images; slicing, background removal, alpha QA, and optional ML capability installation belong to the Page/Web Designer's assembly phase. Even if the loop error is `REPOCHAN_IMAGE_ML_MISSING`, do not install dependencies or regenerate the original image.
+12. **Grid orders must use a layout-guide reference** — when `repochan template get <templateId>` returns a `grid` field (`rows`/`cols`), first render `repochan image edit layout-guide --rows R --cols C --out <guide.png>` and pass it as an extra `--reference` (see Step 3). This applies to **any** grid template — sticker/chibi sheets, item/prop grids, badge grids, icon matrices, iconfont, web-state grids (3x3, 4x4, 2x2, any N×M) — not only stickers.
 
 ## Reference Resolution Flow
 
@@ -113,6 +114,14 @@ Key CLI parameters: `--prompt`, `--reference <path>` (repeatable, one flag per r
 **`--size` resolution order**: User explicit size > deliverable's `genSize` (the generation resolution declared by the order, >= output size) > template `size` > deliverable's `width`/`height`. Generation size is always >= output size; downsampling is left to post-processing — this is the source of high-DPI sharpness.
 
 **Large size note**: `2K`/`4K` keywords may be interpreted as square on some endpoints (observed: bare `4K` produces 2880²). For landscape/portrait large images at 2K/4K, you must write explicit `WxH` (e.g., `3840x2560` landscape, `2048x3072` portrait), do not pass only the keyword.
+
+**Grid orders: layout-guide reference (mandatory).** If `repochan template get <templateId> --json` returns a `grid` field (`rows`/`cols`), the order is a grid asset — sticker/chibi sheet, item/prop grid, badge grid, icon matrix, iconfont sheet, web-state grid, or any future N×M template. Before calling `image gen`:
+
+1. Render a deterministic composition guide using the template's grid: `repochan image edit layout-guide --rows <grid.rows> --cols <grid.cols> --out <guide.png>`.
+2. Pass it as an extra `--reference` alongside the foundation (one flag per path): `--reference <foundation.png> --reference <guide.png>`.
+3. The guide constrains composition only — **do not** paint its frame lines, safe-zone lines, crosshairs, or cell numbers into the final image (this constraint is also restated in the grid templates themselves).
+
+Foundation Sheet covers and single-subject templates (no `grid` field) never use a layout-guide.
 
 foundation_sheet itself is the anchor and does not need `--reference`.
 

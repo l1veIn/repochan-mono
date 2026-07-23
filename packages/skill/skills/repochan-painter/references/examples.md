@@ -61,6 +61,41 @@
    EOF
 ```
 
+### Grid Order (Layout-Guide Reference)
+
+```
+1. repochan order get ord-item-grid-001 --json
+   -> references: [{ type: "order", orderId: "ord-foundation-001", role: "character" }]
+
+2. repochan template get official/item-prop-grid-3x3 --json
+   -> grid: { rows: 3, cols: 3 }  → layout-guide is MANDATORY
+      (any template with a grid field: sticker/chibi, item/prop, badge, icon, iconfont, web-state — not only stickers)
+
+3. repochan order resolve-references ord-item-grid-001 --json
+   -> files: ["<foundation absolute path>"]
+
+4. Render the deterministic composition guide from the template grid:
+   repochan image edit layout-guide --rows 3 --cols 3 --out guide-3x3.png
+
+5. Generate with BOTH references (one --reference flag per path):
+   repochan image gen --prompt "<assembled grid prompt>" \
+     --reference "<foundation path>" --reference "guide-3x3.png" \
+     --aspect square --size 2048x2048
+   -> The guide constrains composition only; the prompt must not reproduce
+      its frame/safe-zone lines, crosshairs, or cell numbers
+
+6. Pipe payload via heredoc, then save the result:
+   repochan order create-result <<'EOF'
+   {
+     "orderId": "ord-item-grid-001",
+     "files": ["<generated image path printed by repochan image gen>"],
+     "generationPrompt": "<exact assembled prompt passed to repochan image gen --prompt>",
+     "notes": "Grid order: foundation + layout-guide (3x3) passed as --reference composition constraints."
+   }
+   EOF
+   -> Painter delivers the original sheet only; slicing/QA belongs to the Page Designer's asset-apply
+```
+
 ### Review Loop (Image-to-Image Revision)
 
 ```
