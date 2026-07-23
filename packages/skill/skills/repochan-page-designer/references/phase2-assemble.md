@@ -1,42 +1,42 @@
-# 资产应用与站点验收
+# Asset Application and Site Acceptance
 
-## 资产状态
+## Asset Status
 
-- `repochan/starter.json`: 声明 slot、fallback output、partial order 和 postprocess。
-- `repochan/assets.json`: 记录页面实际消费的 `src/status/orderId/versionId`。
-- `.repochan/orders/`: 保存 Painter 原始交付和版本历史。
-- `.repochan/web-starter/public/`: 保存 starter 本地化与装配阶段的派生文件。
+- `repochan/starter.json`: declares slots, fallback outputs, partial orders, and postprocess.
+- `repochan/assets.json`: records the `src/status/orderId/versionId` actually consumed by the page.
+- `.repochan/orders/`: stores Painter's raw deliveries and version history.
+- `.repochan/web-starter/public/`: stores derived files from the starter localization and assembly phase.
 
-`source` 资产让 scaffold 始终可构建，但它仍属于 Starter 的原项目；`customized` 才表示当前项目已完成替换。判断能否复用订单时，同时检查 asset type、templateId、项目身份、构图和 foundation 引用；不要只因文件存在就跳过视觉判断。
+`source` assets keep the scaffold always buildable, but they still belong to the Starter's original project; `customized` means the current project has completed replacement. When deciding whether an order can be reused, check asset type, templateId, project identity, composition, and foundation reference together; do not skip visual judgment just because the file exists.
 
-## CLI 边界
+## CLI Boundaries
 
 ```bash
 repochan starter create-order <slot> --intent "..." --foundation <order-id>
 repochan starter asset-apply <slot> --order <order-id> [--result-version <version-id>] --overwrite
 ```
 
-**依赖顺序**：slot 声明了 `slot:X` 资产间引用时（如 scene-night → scene-day），必须先对 X 完成 create-order + asset-apply，再创建本 slot 的订单——这样引用解析到的是下游项目刚生成的新图。顺序颠倒时 CLI 不会阻断，但会在输出里带 `referenceWarning`（引用落到了 starter 自带源图上）；看到该警告应检查顺序，除非刻意要参考源图。
+**Dependency ordering**: when a slot declares an `slot:X` inter-asset reference (e.g., scene-night → scene-day), you must complete create-order + asset-apply for X first, then create the order for this slot — so that reference resolution picks up the new image just generated for the downstream project. The CLI will not block when the order is reversed, but the output will carry a `referenceWarning` (reference fell back to the starter's built-in source image); when you see this warning, check the ordering unless intentionally referencing the source image.
 
-`asset-apply` 必须整体成功后才更新 `assets.json`。发生后处理错误时，保留现有站点输出和状态，不要手工拼出半完成状态。只有调试 image-edit 本身时才直接调用 `repochan image edit`。
+`asset-apply` updates `assets.json` only after complete success. When a postprocessing error occurs, preserve existing site output and state; do not manually assemble a half-completed state. Only call `repochan image edit` directly when debugging image-edit itself.
 
-官方 Starters 当前使用离线、确定性的 `chroma-grid` 网格链路，正常装配不需要 ML runtime，也不应提前安装它。只有 manifest 显式要求 `bg-remove`、`extract-stickers`、`ml-blobs` 或带 ML fallback 的 `hybrid` 时，`asset-apply` 才可能需要可选 ML capability。
+Official Starters currently use the offline, deterministic `chroma-grid` pipeline; normal assembly does not need ML runtime and should not pre-install it. Only when the manifest explicitly selects `bg-remove`, `extract-stickers`, `ml-blobs`, or `hybrid` with ML fallback, may `asset-apply` potentially need optional ML capability.
 
-**派生归档（审计）**：apply 成功后，postprocess 链中每个 `keep` ≠ `false` 的步骤会把产物归档到 `.repochan/orders/<order-id>/derived/<时间戳>--<slot>/`，并向该订单的 `derived.json`（`repochan.order-derived.v1`）追加一条 entry（slot / starter / resultVersion / steps / artifacts）。索引为 append-only，重复 apply 追加而不覆盖。需要回答「这个订单派生出过哪些产物、在哪」时读 `derived.json`，不要去猜 `public/` 的当前状态。归档失败不会阻断 apply（输出里带 `derivedWarning`）。
+**Derived archive (audit)**: after a successful apply, each step in the postprocess chain where `keep` ≠ `false` archives its artifact to `.repochan/orders/<order-id>/derived/<timestamp>--<slot>/`, and appends an entry (slot / starter / resultVersion / steps / artifacts) to that order's `derived.json` (`repochan.order-derived.v1`). The index is append-only; repeated applies append without overwriting. When you need to answer "what artifacts has this order derived and where are they," read `derived.json`; do not guess from the current state of `public/`. Archive failure does not block apply (output carries `derivedWarning`).
 
-已经是最终格式的仓库截图或真实 proof 走 `starter asset-import <slot> --file <path>`：CLI 原子复制到声明的 scalar output，并在 `assets.json` 记录 local-file SHA-256 provenance。Bundle/publications 仍必须走 `asset-apply`。
+Repo screenshots or real proofs already in final format go through `starter asset-import <slot> --file <path>`: the CLI atomically copies to the declared scalar output and records local-file SHA-256 provenance in `assets.json`. Bundle/publications must still go through `asset-apply`.
 
-## Extract QA 失败回流
+## Extract QA Failure Loop
 
-先区分依赖缺失与像素 QA：如果错误类型是 `MissingImageMlCapabilityError`、错误码是 `REPOCHAN_IMAGE_ML_MISSING`，不要进入下方 Painter 回流。执行一次：
+First distinguish missing dependencies from pixel QA: if the error type is `MissingImageMlCapabilityError` and the error code is `REPOCHAN_IMAGE_ML_MISSING`, do not enter the Painter loop below. Run once:
 
 ```bash
 repochan image edit ml install
 ```
 
-安装成功后，原样重试失败的 `repochan starter asset-apply ...` 命令。安装失败则停止并报告原始错误；不要循环安装。网络下载只发生在显式 install；安装后的 ML 操作从 capability cache 读取本地 runtime 和模型，不再联网。依赖缺失属于 Page Designer 的装配环境问题，不是原图问题，禁止要求 Painter 重生来规避。
+After successful installation, retry the failed `repochan starter asset-apply ...` command as-is. If installation fails, stop and report the original error; do not loop installation. Network downloads only occur during explicit install; post-install ML operations read from the capability cache using local runtime and models, with no further network access. Missing dependencies are a Page Designer assembly environment issue, not a source image problem; do not request Painter regeneration to circumvent this.
 
-`asset-apply` 因 extract QA 失败时以非零退出；带 `--json` 运行时 stdout 输出结构化信封（人类可读模式下只打印摘要，排查时务必带 `--json` 重跑）：
+When `asset-apply` fails due to extract QA, it exits non-zero; running with `--json` outputs a structured envelope to stdout (human-readable mode only prints a summary; when troubleshooting, always rerun with `--json`):
 
 ```json
 {
@@ -55,23 +55,23 @@ repochan image edit ml install
 }
 ```
 
-处理流程：解析信封 → 按下表决定重生动作 → 要求 Painter 重生新版本（Painter 侧的 prompt 改法见 repochan-painter 的 `references/extract-qa-retry.md`）→ 对新 version 重跑 `asset-apply`。不要手切 PNG、不要手工改 `public/` 或 `assets.json` 来绕过失败。
+Processing flow: parse the envelope → decide the regeneration action per the table below → request Painter to regenerate a new version (see repochan-painter's `references/extract-qa-retry.md` for prompt adjustment guidance on the Painter side) → rerun `asset-apply` against the new version. Do not hand-slice PNGs, do not manually edit `public/` or `assets.json` to bypass failures.
 
-| defect code | 回流动作 |
+| defect code | Loop action |
 |------|------|
-| `edge_touch` / `sheet_edge_touch` / `empty_cell` / `frame_count_mismatch` | 阻断 apply；要求 Painter 加强 cell margin / 整表留白，并把 layout-guide 作为 gen reference（`sheet_edge_touch` 与 `edge_touch` 同一指引）；同一订单连续 2 次失败建议拆单（按 row 或 single-cell 分别开订单） |
-| `matte_subject_collision` / `chroma_residue` | 报告信封中的 `matteColor` 与 `metric`，要求 Painter 换 matte hex 或加强 flat matte prompt |
-| `foreground_ratio_low` / `foreground_ratio_high` | 报告 metric；要求 Painter 检查内容过稀或 matte 污染 |
-| `ml_unavailable` / `invalid_options` | 修 ML runtime/模型环境或 starter 的 extract-grid args；不要盲目重生。若同时得到 `REPOCHAN_IMAGE_ML_MISSING`，按上方显式安装流程只安装一次 |
+| `edge_touch` / `sheet_edge_touch` / `empty_cell` / `frame_count_mismatch` | Block apply; request Painter to strengthen cell margin / full-sheet padding and include layout-guide as a gen reference (`sheet_edge_touch` follows the same guidance as `edge_touch`); if the same order fails twice consecutively, consider splitting the order (separate orders per row or single-cell) |
+| `matte_subject_collision` / `chroma_residue` | Report `matteColor` and `metric` from the envelope; request Painter to change the matte hex or strengthen the flat matte prompt |
+| `foreground_ratio_low` / `foreground_ratio_high` | Report metric; request Painter to check for overly sparse content or matte contamination |
+| `ml_unavailable` / `invalid_options` | Fix ML runtime/model environment or starter's extract-grid args; do not blindly regenerate. If you also get `REPOCHAN_IMAGE_ML_MISSING`, follow the explicit install flow above and install only once |
 
-再次强调：只有调试 image-edit 本身时才直接调用 `repochan image edit`（见上「CLI 边界」），正常回流永远走 Painter 重生 + `asset-apply` 重跑。
+Again: only call `repochan image edit` directly when debugging image-edit itself (see "CLI Boundaries" above); the normal loop always goes through Painter regeneration + `asset-apply` rerun.
 
-## 验收顺序
+## Acceptance Sequence
 
 1. `repochan starter validate --output-dir .repochan/web-starter --localized`
 2. `pnpm --dir .repochan/web-starter build`
-3. 浏览器检查默认 locale 与其他 locale。
-4. 检查窄屏、宽屏、键盘焦点、外链和 reduced-motion。
-5. 核对角色身份、文字留白、CTA 可读性以及图片裁切。
+3. Browser check default locale and other locales.
+4. Check narrow viewport, wide viewport, keyboard focus, external links, and reduced-motion.
+5. Verify character identity, text whitespace, CTA readability, and image clipping.
 
-不要通过降低 required slot、伪造 `customized` 或删除 locale 来绕过 validator。
+Do not bypass the validator by downgrading required slots, forging `customized`, or deleting locales.
