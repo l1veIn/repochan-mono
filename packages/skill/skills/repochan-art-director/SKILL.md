@@ -26,7 +26,7 @@ You are the Art Director & Product Manager. Translate strategy and persona into 
 5. **`repochan foundation find`** to check whether a foundation sheet already exists.
 6. Ask whether to batch-create / append / revise.
 7. If target carriers are missing, proactively ask: README, docs, social, icon, splash screen, stickers, banner, key visual.
-8. **Do not call image generation tools in this role.**
+8. **Do not call image generation tools in this role.** (`repochan image edit layout-guide` is deterministic composition rendering — no model call, no image generation. It is a required part of your grid-order workflow, see Step 2.)
 
 ## Key Hard Rules Checklist
 
@@ -36,6 +36,7 @@ You are the Art Director & Product Manager. Translate strategy and persona into 
 4. `mustInclude` is primarily positive description; `avoid` is a lightweight guardrail (see order-craft).
 5. **Poster selection forced order** (see [poster-and-brand.md](references/poster-and-brand.md)): 1) First map by `persona.artStyle` keywords; 2) If no match, then consider project vibe (**forbidden**: "tool = Constructivism" default); 3) If still no direction, use orderId + project name hash to disperse across the four dedicated poster templates. Write a one-line `templateReason` in the brief.
 6. **yolo / unattended**: When creating orders, directly write `"status": "approved"` in the JSON (do not create drafts first and then set-status — the extra step is easily forgotten or mistaken for a checkpoint). **Non-yolo**: Default to `draft` (or omit status; core defaults to draft), wait for user confirmation before approving.
+7. **Grid orders must carry a declared layout-guide composition reference** — for any template with a `grid` (`rows`/`cols`), render `repochan image edit layout-guide` and declare it as `{ "type": "file", "role": "composition", "path": ... }` in the order's `references` (see Step 2). Never ship a grid order with only the character reference — composition is your decision, and the declaration makes it durable and browse-visible.
 
 ## Workflow
 
@@ -57,7 +58,7 @@ repochan foundation find
 | Order | assetType | templateId | references | Notes |
 |---|---|---|---|---|
 | foundation | `foundation_sheet` | `official/foundation-sheet` | `[]` | Visual anchor, no references |
-| sticker | `sticker_sheet` | `official/chibi-grid-3x3` | foundation | 3x3 chibi reaction pack |
+| sticker | `sticker_sheet` | `official/chibi-grid-3x3` | foundation + layout-guide (composition) | 3x3 chibi reaction pack |
 | poster | `poster` | Curated by artStyle | foundation | Character key visual poster |
 | readme_banner | `readme_banner` | `official/readme-banner-21x9` | foundation | README banner |
 | pattern | `visual_pattern` | `official/pattern-tile` | foundation | Single 1x1 4-way seamless brand texture |
@@ -75,17 +76,24 @@ Users can add or remove order types (icon, three_view, etc.), but foundation is 
 - Each downstream order `references`: `[{"type": "order", "orderId": "<foundation-order-id>", "role": "character"}]`
 - After determining assetType, run `repochan template list --tag <asset_type>` to select a template; if empty results, list without filter — do not fabricate a templateId.
 - **Template curation**: Single template → pick directly. Multiple templates → read `persona.artStyle` (primary) + project vibe (secondary) + interview, pick the best fit, write into `templateId`.
+- **Grid orders: declare the layout-guide as a composition reference (mandatory).** If the selected template declares a `grid` (`rows`/`cols` — sticker/chibi, item/prop, badge, icon/iconfont, web-state, any N×M), composition is your call, so the guide goes into the order itself:
+  1. Render it deterministically: `repochan image edit layout-guide --rows <grid.rows> --cols <grid.cols> --out <guide.png>` (deterministic rendering, not image generation — hard rule 8 does not apply).
+  2. Declare it in the order's `references`: `{ "type": "file", "role": "composition", "path": "<guide.png>" }`. `order create` materializes the file into the order's own `references/` directory — the guide becomes a durable, browse-visible order artifact, and `resolve-references` returns it to the Painter (composition sorts first).
+  Never leave grid composition implicit in the Painter's hands.
 - **Poster**: Must follow the three-step algorithm in [poster-and-brand.md](references/poster-and-brand.md); do not always pick `poster-constructivist`.
 
 **Pipeline creation:**
 
 yolo / CI (**recommended: directly approved, one fewer failure point**):
 ```bash
+# Grid orders first: render the deterministic composition guide (rows/cols from the template's grid)
+repochan image edit layout-guide --rows 3 --cols 3 --out sticker-guide-3x3.png
+
 repochan order create <<'EOF'
 {
   "orders": [
     { "orderId": "ord-foundation-001", "status": "approved", "requestType": "new_asset", "assetType": "foundation_sheet", "templateId": "official/foundation-sheet", "references": [], "brief": { "..." : "..." } },
-    { "orderId": "ord-sticker-001", "status": "approved", "requestType": "new_asset", "assetType": "sticker_sheet", "templateId": "official/chibi-grid-3x3", "references": [{ "type": "order", "orderId": "ord-foundation-001", "role": "character" }], "brief": { "..." : "..." } }
+    { "orderId": "ord-sticker-001", "status": "approved", "requestType": "new_asset", "assetType": "sticker_sheet", "templateId": "official/chibi-grid-3x3", "references": [{ "type": "order", "orderId": "ord-foundation-001", "role": "character" }, { "type": "file", "role": "composition", "path": "sticker-guide-3x3.png" }], "brief": { "..." : "..." } }
   ]
 }
 EOF
