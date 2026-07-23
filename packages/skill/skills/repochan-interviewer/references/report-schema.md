@@ -76,12 +76,14 @@ Mapping rules:
 ```
 repochan interview create <<'EOF'
 {
-  "questions": [...],
-  "responses": [...],
-  "summary": "Summary of user intent...",
-  "keyConstraints": ["Hard constraint 1", "Hard constraint 2"],
-  "preferences": ["Soft preference 1", "Soft preference 2"],
-  "avoidList": ["Forbidden item 1", "Forbidden item 2"]
+  "interview": {
+    "questions": [...],
+    "responses": [...],
+    "summary": "Summary of user intent...",
+    "keyConstraints": ["Hard constraint 1", "Hard constraint 2"],
+    "preferences": ["Soft preference 1", "Soft preference 2"],
+    "avoidList": ["Forbidden item 1", "Forbidden item 2"]
+  }
 }
 EOF
 ```

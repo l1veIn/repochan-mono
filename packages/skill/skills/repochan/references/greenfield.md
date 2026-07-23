@@ -38,11 +38,22 @@ Update the stub with richer signals from the interview responses.
 ### Pass 1 procedure
 
 1. Extract what you can from the user's initial description: project category, key terms, naming hints.
-2. Construct and write the seed stub:
+2. Construct the patch object (the analysis content you want to write) and wrap it in the params structure that `analysis update` expects:
    ```bash
-   repochan analysis update --data-file /tmp/greenfield-analysis.json
+   repochan analysis update --data-file /tmp/greenfield-patch.json
    ```
-   If `analysis update` fails because no analysis exists yet (the command may require an existing artifact), write the file directly as a one-time bootstrap exception:
+   Where `/tmp/greenfield-patch.json` contains:
+   ```json
+   {
+     "overwrite": true,
+     "patch": {
+       "context": { ... },
+       "preAnalysis": { ... },
+       "abstract": { ... }
+     }
+   }
+   ```
+   If `analysis update` fails because no analysis exists yet (the command requires an existing artifact to update), write the file directly as a one-time bootstrap exception:
    ```bash
    mkdir -p .repochan/analysis/versions
    cat > .repochan/analysis/current.json << 'ENDOFFILE'
@@ -56,8 +67,9 @@ Update the stub with richer signals from the interview responses.
 1. After the interview completes, read the interview report (`repochan interview get`).
 2. Update the analysis stub with richer signals and write via CLI:
    ```bash
-   repochan analysis update --data-file /tmp/greenfield-analysis-enriched.json
+   repochan analysis update --data-file /tmp/greenfield-enriched.json
    ```
+   The file must contain `{"overwrite": true, "patch": { ... }}` — same params structure as Pass 1.
 
 ### Minimal valid greenfield analysis stub
 

@@ -106,12 +106,14 @@ Replace the standard 8 dimensions with these greenfield-specific dimensions:
 ```bash
 repochan interview create <<'EOF'
 {
-  "questions": [...],
-  "responses": [...],
-  "summary": "...",
-  "keyConstraints": [...],
-  "preferences": [...],
-  "avoidList": [...]
+  "interview": {
+    "questions": [...],
+    "responses": [...],
+    "summary": "...",
+    "keyConstraints": [...],
+    "preferences": [...],
+    "avoidList": [...]
+  }
 }
 EOF
 ```
