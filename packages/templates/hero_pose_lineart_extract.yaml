@@ -1,11 +1,14 @@
 id: "official/hero-pose-lineart-extract"
 asset_type: "pose_lineart"
-label: "人物姿态线稿提取"
+label: "Character Pose Lineart Extraction"
 description: >
-  从人物合成图中提取纯人物姿态线稿——只保留角色，去掉一切无关信息。
-  唯一用途：当人物姿态与页面 H3/H4 层元素存在结构/空间配合关系时
-  （例如按钮悬在人物手心上方、人物指向某个具体标题、人物坐在卡片边缘），
-  向下游传递必须复现的姿态信息。海报式摆放（姿态无结构意义）不应使用本模板。
+  Extract a pure character-pose lineart from a character composite — keep only the
+  character, strip everything else. Sole use case: when the character pose has a
+  structural/spatial relationship with page H3/H4 layer elements (e.g., a button
+  hovering above the character's open palm, the character pointing at a specific
+  headline, the character sitting on a card edge), transmit the pose information
+  that must be reproduced downstream. Poster-style placement (pose with no
+  structural meaning) should not use this template.
 tags: ["hero", "lineart", "starter", "prep", "pose"]
 size: "2560x1440"
 quality: "high"

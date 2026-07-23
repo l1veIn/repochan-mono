@@ -1,7 +1,7 @@
 id: "official/foundation-sheet"
 asset_type: "foundation_sheet"
-label: "设定集封面"
-description: "项目视觉锚点：全身立绘、Q版、表情、配色卡、关键元素和图标示例。"
+label: "Foundation Sheet"
+description: "Project visual anchor: full-body standing pose, chibi, expressions, color palette swatches, key motifs, and icon sample."
 tags: ["foundation_sheet", "sheet", "foundation", "anchor"]
 size: "1024x1024"
 

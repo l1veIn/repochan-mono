@@ -1,10 +1,11 @@
 id: "official/hero-character-migrate-localize"
 asset_type: "hero_composite"
-label: "Hero 角色本地化"
+label: "Hero Character Localization"
 description: >
-  借鉴 starter hero 的设计语言(风格、氛围、构图思路),但不锁定姿态。
-  用 foundation 角色 + 配色本地化重绘。留白位置由 order 的 mustInclude 指定,
-  不写死在模板里——同一个模板能服务于不同留白位置的 starter。
+  Borrow the starter hero's design language (style, atmosphere, composition approach)
+  but do not lock the pose. Redraw with the foundation character and palette as a
+  localization. Blank zones are specified by the order's mustInclude, not hard-coded
+  in the template — the same template works across starters with different blank-zone layouts.
 tags: ["hero", "migrate", "web", "landing"]
 size: "2560x1440"
 quality: "high"

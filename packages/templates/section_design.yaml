@@ -1,10 +1,12 @@
 id: "official/section-design"
 asset_type: "section_design"
-label: "Section 视觉设计稿"
+label: "Section Visual Design Mockup"
 description: |
-  生成一个网页 section 的完整视觉母版——看起来像真实网页截图,不是海报。
-  画师负责探索排版、配色、角色融入、纹理和文字层级。产出不是生产网页资产；
-  Starter Designer 随后审计 L1-L4 的耦合关系，决定哪些层烘焙、哪些层用 HTML/CSS 重建。
+  Generate a complete visual master of a web section — it should look like a real
+  web page screenshot, not a poster. The Painter explores typography, palette,
+  character integration, texture, and text hierarchy. The output is not a production
+  web asset; the Starter Designer later audits L1-L4 coupling and decides which
+  layers are baked and which are rebuilt with HTML/CSS.
 tags: ["section_design", "web", "ui", "screenshot", "hero", "landing"]
 size: "1536x1024"
 

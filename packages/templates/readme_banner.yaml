@@ -1,7 +1,7 @@
 id: "official/readme-banner-21x9"
 asset_type: "readme_banner"
-label: "README 横幅"
-description: "宽幅项目主视觉，适合 GitHub README 首屏；输出尺寸适配图像模型支持档位。"
+label: "README Banner"
+description: "Wide project key visual, suitable for the GitHub README hero area. Output dimensions fit supported image model tiers."
 tags: ["readme_banner", "banner", "illustration", "readme"]
 size: "1536x1024"
 

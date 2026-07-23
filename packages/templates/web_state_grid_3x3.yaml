@@ -1,7 +1,7 @@
 id: "official/web-state-grid-3x3"
 asset_type: "web_state_stickers"
-label: "3×3 Web 状态角色贴纸"
-description: "固定语义的 3×3 Q 版角色状态表，用于网页状态、空态、错误页与 CTA；可按 cell_keys 自动提取为具名透明资产。"
+label: "3x3 Web State Character Stickers"
+description: "Fixed-semantics 3x3 chibi character state sheet for web states, empty states, error pages, and CTAs. Auto-sliceable by cell_keys into named transparent assets."
 tags: ["web", "state", "sticker", "chibi", "grid", "fixed-semantic"]
 size: "1024x1024"
 

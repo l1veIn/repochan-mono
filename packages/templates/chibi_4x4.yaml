@@ -1,7 +1,7 @@
 id: "official/chibi-grid-4x4"
 asset_type: "chibi_emojis"
-label: "4×4 表情包"
-description: "4×4 Q版表情包，可自动切片为 16 个独立表情；一致性难度高于 3×3。"
+label: "4x4 Emoji Pack"
+description: "4x4 Chibi emoji sheet, auto-sliceable into 16 standalone expressions. Consistency is harder than the 3x3 variant."
 tags: ["chibi_emojis", "sticker", "chibi", "grid"]
 size: "1024x1024"
 

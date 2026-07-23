@@ -1,7 +1,7 @@
 id: "official/three-view"
 asset_type: "three_view"
-label: "三视图"
-description: "正面、侧面、背面三视图角色设定，用于角色一致性验证。"
+label: "Three-view / Turnaround Sheet"
+description: "Front, side, and back three-view character reference, used for character consistency validation."
 tags: ["sheet", "turnaround", "three_view"]
 size: "1536x1024"
 

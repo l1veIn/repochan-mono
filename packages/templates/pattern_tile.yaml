@@ -1,7 +1,7 @@
 id: "official/pattern-tile"
 asset_type: "visual_pattern"
-label: "单张四方连续纹理"
-description: "一张独立、无缝、四方连续、可平铺的品牌纹理。用于页面 section 背景、边框、分割线或 CTA 底纹。"
+label: "Single Seamless Tile Pattern"
+description: "One standalone, seamless, repeatable, tileable brand texture. Used for page section backgrounds, borders, dividers, or CTA underlays."
 tags: ["visual_pattern", "pattern", "texture", "background", "page"]
 size: "768x768"
 
@@ -19,7 +19,7 @@ prompt_template: |
 
 constraints:
   - "exactly ONE single seamless texture filling the entire canvas — no grid, no multi-tile layout"
-  - "MUST be seamless / tileable (四方连续) — edges must wrap cleanly when the image is repeated"
+  - "MUST be seamless / tileable — edges must wrap cleanly when the image is repeated"
   - "texture must BLEED fully to all four canvas edges — no border, no margin, no frame"
   - "ABSOLUTELY NO text, numbers, labels, captions, titles, or watermarks"
   - "flat pattern swatch only — no scene illustration, no perspective mockup, no character as main subject"

@@ -1,7 +1,7 @@
 id: "official/item-prop-grid-3x3"
 asset_type: "item_props"
-label: "3×3 世界观道具表"
-description: "从角色世界观提取的 9 件主题道具/物品（工具、法器、收藏品），统一风格的孤立物件，可按 cell_keys 自动提取为具名透明资产，适合 feature 卡片、区块装饰与空态点缀。"
+label: "3x3 World-Building Prop Sheet"
+description: "Nine thematic props/items drawn from the character's world (tools, artifacts, collectibles), isolated objects in a unified style, auto-sliceable by cell_keys into named transparent assets. Suitable for feature cards, section decoration, and empty-state embellishment."
 tags: ["item", "prop", "object", "grid", "sliceable"]
 size: "1024x1024"
 

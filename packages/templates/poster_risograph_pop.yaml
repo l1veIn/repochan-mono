@@ -1,7 +1,7 @@
 id: "official/poster-risograph-pop"
 asset_type: "poster"
-label: "Risograph 半调波普海报"
-description: "网点纹理、高饱和撞色与复古杂志排版，适合轻量、创意和社区项目。"
+label: "Risograph Halftone Pop Poster"
+description: "Halftone dots, high-saturation color clashes, and retro magazine layout. Suitable for lightweight, creative, and community projects."
 tags: ["poster", "design", "risograph", "pop"]
 size: "1536x1024"
 

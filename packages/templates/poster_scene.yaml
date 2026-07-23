@@ -1,7 +1,7 @@
 id: "official/poster-scene"
 asset_type: "poster"
-label: "场景海报（section 用）"
-description: "角色在特定场景中的海报，用于网站不同 section 的背景或氛围图。比 key-visual 海报更注重场景氛围和留白，适合叠加文字。"
+label: "Scene Poster (for Sections)"
+description: "A poster of the character in a specific scene, used as backgrounds or atmosphere images for different website sections. Emphasizes scene atmosphere and negative space more than key-visual posters — suitable for text overlay."
 tags: ["poster", "scene", "section", "background"]
 size: "1536x1024"
 

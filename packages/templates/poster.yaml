@@ -1,7 +1,7 @@
 id: "official/poster"
 asset_type: "poster"
-label: "通用角色主视觉"
-description: "无明确设计运动时的通用角色主视觉海报。"
+label: "Generic Character Key Visual"
+description: "Generic character key-visual poster when no specific design movement is assigned."
 tags: ["poster", "illustration", "showcase"]
 size: "1536x1024"
 

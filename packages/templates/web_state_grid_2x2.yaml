@@ -1,7 +1,7 @@
 id: "official/web-state-grid-2x2"
 asset_type: "web_state_stickers"
-label: "2×2 最小 Web 状态表"
-description: "最小语义的 2×2 Q 版角色状态表（loading / empty / error / success），适合只需要核心四态的轻量站点；可按 cell_keys 自动提取为具名透明资产。"
+label: "2x2 Minimal Web State Sheet"
+description: "Minimal-semantics 2x2 chibi character state sheet (loading / empty / error / success), suitable for lightweight sites that only need the core four states. Auto-sliceable by cell_keys into named transparent assets."
 tags: ["web", "state", "sticker", "chibi", "grid", "fixed-semantic"]
 size: "1024x1024"
 

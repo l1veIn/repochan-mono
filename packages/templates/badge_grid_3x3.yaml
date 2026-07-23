@@ -1,7 +1,7 @@
 id: "official/badge-grid-3x3"
 asset_type: "badge_set"
-label: "3×3 成就徽章表"
-description: "同一品牌语族的 9 枚成就/等级徽章（如铜→金进阶或里程碑集合），平面矢量质感，可按 cell_keys 自动提取为具名透明资产，适合游戏化文档、社区与排行榜场景。"
+label: "3x3 Achievement Badge Sheet"
+description: "Nine achievement/rank badges from one coherent brand family (e.g., bronze-to-gold progression or milestone set), flat vector style, auto-sliceable by cell_keys into named transparent assets. Suitable for gamified docs, community, and leaderboard scenarios."
 tags: ["badge", "achievement", "rank", "grid", "fixed-semantic", "sliceable"]
 size: "1024x1024"
 

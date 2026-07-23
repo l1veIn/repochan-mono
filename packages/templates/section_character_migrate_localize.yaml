@@ -1,10 +1,12 @@
 id: "official/section-character-migrate-localize"
 asset_type: "section_composite"
-label: "Section 角色合成本地化"
+label: "Section Character Composite Localization"
 description: >
-  以低信息构图引导图约束 section 的视觉密度与 live-content 安全留白，
-  再用 foundation 角色重绘完整环境合成图。构图参考不包含也不锁定原角色姿势；
-  下游角色的动作、镜头和身体朝向可依项目身份自由重构。
+  Constrain section visual density and live-content safe zones with a low-information
+  composition guide, then redraw the full environment composite with the foundation
+  character. The composition reference does not contain or lock the original character
+  pose; the downstream character's gesture, camera angle, and body-facing direction
+  are free to reconstruct around the project identity.
 tags: ["section", "migrate", "localize", "web", "landing"]
 size: "1536x1024"
 quality: "high"

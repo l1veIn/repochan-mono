@@ -1,7 +1,7 @@
 id: "official/character-cutout"
 asset_type: "character_cutout"
-label: "角色抠图（matte 底定制姿态）"
-description: "纯色 matte 背景上的角色定制姿态图，配合 chroma-key 抠出透明 PNG。用于角色打破矩形容器：探出 section 边缘、漂浮在 section 之间、做交互引导。默认产出**完整入画**的通用资产（全身/七分身完整、四边留白）；出血裁切构图属于设计绑定变体（见 constraints 末条），不得作为通用 starter 资产。"
+label: "Character Cutout (Custom Pose on Matte)"
+description: "Custom character pose on a flat matte background, extracted to transparent PNG via chroma-key. Used to break rectangular containers: peeking out of section edges, floating between sections, providing interaction guidance. Default output is a **fully in-frame** general asset (full body / three-quarter figure, clear margin on all four sides). Bleed-crop compositions are design-bound variants (see the last constraint) and must not be shipped as general-purpose starter assets."
 tags: ["character_cutout", "cutout", "transparent", "pose", "web"]
 size: "1024x1024"
 

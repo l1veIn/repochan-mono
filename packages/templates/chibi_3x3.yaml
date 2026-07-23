@@ -1,7 +1,7 @@
 id: "official/chibi-grid-3x3"
 asset_type: "chibi_emojis"
-label: "3×3 表情包"
-description: "3×3 Q版表情包，可自动切片为 9 个独立表情；推荐默认使用。"
+label: "3x3 Emoji Pack"
+description: "3x3 Chibi emoji sheet, auto-sliceable into nine standalone expressions. Recommended default."
 tags: ["chibi_emojis", "sticker", "chibi", "grid"]
 size: "1024x1024"
 

@@ -1,10 +1,11 @@
 id: "official/icon-grid-3x3"
 asset_type: "icon"
-label: "3×3 图标探索矩阵"
+label: "3x3 Icon Exploration Matrix"
 description: >
-  同一品牌下的 9 个方形图标方案，按「角色存在感」光谱排布：
-  第 1 行基于角色头像/全身；第 2 行基于 Q 版大头贴；第 3 行不出现角色正脸，用主元素或剪影。
-  可切分后用于头像、文档、应用与社交预览。
+  Nine square icon variants in one coherent brand family, arranged along a
+  character-presence spectrum: row 1 uses character portraits / full-body,
+  row 2 uses chibi big-head treatments, row 3 uses motifs or silhouettes only
+  (no character face). Sliceable for avatars, docs, apps, and social previews.
 tags: ["icon", "avatar", "grid"]
 size: "1024x1024"
 

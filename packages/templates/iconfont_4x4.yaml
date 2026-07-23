@@ -1,10 +1,11 @@
 id: "official/iconfont-grid-4x4"
 asset_type: "icon_font"
-label: "4×4 角色 iconfont（镂空描边）"
+label: "4x4 Character Icon Font (Hollow Outline)"
 description: >
-  16 个角色风格 UI 图标（替代 lucide 等外部图标库），镂空单色描边形态。
-  配合非白 matte + chroma-grid 提取为透明 PNG：alpha 既可直接使用，
-  也可作 CSS mask 以 currentColor 方式换色。填充色变体见 constraints 末条。
+  Sixteen character-styled UI icons (replacing external icon libraries like Lucide),
+  hollow monochrome outline glyphs. Extracted to transparent PNG via non-white matte
+  plus chroma-grid: the alpha channel can be used directly, or applied as a CSS mask
+  for currentColor swapping. See the last constraint for filled variants.
 tags: ["icon_font", "iconfont", "ui", "grid", "sliceable", "outline"]
 size: "2048x2048"
 

@@ -1,7 +1,7 @@
 id: "official/icon-single"
 asset_type: "icon"
-label: "单 icon（可缩放）"
-description: "一个完整的角色品牌 icon 原图：内容出血到边缘的完整方形画作，背景是设计的一部分。后处理只做形状遮罩（圆形/圆角）与 resize，不抠图。"
+label: "Single Icon (Scalable)"
+description: "One complete character-brand icon source image: full-bleed square artwork whose background is part of the design. Post-processing only applies shape masking (circle / rounded square) and resize — no chroma-key extraction."
 tags: ["icon", "favicon", "logo", "brand"]
 size: "512x512"
 
