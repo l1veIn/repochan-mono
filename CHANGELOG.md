@@ -9,11 +9,12 @@ This changelog records coordinated public package sets.
 ### Lightweight default CLI and explicit image ML capability
 
 Patch set: `@repochan/core@0.3.1`, `@repochan/image-edit@0.3.1`,
-`@repochan/skill@0.3.1`, `@repochan/starters@0.2.1`,
-`@repochan/browse@0.1.1`, and `repochan@0.4.1`.
+`@repochan/skill@0.3.1`, `@repochan/templates@0.3.1`,
+`@repochan/starters@0.2.1`, `@repochan/browse@0.1.1`, and `repochan@0.4.1`.
 Browse advances because its packed runtime dependency now targets the patched
-Core; unchanged leaves (`@repochan/image-gen@0.3.0`, `@repochan/templates@0.3.0`)
-retain their published versions.
+Core; `@repochan/image-gen@0.3.0` is unchanged and reuses its published artifact.
+Templates advance because published `0.3.0` contents no longer match HEAD
+(English labels and related template contract edits).
 
 - `@repochan/image-edit` now depends directly on pinned `sharp@0.32.6` for
   deterministic offline pixel work; the large IMG.LY/ONNX runtime is no longer
