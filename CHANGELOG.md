@@ -4,13 +4,16 @@ This changelog records coordinated public package sets.
 
 ## Unreleased
 
+## 2026-07-24 — `repochan` v0.4.1 package set
+
 ### Lightweight default CLI and explicit image ML capability
 
 Patch set: `@repochan/core@0.3.1`, `@repochan/image-edit@0.3.1`,
 `@repochan/skill@0.3.1`, `@repochan/starters@0.2.1`,
 `@repochan/browse@0.1.1`, and `repochan@0.4.1`.
 Browse advances because its packed runtime dependency now targets the patched
-Core; unchanged leaves retain their published versions.
+Core; unchanged leaves (`@repochan/image-gen@0.3.0`, `@repochan/templates@0.3.0`)
+retain their published versions.
 
 - `@repochan/image-edit` now depends directly on pinned `sharp@0.32.6` for
   deterministic offline pixel work; the large IMG.LY/ONNX runtime is no longer

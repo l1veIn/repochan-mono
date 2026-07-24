@@ -74,7 +74,7 @@
 3. repochan order resolve-references ord-item-grid-001 --json
    -> [{ role: "composition", files: ["<order references/layout-guide-3x3.png>"] },   <- declared by the AD at order creation
        { role: "character",   files: ["<foundation absolute path>"] }]
-   -> Fallback (legacy grid order with no declared guide): render it yourself, then pass it as an extra --reference:
+   -> Fallback (grid order with no declared guide): render it yourself, then pass it as an extra --reference:
       repochan image edit layout-guide --rows 3 --cols 3 --out guide-3x3.png
 
 4. Generate with BOTH references (one --reference flag per path, composition first):

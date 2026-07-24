@@ -41,7 +41,8 @@
 **前置要求**：Node.js ≥ 20、一个你已在用的 coding agent、（生成图像需要）一个 OpenAI 兼容的 images endpoint。
 
 ```bash
-npm install -g repochan && repochan setup          # 把 skill 装进你的 agent
+npm install -g repochan
+repochan setup                 # 把 skill 装进你的 agent
 # repochan starter sync        # 按需下载 starter 目录（~/.repochan/starters）
 # repochan image configure       # 配置图像端点凭证
 ```

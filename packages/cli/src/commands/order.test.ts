@@ -394,17 +394,17 @@ describe("order extract", () => {
     expect(await readdir(path.join(orderDir, "versions"))).toEqual(["v1"]);
 
     // a pre-existing asset-apply-style entry is preserved untouched
-    const legacy = {
+    const historicalEntry = {
       slot: "hero", starter: "minimal", resultVersion: "v1",
       appliedAt: "2026-01-01T00:00:00.000Z", archiveDir: "derived/2026-01-01T00-00-00-000Z--hero",
       steps: [{ op: "compress", out: "public/assets/hero.webp", artifacts: [] }],
     };
-    derived.entries.unshift(legacy);
+    derived.entries.unshift(historicalEntry);
     await writeFile(path.join(orderDir, "derived.json"), JSON.stringify(derived));
     await runOrderExtract(root, "ord-extract-001", { rows: 2, cols: 2, json: true });
     const after = JSON.parse(await readFile(path.join(orderDir, "derived.json"), "utf8"));
     expect(after.entries).toHaveLength(4);
-    expect(after.entries[0]).toEqual(legacy);
+    expect(after.entries[0]).toEqual(historicalEntry);
   });
 
   it("fails loud with ExtractError defects and archives nothing", async () => {

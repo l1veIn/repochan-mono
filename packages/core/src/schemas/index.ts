@@ -599,8 +599,8 @@ export const OrderDerivedStepSchema = Type.Object({
     Type.Literal("gif-from-frames"),
     Type.Literal("extract-grid"),
     Type.Literal("iconfont"),
-    // Legacy op retained ONLY so historical append-only derived.json archives
-    // remain readable (readOrderDerived validates on-disk data). New starter
+    // Retained ONLY so historical append-only derived.json archives remain
+    // readable (readOrderDerived validates on-disk data). New starter
     // manifests cannot select it — the starter postprocess schema dropped it.
     Type.Literal("extract-stickers"),
   ]),

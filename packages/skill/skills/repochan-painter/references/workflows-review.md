@@ -53,7 +53,7 @@ Only these situations require asking the user first:
 
 ## Processing Review Loop Orders
 
-When an order status is `needs_revision`, it means a previously delivered version of this order was sent back (via `review.create` with `verdict=revise` or `reject` — possibly the one you just auto-created, or one left by the user earlier). This is not generation from scratch, but **revision based on the previous version artifact**.
+When an order status is `needs_revision`, it means an earlier delivered version of this order was sent back (via `review.create` with `verdict=revise` or `reject` — possibly the one you just auto-created, or one left by the user earlier). This is not generation from scratch, but **revision based on the previous version artifact**.
 
 ### Core Difference: Image-to-Image, Not Generation from Scratch
 

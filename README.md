@@ -41,7 +41,8 @@ You already use a coding agent (Claude Code, Codex, Pi, Cursor, Hermes, …). Re
 **Prerequisites:** Node.js ≥ 20, a coding agent you already use, and (for image generation) an OpenAI-compatible images endpoint.
 
 ```bash
-npm install -g repochan && repochan setup          # installs skills into your agent
+npm install -g repochan
+repochan setup                 # installs skills into your agent
 # repochan starter sync        # downloads the starter catalog on demand (~/.repochan/starters)
 # repochan image configure       # image endpoint credentials configuration
 ```

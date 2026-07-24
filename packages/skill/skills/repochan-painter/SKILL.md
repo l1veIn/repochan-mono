@@ -68,7 +68,7 @@ Full rules are in references; references take precedence in case of conflict.
 9. **Do not hijack the target repo** — do not run project code for image generation/auth.
 10. **Do not store absolute paths in meta** — only record portable information like `referenceImagesUsed`, orderId, etc.
 11. **Do not install or run image-edit ML** — Painter only delivers original images; slicing, background removal, alpha QA, and optional ML capability installation belong to the Page/Web Designer's assembly phase. Even if the loop error is `REPOCHAN_IMAGE_ML_MISSING`, do not install dependencies or regenerate the original image.
-12. **Grid orders must use a layout-guide reference** — the AD declares it as a `composition` file reference at order creation, so `resolve-references` returns it (composition sorts first); pass it like any resolved reference. **Fallback**: for legacy grid orders whose template declares a `grid` but no composition guide resolves, render one yourself — `repochan image edit layout-guide --rows R --cols C --out <guide.png>` (rows/cols from the template grid) — and add it as an extra `--reference`. Covers sticker/chibi, item/prop, badge, icon/iconfont, web-state — any N×M grid template.
+12. **Grid orders must use a layout-guide reference** — the AD declares it as a `composition` file reference at order creation, so `resolve-references` returns it (composition sorts first); pass it like any resolved reference. **Fallback**: for older grid orders whose template declares a `grid` but no composition guide resolves, render one yourself — `repochan image edit layout-guide --rows R --cols C --out <guide.png>` (rows/cols from the template grid) — and add it as an extra `--reference`. Covers sticker/chibi, item/prop, badge, icon/iconfont, web-state — any N×M grid template.
 
 ## Reference Resolution Flow
 
@@ -118,7 +118,7 @@ Key CLI parameters: `--prompt`, `--reference <path>` (repeatable, one flag per r
 **Grid orders: layout-guide reference (mandatory).** If `repochan template get <templateId> --json` returns a `grid` field (`rows`/`cols`), the order is a grid asset — sticker/chibi sheet, item/prop grid, badge grid, icon matrix, iconfont sheet, web-state grid, or any future N×M template.
 
 1. **Primary path**: the Art Director declares the layout-guide as a `composition` file reference at order creation, so `resolve-references` returns it (composition sorts first). Pass it via its own `--reference` flag together with the foundation — no extra work on your side.
-2. **Fallback (legacy orders)**: if the template declares a `grid` but no composition guide resolves, render the deterministic guide yourself — `repochan image edit layout-guide --rows <grid.rows> --cols <grid.cols> --out <guide.png>` — and pass it as an extra `--reference` alongside the foundation.
+2. **Fallback (orders without a declared guide)**: if the template declares a `grid` but no composition guide resolves, render the deterministic guide yourself — `repochan image edit layout-guide --rows <grid.rows> --cols <grid.cols> --out <guide.png>` — and pass it as an extra `--reference` alongside the foundation.
 3. The guide constrains composition only — **do not** paint its frame lines, safe-zone lines, crosshairs, or cell numbers into the final image (this constraint is also restated in the grid templates themselves).
 
 Foundation Sheet covers and single-subject templates (no `grid` field) never use a layout-guide.
