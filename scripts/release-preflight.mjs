@@ -463,9 +463,9 @@ async function candidateFreshInstallSmoke(entries) {
     "repochan foundation find",
     "repochan-painter",
     "repochan-page-designer",
-    "不得自动升级为 yolo",
-    "外部写操作仍必须在用户原始请求中明确授权",
-    "非交互环境不扩大授权",
+    "does not auto-upgrade to yolo",
+    "external writes still require explicit authorization in the user's original request",
+    "non-interactive environments do not expand authorization",
   ]) {
     if (!wizardContract.includes(currentContract)) throw new Error(`Fresh-install wizard skill is missing current contract ${currentContract}.`);
   }
