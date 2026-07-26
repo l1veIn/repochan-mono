@@ -27,11 +27,16 @@ export function writeConfigFileAtomic(path: string, contents: string): void {
 
     renameSync(temporaryPath, path);
 
-    const directoryDescriptor = openSync(directory, "r");
-    try {
-      fsyncSync(directoryDescriptor);
-    } finally {
-      closeSync(directoryDescriptor);
+    // Windows cannot fsync directory handles (EPERM). The file itself is
+    // already durable and atomically renamed; retain the stronger directory
+    // durability barrier on platforms that support it.
+    if (process.platform !== "win32") {
+      const directoryDescriptor = openSync(directory, "r");
+      try {
+        fsyncSync(directoryDescriptor);
+      } finally {
+        closeSync(directoryDescriptor);
+      }
     }
   } catch (error) {
     if (fileDescriptor !== undefined) {

@@ -195,13 +195,15 @@ describe("config (pure)", () => {
     expect(Object.keys(withoutProjectFile.endpoints ?? {})).toEqual(["global"]);
   });
 
-  it("atomically publishes config with mode 0600 and removes failed temporaries", async () => {
+  it("atomically publishes config, uses restrictive POSIX mode, and removes failed temporaries", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "rc-img-atomic-"));
     const configPath = path.join(dir, "image.json");
     writeConfigFileAtomic(configPath, "{\"version\":2}\n");
 
     expect(await fs.readFile(configPath, "utf8")).toBe("{\"version\":2}\n");
-    expect((await fs.stat(configPath)).mode & 0o777).toBe(0o600);
+    if (process.platform !== "win32") {
+      expect((await fs.stat(configPath)).mode & 0o777).toBe(0o600);
+    }
     expect(await fs.readdir(dir)).toEqual(["image.json"]);
 
     const blockedPath = path.join(dir, "blocked.json");
@@ -216,7 +218,9 @@ describe("config (pure)", () => {
   it("validates the final global v2 config before replacing its bytes", async () => {
     const home = await fs.mkdtemp(path.join(os.tmpdir(), "rc-img-home-"));
     const originalHome = process.env.HOME;
+    const originalUserProfile = process.env.USERPROFILE;
     process.env.HOME = home;
+    process.env.USERPROFILE = home;
     vi.resetModules();
 
     try {
@@ -227,7 +231,9 @@ describe("config (pure)", () => {
         endpoints: { primary: endpoint("primary") },
       });
       const originalBytes = await fs.readFile(isolatedConfig.GLOBAL_CONFIG_PATH);
-      expect((await fs.stat(isolatedConfig.GLOBAL_CONFIG_PATH)).mode & 0o777).toBe(0o600);
+      if (process.platform !== "win32") {
+        expect((await fs.stat(isolatedConfig.GLOBAL_CONFIG_PATH)).mode & 0o777).toBe(0o600);
+      }
 
       expect(() => isolatedConfig.saveGlobalConfig({
         version: 2,
@@ -238,6 +244,8 @@ describe("config (pure)", () => {
     } finally {
       if (originalHome === undefined) delete process.env.HOME;
       else process.env.HOME = originalHome;
+      if (originalUserProfile === undefined) delete process.env.USERPROFILE;
+      else process.env.USERPROFILE = originalUserProfile;
       vi.resetModules();
       await fs.rm(home, { recursive: true, force: true });
     }
