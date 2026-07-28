@@ -4,7 +4,11 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { resolveStarterChannelFromPackument, runStarterSync } from "./starter-sync.js";
+import {
+  resolveNpmInvocation,
+  resolveStarterChannelFromPackument,
+  runStarterSync,
+} from "./starter-sync.js";
 import { getStartersCacheDir, listStarters, resolveStarterSource } from "../lib/starter-loader.js";
 
 const execFileAsync = promisify(execFile);
@@ -63,6 +67,25 @@ function fixtureDeps(homeDir: string) {
 }
 
 describe("starter sync", () => {
+  it("routes npm through the Windows command processor only on Windows", () => {
+    expect(resolveNpmInvocation(["view", "@repochan/starters@latest", "version"], "win32", "C:\\Windows\\System32\\cmd.exe"))
+      .toEqual({
+        command: "C:\\Windows\\System32\\cmd.exe",
+        args: ["/d", "/s", "/c", "npm", "view", "@repochan/starters@latest", "version"],
+      });
+    expect(resolveNpmInvocation(["view", "@repochan/starters@latest", "version"], "linux"))
+      .toEqual({
+        command: "npm",
+        args: ["view", "@repochan/starters@latest", "version"],
+      });
+  });
+
+  it.runIf(process.platform === "win32")("can execute npm through the Windows invocation", async () => {
+    const invocation = resolveNpmInvocation(["--version"]);
+    const { stdout } = await execFileAsync(invocation.command, invocation.args);
+    expect(stdout.trim()).toMatch(/^\d+\.\d+\.\d+/);
+  });
+
   it("downloads, flattens, and publishes the cache atomically with a VERSION record", async () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const homeDir = await tempDir();

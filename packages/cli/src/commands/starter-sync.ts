@@ -49,6 +49,47 @@ function syncFailure(error: unknown): Error {
 // mirrors, auth). A plain-https registry fetch is the fallback for minimal
 // environments without an npm binary on PATH. Both avoid new dependencies.
 
+export type NpmInvocation = {
+  command: string;
+  args: string[];
+};
+
+/**
+ * Windows exposes npm as a .cmd shim, which child_process.execFile cannot
+ * execute directly. Route it through ComSpec there; keep direct execution on
+ * POSIX so npm still inherits the user's registry/auth configuration.
+ */
+export function resolveNpmInvocation(
+  args: string[],
+  platform: NodeJS.Platform = process.platform,
+  comSpec: string | undefined = process.env.ComSpec,
+): NpmInvocation {
+  if (platform === "win32") {
+    return {
+      command: comSpec || "cmd.exe",
+      args: ["/d", "/s", "/c", "npm", ...args],
+    };
+  }
+  return { command: "npm", args: [...args] };
+}
+
+async function execNpm(args: string[]) {
+  if (process.platform === "win32") {
+    try {
+      await execFileAsync("where.exe", ["npm.cmd"]);
+    } catch (error) {
+      if ((error as { code?: string | number }).code === 1) {
+        const missing = new Error("npm was not found on PATH.") as NodeJS.ErrnoException;
+        missing.code = "ENOENT";
+        throw missing;
+      }
+      throw error;
+    }
+  }
+  const invocation = resolveNpmInvocation(args);
+  return execFileAsync(invocation.command, invocation.args);
+}
+
 function normalizeChannel(value: string | undefined): string {
   const channel = value ?? "latest";
   if (!/^[a-z][a-z0-9._-]{0,63}$/i.test(channel)) {
@@ -59,7 +100,7 @@ function normalizeChannel(value: string | undefined): string {
 
 async function defaultResolveLatest(channel: string): Promise<string> {
   try {
-    const { stdout } = await execFileAsync("npm", ["view", `${STARTERS_PACKAGE}@${channel}`, "version"]);
+    const { stdout } = await execNpm(["view", `${STARTERS_PACKAGE}@${channel}`, "version"]);
     const version = stdout.trim().split(/\r?\n/).pop()?.trim();
     if (!version) throw new Error("npm returned an empty version.");
     return version;
@@ -71,7 +112,7 @@ async function defaultResolveLatest(channel: string): Promise<string> {
 
 async function defaultDownload(version: string, destDir: string): Promise<string> {
   try {
-    await execFileAsync("npm", ["pack", `${STARTERS_PACKAGE}@${version}`, "--pack-destination", destDir, "--ignore-scripts"]);
+    await execNpm(["pack", `${STARTERS_PACKAGE}@${version}`, "--pack-destination", destDir, "--ignore-scripts"]);
   } catch (error) {
     if (isCommandMissing(error)) return httpsDownload(version, destDir);
     throw syncFailure(error);
