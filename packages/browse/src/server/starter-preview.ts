@@ -33,7 +33,28 @@ export type StarterPreviewResult = {
 type RegistryEntry = { server: http.Server; port: number; children: Set<import("node:child_process").ChildProcess> };
 const registry = new Map<string, RegistryEntry>();
 
-const npmCommand = () => (process.platform === "win32" ? "npm.cmd" : "npm");
+export type NpmInvocation = {
+  command: string;
+  args: string[];
+};
+
+/**
+ * npm is exposed through a .cmd shim on Windows, which Node cannot spawn
+ * directly. Route it through ComSpec there and execute npm directly elsewhere.
+ */
+export function resolveNpmInvocation(
+  args: string[],
+  platform: NodeJS.Platform = process.platform,
+  comSpec: string | undefined = process.env.ComSpec,
+): NpmInvocation {
+  if (platform === "win32") {
+    return {
+      command: comSpec || "cmd.exe",
+      args: ["/d", "/s", "/c", "npm", ...args],
+    };
+  }
+  return { command: "npm", args: [...args] };
+}
 
 async function pathExists(file: string): Promise<boolean> {
   return (await fs.stat(file).catch(() => undefined)) !== undefined;
@@ -47,7 +68,8 @@ async function runStep(
   children: Set<import("node:child_process").ChildProcess>,
 ): Promise<void> {
   options.onProgress?.(`${label}…`);
-  const child = spawn(npmCommand(), args, {
+  const invocation = resolveNpmInvocation(args);
+  const child = spawn(invocation.command, invocation.args, {
     cwd,
     stdio: options.stdio === "inherit" ? "inherit" : ["ignore", "pipe", "pipe"],
     env: { ...process.env, CI: "true" },
