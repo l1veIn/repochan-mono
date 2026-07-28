@@ -4,6 +4,31 @@ This changelog records coordinated public package sets.
 
 ## Unreleased
 
+### Direct asset utilities and Windows npm subprocess fixes
+
+Patch set: `@repochan/skill@0.3.2`, `@repochan/browse@0.1.2`, and
+`repochan@0.4.2`. The unchanged artifacts are reused at `@repochan/core@0.3.1`,
+`@repochan/image-edit@0.3.1`, `@repochan/image-gen@0.3.0`,
+`@repochan/templates@0.3.1`, and `@repochan/starters@0.2.1`.
+
+- The `repochan` Wizard now routes direct image processing requests without
+  forcing users into the full brand pipeline. Existing project assets still
+  require approved orders and Painter delivery; protocol-external scratch
+  generation remains explicit.
+- New English-language, on-demand image tooling guidance covers generation, local editing,
+  multi-size PNG/ICO output, semantic grid extraction, iconfont output,
+  optional ML installation, compression, seamless QA, and GIF encoding.
+- A complete English-language, on-demand CLI reference covers every public command group,
+  including order extraction, Starter sync/preview, and the local protocol
+  browser.
+- On Windows, `starter sync` now routes npm through `ComSpec`, preserving the
+  user's registry and authentication behavior instead of falling back after a
+  `.cmd` shim spawn failure.
+- Browse Starter preview now routes its npm install and build subprocesses
+  through `ComSpec` on Windows while preserving direct execution on POSIX.
+- The CLI advances to `0.4.2` for the Windows sync fix and because the packed
+  runtime pins both `@repochan/skill` and `@repochan/browse` to exact versions.
+
 ## 2026-07-24 — `repochan` v0.4.1 package set
 
 ### Lightweight default CLI and explicit image ML capability
