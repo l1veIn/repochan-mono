@@ -6,9 +6,9 @@ This changelog records coordinated public package sets.
 
 ### Direct asset utilities and Windows npm subprocess fixes
 
-Patch set: `@repochan/skill@0.3.2`, `@repochan/browse@0.1.2`, and
-`repochan@0.4.2`. The unchanged artifacts are reused at `@repochan/core@0.3.1`,
-`@repochan/image-edit@0.3.1`, `@repochan/image-gen@0.3.0`,
+Patch set: `@repochan/image-edit@0.3.2`, `@repochan/image-gen@0.3.1`,
+`@repochan/skill@0.3.2`, `@repochan/browse@0.1.2`, and `repochan@0.4.2`.
+The unchanged artifacts are reused at `@repochan/core@0.3.1`,
 `@repochan/templates@0.3.1`, and `@repochan/starters@0.2.1`.
 
 - The `repochan` Wizard now routes direct image processing requests without
