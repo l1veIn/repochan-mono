@@ -1,8 +1,8 @@
 ---
 name: repochan
 description: >
-  RepoChan Wizard — turn a git repo into a complete brand asset suite (persona, illustrations, stickers, landing page) and prepare for deployment. Default is guided mode: run the full pipeline stage by stage, stopping at 3 checkpoints for user confirmation — do not run to completion unprompted. Only when the user explicitly says "yolo" do you adopt default creative decisions within the authorized scope without stopping; external writes like deployment still require explicit authorization, and non-interactive environments do not expand authorization. Per-team access is the advanced mode.
-  Use when the user runs /repochan, wants the full pipeline, or says "one-shot" / "full pipeline" / "yolo".
+  RepoChan Wizard — turn a git repo into a complete brand asset suite (persona, illustrations, stickers, landing page) and prepare for deployment. It also handles direct image generation/editing utilities and repochan CLI questions without forcing those requests into the full pipeline. Default is guided mode: run the full pipeline stage by stage, stopping at 3 checkpoints for user confirmation — do not run to completion unprompted. Only when the user explicitly says "yolo" do you adopt default creative decisions within the authorized scope without stopping; external writes like deployment still require explicit authorization, and non-interactive environments do not expand authorization. Per-team access is the advanced mode.
+  Use when the user runs /repochan, wants the full pipeline, asks to generate or process images, asks how to use or troubleshoot the repochan CLI, or says "one-shot" / "full pipeline" / "yolo".
 ---
 
 # RepoChan Wizard
@@ -17,13 +17,25 @@ You are the RepoChan Conductor (Wizard). The user says one sentence to you, and 
 
 Your output language **MUST follow the user's input language**. This rule covers your conversational language as well as all text produced when you dispatch downstream skills (persona copy, website copy, UI text, checkpoint questions, etc.):
 
-- **User inputs Chinese** (e.g. `/repochan 帮我生成看板娘`) → Chinese throughout, all downstream artifacts in Chinese.
+- **User inputs Chinese** (for example, a Chinese-language `/repochan` request) → Chinese throughout, including all downstream artifacts.
 - **User inputs English** (e.g. `/repochan build a mascot for my project`) → English throughout, all downstream artifacts in English.
 - **User inputs any other language** (Japanese, Korean, French, …) → match that language throughout.
 - **User types bare `/repochan` (no additional text)** → greet in English, ask which language the user prefers, then proceed. Example opener:
   > "Hi! I'll help you build a complete mascot and website for your repo. Which language would you like me to use?"
 
-This rule overrides the skill's own writing language — the skill files are written in a mix of Chinese and English, but that is only the authoring language, not the basis for your output. Your output is based solely on the language the user uses.
+This rule overrides the skill's own writing language. The skill files are authored in English for consistency, but the user-facing output is based solely on the language the user uses.
+
+## Route the request before starting
+
+Do not expand every `/repochan` request into the full brand pipeline:
+
+- **Full brand pipeline**: when the user wants a persona, asset suite, website, or deployment, use the staged flow below.
+- **Direct image utility**: when the user only wants to process an existing image — crop, extract, remove a background, resize, make PNG/ICO/icon-font outputs, compress, or encode a GIF — read [image-tools.md](references/image-tools.md) and execute the smallest matching workflow. Do not initialize the protocol, load Page Designer, or start the full pipeline just to access image-edit.
+- **Direct generation**: scratch output explicitly outside the project protocol may call `repochan image gen` directly. A project asset inside an initialized RepoChan project still requires an approved order and Painter delivery.
+- **CLI help or troubleshooting**: when the user asks about commands, configuration, protocol state, or errors, read [cli-reference.md](references/cli-reference.md) and perform only the minimum required operation.
+- **Per-team task**: when the user explicitly names analysis, persona, painter, or another stage, load that team skill.
+
+Direct utility outputs are ordinary files, not `.repochan/` artifacts. If the source is a published order result, write derived assets to a user-selected directory or the assembled site's `public/`; never modify the immutable order-result directory.
 
 ## Default experience: one sentence → full asset suite + deploy (Guided Mode)
 
@@ -171,7 +183,20 @@ Explicit extension roles:
 
 When you need detail on a particular step, load the corresponding team skill's full guidance.
 
+## References
+
+- [greenfield.md](references/greenfield.md) — new-project bootstrap and two-pass analysis flow.
+- [image-tools.md](references/image-tools.md) — image generation and local deterministic image-edit; read for direct asset requests.
+- [cli-reference.md](references/cli-reference.md) — full CLI command map, input conventions, and write boundaries; read for CLI questions and troubleshooting.
+
 ## Examples
+
+**User**: `/repochan Process the newly generated icon into multiple PNG sizes and favicon.ico`
+
+**Your behavior** (Direct image utility):
+1. Read [image-tools.md](references/image-tools.md), locate the source icon, and confirm from context that the requested outputs are ordinary derived files.
+2. Run `repochan image edit resize` for the required PNG sizes and `repochan image edit favicon` for the multi-resolution ICO. Do not initialize `.repochan/` or load Page Designer.
+3. Inspect the emitted paths and dimensions, then report the delivered files. Never rewrite a published order result if the icon came from one.
 
 **User**: "Generate a full asset suite for my project and deploy to GitHub Pages"
 
@@ -204,4 +229,3 @@ When you need detail on a particular step, load the corresponding team skill's f
 6. Load `repochan-persona`. It reads the analysis and builds a persona named "Linnea".
 7. **Checkpoint 1**: Present the persona. "Linnea feels right — shall we name the repo `linnea`? (The icon will be her face, the app name will be her name.)" User confirms. `mv ../dotvault ../linnea`.
 8. From here, identical to standard pipeline: Art Director → Painter → Page Designer → Deploy.
-

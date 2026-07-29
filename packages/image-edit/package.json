@@ -1,6 +1,6 @@
 {
   "name": "@repochan/image-edit",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Zero-credential local pixel operations for RepoChan: grid slicing and ML sticker extraction.",
   "type": "module",
   "license": "MIT",

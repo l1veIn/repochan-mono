@@ -6,7 +6,7 @@ This is a pure-markdown package (no build step, no code). It is the C-position o
 
 ## Skills
 
-- **`repochan`** — the **wizard** (orchestrator). Default experience: one sentence from the user → the wizard schedules all teams through the full pipeline with checkpoints. Explicit yolo selects default creative decisions inside the authorized scope; CI does not grant external write permission. Per-team access is the advanced mode.
+- **`repochan`** — the **wizard** (orchestrator). Default experience: one sentence from the user → the wizard schedules all teams through the full pipeline with checkpoints. It also routes direct image generation/editing requests and CLI questions through on-demand references, without forcing those requests into the full pipeline. Explicit yolo selects default creative decisions inside the authorized scope; CI does not grant external write permission. Per-team access is the advanced mode.
 - `repochan-analysis` — Analyst: scan the repo, write the analysis report.
 - `repochan-interviewer` — Interviewer (optional): structured interview for user preferences.
 - `repochan-persona` — Creative Team: build the mascot persona.
