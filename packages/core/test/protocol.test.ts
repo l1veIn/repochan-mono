@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { symlinkDir } from '../test-support/symlink.js';
 import {
   safeProtocolPath,
   initProtocol,
@@ -57,7 +58,7 @@ describe('protocol primitives', () => {
 
   it('rejects a protocol root symlink without writing to its destination', async () => {
     const outside = await fs.mkdtemp(path.join(os.tmpdir(), 'repochan-core-outside-'));
-    await fs.symlink(outside, path.join(projectRoot, PROTOCOL_DIR));
+    await symlinkDir(outside, path.join(projectRoot, PROTOCOL_DIR));
     try {
       await expect(initProtocol(projectRoot)).rejects.toThrow(/symbolic link/);
       expect(await fs.readdir(outside)).toEqual([]);
@@ -71,7 +72,7 @@ describe('protocol primitives', () => {
     const outside = await fs.mkdtemp(path.join(os.tmpdir(), 'repochan-core-outside-'));
     const analysis = path.join(projectRoot, PROTOCOL_DIR, 'analysis');
     await fs.rm(analysis, { recursive: true, force: true });
-    await fs.symlink(outside, analysis);
+    await symlinkDir(outside, analysis);
     const target = path.join(analysis, 'current.json');
     try {
       await expect(writeJson(target, { escaped: true })).rejects.toThrow(/symbolic link/);

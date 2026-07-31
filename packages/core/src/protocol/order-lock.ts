@@ -3,11 +3,37 @@ import { promises as fs } from "node:fs";
 import { hostname } from "node:os";
 import path from "node:path";
 import { assertNoProtocolSymlinkPath } from "./path-safety.js";
+import { removeRecursive, renameReplacing } from "../platform/fs.js";
 
 function errorCode(error: unknown): string | undefined {
   return typeof error === "object" && error !== null && "code" in error
     ? String((error as { code?: unknown }).code)
     : undefined;
+}
+
+/**
+ * Atomically claim the lock directory, retrying the transient EPERM/EBUSY that
+ * Windows raises while antivirus still holds the just-written candidate.
+ *
+ * The collision case is classified by `lockDir` existence rather than errno:
+ * POSIX surfaces a held lock as EEXIST/ENOTEMPTY, but Windows reports the same
+ * collision as EPERM/EBUSY. Returns `false` when another holder won the lock
+ * between our check and rename.
+ */
+async function acquireLockRename(candidate: string, lockDir: string): Promise<boolean> {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    try {
+      await fs.rename(candidate, lockDir);
+      return true;
+    } catch (error) {
+      if (await fs.stat(lockDir).then(() => true).catch(() => false)) return false;
+      const code = errorCode(error);
+      if (code !== "EPERM" && code !== "EBUSY" && code !== "EACCES" && code !== "ENOTEMPTY") throw error;
+      if (attempt === 7) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 25 * (attempt + 1)));
+    }
+  }
+  return false;
 }
 
 function orderLockRoot(projectRoot: string, orderId: string): string {
@@ -39,12 +65,17 @@ export async function withOrderMutationLock<T>(
   for (let attempt = 0; attempt < 2 && !acquired; attempt++) {
     const candidate = await fs.mkdtemp(path.join(locksRoot, ".candidate-"));
     await fs.writeFile(path.join(candidate, "owner.json"), `${JSON.stringify(owner, null, 2)}\n`, "utf8");
+    let renameError: unknown;
     try {
-      await fs.rename(candidate, lockDir);
-      acquired = true;
+      acquired = await acquireLockRename(candidate, lockDir);
     } catch (error) {
-      await fs.rm(candidate, { recursive: true, force: true }).catch(() => undefined);
-      if (errorCode(error) !== "EEXIST" && errorCode(error) !== "ENOTEMPTY") throw error;
+      renameError = error;
+    }
+    if (!acquired) {
+      await removeRecursive(candidate).catch(() => undefined);
+      // Classify the collision by lockDir existence, not errno: Windows reports
+      // a held lock as EPERM/EBUSY rather than the POSIX EEXIST/ENOTEMPTY.
+      if (!(await fs.stat(lockDir).then(() => true).catch(() => false))) throw renameError;
       const existingOwner = await fs.readFile(path.join(lockDir, "owner.json"), "utf8")
         .then((raw) => JSON.parse(raw) as typeof owner)
         .catch(() => undefined);
@@ -61,8 +92,8 @@ export async function withOrderMutationLock<T>(
       }
       if (stale) {
         const staleDir = path.join(locksRoot, `.stale-${process.pid}-${Date.now()}`);
-        await fs.rename(lockDir, staleDir).catch(() => undefined);
-        await fs.rm(staleDir, { recursive: true, force: true }).catch(() => undefined);
+        await renameReplacing(lockDir, staleDir).catch(() => undefined);
+        await removeRecursive(staleDir).catch(() => undefined);
         continue;
       }
       const detail = existingOwner
@@ -78,6 +109,6 @@ export async function withOrderMutationLock<T>(
     const current = await fs.readFile(path.join(lockDir, "owner.json"), "utf8")
       .then((raw) => JSON.parse(raw) as { nonce?: string })
       .catch(() => undefined);
-    if (current?.nonce === nonce) await fs.rm(lockDir, { recursive: true, force: true }).catch(() => undefined);
+    if (current?.nonce === nonce) await removeRecursive(lockDir).catch(() => undefined);
   }
 }

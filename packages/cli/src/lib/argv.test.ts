@@ -67,6 +67,8 @@ describe("normalizeCliArgv", () => {
       const invoke = (...args: string[]) => spawnSync(tsx, [path.join(cliRoot, "src/index.ts"), "order", "get-result", orderId, ...args, "--json"], {
         cwd: projectRoot,
         encoding: "utf8",
+        // pnpm's .bin/tsx is a .cmd shim on Windows; run it through cmd.exe.
+        shell: process.platform === "win32",
       });
       const result = invoke("--result-version", "v1");
       expect(result.status, result.stderr).toBe(0);
@@ -100,6 +102,7 @@ describe("normalizeCliArgv", () => {
       const result = spawnSync(tsx, [path.join(cliRoot, "src/index.ts"), "validate", "--json"], {
         cwd: projectRoot,
         encoding: "utf8",
+        shell: process.platform === "win32",
       });
       expect(result.status, result.stderr).toBe(1);
       const report = JSON.parse(result.stdout);

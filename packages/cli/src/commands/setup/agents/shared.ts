@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
+import { removeRecursive, renameReplacing, unlinkFile } from "@repochan/core";
 import type { AgentId, AgentTarget, InstallResult } from "./types.js";
 import { cliVersion } from "../../../lib/register.js";
 
@@ -164,7 +165,7 @@ export async function removeMarkerSection(filePath: string, agentId?: AgentId): 
 
   if (!changed) return false;
   if (content.trim() === "") {
-    await fs.unlink(filePath).catch(() => {});
+    await unlinkFile(filePath).catch(() => {});
   } else {
     await atomicWrite(filePath, content);
   }
@@ -268,7 +269,7 @@ export async function removeOwnedFile(filePath: string, expectedBody: string): P
   // `repochan:setup` (or containing a partial marker) is not ours.
   const content = await fs.readFile(filePath, "utf8");
   if (!hasExactOwnedFileEnvelope(content, expectedBody)) return false;
-  await fs.unlink(filePath);
+  await unlinkFile(filePath);
   return true;
 }
 
@@ -276,7 +277,7 @@ async function atomicWrite(filePath: string, content: string): Promise<void> {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   const tmp = `${filePath}.tmp.${process.pid}`;
   await fs.writeFile(tmp, content, "utf8");
-  await fs.rename(tmp, filePath);
+  await renameReplacing(tmp, filePath);
 }
 
 export async function isConfigured(cwd: string, target: AgentTarget): Promise<boolean> {
@@ -365,10 +366,10 @@ export async function uninstallTarget(
         if (!entry.isDirectory()) continue;
         const installed = path.join(skillAbs, entry.name);
         if (await fileExists(path.join(installed, "SKILL.md"))) {
-          await fs.rm(installed, { recursive: true, force: true });
+          await removeRecursive(installed);
         }
       }
-      await fs.unlink(versionStamp).catch(() => {});
+      await unlinkFile(versionStamp).catch(() => {});
       await fs.rmdir(skillAbs).catch(() => {}); // only succeeds when the shared container is empty
     }
   }

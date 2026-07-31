@@ -42,7 +42,9 @@ beforeAll(async () => {
     assets: [],
   }));
   fixtureTarball = path.join(fixtureRoot, "repochan-starters-9.9.9.tgz");
-  await execFileAsync("tar", ["-czf", fixtureTarball, "-C", fixtureRoot, "package"]);
+  // --force-local + slash paths: Windows bsdtar reads a drive-letter/backslash
+  // path as remote or mangles it.
+  await execFileAsync("tar", ["-czf", fixtureTarball.split(path.sep).join("/"), "--force-local", "-C", fixtureRoot.split(path.sep).join("/"), "package"]);
 });
 
 afterAll(async () => {

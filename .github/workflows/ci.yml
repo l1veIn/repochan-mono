@@ -73,11 +73,20 @@ jobs:
       - name: Install dependencies from lockfile
         run: pnpm install --frozen-lockfile
 
+      - name: Build workspace packages
+        run: pnpm --filter repochan... build
+
       - name: Test Windows config persistence
         run: pnpm --filter @repochan/image-gen test
 
       - name: Test native image runtime
         run: pnpm --filter @repochan/image-edit test
+
+      - name: Test protocol core on Windows
+        run: pnpm --filter @repochan/core test
+
+      - name: Test CLI on Windows
+        run: pnpm --filter repochan test
 
   build-and-pack-smoke:
     name: Build and pack smoke (Node 20)

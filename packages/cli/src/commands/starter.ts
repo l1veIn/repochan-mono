@@ -7,6 +7,8 @@ import {
   listOrders,
   orderVersionDir,
   projectStarterSiteConfig,
+  removeRecursive,
+  renameReplacing,
   readJson,
   readAnalysisArtifact,
   readOrder,
@@ -212,7 +214,7 @@ export async function runStarterPull(cwd: string, options: StarterOptions, deps:
   }
   if (await exists(target)) {
     if (!options.overwrite) throw new UsageError(`outputDir exists: ${target}. Pass --overwrite to replace.`);
-    await fs.rm(target, { recursive: true, force: true });
+    await removeRecursive(target);
   }
   await fs.mkdir(path.dirname(target), { recursive: true });
   await fs.cp(source, target, {
@@ -485,17 +487,17 @@ async function publishFilesWithRollback(
       if (await exists(destination)) {
         backup = path.join(backupRoot, String(index));
         await fs.mkdir(path.dirname(backup), { recursive: true });
-        await fs.rename(destination, backup);
+        await renameReplacing(destination, backup);
       }
       changed.push({ destination, backup });
-      await fs.rename(staged, destination);
+      await renameReplacing(staged, destination);
     }
   } catch (error) {
     for (const item of changed.reverse()) {
-      await fs.rm(item.destination, { recursive: true, force: true }).catch(() => undefined);
+      await removeRecursive(item.destination).catch(() => undefined);
       if (item.backup) {
         await fs.mkdir(path.dirname(item.destination), { recursive: true });
-        await fs.rename(item.backup, item.destination).catch(() => undefined);
+        await renameReplacing(item.backup, item.destination).catch(() => undefined);
       }
     }
     throw error;
@@ -753,7 +755,7 @@ export async function runStarterAssetApply(
     }
     throw err;
   } finally {
-    await fs.rm(tempRoot, { recursive: true, force: true });
+    await removeRecursive(tempRoot);
   }
 }
 
@@ -829,7 +831,7 @@ export async function runStarterAssetImport(cwd: string, slotName: string | unde
       provenance,
     });
   } finally {
-    await fs.rm(tempRoot, { recursive: true, force: true });
+    await removeRecursive(tempRoot);
   }
 }
 

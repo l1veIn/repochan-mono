@@ -3,6 +3,7 @@ import { promises as fs } from "node:fs";
 import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
+import { removeRecursive, renameReplacing } from "@repochan/core";
 const require = createRequire(import.meta.url);
 
 export const IMAGE_ML_CAPABILITY = "image-ml";
@@ -232,14 +233,14 @@ async function validateBundledModels(runtimeRoot: string): Promise<void> {
 async function publishRuntime(staging: string, target: string): Promise<void> {
   const backup = `${target}.backup-${process.pid}`;
   const hadPrevious = (await fs.stat(target).catch(() => undefined))?.isDirectory() === true;
-  await fs.rm(backup, { recursive: true, force: true });
+  await removeRecursive(backup);
   try {
-    if (hadPrevious) await fs.rename(target, backup);
-    await fs.rename(staging, target);
-    await fs.rm(backup, { recursive: true, force: true });
+    if (hadPrevious) await renameReplacing(target, backup);
+    await renameReplacing(staging, target);
+    await removeRecursive(backup);
   } catch (error) {
-    await fs.rm(target, { recursive: true, force: true }).catch(() => undefined);
-    if (hadPrevious) await fs.rename(backup, target).catch(() => undefined);
+    await removeRecursive(target).catch(() => undefined);
+    if (hadPrevious) await renameReplacing(backup, target).catch(() => undefined);
     throw error;
   }
 }
@@ -282,7 +283,7 @@ export async function installImageMlCapability(
     await fs.writeFile(path.join(staging, IMAGE_ML_MANIFEST), `${JSON.stringify(manifest, null, 2)}\n`);
     await publishRuntime(staging, before.runtimeRoot);
   } catch (error) {
-    await fs.rm(staging, { recursive: true, force: true });
+    await removeRecursive(staging);
     throw new Error(
       `Failed to install ${packageSpec}: ${error instanceof Error ? error.message : String(error)}. Existing capability caches were left untouched.`,
       { cause: error },

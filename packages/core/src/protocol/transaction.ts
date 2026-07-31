@@ -4,6 +4,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { assertNoProtocolSymlinkPath } from "./path-safety.js";
 import { withOrderMutationLock } from "./order-lock.js";
+import { removeRecursive, renameReplacing } from "../platform/fs.js";
 
 type Snapshot = {
   target: string;
@@ -42,7 +43,7 @@ async function durableJson(file: string, value: unknown): Promise<void> {
   } finally {
     await handle.close();
   }
-  await fs.rename(temp, file);
+  await renameReplacing(temp, file);
   try {
     const dir = await fs.open(path.dirname(file), "r");
     try { await dir.sync(); } finally { await dir.close(); }
@@ -59,8 +60,14 @@ async function syncPath(target: string): Promise<void> {
     const entries = await fs.readdir(target);
     for (const entry of entries) await syncPath(path.join(target, entry));
   } else if (stat.isFile()) {
-    const handle = await fs.open(target, "r");
-    try { await handle.sync(); } finally { await handle.close(); }
+    // Windows cannot fsync read-only handles (EPERM). The file bytes were
+    // already synced before atomic publish, so this barrier is best-effort.
+    try {
+      const handle = await fs.open(target, "r");
+      try { await handle.sync(); } finally { await handle.close(); }
+    } catch {
+      // Best effort on platforms that cannot fsync read-only handles.
+    }
   }
   try {
     const handle = await fs.open(stat.isDirectory() ? target : path.dirname(target), "r");
@@ -134,7 +141,7 @@ async function restoreSnapshots(protocolRoot: string, transactionRoot: string, m
     const backup = path.resolve(transactionRoot, snapshot.backup);
     if (!backup.startsWith(`${path.resolve(transactionRoot)}${path.sep}`)) throw new Error("Protocol transaction backup escapes its root.");
     await assertNoProtocolSymlinkPath(target);
-    await fs.rm(target, { recursive: true, force: true });
+    await removeRecursive(target);
     if (snapshot.existed) {
       const stat = await fs.lstat(backup);
       if (!stat.isFile() && !stat.isDirectory()) throw new Error(`Invalid protocol transaction backup: ${backup}`);
@@ -180,11 +187,11 @@ async function acquireEntityLock(protocolRoot: string, entity: string): Promise<
       await fs.writeFile(path.join(lockDir, OWNER_FILE), `${JSON.stringify(owner, null, 2)}\n`, { flag: "wx" });
       return async () => {
         const current = await readLockOwner(lockDir);
-        if (current?.nonce === owner.nonce) await fs.rm(lockDir, { recursive: true, force: true });
+        if (current?.nonce === owner.nonce) await removeRecursive(lockDir);
       };
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
-        await fs.rm(lockDir, { recursive: true, force: true }).catch(() => undefined);
+        await removeRecursive(lockDir).catch(() => undefined);
         throw error;
       }
       const current = await readLockOwner(lockDir);
@@ -192,7 +199,7 @@ async function acquireEntityLock(protocolRoot: string, entity: string): Promise<
       const ownerlessStale = !current && stat && Date.now() - stat.mtimeMs >= OWNERLESS_STALE_MS;
       const sameHostDead = current?.hostname === os.hostname() && !processIsAlive(current.pid);
       if (attempt === 0 && (ownerlessStale || sameHostDead)) {
-        await fs.rm(lockDir, { recursive: true, force: true });
+        await removeRecursive(lockDir);
         continue;
       }
       const holder = current ? `pid ${current.pid} on ${current.hostname}` : "an unverified owner";
@@ -285,7 +292,7 @@ export async function withProtocolRollback<T>(targets: string[], action: () => P
       const result = await action();
       for (const target of managed) await syncPath(target);
       await durableJson(path.join(transactionRoot, "committed.json"), { transactionId, nonce: owner.nonce });
-      await fs.rm(transactionRoot, { recursive: true, force: true }).catch(() => undefined);
+      await removeRecursive(transactionRoot).catch(() => undefined);
       return result;
     } catch (error) {
       const rollbackErrors: unknown[] = [];
@@ -305,7 +312,7 @@ export async function withProtocolRollback<T>(targets: string[], action: () => P
           `Protocol transaction failed and durable rollback is pending at ${transactionRoot}: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
-      await fs.rm(transactionRoot, { recursive: true, force: true }).catch(() => undefined);
+      await removeRecursive(transactionRoot).catch(() => undefined);
       throw error;
     }
   });
@@ -332,7 +339,7 @@ export async function recoverProtocolTransactions(protocolRoot: string): Promise
     // The action cannot start until intent.json has been durably published.
     // A crash before that point leaves only disposable transaction scaffolding.
     if (intentRaw === undefined) {
-      await fs.rm(transactionRoot, { recursive: true, force: true });
+      await removeRecursive(transactionRoot);
       continue;
     }
     const intent = parseIntent(JSON.parse(intentRaw), entry.name);
@@ -343,7 +350,7 @@ export async function recoverProtocolTransactions(protocolRoot: string): Promise
         .then((raw) => JSON.parse(raw) as { transactionId?: string; nonce?: string })
         .catch(() => undefined);
       if (committed?.transactionId === intent.transactionId && committed.nonce === intent.owner.nonce) {
-        await fs.rm(transactionRoot, { recursive: true, force: true });
+        await removeRecursive(transactionRoot);
         return;
       }
       const manifestRaw = await fs.readFile(path.join(transactionRoot, "manifest.json"), "utf8").catch((error) => {
@@ -354,7 +361,7 @@ export async function recoverProtocolTransactions(protocolRoot: string): Promise
         const manifest = parseManifest(JSON.parse(manifestRaw), intent);
         await restoreSnapshots(protocolRoot, transactionRoot, manifest);
       }
-      await fs.rm(transactionRoot, { recursive: true, force: true });
+      await removeRecursive(transactionRoot);
     });
   }
 }

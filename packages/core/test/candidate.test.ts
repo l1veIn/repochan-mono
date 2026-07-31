@@ -16,6 +16,7 @@ import {
 } from "../src/entities/index.js";
 import { initProtocol } from "../src/protocol/index.js";
 import { seedUpstream } from "../test-support/fixtures.js";
+import { symlinkDir } from "../test-support/symlink.js";
 
 describe("candidate lifecycle pointers", () => {
   let projectRoot: string;
@@ -109,7 +110,7 @@ describe("candidate lifecycle pointers", () => {
     const outside = path.join(projectRoot, "outside");
     await fs.mkdir(outside);
     await fs.rm(versionDir, { recursive: true });
-    await fs.symlink(outside, versionDir);
+    await symlinkDir(outside, versionDir);
     await expect(promoteCandidate(projectRoot, "ord-candidate-guards", "c1")).rejects.toThrow(/refuses symlink path/);
 
   });

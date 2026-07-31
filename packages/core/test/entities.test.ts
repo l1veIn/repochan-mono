@@ -19,6 +19,7 @@ import {
 } from '../src/entities/index.js';
 import { initProtocol } from '../src/protocol/index.js';
 import { seedUpstream } from '../test-support/fixtures.js';
+import { symlinkDir } from '../test-support/symlink.js';
 
 describe('entities (core business operations)', () => {
   let tmpRoot: string;
@@ -712,7 +713,7 @@ describe('entities (core business operations)', () => {
     await fs.mkdir(outside);
     await fs.writeFile(path.join(outside, 'keep.txt'), 'outside bytes');
     await fs.rm(path.join(orderDir, 'versions'), { recursive: true });
-    await fs.symlink(outside, path.join(orderDir, 'versions'));
+    await symlinkDir(outside, path.join(orderDir, 'versions'));
     const nonce = await anchorTransaction('ord-recovery-link', transactionId, 'result_publish', 'v1');
     await fs.writeFile(path.join(transactionRoot, 'recovery.json'), `${JSON.stringify({
       schemaVersion: 'repochan.order-recovery.v1', transactionId, orderId: 'ord-recovery-link',
@@ -777,7 +778,7 @@ describe('entities (core business operations)', () => {
     const outside = path.join(projectRoot, 'outside-list-transaction');
     await fs.mkdir(outside);
     await fs.writeFile(path.join(outside, 'recovery.json'), '{}');
-    await fs.symlink(outside, path.join(orderDir, '.result-txn-linked'));
+    await symlinkDir(outside, path.join(orderDir, '.result-txn-linked'));
 
     expect((await listOrderRecoveries(projectRoot, 'ord-recovery-list-link')).recoveries).toEqual([]);
     expect(await fs.readFile(path.join(outside, 'recovery.json'), 'utf8')).toBe('{}');
@@ -861,7 +862,7 @@ describe('entities (core business operations)', () => {
     const outside = path.join(projectRoot, 'outside-versions');
     await fs.mkdir(outside);
     await fs.rm(versionsDir, { recursive: true });
-    await fs.symlink(outside, versionsDir);
+    await symlinkDir(outside, versionsDir);
 
     await expect(createOrderResult(projectRoot, {
       orderId: 'ord-symlink', versionId: 'v1', files: [source], tool: 'manual-upload',

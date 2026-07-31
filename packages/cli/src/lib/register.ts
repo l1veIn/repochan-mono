@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { randomUUID } from "node:crypto";
+import { renameReplacing, unlinkFile } from "@repochan/core";
 
 const require = createRequire(import.meta.url);
 
@@ -231,7 +232,7 @@ export async function saveRegister(reg: Register): Promise<void> {
     await handle.sync();
     await handle.close();
     handle = undefined;
-    await fs.rename(tmp, REGISTER_PATH);
+    await renameReplacing(tmp, REGISTER_PATH);
     try {
       const dirHandle = await fs.open(REGISTER_DIR, "r");
       try { await dirHandle.sync(); } finally { await dirHandle.close(); }
@@ -241,7 +242,7 @@ export async function saveRegister(reg: Register): Promise<void> {
     }
   } finally {
     if (handle) await handle.close().catch(() => undefined);
-    await fs.unlink(tmp).catch(() => undefined);
+    await unlinkFile(tmp).catch(() => undefined);
   }
 }
 

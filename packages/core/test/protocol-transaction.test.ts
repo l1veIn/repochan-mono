@@ -103,6 +103,32 @@ describe("multi-file protocol transaction rollback", () => {
     expect(await snapshotTree(analysisRoot)).toEqual(before);
   });
 
+  it("tolerates read-only fsync rejection like Windows (EPERM on 'r' handles)", async () => {
+    // Windows cannot fsync a handle opened read-only; FlushFileBuffers fails
+    // and libuv surfaces it as EPERM. syncPath must treat the barrier as
+    // best-effort instead of failing the whole protocol mutation.
+    const originalOpen = fs.open.bind(fs);
+    vi.spyOn(fs, "open").mockImplementation(async (target, flag, mode) => {
+      const handle = await originalOpen(target, flag, mode);
+      if (flag === "r") {
+        handle.sync = async () => {
+          const error = new Error("EPERM: operation not permitted, fsync") as NodeJS.ErrnoException;
+          error.code = "EPERM";
+          throw error;
+        };
+      }
+      return handle;
+    });
+
+    await expect(updateAnalysisArtifact(projectRoot, {
+      overwrite: true,
+      patch: { context: { identity: { namingSeeds: { secondary: ["readonly-fsync"] } } } },
+    })).resolves.toBeTruthy();
+
+    const current = await fs.readFile(path.join(projectRoot, ".repochan", "analysis", "current.json"), "utf8");
+    expect(current).toContain("readonly-fsync");
+  });
+
   it("rejects a concurrent mutation before it can be erased by rollback", async () => {
     const analysisRoot = path.join(projectRoot, ".repochan", "analysis");
     let signalStarted!: () => void;

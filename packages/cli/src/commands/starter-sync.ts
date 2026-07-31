@@ -3,6 +3,7 @@ import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
+import { removeRecursive, renameReplacing } from "@repochan/core";
 import { emitResult, type OutputOptions } from "../lib/output.js";
 import {
   getStartersCacheDir,
@@ -165,7 +166,12 @@ async function httpsDownload(version: string, destDir: string): Promise<string> 
 async function extractTarball(tarball: string, destination: string): Promise<void> {
   await fs.mkdir(destination, { recursive: true });
   try {
-    await execFileAsync("tar", ["-xzf", tarball, "-C", destination]);
+    // Windows bsdtar mangles backslash drive paths and misreads a colon in the
+    // archive path as a remote URL, so pass slash-normalized paths plus
+    // --force-local; Win32 APIs accept forward slashes.
+    const archive = tarball.split(path.sep).join("/");
+    const dir = destination.split(path.sep).join("/");
+    await execFileAsync("tar", ["-xzf", archive, "--force-local", "-C", dir]);
   } catch (error) {
     throw syncFailure(new Error(`tar extraction failed for ${tarball}: ${error instanceof Error ? error.message : String(error)}`));
   }
@@ -174,16 +180,16 @@ async function extractTarball(tarball: string, destination: string): Promise<voi
 /** Atomically replace the cache: staging dir → rename, with backup rollback. */
 async function publishCache(staging: string, cacheDir: string): Promise<void> {
   const backup = `${cacheDir}.backup-${process.pid}`;
-  await fs.rm(backup, { recursive: true, force: true });
+  await removeRecursive(backup);
   const hadPrevious = (await fs.stat(cacheDir).catch(() => undefined))?.isDirectory() === true;
   try {
-    if (hadPrevious) await fs.rename(cacheDir, backup);
+    if (hadPrevious) await renameReplacing(cacheDir, backup);
     await fs.mkdir(path.dirname(cacheDir), { recursive: true });
-    await fs.rename(staging, cacheDir);
-    await fs.rm(backup, { recursive: true, force: true });
+    await renameReplacing(staging, cacheDir);
+    await removeRecursive(backup);
   } catch (error) {
-    await fs.rm(cacheDir, { recursive: true, force: true }).catch(() => undefined);
-    if (hadPrevious) await fs.rename(backup, cacheDir).catch(() => undefined);
+    await removeRecursive(cacheDir).catch(() => undefined);
+    if (hadPrevious) await renameReplacing(backup, cacheDir).catch(() => undefined);
     throw error;
   }
 }
@@ -222,7 +228,7 @@ export async function runStarterSync(_cwd: string, options: StarterSyncOptions, 
     await fs.writeFile(path.join(staging, STARTERS_CACHE_VERSION_FILE), `${version}\n`);
     await publishCache(staging, cacheDir);
   } finally {
-    await fs.rm(workRoot, { recursive: true, force: true });
+    await removeRecursive(workRoot);
   }
 
   return emitResult(options, `Synced ${STARTERS_PACKAGE}@${version} → ${cacheDir}`, {

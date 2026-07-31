@@ -1,4 +1,13 @@
 import { mkdir, mkdtemp, readdir, readFile, rm, symlink as fsSymlink, writeFile } from "node:fs/promises";
+
+/** Directory symlink for security tests: Windows junctions need no privilege. */
+async function symlinkDir(target: string, linkPath: string): Promise<void> {
+  if (process.platform === "win32") {
+    await fsSymlink(target, linkPath, "junction");
+    return;
+  }
+  await fsSymlink(target, linkPath);
+}
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -359,14 +368,14 @@ describe("starter v1 commands", () => {
     const outside = path.join(root, "outside");
     await mkdir(outside);
     await rm(path.join(siteDir, "public/assets"), { recursive: true });
-    await fsSymlink(outside, path.join(siteDir, "public/assets"));
+    await symlinkDir(outside, path.join(siteDir, "public/assets"));
     await expect(runStarterAssetImport(root, "hero-composite", {
       outputDir: siteDir, file: source, overwrite: true, json: true,
     })).rejects.toThrow(/refuses symlink path/);
     await expect(readFile(path.join(outside, "hero-composite.webp"))).rejects.toThrow();
   });
 
-  it("refuses a symlinked assets config before importing", async () => {
+  it.runIf(process.platform !== "win32")("refuses a symlinked assets config before importing", async () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
     const root = await projectFixture();
     const siteDir = path.join(root, "site");
@@ -476,7 +485,7 @@ describe("starter v1 commands", () => {
       return {} as never;
     });
     vi.mocked(chromaKeyImage).mockImplementation(async (source, out) => {
-      expect(source).toMatch(/public\/assets\/intermediate\.webp$/);
+      expect(source).toMatch(/public[\\/]assets[\\/]intermediate\.webp$/);
       expect(await readFile(source, "utf8")).toBe("intermediate");
       await mkdir(path.dirname(out), { recursive: true });
       await writeFile(out, "final");

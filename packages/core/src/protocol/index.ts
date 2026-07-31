@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { removeRecursive, renameReplacing, retryFs, unlinkFile } from "../platform/fs.js";
 import type { TSchema } from "typebox";
 import {
   AnalysisArtifactSchema,
@@ -89,17 +90,17 @@ export async function writeJson(file: string, data: unknown, overwrite = false) 
     handle = undefined;
 
     if (overwrite) {
-      await fs.rename(temp, file);
+      await renameReplacing(temp, file);
     } else {
       try {
-        await fs.link(temp, file);
+        await retryFs(() => fs.link(temp, file));
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code === "EEXIST") {
           throw new Error(`Refusing to overwrite existing artifact without overwrite=true: ${file}`);
         }
         throw error;
       }
-      await fs.unlink(temp);
+      await unlinkFile(temp);
     }
 
     // Persist the directory entry where the platform supports directory fsync.
@@ -112,7 +113,7 @@ export async function writeJson(file: string, data: unknown, overwrite = false) 
     }
   } finally {
     if (handle) await handle.close().catch(() => undefined);
-    await fs.unlink(temp).catch(() => undefined);
+    await unlinkFile(temp).catch(() => undefined);
   }
 }
 
@@ -214,9 +215,11 @@ export async function inspectProtocol(projectRoot: string) {
 
 export function protocolVersionPath(strippedArtifactPath: string, stampValue = stampForPath()) {
   const clean = stripProtocolPrefix(strippedArtifactPath).split(/[\\/]+/).join("/");
-  if (clean === "analysis/current.json") return path.join("analysis", "versions", `${stampValue}.json`);
-  if (clean === "persona/current.json") return path.join("persona", "versions", `${stampValue}.json`);
-  return path.join(path.dirname(clean), "versions", `${stampValue}.json`);
+  // Protocol paths are always slash-separated regardless of host platform, so
+  // the conventional location is identical on Windows and POSIX.
+  if (clean === "analysis/current.json") return `analysis/versions/${stampValue}.json`;
+  if (clean === "persona/current.json") return `persona/versions/${stampValue}.json`;
+  return `${path.dirname(clean)}/versions/${stampValue}.json`;
 }
 
 export function relativeProtocolPath(projectRoot: string, file: string) {

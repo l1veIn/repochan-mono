@@ -6,6 +6,7 @@ import {
   listOrders,
   updateOrder,
   setOrderStatus,
+  removeRecursive,
   addOrderRevision,
   createOrderResult,
   createOrderCandidate,
@@ -355,6 +356,6 @@ export async function runOrderExtract(
     );
     return extracted;
   } finally {
-    await fs.rm(tempRoot, { recursive: true, force: true });
+    await removeRecursive(tempRoot);
   }
 }

@@ -30,6 +30,7 @@ import {
 } from "../src/schemas/index.js";
 import { Type } from "typebox";
 import { canonicalAnalysis, seedUpstream } from "../test-support/fixtures.js";
+import { symlinkDir } from "../test-support/symlink.js";
 import * as publicProtocol from "../src/protocol/public.js";
 
 describe("unified validation layer", () => {
@@ -316,7 +317,7 @@ describe("unified validation layer", () => {
     const protocol = path.join(projectRoot, ".repochan");
     const real = path.join(projectRoot, "protocol-real");
     await fs.rename(protocol, real);
-    await fs.symlink(real, protocol);
+    await symlinkDir(real, protocol);
     const report = await validateProtocol(projectRoot);
     expect(report.ok).toBe(false);
     expect(report.problems).toContainEqual(expect.objectContaining({ code: "unsafe_protocol_root" }));
@@ -335,7 +336,7 @@ describe("unified validation layer", () => {
     await fs.writeFile(path.join(outsideVersion, "meta.json"), JSON.stringify(version));
     const versionsDir = path.join(projectRoot, ".repochan", "orders", orderId, "versions");
     await fs.mkdir(versionsDir, { recursive: true });
-    await fs.symlink(outsideVersion, path.join(versionsDir, "v1"));
+    await symlinkDir(outsideVersion, path.join(versionsDir, "v1"));
     await fs.writeFile(path.join(projectRoot, ".repochan", "orders", orderId, "order.json"), JSON.stringify({
       schemaVersion: "repochan.asset-order.v1",
       orderId,
@@ -368,7 +369,7 @@ describe("unified validation layer", () => {
     await fs.writeFile(path.join(versionsDir, "loose.txt"), "not a version");
     const outsideVersion = path.join(tmpRoot, "outside-topology-version");
     await fs.mkdir(outsideVersion, { recursive: true });
-    await fs.symlink(outsideVersion, path.join(versionsDir, "v-link"));
+    await symlinkDir(outsideVersion, path.join(versionsDir, "v-link"));
 
     await fs.writeFile(path.join(orderDir, "order.json"), JSON.stringify({
       schemaVersion: "repochan.asset-order.v1",
@@ -385,7 +386,7 @@ describe("unified validation layer", () => {
     await fs.writeFile(path.join(projectRoot, ".repochan", "orders", "stray.txt"), "not an order");
     const outsideOrder = path.join(tmpRoot, "outside-order");
     await fs.mkdir(outsideOrder, { recursive: true });
-    await fs.symlink(outsideOrder, path.join(projectRoot, ".repochan", "orders", "ord-symlink-topology"));
+    await symlinkDir(outsideOrder, path.join(projectRoot, ".repochan", "orders", "ord-symlink-topology"));
 
     const result = await validateProtocol(projectRoot);
     expect(result.ok).toBe(false);

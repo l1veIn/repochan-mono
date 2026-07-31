@@ -173,7 +173,7 @@ describe("image edit extract", () => {
       [CLI_ENTRY, "image", "edit", "extract", grid,
         "--rows", "3", "--cols", "3", "--out", outDir,
         "--mapping", KEYS.join(","), "--normalize", "64", "--json"],
-      { cwd: dir, encoding: "utf8", timeout: 180_000 },
+      { cwd: dir, encoding: "utf8", timeout: 180_000, shell: process.platform === "win32" },
     );
     expect(res.error).toBeUndefined();
     expect(res.status).toBe(1);
