@@ -7,10 +7,12 @@ size: "1536x1024"
 
 prompt_template: |
   glitch-art digital collage poster for {{repo_name}}, fragmented viewport composition and controlled visual corruption,
-  {{character_visual}} repeated through offset crops, RGB channel separation, scan lines, compression artifacts,
-  weave {{key_motifs}} into interface fragments and data layers, palette {{color_palette}},
+  {{character_visual}} as one single character instance — the sole focal subject, drawn exactly once,
+  the glitch echo comes from RGB channel separation and viewport displacement applied to the whole composition, not from redrawing the character,
+  scan lines, compression artifacts, weave {{key_motifs}} into interface fragments and data layers, palette {{color_palette}},
   title "{{repo_name}}" and subtitle "{{character_name}}" disrupted but still legible,
   {{signature_scene}}, electronic atmosphere, sharp editorial hierarchy,
   masterpiece, best quality
 
-constraints: []
+constraints:
+  - "the character appears exactly once in the final artwork — the glitch echo is produced by RGB channel separation and viewport displacement of the whole composition, never by drawing the character multiple times"
