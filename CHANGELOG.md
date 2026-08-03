@@ -4,6 +4,39 @@ This changelog records coordinated public package sets.
 
 ## Unreleased
 
+## 2026-08-03 — `repochan` v0.4.3 package set
+
+### Adjustable role preferences for creative skills
+
+Patch set: `@repochan/skill@0.3.3` and `repochan@0.4.3`. The unchanged
+artifacts are reused at `@repochan/core@0.3.1`, `@repochan/image-edit@0.3.2`,
+`@repochan/image-gen@0.3.1`, `@repochan/templates@0.3.1`,
+`@repochan/starters@0.2.1`, and `@repochan/browse@0.1.2`.
+
+- Interviewer, Creative Team, Art Director, Painter, and Web Designer now keep
+  adjustable creative priors in dedicated `references/preferences.md` files.
+  Preferences shape discretionary judgment without becoming user requirements,
+  project evidence, or acceptance checklists.
+- The Interviewer may include one optional exploratory prompt inside its normal
+  question budget, while distinguishing concrete analysis signals from explicit
+  preference gaps instead of fabricating evidence.
+- The Creative Team may surface one honestly labeled off-axis `creative bet`.
+  Project-weight, safety, explicit user constraints, and Guardian review remain
+  in force, while the risky idea is no longer automatically polished into a safe
+  average.
+- Art Director, Painter, and Web Designer preferences favor intentional suites,
+  decisive interpretations, original site imagery, authored page rhythm, and
+  reversible creative risk without weakening template or protocol contracts.
+- Art Director planning now leaves unverified template IDs unresolved and reads
+  the selected template contract before finalizing briefs and acceptance criteria.
+- Starter sync scopes the bsdtar `--force-local` workaround to Windows. macOS
+  and Linux use their native tar arguments, so the Windows path fix no longer
+  breaks POSIX extraction or the CLI suite on macOS.
+- The CLI advances to `0.4.3` because its packed runtime pins
+  `@repochan/skill@0.3.3` exactly and includes the cross-platform tar fix.
+
+## 2026-07-29 — `repochan` v0.4.2 package set
+
 ### Direct asset utilities and Windows npm subprocess fixes
 
 Patch set: `@repochan/image-edit@0.3.2`, `@repochan/image-gen@0.3.1`,

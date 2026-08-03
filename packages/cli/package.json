@@ -1,6 +1,6 @@
 {
   "name": "repochan",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "RepoChan CLI — a deterministic, agent-driven creative pipeline. Manages .repochan/ protocol entities; no embedded runtime.",
   "type": "module",
   "license": "MIT",
