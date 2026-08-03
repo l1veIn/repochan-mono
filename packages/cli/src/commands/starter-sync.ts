@@ -74,6 +74,26 @@ export function resolveNpmInvocation(
   return { command: "npm", args: [...args] };
 }
 
+/**
+ * Windows bsdtar interprets drive-letter paths as remote archives unless
+ * --force-local is present. BSD tar on macOS does not support that option, so
+ * keep the workaround scoped to win32 and leave POSIX paths untouched.
+ */
+export function resolveTarExtractionArgs(
+  tarball: string,
+  destination: string,
+  platform: NodeJS.Platform = process.platform,
+): string[] {
+  if (platform !== "win32") return ["-xzf", tarball, "-C", destination];
+  return [
+    "-xzf",
+    tarball.replaceAll("\\", "/"),
+    "--force-local",
+    "-C",
+    destination.replaceAll("\\", "/"),
+  ];
+}
+
 async function execNpm(args: string[]) {
   if (process.platform === "win32") {
     try {
@@ -166,12 +186,7 @@ async function httpsDownload(version: string, destDir: string): Promise<string> 
 async function extractTarball(tarball: string, destination: string): Promise<void> {
   await fs.mkdir(destination, { recursive: true });
   try {
-    // Windows bsdtar mangles backslash drive paths and misreads a colon in the
-    // archive path as a remote URL, so pass slash-normalized paths plus
-    // --force-local; Win32 APIs accept forward slashes.
-    const archive = tarball.split(path.sep).join("/");
-    const dir = destination.split(path.sep).join("/");
-    await execFileAsync("tar", ["-xzf", archive, "--force-local", "-C", dir]);
+    await execFileAsync("tar", resolveTarExtractionArgs(tarball, destination));
   } catch (error) {
     throw syncFailure(new Error(`tar extraction failed for ${tarball}: ${error instanceof Error ? error.message : String(error)}`));
   }

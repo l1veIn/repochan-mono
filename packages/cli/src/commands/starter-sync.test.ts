@@ -7,6 +7,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 import {
   resolveNpmInvocation,
   resolveStarterChannelFromPackument,
+  resolveTarExtractionArgs,
   runStarterSync,
 } from "./starter-sync.js";
 import { getStartersCacheDir, listStarters, resolveStarterSource } from "../lib/starter-loader.js";
@@ -42,9 +43,10 @@ beforeAll(async () => {
     assets: [],
   }));
   fixtureTarball = path.join(fixtureRoot, "repochan-starters-9.9.9.tgz");
-  // --force-local + slash paths: Windows bsdtar reads a drive-letter/backslash
-  // path as remote or mangles it.
-  await execFileAsync("tar", ["-czf", fixtureTarball.split(path.sep).join("/"), "--force-local", "-C", fixtureRoot.split(path.sep).join("/"), "package"]);
+  const createArgs = process.platform === "win32"
+    ? ["-czf", fixtureTarball.replaceAll("\\", "/"), "--force-local", "-C", fixtureRoot.replaceAll("\\", "/"), "package"]
+    : ["-czf", fixtureTarball, "-C", fixtureRoot, "package"];
+  await execFileAsync("tar", createArgs);
 });
 
 afterAll(async () => {
@@ -80,6 +82,15 @@ describe("starter sync", () => {
         command: "npm",
         args: ["view", "@repochan/starters@latest", "version"],
       });
+  });
+
+  it("scopes the tar force-local workaround to Windows", () => {
+    expect(resolveTarExtractionArgs("C:\\tmp\\starters.tgz", "C:\\tmp\\out", "win32"))
+      .toEqual(["-xzf", "C:/tmp/starters.tgz", "--force-local", "-C", "C:/tmp/out"]);
+    expect(resolveTarExtractionArgs("/tmp/starters.tgz", "/tmp/out", "darwin"))
+      .toEqual(["-xzf", "/tmp/starters.tgz", "-C", "/tmp/out"]);
+    expect(resolveTarExtractionArgs("/tmp/starters.tgz", "/tmp/out", "linux"))
+      .toEqual(["-xzf", "/tmp/starters.tgz", "-C", "/tmp/out"]);
   });
 
   it.runIf(process.platform === "win32")("can execute npm through the Windows invocation", async () => {
