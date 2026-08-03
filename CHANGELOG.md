@@ -8,10 +8,10 @@ This changelog records coordinated public package sets.
 
 ### Adjustable role preferences for creative skills
 
-Patch set: `@repochan/skill@0.3.3` and `repochan@0.4.3`. The unchanged
-artifacts are reused at `@repochan/core@0.3.1`, `@repochan/image-edit@0.3.2`,
-`@repochan/image-gen@0.3.1`, `@repochan/templates@0.3.1`,
-`@repochan/starters@0.2.1`, and `@repochan/browse@0.1.2`.
+Patch set: `@repochan/core@0.3.2`, `@repochan/image-edit@0.3.3`,
+`@repochan/skill@0.3.3`, `@repochan/templates@0.3.2`,
+`@repochan/browse@0.1.3`, and `repochan@0.4.3`. The unchanged artifacts are
+reused at `@repochan/image-gen@0.3.1` and `@repochan/starters@0.2.1`.
 
 - Interviewer, Creative Team, Art Director, Painter, and Web Designer now keep
   adjustable creative priors in dedicated `references/preferences.md` files.
@@ -32,8 +32,12 @@ artifacts are reused at `@repochan/core@0.3.1`, `@repochan/image-edit@0.3.2`,
 - Starter sync scopes the bsdtar `--force-local` workaround to Windows. macOS
   and Linux use their native tar arguments, so the Windows path fix no longer
   breaks POSIX extraction or the CLI suite on macOS.
+- Core, image-edit, and templates advance because their current source
+  artifacts differ from the immutable versions already published to npm.
+  Browse advances with Core because its packed runtime pins Core exactly.
 - The CLI advances to `0.4.3` because its packed runtime pins
-  `@repochan/skill@0.3.3` exactly and includes the cross-platform tar fix.
+  the updated workspace package set exactly and includes the cross-platform
+  tar fix.
 
 ## 2026-07-29 — `repochan` v0.4.2 package set
 

@@ -1,6 +1,6 @@
 {
   "name": "@repochan/core",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Pure RepoChan protocol, schemas, and entity management primitives.",
   "type": "module",
   "license": "MIT",
