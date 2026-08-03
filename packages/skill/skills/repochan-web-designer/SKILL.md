@@ -17,6 +17,10 @@ Only write `.repochan/` protocol state via the `repochan` CLI. Page implementati
 the user-specified website working directory; confirm this directory before starting to avoid
 overwriting an existing site.
 
+Before choosing an art direction, read [preferences.md](references/preferences.md). It contains the
+Web Designer's adjustable taste, not a checklist or project evidence. Use a few preferences to give
+the site a point of view, and let user intent, real content, accessibility, and Gate decisions override them.
+
 ## Workflow
 
 ### 1. Define website content and design depth
@@ -123,3 +127,4 @@ contracts, viewport screenshots, and known limitations.
 - [layer-methodology.md](references/layer-methodology.md): L1–L4 and bake-mask decisions.
 - [pattern-l1.md](references/pattern-l1.md): Canonical seamless pattern.
 - [visual-gates.md](references/visual-gates.md): Gate 1/2 and visual QA.
+- [preferences.md](references/preferences.md): Adjustable Web Designer tastes and creative risks.

@@ -16,6 +16,8 @@ Personas must be alive, meaningfully derived from the repo's soul signals, respe
 
 > **Progressive disclosure**: This file is the executable main flow. Detailed rules, menus, and full examples are in `references/` — **read them on demand**, do not rely on memory to skip hard rules.
 
+At the start of creative work, read [preferences.md](references/preferences.md). It contains adjustable tastes for all three team members, not requirements or project evidence. Apply a few selectively after higher-priority rules; never optimize for satisfying the whole list.
+
 ## Rule Priority (Fixed Order -- Single Source of Truth for the Entire Document)
 
 Highest to lowest; lower priority must not override higher priority:
@@ -23,11 +25,14 @@ Highest to lowest; lower priority must not override higher priority:
 1. **Safety & product positioning** (age/CSAM/gore/hate; default Repo Girl is female)
 2. **User hard constraints** (`keyConstraints`, `avoidList`, session-level explicit instructions)
 3. **Project-weight ceiling** — only `projectWeight=light` forbids high concept (see [project-weight.md](references/project-weight.md))
-4. **Repo soul alignment** (anti-mechanical-mapping, anti-language-to-aesthetic leak, etc.)
+4. **Repo soul alignment or an honestly labeled creative leap** (anti-mechanical-mapping, anti-language-to-aesthetic leak, etc.; see carve-out below)
 5. **User soft preferences** (`preferences`)
-6. **Anti-template / diversity** (advisory; must not be rejected solely for "not unique enough")
+6. **Role preferences** (creative priors, never evidence or requirements)
+7. **Anti-template / diversity** (advisory; must not be rejected solely for "not unique enough")
 
 **Synthesis:** User insists on high concept for a light project → **stop and ask the user**, neither silently execute nor silently veto. Medium/heavy paired with a light world / grounded character → **valid**.
+
+**Creative-leap carve-out:** A role preference may introduce one deliberately off-axis candidate that has no claimed repo connection. Label it as a `creative bet`; do not fabricate source signals. It still obeys safety, product positioning, explicit user constraints, and the project-weight ceiling. If selected, preserve the label through Guardian review and the Persona checkpoint so the user can accept the risk or send the team back.
 
 ## Default Gender: Female (Repo Girl)
 
@@ -48,7 +53,7 @@ Hard rules:
 | **0. Project Weight Assessment** | Rate light/medium/heavy; **only light+high is a mismatch** | [project-weight.md](references/project-weight.md) |
 | **1. World Architect** | Build a world within budget + alignment-first archetype selection + visual style recommendations | [world-architect.md](references/world-architect.md) |
 | **2. Character Designer** | Within-budget conceptWeight, `artStyle` (required), brand extension | [character-designer.md](references/character-designer.md) |
-| **3. Consistency Guardian** | Review by priority; at least 2 issues; max 1 round | [guardian-antioverfit.md](references/guardian-antioverfit.md) |
+| **3. Consistency Guardian** | Review by priority; 0 or more real issues; max 1 round | [guardian-antioverfit.md](references/guardian-antioverfit.md) |
 
 Other on-demand loads:
 
@@ -56,6 +61,7 @@ Other on-demand loads:
 - Identity / naming / narrative language → [identity-naming.md](references/identity-naming.md)
 - User feedback review / candidate mode → [workflows.md](references/workflows.md)
 - Full JSON examples and direction reference → [examples.md](references/examples.md)
+- Creative priors for all three roles → [preferences.md](references/preferences.md)
 
 ## Pre-Execution Checks
 
@@ -94,6 +100,7 @@ Quick self-check before execution. **In case of conflict, the "Rule Priority" se
 2. If an interview exists, read `summary`, `keyConstraints`, `preferences`, `avoidList` (rules in [interview.md](references/interview.md)). If absent, note complete creative freedom.
 3. Identify: what does this repo *care* about? What would a world built on its values look like?
 4. Read [project-weight.md](references/project-weight.md), output `projectWeight` (light / medium / heavy). If interview requests high concept and weight=light → **ask the user first** (see [interview.md](references/interview.md)).
+5. Choose a small number of role preferences to influence this run. Keep any off-axis idea explicitly labeled as a creative bet rather than repo evidence.
 
 ### Phase 1: World Building — World Architect Leads
 
@@ -130,8 +137,9 @@ Follow the review order in [guardian-antioverfit.md](references/guardian-antiove
 2. keyConstraints / avoidList
 3. **Mismatch: only light+high**
 4. Anti-overfit + language leak + tonal alignment
-5. preferences (soft)
-6. Diversity is suggestion only, does not independently fail
+5. User preferences (soft)
+6. Role preferences and any labeled creative bet (advisory; honesty/coherence check only)
+7. Diversity is suggestion only, does not independently fail
 
 - All pass → approved, proceed to persist
 - Any fail → revise; **max 1 round**; unresolved issues go into `designNotes`
@@ -141,7 +149,7 @@ Follow the review order in [guardian-antioverfit.md](references/guardian-antiove
 
 1. Assemble the complete persona JSON matching the schema below (see [examples.md](references/examples.md) for full examples).
 2. Populate `sourceSignals` with the key repo signals driving the design (recommended to include `projectWeight: light|medium|heavy`).
-3. Populate `userIntentSummary` (including explanation of how user hard constraints override repo direction, if applicable).
+3. Populate `userIntentSummary` (including explanation of how user hard constraints override repo direction, or how a selected `creative bet` deliberately departs from it, if applicable).
 4. Save the persona via pipe stdin — do not create temporary files. Payload includes `{ "persona": <full object>, "slug": "v1", "overwrite": true }` (or use `--slug v1 --overwrite` as supported by the CLI):
    ```bash
    repochan persona create <<'EOF'

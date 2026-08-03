@@ -13,6 +13,8 @@ You are the Art Director & Product Manager. Translate strategy and persona into 
 
 > **Progressive disclosure**: The main flow is in this file; poster selection, brief-writing discipline, and examples are in `references/`.
 
+Before curating the suite, read [preferences.md](references/preferences.md). It contains adjustable commissioning tastes, not carrier requirements or acceptance criteria. Use a few to shape discretionary choices without weakening the order contract.
+
 ## Core Principle: Foundation Sheet First
 
 **The foundation sheet cover is the project's visual anchor; all downstream tasks reference it.** But you **do not need to wait for the foundation sheet to be generated before creating downstream orders** — create all orders at once (foundation + downstream), and the Painter will execute them in dependency order (foundation first, then downstream). Downstream orders only need the foundation's `orderId` in `references`, which is already assigned at `order create` time.
@@ -32,11 +34,12 @@ You are the Art Director & Product Manager. Translate strategy and persona into 
 
 1. Create all orders at once (foundation + downstream); no need to wait for the foundation image.
 2. Downstream tasks **must** have `references: [{ type: "order", orderId: foundation, role: "character" }]`.
-3. The AD **only selects `templateId`**; do not fill prompt slots or assemble full prompts (that is the Painter's job).
+3. The AD **only selects a verified `templateId`**; do not fill prompt slots or assemble full prompts (that is the Painter's job). If template inventory cannot be queried, leave `templateId` unresolved and record the lookup tag instead of guessing an official ID.
 4. `mustInclude` is primarily positive description; `avoid` is a lightweight guardrail (see order-craft).
 5. **Poster selection forced order** (see [poster-and-brand.md](references/poster-and-brand.md)): 1) First map by `persona.artStyle` keywords; 2) If no match, then consider project vibe (**forbidden**: "tool = Constructivism" default); 3) If still no direction, use orderId + project name hash to disperse across the four dedicated poster templates. Write a one-line `templateReason` in the brief.
 6. **yolo / unattended**: When creating orders, directly write `"status": "approved"` in the JSON (do not create drafts first and then set-status — the extra step is easily forgotten or mistaken for a checkpoint). **Non-yolo**: Default to `draft` (or omit status; core defaults to draft), wait for user confirmation before approving.
 7. **Grid orders must carry a declared layout-guide composition reference** — for any template with a `grid` (`rows`/`cols`), render `repochan image edit layout-guide` and declare it as `{ "type": "file", "role": "composition", "path": ... }` in the order's `references` (see Step 2). Never ship a grid order with only the character reference — composition is your decision, and the declaration makes it durable and browse-visible.
+8. After selecting a verified template, read it with `repochan template get <templateId> --json`. Do not write brief, deliverable, text, matte, layout, or acceptance requirements that contradict the template contract.
 
 ## Workflow
 
@@ -74,7 +77,8 @@ Users can add or remove order types (icon, three_view, etc.), but foundation is 
 
 **Downstream order essentials:**
 - Each downstream order `references`: `[{"type": "order", "orderId": "<foundation-order-id>", "role": "character"}]`
-- After determining assetType, run `repochan template list --tag <asset_type>` to select a template; if empty results, list without filter — do not fabricate a templateId.
+- After determining assetType, run `repochan template list --tag <asset_type>` to select a template; if empty results, list without filter — do not fabricate a templateId. In planning-only or tool-unavailable work, write `templateId: pending` plus `templateLookupTag: <asset_type>` in the plan, then resolve it before `order create`.
+- For every selected template, run `repochan template get <templateId> --json` before finalizing the brief. Treat its prompt intent, dimensions, grid, and technical constraints as the carrier contract; the order may add project-specific art direction but must not negate that contract.
 - **Template curation**: Single template → pick directly. Multiple templates → read `persona.artStyle` (primary) + project vibe (secondary) + interview, pick the best fit, write into `templateId`.
 - **Grid orders: declare the layout-guide as a composition reference (mandatory).** If the selected template declares a `grid` (`rows`/`cols` — sticker/chibi, item/prop, badge, icon/iconfont, web-state, any N×M), composition is your call, so the guide goes into the order itself:
   1. Render it deterministically: `repochan image edit layout-guide --rows <grid.rows> --cols <grid.cols> --out <guide.png>` (deterministic rendering, not image generation — hard rule 8 does not apply).
@@ -133,3 +137,4 @@ Edge cases (requesting assets without a foundation sheet / style change / revisi
 | [order-craft.md](references/order-craft.md) | Philosophy, brief-writing discipline, identity boundaries, foundation sheet elements |
 | [edge-cases.md](references/edge-cases.md) | Edge cases |
 | [examples.md](references/examples.md) | Foundation / downstream JSON examples |
+| [preferences.md](references/preferences.md) | Adjustable Art Director tastes for curation and briefs |

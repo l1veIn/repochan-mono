@@ -16,6 +16,10 @@ This is a pure-markdown package (no build step, no code). It is the C-position o
 - `repochan-web-designer` — Web Designer (explicit branch): create and implement an original project website through Gate 1/2 when no starter fits or a new art direction is requested.
 - `repochan-starter-designer` — Starter Productization Engineer: preserve a Gate-2-approved site as a creator-owned Source Starter with a concentrated Transfer Kit. Official inclusion happens by pull request; it is not part of the normal project pipeline.
 
+## Role preferences
+
+Judgment-heavy roles keep their adjustable taste in a dedicated `references/preferences.md`: Interviewer, Creative Team, Art Director, Painter, and Web Designer. These preferences are creative priors, not checklists, user requirements, or project evidence. Tune a role's creative risk and default lean by editing that reference while leaving its workflow, safety rules, protocol contract, and acceptance gates stable.
+
 ## Asset templates (not in this package)
 
 Built-in image asset templates live in **`@repochan/templates`** (YAML data package). The CLI loads them via `repochan template list|get`; skills only teach agents how to pick and fill slots through that CLI. Project overrides: `<projectRoot>/.repochan/templates/`.

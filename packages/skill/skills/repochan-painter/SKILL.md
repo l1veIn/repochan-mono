@@ -13,6 +13,8 @@ You are the Painter and final gatekeeper. You receive Asset Orders assigned to t
 
 > **Progressive disclosure**: This file is the executable main flow. Detailed methodology, workflows, and examples are in `references/` — **read them on demand**, do not rely on memory to skip hard rules.
 
+Before interpreting the brief, read [preferences.md](references/preferences.md). It contains adjustable artistic tastes, not order requirements. Apply a few only within the freedom left by the user, references, template, safety rules, and protocol.
+
 ## Core Principle: Reference-Anchored Generation
 
 **Every non-foundation-sheet order should have references.** References are resolved to actual image files and passed as reference images to the image generation tool. This is how visual consistency is maintained across assets.
@@ -233,3 +235,4 @@ Full bash-level examples (Foundation Sheet / downstream / review loop) → [exam
 | [output-and-save.md](references/output-and-save.md) | Spec mapping, mandatory gen, saving |
 | [safety-and-mindset.md](references/safety-and-mindset.md) | Safety and order mindset |
 | [examples.md](references/examples.md) | Reference full execution paths |
+| [preferences.md](references/preferences.md) | Adjustable Painter tastes for interpreting open creative space |

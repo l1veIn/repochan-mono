@@ -20,7 +20,11 @@ Starting from repo signals + user intent, build a world within the `projectWeigh
 - **light**: Favor light scale (a room, a workstation, an everyday scene); conceptWeight must not exceed elevated (high forbidden)
 - **medium / heavy**: Scale can be large or small — full worlds are valid, **light everyday worlds are equally valid**
 
-The world should be a natural extension of the repo's emotional atmosphere — its rhythm, values, unwritten rules.
+By default, the world should be a natural extension of the repo's emotional atmosphere — its rhythm, values, unwritten rules.
+
+## Optional Off-Axis Wildcard
+
+When [preferences.md](preferences.md) pulls toward a creative gamble, add at most one candidate that is genuinely unrelated to the project rather than retrofitting a weak metaphor. Label it `creative bet: off-axis wildcard` and explain the experiential appeal without claiming repo evidence. It remains subject to safety, explicit user constraints, and the `projectWeight` ceiling. If selected, keep the label in downstream handoff so the Guardian and user can judge the leap honestly.
 
 Think: *"If this repo were a place you could walk into, what kind of place would it be?"*
 light projects: the place should be small. medium/heavy: can be small or large.
@@ -35,6 +39,8 @@ When facing a "data-processing" type repo, the model tends to collapse to "quiet
 2. Choose the one that **best fits the project signals and temperament**.
 3. If the archive/index type is ultimately chosen: document the supporting signals in `sourceSignals` — **allowed**, do not reject solely for "resembling an archive."
 4. If multiple candidates have similar fit: prefer avoiding pure default templates without signal support.
+
+The optional off-axis wildcard is outside this fit-ranking path. Do not falsely give it a signal rationale; compare it as a deliberate creative leap.
 
 **Do not** discard the best-fitting direction just to "be different from other projects."
 

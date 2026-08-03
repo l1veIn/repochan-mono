@@ -34,13 +34,17 @@ Execute the "Anti-Overfit Rules" below. Flag: tech→trait mechanical mapping, "
 
 - **Do not** automatically flag these as "generic ACG cliché."
 - Valid conditions: `projectWeight` is medium/heavy (or light but only within elevated), **AND** supported by repo signals or user request.
-- Invalid: decorative fantasy piled on with no signal or user request → demand a repo-specific twist or downgrade.
+- Invalid: decorative fantasy piled on with no signal or user request → demand a repo-specific twist or downgrade, unless it is the single honestly labeled off-axis wildcard permitted by the role preferences. For that wildcard, assess internal coherence and weight instead of inventing alignment; preserve the `creative bet` label for user review.
 
 ### 5. User Soft Preferences
 
 `preferences` honored where reasonable; soft constraint only.
 
-### 6. Anti-Template / Diversity (Advisory Only)
+### 6. Role Preferences (Advisory Only)
+
+Use [preferences.md](preferences.md) as creative priors, not review requirements. Do not fail a design merely because it ignores a role preference. If a selected direction is an honestly labeled creative bet, verify that the leap remains explicit and coherent; do not fabricate project evidence to defend it.
+
+### 7. Anti-Template / Diversity (Advisory Only)
 
 Personality collapse, workwear default, archive default, etc. may be **noted as a suggestion**, but:
 
@@ -51,7 +55,7 @@ Personality collapse, workwear default, archive default, etc. may be **noted as 
 
 **Review is mandatory; fabricating a target defect count is not.**
 
-For each of categories 1–6 above (and the anti-overfit items below), provide:
+For each of categories 1–7 above (and the anti-overfit items below), provide:
 
 - `pass` — no mandatory revision needed for this item
 - `fail` — must revise; include **specific citation** (which setting passage / which field) and fix direction

@@ -1,9 +1,11 @@
 # Interview Question Design
 
-## Principle: Every question must stem from a specific signal in the analysis report
+## Principle: Decision Questions Need Evidence or an Explicit Gap
 
 No generic questions: "What style of character do you want?"
 Yes signal-driven questions: "Analysis shows this project's documentation style is very minimal and engineering-oriented (abstract.code_style score=0.8). Which direction should the character's personality base lean towards?"
+
+For a required dimension that has no direct repo signal, name the missing preference as the rationale instead of fabricating evidence. One optional exploratory prompt may be used when structured choices would hide the user's imagination. Its `rationale` must name the uncertainty it probes (for example, "surface latent character behavior not represented by tone options"), and must not claim a repo signal. A free-story invitation from [preferences.md](preferences.md) belongs to this exception. Keep it optional and provide a clear skip choice.
 
 
 ## Question Categories (8 Dimensions)
@@ -49,7 +51,7 @@ Design 1-2 questions per category (7-14 total):
 
 ## Question Design Rules
 
-- Each question must have a `rationale` field stating which analysis signal it comes from
+- Each decision question must have a `rationale` field stating which analysis signal or required preference gap it comes from; the single optional exploratory prompt instead names the uncertainty it probes
 - Each question 2-4 options
 - Options must have concrete `description` fields explaining what each choice means
 - Questions marked `optional: true` allow the user to skip
