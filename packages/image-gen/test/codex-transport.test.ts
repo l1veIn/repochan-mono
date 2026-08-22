@@ -60,7 +60,12 @@ describe("buildCodexResponsesBody", () => {
   it("builds a generate tool call for text-to-image", () => {
     const body = buildCodexResponsesBody({
       endpoint: codexEndpoint,
-      params: { prompt: "a chibi mascot", quality: "high" } as GenerateParams,
+      params: {
+        prompt: "a chibi mascot",
+        quality: "high",
+        outputFormat: "png",
+        background: "transparent",
+      } as GenerateParams,
       size: "1024x1024",
     });
     expect(body.model).toBe("gpt-5.5");
@@ -74,6 +79,8 @@ describe("buildCodexResponsesBody", () => {
     expect(tools[0].action).toBe("generate");
     expect(tools[0].size).toBe("1024x1024");
     expect(tools[0].quality).toBe("high");
+    expect(tools[0].output_format).toBe("png");
+    expect(tools[0].background).toBe("transparent");
     expect(body.tool_choice).toEqual({ type: "image_generation" });
     const input = body.input as Array<Record<string, unknown>>;
     expect(input[0].role).toBe("user");

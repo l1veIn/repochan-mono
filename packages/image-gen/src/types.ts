@@ -18,6 +18,9 @@ export type ImageRequestMode = "auto" | "openai" | "openai-async";
 /** Mode actually used for a single HTTP generation (never auto). */
 export type RuntimeImageMode = "openai" | "openai-async";
 
+export type ImageOutputFormat = "png" | "jpeg" | "webp";
+export type ImageBackground = "transparent" | "opaque" | "auto";
+
 /**
  * How an endpoint authenticates.
  *   - bearer (default): use `apiKey` as the Authorization Bearer token.
@@ -38,7 +41,9 @@ export interface GenerateParams {
   size?: string;
   /** Provider-side rendering quality. */
   quality?: "low" | "medium" | "high" | "auto";
-  outputFormat?: "png" | "jpeg" | "webp";
+  outputFormat?: ImageOutputFormat;
+  /** Provider-side background handling. `transparent` requires png or webp. */
+  background?: ImageBackground;
   /**
    * Reference images for image-to-image / multi-image conditioning.
    * Each entry is raw image bytes + mime type. Sent via multipart /images/edits.
@@ -115,10 +120,11 @@ export interface ImageGenConfig {
   defaultEndpoint?: string;
   /** Named endpoints. */
   endpoints?: Record<string, EndpointConfig>;
-  /** Default aspect ratio / size / format (applied when params omit them). */
+  /** Default aspect ratio / size / format / background (applied when params omit them). */
   aspectRatio?: "landscape" | "square" | "portrait";
   size?: string;
-  outputFormat?: "png" | "jpeg" | "webp";
+  outputFormat?: ImageOutputFormat;
+  background?: ImageBackground;
 }
 
 /** Public status row (no secrets). */

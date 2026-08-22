@@ -44,6 +44,8 @@ export async function runImageGen(
     aspect?: string;
     size?: string;
     quality?: string;
+    outputFormat?: string;
+    background?: string;
   },
 ) {
   const prompt = options.prompt;
@@ -64,17 +66,29 @@ export async function runImageGen(
   const aspect = options.aspect as "landscape" | "square" | "portrait" | undefined;
   const size = options.size as string | undefined;
   const quality = options.quality as "low" | "medium" | "high" | "auto" | undefined;
+  const outputFormat = options.outputFormat as "png" | "jpeg" | "webp" | undefined;
+  const background = options.background as "transparent" | "opaque" | "auto" | undefined;
+  if (outputFormat && !["png", "jpeg", "webp"].includes(outputFormat)) {
+    throw new UsageError(`--output-format must be png | jpeg | webp (got "${options.outputFormat}")`);
+  }
+  if (background && !["transparent", "opaque", "auto"].includes(background)) {
+    throw new UsageError(`--background must be transparent | opaque | auto (got "${options.background}")`);
+  }
+  if (background === "transparent" && outputFormat === "jpeg") {
+    throw new UsageError("--background transparent requires --output-format png or webp; jpeg cannot carry alpha.");
+  }
   const modeOverride: ImageRequestMode | undefined = options.mode
     ? normalizeImageRequestMode(options.mode)
     : undefined;
 
+  const defaultExt = outputFormat === "jpeg" ? "jpg" : outputFormat ?? config.outputFormat ?? "png";
   const outFile = options.out
     ? path.resolve(cwd, options.out)
     : path.join(
         os.homedir(),
         ".cache",
         "repochan",
-        `generated-${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}.png`,
+        `generated-${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}.${defaultExt}`,
       );
 
   let referenceImages: Array<{ data: Uint8Array; mimeType: string }> | undefined;
@@ -122,7 +136,7 @@ export async function runImageGen(
 
   try {
     const result = await generate(
-      { prompt, aspectRatio: aspect, size, quality, referenceImages },
+      { prompt, aspectRatio: aspect, size, quality, outputFormat, background, referenceImages },
       config,
       { endpoint: options.endpoint, mode: modeOverride },
     );
@@ -141,16 +155,23 @@ export async function runImageGen(
         extra.length ? extra.join(" ") : undefined,
       );
     }
-    await fs.mkdir(path.dirname(outFile), { recursive: true });
-    await fs.writeFile(outFile, result.image!);
+    const actualExt = extensionForMimeType(result.mimeType);
+    const finalOutFile = !options.out && actualExt ? replaceExtension(outFile, actualExt) : outFile;
+    await fs.mkdir(path.dirname(finalOutFile), { recursive: true });
+    await fs.writeFile(finalOutFile, result.image!);
     const elapsed = Math.floor((Date.now() - started) / 1000);
     spinner.succeed(`Done in ${elapsed}s`);
     emitResult(
       options,
-      `Generated ${result.image!.length} bytes → ${path.relative(cwd, outFile) || outFile} (${result.endpoint}/${result.model}, ${result.mode}→${result.effectiveMode}, ${elapsed}s)`,
+      `Generated ${result.image!.length} bytes → ${path.relative(cwd, finalOutFile) || finalOutFile} (${result.endpoint}/${result.model}, ${result.mode}→${result.effectiveMode}, ${elapsed}s)`,
       {
-        path: outFile,
+        path: finalOutFile,
         bytes: result.image!.length,
+        mimeType: result.mimeType,
+        requestedOutputFormat: outputFormat ?? config.outputFormat,
+        formatMismatch: outputFormat !== undefined && result.mimeType !== undefined
+          ? mimeTypeForRequestedFormat(outputFormat) !== result.mimeType
+          : false,
         endpoint: result.endpoint,
         model: result.model,
         mode: result.mode,
@@ -166,6 +187,24 @@ export async function runImageGen(
     spinner.fail();
     throw err;
   }
+}
+
+function extensionForMimeType(mimeType: string | undefined): string | undefined {
+  if (mimeType === "image/png") return "png";
+  if (mimeType === "image/webp") return "webp";
+  if (mimeType === "image/jpeg") return "jpg";
+  return undefined;
+}
+
+function mimeTypeForRequestedFormat(format: string): string | undefined {
+  if (format === "png") return "image/png";
+  if (format === "webp") return "image/webp";
+  if (format === "jpeg") return "image/jpeg";
+  return undefined;
+}
+
+function replaceExtension(filePath: string, ext: string): string {
+  return filePath.replace(/(\.[^./\\]+)?$/, `.${ext}`);
 }
 
 /** repochan image edit slice <img> --rows --cols [--out <dir>] [--padding <n>] [--name-template <tpl>] */

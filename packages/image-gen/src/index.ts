@@ -50,5 +50,6 @@ export {
   createImageFetch,
   authHeaders,
   endpointUrl,
+  mimeTypeForImageBytes,
 } from "./http.js";
 export { extractImageRef, extractJobId, parseJson } from "./parse.js";

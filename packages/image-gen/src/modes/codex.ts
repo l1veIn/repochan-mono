@@ -59,6 +59,7 @@ export function buildCodexResponsesBody(args: {
   };
   if (params.quality) tool.quality = params.quality;
   if (params.outputFormat) tool.output_format = params.outputFormat;
+  if (params.background) tool.background = params.background;
 
   // Build the user message content: optional reference images first, then text.
   const content: Array<Record<string, unknown>> = [];

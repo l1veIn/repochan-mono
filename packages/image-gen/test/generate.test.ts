@@ -14,6 +14,7 @@ import {
   IMAGE_HTTP_TIMEOUT_MS,
   IMAGE_ASYNC_MAX_WAIT_MS,
   createImageFetch,
+  mimeTypeForImageBytes,
   extractJobId,
   extractImageRef,
   authHeaders,
@@ -87,6 +88,32 @@ describe("config (pure)", () => {
       },
     }));
     expect(() => loadConfig(dir)).toThrow(/baseURL must be a string/);
+    await fs.rm(dir, { recursive: true, force: true });
+  });
+
+  it("validates transparent background defaults against output format", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "rc-img-bg-"));
+    await fs.mkdir(path.join(dir, ".repochan"), { recursive: true });
+    const configPath = path.join(dir, ".repochan", "image.json");
+    await fs.writeFile(configPath, JSON.stringify({
+      version: 2,
+      outputFormat: "png",
+      background: "transparent",
+      endpoints: {
+        t: { id: "t", baseURL: "https://x/v1", apiKey: "k", model: "gpt-image-2" },
+      },
+    }));
+    expect(loadConfig(dir).background).toBe("transparent");
+
+    await fs.writeFile(configPath, JSON.stringify({
+      version: 2,
+      outputFormat: "jpeg",
+      background: "transparent",
+      endpoints: {
+        t: { id: "t", baseURL: "https://x/v1", apiKey: "k", model: "gpt-image-2" },
+      },
+    }));
+    expect(() => loadConfig(dir)).toThrow(/background=transparent.*outputFormat=jpeg/);
     await fs.rm(dir, { recursive: true, force: true });
   });
 
@@ -345,6 +372,14 @@ describe("authHeaders by mode", () => {
   });
 });
 
+describe("image byte MIME detection", () => {
+  it("detects PNG, WebP, and JPEG magic bytes", () => {
+    expect(mimeTypeForImageBytes(TINY_PNG)).toBe("image/png");
+    expect(mimeTypeForImageBytes(Uint8Array.from(Buffer.from("RIFFxxxxWEBPVP8 ")))).toBe("image/webp");
+    expect(mimeTypeForImageBytes(Uint8Array.from([0xff, 0xd8, 0xff, 0xe0]))).toBe("image/jpeg");
+  });
+});
+
 describe("createImageFetch", () => {
   const originalFetch = globalThis.fetch;
   afterEach(() => {
@@ -393,22 +428,51 @@ describe("generate modes (mock fetch)", () => {
   }
 
   it("mode auto: 200 + b64, no X-Async header", async () => {
-    const calls: Array<{ url: string; headers: HeadersInit | undefined }> = [];
+    const calls: Array<{ url: string; headers: HeadersInit | undefined; body?: string }> = [];
     globalThis.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      calls.push({ url: String(input), headers: init?.headers });
+      calls.push({ url: String(input), headers: init?.headers, body: String(init?.body ?? "") });
       return new Response(JSON.stringify({ data: [{ b64_json: FAKE_B64 }] }), {
         status: 200,
         headers: { "content-type": "application/json" },
       });
     }) as any;
 
-    const result = await generate({ prompt: "hi", size: "1024x1024" }, cfg("auto"));
+    const result = await generate(
+      { prompt: "hi", size: "1024x1024", outputFormat: "png", background: "transparent" },
+      cfg("auto"),
+    );
     expect(result.success, result.error).toBe(true);
     expect(result.mode).toBe("auto");
     expect(result.effectiveMode).toBe("openai");
     const genCall = calls.find((c) => c.url.includes("/images/generations"));
     const h = new Headers(genCall!.headers as HeadersInit);
     expect(h.get("X-Async-Mode")).toBeNull();
+    expect(JSON.parse(genCall!.body!)).toEqual(expect.objectContaining({
+      output_format: "png",
+      background: "transparent",
+    }));
+  });
+
+  it("applies config outputFormat and background defaults", async () => {
+    let posted: Record<string, unknown> | undefined;
+    globalThis.fetch = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      posted = JSON.parse(String(init?.body));
+      return new Response(JSON.stringify({ data: [{ b64_json: FAKE_B64 }] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }) as any;
+
+    const result = await generate({ prompt: "hi", size: "1024x1024" }, {
+      ...cfg("auto"),
+      outputFormat: "webp",
+      background: "transparent",
+    });
+    expect(result.success, result.error).toBe(true);
+    expect(posted).toEqual(expect.objectContaining({
+      output_format: "webp",
+      background: "transparent",
+    }));
   });
 
   it("mode auto: opportunistic poll when job_id without image", async () => {

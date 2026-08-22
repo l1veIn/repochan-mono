@@ -27,7 +27,7 @@ import {
   IMAGE_MAX_RETRIES,
   ImageGenError,
   isGptImage2Model,
-  pngMagicOk,
+  mimeTypeForImageBytes,
 } from "./http.js";
 import { resolveEffectiveMode, normalizeImageRequestMode } from "./resolveMode.js";
 import { generateOpenAI } from "./modes/openai.js";
@@ -107,11 +107,25 @@ export async function generate(
   const size: string =
     params.size ??
     (params.aspectRatio ? SIZE_FOR_RATIO[params.aspectRatio] : config.size ?? "1024x1024");
+  const outputFormat = params.outputFormat ?? config.outputFormat;
+  const background = params.background ?? config.background;
+  if (background === "transparent" && outputFormat === "jpeg") {
+    return {
+      success: false,
+      endpoint: endpoint.id,
+      model: endpoint.model,
+      mode: resolution.configured,
+      effectiveMode: mode,
+      modeSource: resolution.source,
+      billedRisk: false,
+      error: "background=transparent requires outputFormat png or webp; jpeg cannot carry alpha.",
+    };
+  }
 
   const ctx: ModeContext = {
     endpoint,
     mode,
-    params,
+    params: { ...params, outputFormat, background },
     size,
     fetchFn,
     signal: options.signal,
@@ -147,7 +161,7 @@ export async function generate(
     return {
       success: true,
       image: bytes,
-      mimeType: pngMagicOk(bytes) ? "image/png" : "application/octet-stream",
+      mimeType: mimeTypeForImageBytes(bytes),
       ...baseMeta,
       jobId: outcome.jobId,
     };

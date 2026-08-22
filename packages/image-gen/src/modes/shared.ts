@@ -91,6 +91,12 @@ export function generationsBody(
   if (params.quality) {
     body.quality = params.quality;
   }
+  if (params.outputFormat && isGptImage2Model(endpoint.model)) {
+    body.output_format = params.outputFormat;
+  }
+  if (params.background && isGptImage2Model(endpoint.model)) {
+    body.background = params.background;
+  }
   const includeRf = opts?.includeResponseFormat ?? !isGptImage2Model(endpoint.model);
   if (includeRf) {
     body.response_format = "url";
@@ -304,6 +310,12 @@ export async function postEdits(ctx: ModeContext): Promise<SubmitOutcome> {
   form.set("prompt", ctx.params.prompt);
   form.set("n", "1");
   form.set("size", ctx.size);
+  if (ctx.params.outputFormat && isGptImage2Model(ctx.endpoint.model)) {
+    form.set("output_format", ctx.params.outputFormat);
+  }
+  if (ctx.params.background && isGptImage2Model(ctx.endpoint.model)) {
+    form.set("background", ctx.params.background);
+  }
   if (!(ctx.mode === "openai" && isGptImage2Model(ctx.endpoint.model))) {
     form.set("response_format", "url");
   }
@@ -350,4 +362,3 @@ export async function postEdits(ctx: ModeContext): Promise<SubmitOutcome> {
     allowOpportunisticPoll: ctx.mode === "openai",
   });
 }
-

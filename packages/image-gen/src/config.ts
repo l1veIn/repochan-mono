@@ -19,7 +19,7 @@ const GLOBAL_CONFIG_PATH = join(homedir(), ".repochan", "image.json");
 const PROJECT_CONFIG_REL = join(".repochan", "image.json");
 
 const SUPPORTED_MODES = ["auto", "openai", "openai-async"] as const;
-const CONFIG_FIELDS = ["version", "defaultEndpoint", "endpoints", "aspectRatio", "size", "outputFormat"] as const;
+const CONFIG_FIELDS = ["version", "defaultEndpoint", "endpoints", "aspectRatio", "size", "outputFormat", "background"] as const;
 const ENDPOINT_FIELDS = [
   "id", "baseURL", "apiKey", "model", "mode", "imageGenerationPath", "imageEditPath",
   "asyncPollPathTemplate", "timeoutMs", "asyncMaxWaitMs", "auth",
@@ -75,6 +75,7 @@ export function normalizeConfig(raw: ImageGenConfig): ImageGenConfig {
     aspectRatio: raw.aspectRatio,
     size: raw.size,
     outputFormat: raw.outputFormat,
+    background: raw.background,
   };
 }
 
@@ -168,6 +169,13 @@ function validateStoredConfig(value: unknown, file: string): ImageGenConfig {
   if (outputFormat !== undefined && !["png", "jpeg", "webp"].includes(String(outputFormat))) {
     throw new Error(`Image config at ${file}.outputFormat must be png, jpeg, or webp.`);
   }
+  const background = config.background;
+  if (background !== undefined && !["transparent", "opaque", "auto"].includes(String(background))) {
+    throw new Error(`Image config at ${file}.background must be transparent, opaque, or auto.`);
+  }
+  if (background === "transparent" && outputFormat === "jpeg") {
+    throw new Error(`Image config at ${file} cannot combine background=transparent with outputFormat=jpeg.`);
+  }
   return {
     version: 2,
     defaultEndpoint,
@@ -175,6 +183,7 @@ function validateStoredConfig(value: unknown, file: string): ImageGenConfig {
     aspectRatio: aspectRatio as ImageGenConfig["aspectRatio"],
     size: optionalString(config.size, `Image config at ${file}.size`),
     outputFormat: outputFormat as ImageGenConfig["outputFormat"],
+    background: background as ImageGenConfig["background"],
   };
 }
 
@@ -223,6 +232,7 @@ export function saveGlobalConfig(config: ImageGenConfig): void {
     aspectRatio: config.aspectRatio ?? existing.aspectRatio,
     size: config.size ?? existing.size,
     outputFormat: config.outputFormat ?? existing.outputFormat,
+    background: config.background ?? existing.background,
   };
   const endpoints: Record<string, EndpointConfig> = {};
   for (const [id, ep] of Object.entries(toWrite.endpoints ?? {})) {
