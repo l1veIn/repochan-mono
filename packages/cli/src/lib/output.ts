@@ -37,6 +37,14 @@ export function isExtractError(
   return candidate.name === "ExtractError" && Array.isArray(candidate.defects);
 }
 
+export function isAlphaAssertError(
+  error: unknown,
+): error is { message: string; defects: unknown[]; stats?: unknown } {
+  if (typeof error !== "object" || error === null) return false;
+  const candidate = error as { name?: unknown; defects?: unknown };
+  return candidate.name === "AlphaAssertError" && Array.isArray(candidate.defects);
+}
+
 export function printJson(value: unknown) {
   console.log(JSON.stringify(value, null, 2));
 }

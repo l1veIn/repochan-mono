@@ -57,6 +57,34 @@ constraints:
     });
   });
 
+  it("parses quality and background generation fields", async () => {
+    const template = await loadFixture(`
+id: official/isolated
+asset_type: character_cutout
+label: Isolated
+size: "1024x1024"
+quality: high
+background: transparent
+prompt_template: isolated subject
+constraints:
+  - "no backdrop"
+`);
+    expect(template.quality).toBe("high");
+    expect(template.background).toBe("transparent");
+  });
+
+  it("rejects invalid background values", async () => {
+    await expect(loadFixture(`
+id: official/bad-bg
+asset_type: icon
+label: Bad
+size: "1024x1024"
+background: checkerboard
+prompt_template: draw
+constraints: []
+`)).rejects.toThrow(/background' must be transparent, opaque, or auto/);
+  });
+
   it("supports stripped literal blocks", async () => {
     const template = await loadFixture(`
 id: official/stripped

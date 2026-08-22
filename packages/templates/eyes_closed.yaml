@@ -1,0 +1,27 @@
+id: "official/eyes-closed"
+asset_type: "character_cutout"
+label: "Closed Eyes (from a character reference)"
+description: "Given one isolated character image, produce a matching closed-eyes frame for a two-layer blink. Pass the open-eyes image as --reference. Native transparent works when that reference is a single character (not a foundation sheet). The open frame is supplied by the user or a prior order; this template only paints the closed-eyes sibling."
+tags: ["character_cutout", "cutout", "transparent", "isolated", "blink", "eyes"]
+size: "1024x1536"
+background: "transparent"
+
+prompt_template: |
+  Same single character as the reference image, the same identity, pose, outfit, hair, scale, and canvas.
+  ONLY change: both eyes fully closed, calm lids, a quiet expression consistent with {{art_style}}.
+  Isolated subject on a fully transparent background — no backdrop, no scenery, no floor, no cast shadow, no contact shadow.
+  Do not recenter, do not enlarge, do not crop, do not add a second figure.
+  Generous transparent margin on all four sides. Complete silhouette including hair tips and shoes.
+  No text, no watermark, no signature.
+
+  masterpiece, best quality
+
+constraints:
+  - "ONE single character matching the reference — no grid, no extra figures"
+  - "the only allowed change is closed eyes; keep pose, outfit, hair, scale, and placement"
+  - "transparent background with no backdrop, scenery, floor, gradient, or shadow"
+  - "no cast shadow and no contact shadow"
+  - "do not paint a checkerboard, grey void, or near-white field to stand in for transparency"
+  - "do not recenter or enlarge relative to the reference"
+  - "NO text, watermark, or signature"
+  - "pass the open-eyes character as image gen --reference; do not pass a foundation sheet collage"

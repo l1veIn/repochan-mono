@@ -19,6 +19,7 @@ export const StarterPostprocessOpSchema = Type.Union([
   Type.Literal("gif-from-frames"),
   Type.Literal("extract-grid"),
   Type.Literal("iconfont"),
+  Type.Literal("assert-alpha"),
 ]);
 
 const StarterAssetPublicationSchema = Type.Object({
@@ -200,7 +201,7 @@ export const StarterLocaleContentSchema = Type.Object({
   content: Type.Record(Type.String(), Type.Any()),
 }, { additionalProperties: false });
 
-export type StarterPostprocessOp = "compress" | "slice" | "chroma-key" | "bg-remove" | "resize" | "favicon" | "gif-from-frames" | "extract-grid" | "iconfont";
+export type StarterPostprocessOp = "compress" | "slice" | "chroma-key" | "bg-remove" | "resize" | "favicon" | "gif-from-frames" | "extract-grid" | "iconfont" | "assert-alpha";
 
 export type StarterPostprocessStep = {
   op: StarterPostprocessOp;

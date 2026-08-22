@@ -21,6 +21,12 @@ Call example:
 repochan image gen --prompt "<assembled prompt>" --aspect square --size 2048x2048
 ```
 
+When `repochan template get --json` returns `background`, pass it on the same call. `background: transparent` also requires `--output-format png`:
+```bash
+repochan image gen --prompt "<assembled prompt>" --aspect square --size 2048x2048 \
+  --background transparent --output-format png
+```
+
 Do not invent special aspect ratio rules for Foundation Sheet covers. Foundation Sheet covers follow their template like all other orders.
 
 
@@ -38,7 +44,9 @@ Call `repochan image gen` (one separate `--reference` flag per Reference image):
 repochan image gen --prompt "<your assembled persona + order + template prompt>" \
   --reference <resolved path 1> \
   --reference <resolved path 2> \
-  --aspect landscape|square|portrait --size 1024x1024
+  --aspect landscape|square|portrait --size 1024x1024 \
+  [--quality <template.quality>] \
+  [--background <template.background> --output-format png]
 ```
 
 If foundation_sheet or another order truly has no Reference images, omit `--reference`:

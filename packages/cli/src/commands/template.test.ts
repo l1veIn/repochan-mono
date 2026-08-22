@@ -14,4 +14,24 @@ describe("template commands", () => {
     await expect(runTemplateGet(process.cwd(), "foundation_sheet", { json: true }))
       .rejects.toThrow(/No template matching 'foundation_sheet'/);
   });
+
+  it("exposes isolated template background on template get --json", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    await runTemplateGet(process.cwd(), "official/isolated-character", { json: true });
+    expect(JSON.parse(String(log.mock.calls.at(-1)?.[0]))).toMatchObject({
+      id: "official/isolated-character",
+      assetType: "character_cutout",
+      background: "transparent",
+    });
+  });
+
+  it("exposes the closed-eyes blink sibling template", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    await runTemplateGet(process.cwd(), "official/eyes-closed", { json: true });
+    expect(JSON.parse(String(log.mock.calls.at(-1)?.[0]))).toMatchObject({
+      id: "official/eyes-closed",
+      assetType: "character_cutout",
+      background: "transparent",
+    });
+  });
 });

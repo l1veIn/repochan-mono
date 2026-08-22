@@ -27,6 +27,8 @@ import {
   type StarterPostprocessStep,
 } from "@repochan/core";
 import {
+  AlphaAssertError,
+  assertImageAlpha,
   chromaKeyImage,
   compressImage,
   extractAssets,
@@ -45,7 +47,7 @@ import {
   type ExtractQaReport,
   type ExtractStrategy,
 } from "@repochan/image-edit";
-import { emitResult, dim, printJson, isExtractError, ApplyFailurePrintedError, type OutputOptions, UsageError } from "../lib/output.js";
+import { emitResult, dim, printJson, isExtractError, isAlphaAssertError, ApplyFailurePrintedError, type OutputOptions, UsageError } from "../lib/output.js";
 import { archiveOrderDerivedRun, type OrderDerivedArchiveStep } from "../lib/order-derived-archive.js";
 import {
   contextualizeImageMlCapabilityError,
@@ -385,6 +387,14 @@ async function applyStep(step: StarterPostprocessStep, sourceFiles: string[], ou
   switch (step.op) {
     case "compress":
       await compressImage(source, out, { format: args.format as any, quality: Number(args.quality) || undefined, maxWidth: Number(args.maxWidth) || undefined, overwrite });
+      return;
+    case "assert-alpha":
+      await assertImageAlpha(source, out, {
+        alphaThreshold: args.alphaThreshold !== undefined ? Number(args.alphaThreshold) : undefined,
+        minTransparentRatio: args.minTransparentRatio !== undefined ? Number(args.minTransparentRatio) : undefined,
+        maxCornerAlpha: args.maxCornerAlpha !== undefined ? Number(args.maxCornerAlpha) : undefined,
+        overwrite,
+      });
       return;
     case "chroma-key": {
       const parsed = parseMatteColor(String(args.matte ?? "auto"));
@@ -733,6 +743,23 @@ export async function runStarterAssetApply(
         throw new ApplyFailurePrintedError(missingImageMl);
       }
       throw missingImageMl;
+    }
+    const alphaError = err instanceof AlphaAssertError || isAlphaAssertError(err) ? err : undefined;
+    if (alphaError) {
+      if (options.json) {
+        printJson({
+          ok: false,
+          error: "AlphaAssertError",
+          command: "starter asset-apply",
+          slot: slot.slot,
+          orderId: options.order,
+          resultVersion: result.version.versionId,
+          defects: alphaError.defects,
+          stats: "stats" in alphaError ? alphaError.stats : null,
+        });
+        throw new ApplyFailurePrintedError(err);
+      }
+      throw err;
     }
     const extractError = asExtractError(err);
     if (extractError && options.json) {

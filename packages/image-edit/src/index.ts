@@ -15,6 +15,7 @@ export * from "./iconfont.js";
 export * from "./layout-guide.js";
 export * from "./seam-validation.js";
 export * from "./image-inspect.js";
+export * from "./assert-alpha.js";
 export {
   IMAGE_ML_PACKAGE_NAME,
   IMAGE_ML_REQUIRED_VERSION,

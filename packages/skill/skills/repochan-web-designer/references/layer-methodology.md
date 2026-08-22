@@ -21,8 +21,8 @@ L1 can be further distinguished as base color plane L1a, shared seamless pattern
 2. Does L3 need i18n, SEO, or frequent modification? If yes, prioritize live.
 3. Does L3 involve occlusion, interleaving, extreme perspective, or glyph interaction with the character? If yes, consider baking.
 4. Does L2 have clean gutters, hard edges, a matte, or controllable silhouettes? If yes, it can be independently extracted.
-5. Does L2 contain hair, translucent fabric, glow, particles, or environmental reflections? If yes, prioritize compositing with L1.
-6. Does the character need independent parallax/cross-section motion? If yes, raise the priority of standalone L2 and accept the extraction cost.
+5. Does L2 contain hair, translucent fabric, glow, particles, or environmental reflections coupled with the scene? If yes, composite with L1. If the layer must stand alone, generate it as a native-transparent isolated order rather than chroma-keying a scene-coupled master.
+6. Does the character need independent parallax/cross-section motion? If yes, raise the priority of standalone L2 (native-transparent isolated order, or matte cutout when the endpoint has no alpha).
 7. Can the mobile viewport be satisfied through cropping and reflow? If not, generate a separate responsive variant.
 
 ## Responsibility Boundary Between Master Design and Production Assets
@@ -30,7 +30,7 @@ L1 can be further distinguished as base color plane L1a, shared seamless pattern
 The visual master design is responsible for validating composition, rhythm, hierarchy, and section relationships — it is not responsible for simultaneously providing go-live-ready bitmaps. Even if the prompt requests an extractable character silhouette, judgment must be based on actual pixels:
 
 - When hair strands, translucent fabric, glow, particles, and environmental reflections are coupled with the background, the master design must not be used directly as a standalone L2 source.
-- When standalone L2 is needed, create a separate uniform-matte production order, then execute chroma-key/bg-remove and alpha QA via the CLI. Prefer offline, deterministic chroma-key; `bg-remove` requires an optional ML runtime. If `MissingImageMlCapabilityError` / `REPOCHAN_IMAGE_ML_MISSING` is received during a direct call, run `repochan image edit ml install` exactly once, then retry the original command; if installation fails, stop and report, do not loop. Network download only occurs during explicit install; at runtime the capability cache reads the local runtime and model.
+- When standalone L2 is needed, prefer a native-transparent production order (`official/isolated-character` / `official/isolated-prop`, Painter passes `--background transparent --output-format png`) when the image endpoint is gpt-image-2. Keep uniform-matte + chroma-key (`official/character-cutout` and grid templates) for sticker/web-state/prop sheets and for endpoints that ignore `background`. Do not chroma-key a native-transparent source. Prefer offline, deterministic chroma-key when a matte sheet is the contract; `bg-remove` requires an optional ML runtime. If `MissingImageMlCapabilityError` / `REPOCHAN_IMAGE_ML_MISSING` is received during a direct call, run `repochan image edit ml install` exactly once, then retry the original command; if installation fails, stop and report, do not loop. Network download only occurs during explicit install; at runtime the capability cache reads the local runtime and model.
 - When alpha QA fails, prioritize generating a text-free, UI-free L1+L2 composite rather than repeatedly patching master design screenshots.
 - The character's cross-section visual momentum does not require character pixels to actually cross boundaries; Git DAGs, energy trails, geometric borders, or CSS/SVG seams can carry the connection, thereby reducing coupling.
 
@@ -46,7 +46,7 @@ Oversized typography is a spatial structure; the character sits between glyphs; 
 
 ### 003: `baked=[]` or decorative L1 only, `live=[L1,L2,L3,L4]`
 
-The character has a white gutter around it; the silhouette approaches a natural matte and can be extracted as L2 via chroma-key. The background geometry, text, and UI can each be rebuilt with CSS/HTML, maximizing motion freedom.
+The character is an isolated L2. Prefer `official/isolated-character` (native transparent alpha) when the endpoint is gpt-image-2; keep uniform-matte + chroma-key when the slot still uses `official/character-cutout`. The background geometry, text, and UI can each be rebuilt with CSS/HTML, maximizing motion freedom.
 
 ### 004: Full master converted to `baked=[L1,L2]`, `live=[L3,L4]`
 

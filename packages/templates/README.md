@@ -21,6 +21,8 @@ YAML files live at the package root (one file per template). Example ids: `offic
 
 Grid templates may declare `grid.cell_keys` in row-major order when every cell has a stable semantic meaning. For example, `official/web-state-grid-3x3` defines nine web-state asset keys; starter validation matches them against manifest `publications[]`, and `starter asset-apply` projects a delivered sheet into named files atomically.
 
+Optional generation fields `quality` and `background` are passed through `repochan template get --json` to `repochan image gen`. Isolated layer templates (`official/isolated-character`, `official/isolated-prop`, `official/eyes-closed`) set `background: transparent`. `official/eyes-closed` takes an existing isolated open-eyes character as `--reference` and only closes the lids. Matte cutout and grid templates omit `background` and keep chroma-key extraction.
+
 ## Resolution order (CLI)
 
 1. Built-ins from this package (`@repochan/templates`)

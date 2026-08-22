@@ -146,6 +146,15 @@ describe("starter v1", () => {
     expect(() => validateStarterManifest(invalid)).toThrow(/multi-output postprocess 'slice' must be the final step/);
   });
 
+  it("accepts assert-alpha as a pass-through scalar step", () => {
+    const valid = structuredClone(manifest);
+    valid.assets[0].postprocess = [
+      { op: "assert-alpha", out: "public/assets/hero-alpha.png" },
+      { op: "compress", out: "public/assets/hero.webp" },
+    ];
+    expect(() => validateStarterManifest(valid)).not.toThrow();
+  });
+
   it("accepts iconfont as an op and enforces it as the final step", () => {
     const valid = structuredClone(manifest);
     valid.assets[0].postprocess = [

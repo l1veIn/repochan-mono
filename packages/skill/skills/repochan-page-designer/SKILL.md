@@ -65,7 +65,7 @@ repochan order set-status <order-id> approved
 repochan starter asset-apply <slot> --order <delivered-order-id> --overwrite
 ```
 
-`create-order` handles mechanical fields and migration references already in the manifest; Painter delivers raw images; `asset-apply` completes declared post-processing, file projection, and `customized` status. Do not use Source Starter character assets as-is for current project customization, nor manually assemble protocol state.
+`create-order` handles mechanical fields and migration references already in the manifest; Painter delivers raw images; `asset-apply` completes declared post-processing, file projection, and `customized` status. Do not use Source Starter character assets as-is for current project customization, nor manually assemble protocol state. Isolated native-transparent slots declare `assert-alpha` then `compress` — do not chroma-key a source that already has alpha. If `assert-alpha` returns `missing_alpha` / `opaque_corners` (painted checkerboard), send the order back to Painter; do not treat RGB checkerboard as transparency.
 
 For local assets already in final format such as real screenshots, use `repochan starter asset-import <slot> --file <path> --overwrite`. Bundle slice-grid, chroma, alpha QA, normalize, and named PNG projection must be completed atomically by `asset-apply`.
 

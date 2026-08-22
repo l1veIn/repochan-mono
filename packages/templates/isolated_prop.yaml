@@ -1,0 +1,35 @@
+id: "official/isolated-prop"
+asset_type: "item_prop"
+label: "Isolated Prop (Native Transparent)"
+description: "One standalone world-building prop generated with provider-side transparent alpha. For a single HTML layer, sticker, or section decoration. Use official/item-prop-grid-3x3 when nine named props must ship as a chroma-grid sheet."
+tags: ["item", "prop", "object", "transparent", "isolated", "web"]
+size: "1024x1024"
+background: "transparent"
+
+prompt_template: |
+  ONE single standalone prop illustration of {{prop_item}},
+  drawn from the character's world using {{key_motifs}} and {{color_palette}},
+  clean cel-shaded style consistent with {{art_style}},
+  the prop is a single inanimate object (tool, artifact, collectible — no characters, no hands, no creatures),
+
+  Isolated production layer: render exactly one isolated asset, centered with a clear margin,
+  on a fully transparent background — no backdrop, no surface, no stand, no scenery,
+  no gradient, no texture, no vignette, no reflections, no cast shadow, no contact shadow.
+  The prop is the ONLY thing in the image.
+  The prop does NOT touch any edge — generous transparent margin on all four sides.
+  Every part of the prop is complete and in frame, including straps, cords, glow, and small attachments.
+  Readable at small sizes.
+  No text, no watermark, no signature, no labels.
+
+  masterpiece, best quality
+
+constraints:
+  - "ONE single standalone inanimate object — no grid, no multiple props, no characters, no hands, no creatures"
+  - "transparent background with no backdrop, surface, stand, scenery, gradient, texture, or shadow"
+  - "no cast shadow and no contact shadow"
+  - "prop must NOT touch any canvas edge — generous transparent margin on all four sides"
+  - "every part of the prop including straps, cords, glow, and attachments is fully visible — no edge cropping"
+  - "NO text, letters, numbers, punctuation, labels, logos, signatures, or watermarks"
+  - "clean self-contained silhouette suitable for HTML layer compositing"
+  - "native transparent alpha is requested via the template background field; do not paint a checkerboard, grey void, or near-white field to stand in for transparency"
+  - "do not reproduce layout-guide boxes, lines, crosshairs, or labels from any reference guide image"

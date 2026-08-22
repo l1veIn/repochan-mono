@@ -38,6 +38,11 @@ export type TemplateData = {
   aspectRatio: string;
   /** Provider-side rendering quality (low | medium | high | auto). Passed to `image gen --quality`. */
   quality?: "low" | "medium" | "high" | "auto";
+  /**
+   * Provider-side background handling. Passed to `image gen --background`.
+   * `transparent` requires png/webp output; Painter must also pass `--output-format png`.
+   */
+  background?: "transparent" | "opaque" | "auto";
   grid?: TemplateGrid;
   promptTemplate: string;
   constraints: string[];
@@ -200,7 +205,7 @@ function requiredString(raw: RawYaml, key: string): string {
 }
 
 function toTemplateData(raw: RawYaml): TemplateData {
-  const allowed = new Set(["id", "asset_type", "label", "description", "tags", "size", "quality", "grid", "prompt_template", "constraints"]);
+  const allowed = new Set(["id", "asset_type", "label", "description", "tags", "size", "quality", "background", "grid", "prompt_template", "constraints"]);
   const unknown = Object.keys(raw).find((key) => !allowed.has(key));
   if (unknown) throw new Error(`Unknown template field '${unknown}'.`);
 
@@ -262,6 +267,10 @@ function toTemplateData(raw: RawYaml): TemplateData {
   if (quality !== undefined && !["low", "medium", "high", "auto"].includes(quality)) {
     throw new Error("Template field 'quality' must be low, medium, high, or auto.");
   }
+  const background = raw.background;
+  if (background !== undefined && !["transparent", "opaque", "auto"].includes(background)) {
+    throw new Error("Template field 'background' must be transparent, opaque, or auto.");
+  }
 
   return {
     id,
@@ -276,6 +285,7 @@ function toTemplateData(raw: RawYaml): TemplateData {
     grid,
     promptTemplate,
     quality,
+    background,
     constraints,
   };
 }

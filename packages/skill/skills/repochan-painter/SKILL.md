@@ -109,9 +109,11 @@ repochan image gen --prompt "<refined painter brief>" \
 repochan image gen --prompt "..." --reference "<path1>" "<path2>" --aspect landscape
 ```
 
-Key CLI parameters: `--prompt`, `--reference <path>` (repeatable, one flag per reference image), `--out` (do not pass by default, CLI writes to `~/.cache/repochan/`), `--aspect`, `--size`, `--quality`. Generally do **not** pass `--mode` (defaults to auto). Diagnostics: `repochan image status`, `repochan image probe`.
+Key CLI parameters: `--prompt`, `--reference <path>` (repeatable, one flag per reference image), `--out` (do not pass by default, CLI writes to `~/.cache/repochan/`), `--aspect`, `--size`, `--quality`, `--background`, `--output-format`. Generally do **not** pass `--mode` (defaults to auto). Diagnostics: `repochan image status`, `repochan image probe`.
 
 **`--quality` read from template**: The `quality` field (`low` | `medium` | `high` | `auto`) returned by `repochan template get <templateId> --json` is passed directly to `image gen --quality`. Do not pass when the template does not declare quality (use default).
+
+**`--background` read from template**: The `background` field (`transparent` | `opaque` | `auto`) returned by `repochan template get <templateId> --json` is passed directly to `image gen --background`. When the value is `transparent`, also pass `--output-format png` (jpeg cannot carry alpha). Do not pass `--background` when the template does not declare it. Isolated templates (`official/isolated-character`, `official/isolated-prop`) declare `background: transparent`; matte cutout / grid templates do not — they keep uniform matte for chroma-key.
 
 **`--size` resolution order**: User explicit size > deliverable's `genSize` (the generation resolution declared by the order, >= output size) > template `size` > deliverable's `width`/`height`. Generation size is always >= output size; downsampling is left to post-processing — this is the source of high-DPI sharpness.
 

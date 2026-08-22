@@ -53,6 +53,8 @@ function formatTemplateHuman(t: TemplateData): string {
   lines.push("");
   lines.push(`  assetType: ${t.assetType}`);
   lines.push(`  size: ${t.size} (${t.aspectRatio})`);
+  if (t.quality) lines.push(`  quality: ${t.quality}`);
+  if (t.background) lines.push(`  background: ${t.background}`);
   if (t.grid) lines.push(`  grid: ${t.grid.rows}×${t.grid.cols}${t.grid.sliceable ? " (sliceable)" : ""}`);
   if (t.tags?.length) lines.push(`  tags: ${t.tags.join(", ")}`);
   lines.push("  prompt_template:");

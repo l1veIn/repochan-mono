@@ -61,10 +61,12 @@ and record baked/live layers, canonical viewport, safe zone, responsive variant,
 contract. L4 is always live; ordinary L3 stays live. See
 [layer-methodology.md](references/layer-methodology.md) for full decisions.
 
-Create production orders per bake mask: composite, uniform-matte cutout, canonical pattern, or
-HTML-first. A visual master design is not a production-ready asset for direct cutout; the Painter
+Create production orders per bake mask: composite, isolated transparent layer
+(`official/isolated-character` / `official/isolated-prop`), uniform-matte cutout, canonical pattern,
+or HTML-first. A visual master design is not a production-ready asset for direct cutout; the Painter
 delivers the source image, and deterministic post-processing is applied during the page assembly
-stage.
+stage. Isolated templates request provider-side alpha; matte templates still extract via chroma-key.
+Do not chroma-key a native-transparent source.
 
 **Two classes of cutout**: Universal cutouts must be fully in-frame (full-body or cropped at
 seven-tenths height complete, margin on all four sides), directly placeable in any region; bleed

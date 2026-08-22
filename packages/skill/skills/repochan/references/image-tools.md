@@ -45,8 +45,12 @@ repochan image gen \
   [--endpoint <id>] \
   [--aspect landscape|square|portrait] \
   [--size <WxH|2K|4K>] \
-  [--quality low|medium|high|auto]
+  [--quality low|medium|high|auto] \
+  [--background transparent|opaque|auto] \
+  [--output-format png|jpeg|webp]
 ```
+
+`--background transparent` requires `--output-format png` or `webp`. Use it for isolated character/prop layers when the endpoint is gpt-image-2. Grid sheets and matte cutouts still generate on a uniform matte and extract with chroma-key.
 
 Pass every reference image with a separate `--reference`:
 
@@ -147,6 +151,8 @@ repochan image gen \
   --prompt "single centered app icon, transparent-friendly silhouette, no text" \
   --aspect square \
   --size 1024x1024 \
+  --background transparent \
+  --output-format png \
   --out "work/icon-source.png"
 
 repochan image edit resize "work/icon-source.png" \
@@ -157,7 +163,7 @@ repochan image edit favicon "work/icon-source.png" \
   --out "public/favicon.ico"
 ```
 
-If the generated image still has a background, run `chroma-key` or `bg-remove` according to the background type, then derive every size from the transparent result.
+Prefer `--background transparent` when the endpoint is gpt-image-2 and the asset is a single isolated subject. If the generated image still has an opaque backdrop, run `chroma-key` (uniform matte) or `bg-remove` (complex background), then derive every size from the transparent result.
 
 ### Compress a large web image
 

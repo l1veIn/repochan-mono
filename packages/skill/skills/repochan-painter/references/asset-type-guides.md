@@ -41,6 +41,35 @@ Sticker sheets are **grid production assets**. They carry expressions and can al
 - **Control alpha risk**: Avoid character colors close to the matte, large semi-transparent areas, glow, hair color bleeding, and cross-cell elements; for high-risk states, split to separate production orders.
 - **Constraints are hard constraints**: Template constraints (spacing, uniform matte, no borders, etc.) must not be weakened or omitted.
 
+### Isolated Character / Isolated Prop (native transparent)
+
+Templates `official/isolated-character` (`assetType=character_cutout`) and `official/isolated-prop` (`assetType=item_prop`) declare `background: transparent`. They are **production layers** for HTML compositing, not matte sheets.
+
+**Must**:
+- Pass `--background transparent --output-format png` on `repochan image gen`. This is the template contract, not an optional quality tweak.
+- Keep the prompt as an isolated subject: no backdrop, no floor, no cast shadow, no contact shadow. Do not invent a matte color.
+- Leave generous transparent margin on all four sides; hair tips, straps, and glow stay in frame.
+- **Native alpha is reliable on text-to-image.** Passing `--reference` (the `/images/edits` path) often returns an opaque RGB PNG with a painted checkerboard or near-white field, especially for a full foundation sheet or a scene-coupled subject. For isolated templates, put identity in the prompt from the persona / foundation description; only add `--reference` when the user explicitly wants image-to-image and accepts a chroma-key fallback if alpha QA fails.
+- Do not pass a scene master as a composition reference when the goal is native transparency — same-canvas extraction from a preview is unstable on gpt-image-2.
+- Deliver the original PNG. Do not chroma-key, bg-remove, or otherwise rewrite the order result. Page assembly runs `assert-alpha` then compresses into `public/`.
+
+**Do not use these templates for**: sticker / web-state / prop **grids**. Grids stay on uniform matte + chroma-grid (`official/character-cutout`, `official/chibi-grid-3x3`, `official/item-prop-grid-3x3`, …). Native transparent does not replace cell geometry.
+
+If the endpoint ignores `background` and returns an opaque image, deliver it anyway and record the opaque backdrop in notes. Regeneration onto a matte template is a new order, not a silent swap of `--background`.
+
+### Closed Eyes (blink sibling)
+
+Template `official/eyes-closed` produces the closed-eye frame of an existing isolated character. The user (or a prior order) supplies the open-eyes image.
+
+**Must**:
+- `repochan template get official/eyes-closed --json`, then `image gen --background transparent --output-format png`.
+- Pass **only** the open-eyes character as `--reference`. That reference must be a single isolated figure. Do not pass a foundation sheet, a scene master, or a sticker grid — those references make gpt-image-2 return an opaque RGB image.
+- Keep pose, outfit, hair, and canvas. The prompt's only job is closed lids.
+- Deliver the PNG as its own order result. Page assembly (or the user) stacks it on the open frame; do not chroma-key a native-alpha result.
+
+If `assert-alpha` later fails, fall back to the existing matte + chroma-key cutout path for both frames rather than mixing one transparent frame with one keyed frame.
+
+
 ### Icon Matrix Special Guidance (assetType=icon)
 
 **Must**:

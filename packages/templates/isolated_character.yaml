@@ -1,0 +1,38 @@
+id: "official/isolated-character"
+asset_type: "character_cutout"
+label: "Isolated Character (Native Transparent)"
+description: "Single character pose generated with provider-side transparent alpha (GPT-Image-2 background=transparent). Use when the endpoint supports native alpha and the slot does not need chroma-key. Default output is a fully in-frame general asset. Keep official/character-cutout for matte + chroma-key slots."
+tags: ["character_cutout", "cutout", "transparent", "isolated", "pose", "web"]
+size: "1024x1024"
+background: "transparent"
+
+prompt_template: |
+  ONE single full-body character illustration of {{character_visual}},
+  the character is performing this specific pose/action: {{cutout_pose}},
+  clean cel-shaded style consistent with {{art_style}},
+  using {{color_palette}},
+
+  Isolated production layer: render exactly one isolated asset, centered with a clear margin,
+  on a fully transparent background — no backdrop, no scenery, no floor, no gradient, no texture,
+  no vignette, no reflections, no cast shadow, no contact shadow.
+  The character is the ONLY thing in the image — no props, no furniture, no scenery.
+  The character does NOT touch any edge — generous transparent margin on all four sides.
+  Every part of the character is complete and in frame: hair tips, fingers, shoe soles, cables, held items — nothing is cropped by the canvas.
+  The character's silhouette is clean and uncluttered.
+  Simple self-contained outfit and accessories — nothing extending beyond the body silhouette.
+  No text, no watermark, no signature.
+
+  masterpiece, best quality
+
+constraints:
+  - "ONE single character on a fully transparent background — no grid, no multiple poses"
+  - "transparent background with no backdrop, scenery, floor, gradient, texture, or shadow"
+  - "no cast shadow and no contact shadow"
+  - "character must NOT touch any canvas edge — generous transparent margin on all four sides"
+  - "every body part, hair tip, finger, shoe, cable and held item is fully visible — no edge cropping"
+  - "NO props, furniture, scenery, or background elements — character only"
+  - "NO text, watermark, or signature"
+  - "clean self-contained silhouette suitable for HTML layer compositing"
+  - "native transparent alpha is requested via the template background field; do not paint a checkerboard, grey void, or near-white field to stand in for transparency"
+  - "do not reproduce layout-guide boxes, lines, crosshairs, or labels from any reference guide image"
+  - "bleeding/cropped compositions (subject exits the canvas edge) are design-bound variants: they are only valid when the target page has H3/H4 layer elements acting as the visual boundary that receives the crop (e.g. a card edge the character leans on, a section boundary the hair sweeps behind). They may enter starter/general libraries only when paired with a pose lineart that transmits the pose to downstream projects (see official/hero-pose-lineart-extract) — the crop's structural relationship with page layers must be reproducible"
