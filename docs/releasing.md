@@ -45,7 +45,7 @@ rewritten dependency graph and public workspace inventory. A local scoped
 registry exposes all seven non-CLI tarballs while the empty npm project installs only
 the CLI tarball as a top-level dependency. The smoke then runs the packed CLI,
 verifies the complete project-local Codex skill inventory and representative
-skill content, requires the exact canonical 25-template inventory, and exercises
+skill content, requires the exact canonical 28-template inventory, and exercises
 `template get`. It also verifies the fresh install does not bundle
 `@repochan/starters`, syncs the Starter catalog on demand from the registry
 (`starter sync`), requires the canonical 20-Starter inventory with `landing-museum`

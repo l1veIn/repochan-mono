@@ -4,6 +4,27 @@ This changelog records coordinated public package sets.
 
 ## Unreleased
 
+## 2026-08-22 — `repochan` v0.4.4 package set
+
+### Native-transparent isolated layers, alpha QA, and closed-eyes blink sibling
+
+Patch set: `@repochan/core@0.3.3`, `@repochan/image-edit@0.3.4`,
+`@repochan/skill@0.3.4`, `@repochan/templates@0.3.3`,
+`@repochan/browse@0.1.4`, and `repochan@0.4.4`. The unchanged artifacts are
+reused at `@repochan/image-gen@0.3.1` and `@repochan/starters@0.2.1`.
+
+- Templates may declare `background: transparent | opaque | auto`, passed through
+  `repochan template get --json` to `repochan image gen --background`.
+- New isolated templates: `official/isolated-character`, `official/isolated-prop`,
+  and `official/eyes-closed`. The closed-eyes template takes a single open-eyes
+  character as `--reference` and only closes the lids. Do not pass a foundation
+  sheet collage as that reference.
+- `assert-alpha` is a starter postprocess: missing alpha, too little transparent
+  field, or opaque corners fail closed. Native-transparent slots compress after
+  this check and must not chroma-key the source.
+- Grid sheets remain on uniform matte + chroma-grid. Browse advances because
+  its packed runtime pins Core exactly.
+
 ## 2026-08-03 — `repochan` v0.4.3 package set
 
 ### Adjustable role preferences for creative skills
