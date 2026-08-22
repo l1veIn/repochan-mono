@@ -9,9 +9,9 @@ This changelog records coordinated public package sets.
 ### Native-transparent isolated layers, alpha QA, and closed-eyes blink sibling
 
 Patch set: `@repochan/core@0.3.3`, `@repochan/image-edit@0.3.4`,
-`@repochan/skill@0.3.4`, `@repochan/templates@0.3.3`,
-`@repochan/browse@0.1.4`, and `repochan@0.4.4`. The unchanged artifacts are
-reused at `@repochan/image-gen@0.3.1` and `@repochan/starters@0.2.1`.
+`@repochan/image-gen@0.3.2`, `@repochan/skill@0.3.4`, `@repochan/templates@0.3.3`,
+`@repochan/browse@0.1.4`, and `repochan@0.4.4`. The unchanged artifact is
+reused at `@repochan/starters@0.2.1`.
 
 - Templates may declare `background: transparent | opaque | auto`, passed through
   `repochan template get --json` to `repochan image gen --background`.
@@ -24,6 +24,8 @@ reused at `@repochan/image-gen@0.3.1` and `@repochan/starters@0.2.1`.
   this check and must not chroma-key the source.
 - Grid sheets remain on uniform matte + chroma-grid. Browse advances because
   its packed runtime pins Core exactly.
+- Image-gen advances to `0.3.2` because HEAD already contains the published
+  `background=transparent` client that is not identical to npm's `0.3.1`.
 
 ## 2026-08-03 — `repochan` v0.4.3 package set
 
