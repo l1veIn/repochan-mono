@@ -1,7 +1,8 @@
 /**
  * Native Codex /responses transport.
  *
- * Codex has no dedicated image endpoint. gpt-image-2 is reached by POSTing to
+ * Codex has no dedicated image endpoint. GPT-Image-2 family models
+ * (gpt-image-2, gpt-image-2.5-sunburst, gpt-image-2.5-flare) are reached by POSTing to
  * `https://chatgpt.com/backend-api/codex/responses` with an `image_generation`
  * tool, authenticated via a Codex OAuth access token (see ../auth/). The
  * upstream responds with an SSE stream of events; image bytes arrive as a
@@ -20,7 +21,7 @@ import type { EndpointConfig, GenerateParams } from "../types.js";
 import {
   endpointUrl,
   ImageGenError,
-  isGptImage2Model,
+  isGptImage2FamilyModel,
 } from "../http.js";
 import { getValidAccessToken } from "../auth/codex-auth-store.js";
 import type { ModeContext, SubmitOutcome } from "./shared.js";
@@ -45,9 +46,10 @@ export function buildCodexResponsesBody(args: {
   size: string;
 }): Record<string, unknown> {
   const { endpoint, params, size } = args;
-  if (!isGptImage2Model(endpoint.model)) {
+  if (!isGptImage2FamilyModel(endpoint.model)) {
     throw new ImageGenError(
-      `Codex transport only supports gpt-image-2 (got model "${endpoint.model}").`,
+      `Codex transport only supports the GPT-Image-2 family ` +
+        `(gpt-image-2, gpt-image-2.5-sunburst, gpt-image-2.5-flare) — got model "${endpoint.model}".`,
     );
   }
 

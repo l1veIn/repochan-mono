@@ -9,7 +9,7 @@ import type { EndpointConfig, RuntimeImageMode } from "./types.js";
 /** Single HTTP attempt budget (submit / poll tick / download). */
 export const IMAGE_HTTP_TIMEOUT_MS = 5 * 60 * 1000;
 
-/** Long read budget for slow gpt-image-2 sync jobs. */
+/** Long read budget for slow GPT-Image-2-family sync jobs. */
 export const IMAGE_HTTP_LONG_TIMEOUT_MS = 30 * 60 * 1000;
 
 /** Overall wait for async job completion. */
@@ -168,7 +168,13 @@ export async function downloadUrl(
   return new Uint8Array(await res.arrayBuffer());
 }
 
-export function isGptImage2Model(model: string): boolean {
+/**
+ * True for the whole GPT-Image-2 family: `gpt-image-2`,
+ * `gpt-image-2.5-sunburst`, `gpt-image-2.5-flare` (and their dated snapshots).
+ * These share request quirks: they accept `output_format` / `background`,
+ * and classic sync submits omit `response_format` for text-to-image.
+ */
+export function isGptImage2FamilyModel(model: string): boolean {
   return String(model || "")
     .toLowerCase()
     .includes("gpt-image-2");

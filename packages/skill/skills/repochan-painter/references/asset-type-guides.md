@@ -50,7 +50,7 @@ Templates `official/isolated-character` (`assetType=character_cutout`) and `offi
 - Keep the prompt as an isolated subject: no backdrop, no floor, no cast shadow, no contact shadow. Do not invent a matte color.
 - Leave generous transparent margin on all four sides; hair tips, straps, and glow stay in frame.
 - **Native alpha is reliable on text-to-image.** Passing `--reference` (the `/images/edits` path) often returns an opaque RGB PNG with a painted checkerboard or near-white field, especially for a full foundation sheet or a scene-coupled subject. For isolated templates, put identity in the prompt from the persona / foundation description; only add `--reference` when the user explicitly wants image-to-image and accepts a chroma-key fallback if alpha QA fails.
-- Do not pass a scene master as a composition reference when the goal is native transparency — same-canvas extraction from a preview is unstable on gpt-image-2.
+- Do not pass a scene master as a composition reference when the goal is native transparency — same-canvas extraction from a preview is unstable on the GPT-Image-2 family.
 - Deliver the original PNG. Do not chroma-key, bg-remove, or otherwise rewrite the order result. Page assembly runs `assert-alpha` then compresses into `public/`.
 
 **Do not use these templates for**: sticker / web-state / prop **grids**. Grids stay on uniform matte + chroma-grid (`official/character-cutout`, `official/chibi-grid-3x3`, `official/item-prop-grid-3x3`, …). Native transparent does not replace cell geometry.
@@ -63,7 +63,7 @@ Template `official/eyes-closed` produces the closed-eye frame of an existing iso
 
 **Must**:
 - `repochan template get official/eyes-closed --json`, then `image gen --background transparent --output-format png`.
-- Pass **only** the open-eyes character as `--reference`. That reference must be a single isolated figure. Do not pass a foundation sheet, a scene master, or a sticker grid — those references make gpt-image-2 return an opaque RGB image.
+- Pass **only** the open-eyes character as `--reference`. That reference must be a single isolated figure. Do not pass a foundation sheet, a scene master, or a sticker grid — those references make the GPT-Image-2 family return an opaque RGB image.
 - Keep pose, outfit, hair, and canvas. The prompt's only job is closed lids.
 - Deliver the PNG as its own order result. Page assembly (or the user) stacks it on the open frame; do not chroma-key a native-alpha result.
 

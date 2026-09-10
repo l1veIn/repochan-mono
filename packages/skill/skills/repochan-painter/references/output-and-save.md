@@ -59,7 +59,7 @@ Write commands using pipe stdin for JSON, do not create temporary files in the p
 
 ### Post-Generation Self-Check: Handling Anatomical Errors
 
-Image generation models (including gpt-image-2) produce anatomical errors — extra fingers, three hands, misaligned limbs, floating hands, etc. These errors have **two main causes**:
+Image generation models (including the GPT-Image-2 family) produce anatomical errors — extra fingers, three hands, misaligned limbs, floating hands, etc. These errors have **two main causes**:
 
 1. **Multi-hand task stacking (preventable at the prompt level, see the "single-hand focus" principle in Pose writing technique above)** — this is the **primary, most avoidable** cause. When the prompt assigns independent complex tasks to each hand, the model "grows" extra hands. Following the single-hand focus principle can dramatically reduce three-hand incidence at the source.
 2. **Model's inherent probabilistic errors (cannot be eliminated at the prompt level)** — even with a perfect prompt, extra fingers/limb misalignments still occur occasionally. This is inherent to diffusion models.

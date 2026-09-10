@@ -9,6 +9,7 @@ import {
   listEndpointStatuses,
   normalizeImageRequestMode,
   normalizeEndpoint,
+  DEFAULT_IMAGE_MODEL,
   resolveEffectiveMode,
   IMAGE_MAX_RETRIES,
   IMAGE_HTTP_TIMEOUT_MS,
@@ -61,6 +62,14 @@ describe("config (pure)", () => {
     expect(cfg.endpoints?.test.mode).toBe("auto");
     await fs.rm(dir, { recursive: true, force: true });
     delete process.env.RC_TEST_KEY;
+  });
+
+  it("defaults a new endpoint's model to GPT-Image-2.5 Sunburst and keeps explicit models", () => {
+    const fresh = normalizeEndpoint("fresh", { baseURL: "https://x/v1", apiKey: "k" });
+    expect(fresh.model).toBe(DEFAULT_IMAGE_MODEL);
+    expect(fresh.model).toBe("gpt-image-2.5-sunburst");
+    expect(normalizeEndpoint("legacy", { baseURL: "https://x/v1", apiKey: "k", model: "gpt-image-2" }).model)
+      .toBe("gpt-image-2");
   });
 
   it("rejects config files outside the sole current schema", async () => {
@@ -558,6 +567,92 @@ describe("generate modes (mock fetch)", () => {
     );
     expect(result.success).toBe(false);
     expect(result.error).toMatch(/edits failed|Not falling back/i);
+    expect(urls.some((u) => u.includes("/images/generations"))).toBe(false);
+  });
+});
+
+describe("GPT-Image-2.5 family", () => {
+  const originalFetch = globalThis.fetch;
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  const cfg25 = (model: string, mode: "auto" | "openai" | "openai-async" = "openai") => ({
+    endpoints: { t: { id: "t", baseURL: "https://relay.test/v1", apiKey: "k", model, mode } },
+    defaultEndpoint: "t",
+  });
+
+  const okB64 = () =>
+    new Response(JSON.stringify({ data: [{ b64_json: FAKE_B64 }] }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+
+  it("sends the 2.5 model id and xhigh quality, omitting response_format on classic t2i", async () => {
+    let posted: Record<string, unknown> | undefined;
+    globalThis.fetch = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      posted = JSON.parse(String(init?.body));
+      return okB64();
+    }) as any;
+
+    const result = await generate(
+      { prompt: "hi", size: "1024x1024", quality: "xhigh" },
+      cfg25("gpt-image-2.5-sunburst"),
+    );
+    expect(result.success, result.error).toBe(true);
+    expect(result.model).toBe("gpt-image-2.5-sunburst");
+    expect(posted).toEqual(expect.objectContaining({
+      model: "gpt-image-2.5-sunburst",
+      quality: "xhigh",
+    }));
+    expect(posted!.response_format).toBeUndefined();
+  });
+
+  it("passes max quality plus transparent background through on flare", async () => {
+    let posted: Record<string, unknown> | undefined;
+    globalThis.fetch = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      posted = JSON.parse(String(init?.body));
+      return okB64();
+    }) as any;
+
+    const result = await generate(
+      { prompt: "hi", size: "1024x1024", quality: "max", background: "transparent", outputFormat: "png" },
+      cfg25("gpt-image-2.5-flare"),
+    );
+    expect(result.success, result.error).toBe(true);
+    expect(posted).toEqual(expect.objectContaining({
+      model: "gpt-image-2.5-flare",
+      quality: "max",
+      background: "transparent",
+      output_format: "png",
+    }));
+  });
+
+  it("still supports gpt-image-2 endpoints (no quality regression)", async () => {
+    let posted: Record<string, unknown> | undefined;
+    globalThis.fetch = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      posted = JSON.parse(String(init?.body));
+      return okB64();
+    }) as any;
+
+    const result = await generate({ prompt: "hi", size: "1024x1024", quality: "high" }, cfg25("gpt-image-2"));
+    expect(result.success, result.error).toBe(true);
+    expect(posted).toEqual(expect.objectContaining({ model: "gpt-image-2", quality: "high" }));
+  });
+
+  it("hard-stops 2.5 edits failures instead of falling back to generations", async () => {
+    const urls: string[] = [];
+    globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      urls.push(String(input));
+      return new Response(JSON.stringify({ error: { message: "edit rejected" } }), { status: 400 });
+    }) as any;
+
+    const result = await generate(
+      { prompt: "edit me", referenceImages: [{ data: FAKE_PNG, mimeType: "image/png" }] },
+      cfg25("gpt-image-2.5-sunburst"),
+    );
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/Not falling back/i);
     expect(urls.some((u) => u.includes("/images/generations"))).toBe(false);
   });
 });

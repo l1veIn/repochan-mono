@@ -116,7 +116,20 @@ describe("buildCodexResponsesBody", () => {
         params: { prompt: "x" } as GenerateParams,
         size: "1024x1024",
       }),
-    ).toThrow(/only supports gpt-image-2/);
+    ).toThrow(/GPT-Image-2 family/);
+  });
+
+  it("accepts GPT-Image-2.5 models and forwards quality", () => {
+    for (const model of ["gpt-image-2.5-sunburst", "gpt-image-2.5-flare"]) {
+      const body = buildCodexResponsesBody({
+        endpoint: { ...codexEndpoint, model },
+        params: { prompt: "x", quality: "max" } as GenerateParams,
+        size: "1024x1024",
+      });
+      const tools = body.tools as Array<Record<string, unknown>>;
+      expect(tools[0].model).toBe(model);
+      expect(tools[0].quality).toBe("max");
+    }
   });
 });
 

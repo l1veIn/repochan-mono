@@ -18,6 +18,18 @@ import { writeConfigFileAtomic } from "./config-file.js";
 const GLOBAL_CONFIG_PATH = join(homedir(), ".repochan", "image.json");
 const PROJECT_CONFIG_REL = join(".repochan", "image.json");
 
+/**
+ * Model applied to new endpoints when none is configured.
+ *
+ * GPT-Image-2.5 Sunburst is OpenAI's most capable image model (generation +
+ * edit precision), which is what the RepoChan pipeline leans on: foundation
+ * sheets, reference-conditioned revisions and cutout repair. Token rates match
+ * `gpt-image-2`; per-image cost can still differ because token consumption does.
+ * `gpt-image-2.5-flare` is the fast/cheap sibling for bulk grid work, and
+ * `gpt-image-2` stays fully supported — set `model` per endpoint to pick any of them.
+ */
+export const DEFAULT_IMAGE_MODEL = "gpt-image-2.5-sunburst";
+
 const SUPPORTED_MODES = ["auto", "openai", "openai-async"] as const;
 const CONFIG_FIELDS = ["version", "defaultEndpoint", "endpoints", "aspectRatio", "size", "outputFormat", "background"] as const;
 const ENDPOINT_FIELDS = [
@@ -51,7 +63,7 @@ export function normalizeEndpoint(id: string, raw: Partial<EndpointConfig> | und
       .trim()
       .replace(/\/$/, ""),
     apiKey: String(ep.apiKey ?? ""),
-    model: String(ep.model ?? "gpt-image-2").trim() || "gpt-image-2",
+    model: String(ep.model ?? DEFAULT_IMAGE_MODEL).trim() || DEFAULT_IMAGE_MODEL,
     mode: normalizeImageRequestMode(ep.mode),
     imageGenerationPath: ep.imageGenerationPath?.trim() || undefined,
     imageEditPath: ep.imageEditPath?.trim() || undefined,

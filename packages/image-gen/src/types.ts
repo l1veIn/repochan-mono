@@ -32,6 +32,13 @@ export type EndpointAuth =
   | { kind: "bearer" }
   | { kind: "codex" };
 
+/**
+ * Provider-side rendering quality.
+ * `xhigh` / `max` exist only on the GPT-Image-2.5 models
+ * (`gpt-image-2.5-sunburst`, `gpt-image-2.5-flare`); `gpt-image-2` tops out at `high`.
+ */
+export type ImageQuality = "low" | "medium" | "high" | "xhigh" | "max" | "auto";
+
 /** Parameters for a generation request. */
 export interface GenerateParams {
   prompt: string;
@@ -40,7 +47,7 @@ export interface GenerateParams {
   /** Explicit dimensions (override aspectRatio when the provider allows). */
   size?: string;
   /** Provider-side rendering quality. */
-  quality?: "low" | "medium" | "high" | "auto";
+  quality?: ImageQuality;
   outputFormat?: ImageOutputFormat;
   /** Provider-side background handling. `transparent` requires png or webp. */
   background?: ImageBackground;
@@ -86,7 +93,7 @@ export interface EndpointConfig {
   baseURL: string;
   /** Bearer token. Supports ${ENV_VAR} expansion from config. */
   apiKey: string;
-  /** Default model id, e.g. "gpt-image-2". */
+  /** Default model id, e.g. "gpt-image-2.5-sunburst". */
   model: string;
   /**
    * Request protocol. Defaults to "auto" (classic unless host rule matches).

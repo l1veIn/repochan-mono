@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { createRequire } from "node:module";
+import type { ImageQuality } from "@repochan/image-gen";
 
 const require = createRequire(import.meta.url);
 
@@ -23,6 +24,12 @@ export type TemplateGrid = {
 };
 
 /**
+ * Quality values a template may declare.
+ * `xhigh` / `max` come from the GPT-Image-2.5 models; older endpoints reject them.
+ */
+const TEMPLATE_QUALITY_VALUES: readonly ImageQuality[] = ["low", "medium", "high", "xhigh", "max", "auto"];
+
+/**
  * A template is a reusable prompt skeleton plus the physical output metadata
  * needed by the image pipeline.
  */
@@ -36,8 +43,11 @@ export type TemplateData = {
   width: number;
   height: number;
   aspectRatio: string;
-  /** Provider-side rendering quality (low | medium | high | auto). Passed to `image gen --quality`. */
-  quality?: "low" | "medium" | "high" | "auto";
+  /**
+   * Provider-side rendering quality (low | medium | high | xhigh | max | auto).
+   * Passed to `image gen --quality`; `xhigh`/`max` need a GPT-Image-2.5 endpoint.
+   */
+  quality?: ImageQuality;
   /**
    * Provider-side background handling. Passed to `image gen --background`.
    * `transparent` requires png/webp output; Painter must also pass `--output-format png`.
@@ -264,8 +274,8 @@ function toTemplateData(raw: RawYaml): TemplateData {
     throw new Error("Template field 'tags' must be an array of non-empty strings.");
   }
   const quality = raw.quality;
-  if (quality !== undefined && !["low", "medium", "high", "auto"].includes(quality)) {
-    throw new Error("Template field 'quality' must be low, medium, high, or auto.");
+  if (quality !== undefined && !TEMPLATE_QUALITY_VALUES.includes(quality as ImageQuality)) {
+    throw new Error(`Template field 'quality' must be one of: ${TEMPLATE_QUALITY_VALUES.join(", ")}.`);
   }
   const background = raw.background;
   if (background !== undefined && !["transparent", "opaque", "auto"].includes(background)) {
@@ -284,7 +294,7 @@ function toTemplateData(raw: RawYaml): TemplateData {
     aspectRatio: derivedAspectRatio,
     grid,
     promptTemplate,
-    quality,
+    quality: quality as ImageQuality | undefined,
     background,
     constraints,
   };

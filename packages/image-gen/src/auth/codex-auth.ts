@@ -8,7 +8,7 @@
  * ~/.repochan/codex-token-cache.json.
  *
  * Mirrors the token-handling of 170-carry/codex-tools (auth.rs), which has been
- * verified to drive gpt-image-2 through the Codex /responses backend.
+ * verified to drive the GPT-Image-2 family through the Codex /responses backend.
  */
 
 import { join } from "node:path";

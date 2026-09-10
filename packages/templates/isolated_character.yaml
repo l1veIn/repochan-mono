@@ -1,7 +1,7 @@
 id: "official/isolated-character"
 asset_type: "character_cutout"
 label: "Isolated Character (Native Transparent)"
-description: "Single character pose generated with provider-side transparent alpha (GPT-Image-2 background=transparent). Use when the endpoint supports native alpha and the slot does not need chroma-key. Default output is a fully in-frame general asset. Keep official/character-cutout for matte + chroma-key slots."
+description: "Single character pose generated with provider-side transparent alpha (GPT-Image-2 family background=transparent). Use when the endpoint supports native alpha and the slot does not need chroma-key. Default output is a fully in-frame general asset. Keep official/character-cutout for matte + chroma-key slots."
 tags: ["character_cutout", "cutout", "transparent", "isolated", "pose", "web"]
 size: "1024x1024"
 background: "transparent"

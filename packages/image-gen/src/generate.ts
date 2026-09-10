@@ -26,7 +26,7 @@ import {
   IMAGE_HTTP_TIMEOUT_MS,
   IMAGE_MAX_RETRIES,
   ImageGenError,
-  isGptImage2Model,
+  isGptImage2FamilyModel,
   mimeTypeForImageBytes,
 } from "./http.js";
 import { resolveEffectiveMode, normalizeImageRequestMode } from "./resolveMode.js";
@@ -48,7 +48,7 @@ export {
 export { resolveEffectiveMode, normalizeImageRequestMode } from "./resolveMode.js";
 export { BUILTIN_HOST_RULES, matchHostRule, detectModeFromHost } from "./hostRules.js";
 
-/** Aspect-ratio → OpenAI size mapping (gpt-image-2 supports these). */
+/** Aspect-ratio → OpenAI size mapping (shared by the GPT-Image-2 family). */
 const SIZE_FOR_RATIO: Record<string, `${number}x${number}`> = {
   landscape: "1536x1024",
   square: "1024x1024",
@@ -98,7 +98,7 @@ export async function generate(
 
   const defaultTimeout =
     endpoint.timeoutMs ??
-    (mode === "openai-async" || isGptImage2Model(endpoint.model)
+    (mode === "openai-async" || isGptImage2FamilyModel(endpoint.model)
       ? IMAGE_HTTP_LONG_TIMEOUT_MS
       : IMAGE_HTTP_TIMEOUT_MS);
   const timeoutMs = options.timeoutMs ?? defaultTimeout;

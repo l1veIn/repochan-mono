@@ -11,7 +11,7 @@ Image models treat "not X" as a directional push, not a wall. Each `avoid` entry
 | not steampunk | present-day, 21st-century | — |
 
 Rules:
-1. **[Highest priority - self-check mandatory] Prohibit generating "avoid text" type constraints**: Before writing the `avoid:` block, self-check — does any avoid entry you are about to write involve "text/letters/labels/no text/no words/words/letters" content? If so, **delete them all, do not write them into the prompt**. This is the model's easiest mistake: treating "avoid text" as a safe default and stuffing it into avoid, thus stripping all callout labels and Color palette text from the Foundation Sheet. Modern image models (especially codex image-2) render text very well, and Foundation Sheet text is positive value. **After writing the avoid block, read it again, confirm there are no text-related prohibitions — if there are, delete them.**
+1. **[Highest priority - self-check mandatory] Prohibit generating "avoid text" type constraints**: Before writing the `avoid:` block, self-check — does any avoid entry you are about to write involve "text/letters/labels/no text/no words/words/letters" content? If so, **delete them all, do not write them into the prompt**. This is the model's easiest mistake: treating "avoid text" as a safe default and stuffing it into avoid, thus stripping all callout labels and Color palette text from the Foundation Sheet. Modern image models (especially the gpt-image-2.5 family) render text very well, and Foundation Sheet text is positive value. **After writing the avoid block, read it again, confirm there are no text-related prohibitions — if there are, delete them.**
 2. **Prioritize transformation**: If the avoid item implies a desired positive state, write the positive state directly. "not shabby" -> "well-maintained, tidy". "not futuristic" -> "contemporary, modern era".
 3. **Never pass the original negation into the prompt.** The final prompt must read as a string of positive, declarative visual descriptions. If a concept can only be expressed negatively, keep it in `avoid` and let the positive replacement do the work.
 4. **Do not over-stack qualifiers.** At most 2-3 positive replacements per avoid entry — more leads to adjective overload (see below).
@@ -28,7 +28,7 @@ The template `prompt_template` is the sole prompt structure. Fill `signaturePatt
 
 ## Chinese-English Mixing Strategy (English skeleton + Chinese flesh)
 
-Modern image models (such as codex image-2) have strong Chinese description understanding. **Do not translate all Chinese details into English tags — Chinese-English mixing preserves richer semantics and produces higher generation quality.** Reference this validated mixing pattern:
+Modern image models (such as gpt-image-2.5-sunburst) have strong Chinese description understanding. **Do not translate all Chinese details into English tags — Chinese-English mixing preserves richer semantics and produces higher generation quality.** Reference this validated mixing pattern:
 
 **Use English for (skeleton — art style/composition/character identity tags):**
 - Quality and style tags: `masterpiece, best quality, anime style, detailed hair, dynamic pose`

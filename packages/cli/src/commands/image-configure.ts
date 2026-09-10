@@ -9,6 +9,7 @@ import {
   normalizeImageRequestMode,
   probeEndpoint,
   loadCodexAuth,
+  DEFAULT_IMAGE_MODEL,
   type ImageGenConfig,
   type ImageRequestMode,
   type EndpointAuth,
@@ -17,7 +18,8 @@ import { emitResult, type OutputOptions, UsageError, dim, heading, bullet } from
 
 const OPENAI_BASE_URL = "https://api.openai.com/v1";
 const CODEX_BASE_URL = "https://chatgpt.com/backend-api/codex";
-const DEFAULT_MODEL = "gpt-image-2";
+/** New endpoints default to GPT-Image-2.5 Sunburst (see @repochan/image-gen). */
+const DEFAULT_MODEL = DEFAULT_IMAGE_MODEL;
 
 export type ImageConfigureChoice = "openai" | "codex" | "custom" | "skip";
 
@@ -203,7 +205,7 @@ async function runInteractive(cwd: string, options: OutputOptions & { probe?: bo
       {
         name: "Codex (ChatGPT login)",
         value: "codex",
-        description: "Reuse `codex login` — OAuth token, gpt-image-2 via /responses",
+        description: "Reuse `codex login` — OAuth token, GPT-Image-2 family via /responses",
       },
       {
         name: "Custom OpenAI-compatible",
@@ -499,7 +501,7 @@ export async function runImageStatus(cwd: string, options: OutputOptions = {}) {
   }
   console.log(dim(`\nConfig: ${GLOBAL_CONFIG_PATH}`));
   console.log(dim("auto = classic OpenAI unless a host rule or mode=openai-async applies."));
-  console.log(dim("auth=codex → OAuth via `codex login`, drives gpt-image-2 through /responses."));
+  console.log(dim("auth=codex → OAuth via `codex login`, drives the GPT-Image-2 family through /responses."));
 }
 
 /** repochan image probe */

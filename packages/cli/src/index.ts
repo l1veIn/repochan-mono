@@ -239,7 +239,7 @@ cli.command("image <sub>", "Image generation, configure, status, probe, and edit
   .option("--mode <mode>", "auto | openai | openai-async (advanced; default auto)")
   .option("--aspect <ratio>", "landscape | square | portrait (image gen)")
   .option("--size <size>", "Output dimensions: 1024x1024 | 1536x1024 | 1024x1536 | 2K | 4K | WxH (image gen)")
-  .option("--quality <q>", "Rendering quality: low | medium | high | auto (image gen)")
+  .option("--quality <q>", "Rendering quality: low | medium | high | xhigh | max | auto (image gen; xhigh/max need GPT-Image-2.5)")
   .option("--output-format <fmt>", "png | jpeg | webp (image gen)")
   .option("--background <mode>", "transparent | opaque | auto (image gen; transparent requires png/webp)")
   .option("--rows <n>", "Grid rows (image edit slice)", { default: undefined })

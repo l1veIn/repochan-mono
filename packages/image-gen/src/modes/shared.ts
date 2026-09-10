@@ -10,7 +10,7 @@ import {
   IMAGE_ASYNC_MAX_WAIT_MS,
   IMAGE_ASYNC_POLL_MS,
   ImageGenError,
-  isGptImage2Model,
+  isGptImage2FamilyModel,
   sleep,
 } from "../http.js";
 import {
@@ -75,7 +75,7 @@ export function asyncPollUrl(endpoint: EndpointConfig, jobId: string, mode: Runt
   return asyncPollUrls(endpoint, jobId, mode)[0];
 }
 
-/** Build generations JSON body. gpt-image-2 omits response_format when fragile. */
+/** Build generations JSON body. GPT-Image-2 family omits response_format when fragile. */
 export function generationsBody(
   endpoint: EndpointConfig,
   params: GenerateParams,
@@ -91,13 +91,13 @@ export function generationsBody(
   if (params.quality) {
     body.quality = params.quality;
   }
-  if (params.outputFormat && isGptImage2Model(endpoint.model)) {
+  if (params.outputFormat && isGptImage2FamilyModel(endpoint.model)) {
     body.output_format = params.outputFormat;
   }
-  if (params.background && isGptImage2Model(endpoint.model)) {
+  if (params.background && isGptImage2FamilyModel(endpoint.model)) {
     body.background = params.background;
   }
-  const includeRf = opts?.includeResponseFormat ?? !isGptImage2Model(endpoint.model);
+  const includeRf = opts?.includeResponseFormat ?? !isGptImage2FamilyModel(endpoint.model);
   if (includeRf) {
     body.response_format = "url";
   }
@@ -277,12 +277,12 @@ export async function postGenerations(ctx: ModeContext): Promise<SubmitOutcome> 
   const path = generationPath(ctx.endpoint);
   const url = endpointUrl(ctx.endpoint, path);
   const body = generationsBody(ctx.endpoint, ctx.params, ctx.size, {
-    // Always accept url; gpt-image-2 still gets response_format on async relays which expect it
+    // Always accept url; the GPT-Image-2 family still gets response_format on async relays which expect it
     includeResponseFormat: true,
   });
 
-  // For classic openai + gpt-image-2, match IC: omit response_format for t2i
-  if (ctx.mode === "openai" && isGptImage2Model(ctx.endpoint.model)) {
+  // For classic openai + GPT-Image-2 family, match IC: omit response_format for t2i
+  if (ctx.mode === "openai" && isGptImage2FamilyModel(ctx.endpoint.model)) {
     delete body.response_format;
   }
 
@@ -310,18 +310,18 @@ export async function postEdits(ctx: ModeContext): Promise<SubmitOutcome> {
   form.set("prompt", ctx.params.prompt);
   form.set("n", "1");
   form.set("size", ctx.size);
-  if (ctx.params.outputFormat && isGptImage2Model(ctx.endpoint.model)) {
+  if (ctx.params.outputFormat && isGptImage2FamilyModel(ctx.endpoint.model)) {
     form.set("output_format", ctx.params.outputFormat);
   }
-  if (ctx.params.background && isGptImage2Model(ctx.endpoint.model)) {
+  if (ctx.params.background && isGptImage2FamilyModel(ctx.endpoint.model)) {
     form.set("background", ctx.params.background);
   }
-  if (!(ctx.mode === "openai" && isGptImage2Model(ctx.endpoint.model))) {
+  if (!(ctx.mode === "openai" && isGptImage2FamilyModel(ctx.endpoint.model))) {
     form.set("response_format", "url");
   }
 
   // Always use `image[]` as the field name — this is the array-field convention
-  // that gpt-image-2 relays (65535.space, codex-pool, localhost worker) all
+  // that GPT-Image-2 relays (65535.space, codex-pool, localhost worker) all
   // accept for multi-image conditioning. Using plain `image` (without []) causes
   // most multipart parsers to resolve duplicate field names to the FIRST part
   // and silently discard the rest. Node FormData correctly sets per-part MIME
@@ -341,8 +341,8 @@ export async function postEdits(ctx: ModeContext): Promise<SubmitOutcome> {
   });
   const text = await res.text();
 
-  // gpt-image-2: hard stop on edits failure — never fall back to generations (double-bill)
-  if (!res.ok && isGptImage2Model(ctx.endpoint.model)) {
+  // GPT-Image-2 family: hard stop on edits failure — never fall back to generations (double-bill)
+  if (!res.ok && isGptImage2FamilyModel(ctx.endpoint.model)) {
     let parsed: unknown;
     try {
       parsed = parseJson(text, "Image edits");

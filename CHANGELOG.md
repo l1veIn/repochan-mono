@@ -4,6 +4,23 @@ This changelog records coordinated public package sets.
 
 ## Unreleased
 
+### GPT-Image-2.5 support
+
+- New endpoints default to `gpt-image-2.5-sunburst` (released 2026-09-08): OpenAI's
+  most capable generation + edit model, which the reference-conditioned RepoChan
+  pipeline leans on. `gpt-image-2.5-flare` (fastest high-quality generation) and the
+  previous `gpt-image-2` remain selectable per endpoint; nothing is deprecated.
+- `--quality` accepts `xhigh` and `max` (2.5-only tiers) end to end: `GenerateParams`,
+  `repochan image gen`, and the asset-template `quality` field. Templates that declare
+  `high` keep working unchanged, and the docs tell agents not to raise tiers on their own.
+- The Codex `/responses` transport and the whole shared request path accept the
+  2.5 model ids (the family matcher was already substring-based; it is now named
+  `isGptImage2FamilyModel` and documented as such). Transparent background,
+  `output_format`, and the edits-hard-stop rule are unchanged for 2.5.
+- Docs (AGENTS.md, ARCHITECTURE.md, image-gen README, wizard/painter/web-designer
+  skill references) now describe the model family, the new quality tiers, custom
+  sizes, and the caveat that third-party relays may lag behind on 2.5.
+
 ## 2026-08-22 — `repochan` v0.4.4 package set
 
 ### Native-transparent isolated layers, alpha QA, and closed-eyes blink sibling

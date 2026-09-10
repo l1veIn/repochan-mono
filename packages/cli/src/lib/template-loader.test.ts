@@ -73,6 +73,30 @@ constraints:
     expect(template.background).toBe("transparent");
   });
 
+  it("accepts GPT-Image-2.5 quality tiers and rejects unknown ones", async () => {
+    for (const tier of ["xhigh", "max"]) {
+      const template = await loadFixture(`
+id: official/tier-${tier}
+asset_type: poster
+label: Tier ${tier}
+size: "1024x1024"
+quality: ${tier}
+prompt_template: draw a poster
+constraints: []
+`);
+      expect(template.quality).toBe(tier);
+    }
+    await expect(loadFixture(`
+id: official/bad-quality
+asset_type: poster
+label: Bad
+size: "1024x1024"
+quality: ultra
+prompt_template: draw a poster
+constraints: []
+`)).rejects.toThrow(/quality' must be one of: low, medium, high, xhigh, max, auto/);
+  });
+
   it("rejects invalid background values", async () => {
     await expect(loadFixture(`
 id: official/bad-bg

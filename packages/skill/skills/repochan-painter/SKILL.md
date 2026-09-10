@@ -111,7 +111,7 @@ repochan image gen --prompt "..." --reference "<path1>" "<path2>" --aspect lands
 
 Key CLI parameters: `--prompt`, `--reference <path>` (repeatable, one flag per reference image), `--out` (do not pass by default, CLI writes to `~/.cache/repochan/`), `--aspect`, `--size`, `--quality`, `--background`, `--output-format`. Generally do **not** pass `--mode` (defaults to auto). Diagnostics: `repochan image status`, `repochan image probe`.
 
-**`--quality` read from template**: The `quality` field (`low` | `medium` | `high` | `auto`) returned by `repochan template get <templateId> --json` is passed directly to `image gen --quality`. Do not pass when the template does not declare quality (use default).
+**`--quality` read from template**: The `quality` field (`low` | `medium` | `high` | `xhigh` | `max` | `auto`) returned by `repochan template get <templateId> --json` is passed directly to `image gen --quality`. Do not pass when the template does not declare quality (use default). `xhigh` / `max` only work on GPT-Image-2.5 endpoints and cost more — never raise the tier on your own initiative.
 
 **`--background` read from template**: The `background` field (`transparent` | `opaque` | `auto`) returned by `repochan template get <templateId> --json` is passed directly to `image gen --background`. When the value is `transparent`, also pass `--output-format png` (jpeg cannot carry alpha). Do not pass `--background` when the template does not declare it. Isolated templates (`official/isolated-character`, `official/isolated-prop`) declare `background: transparent`; matte cutout / grid templates do not — they keep uniform matte for chroma-key.
 

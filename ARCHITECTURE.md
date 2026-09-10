@@ -328,6 +328,16 @@ image-gen 把所有后端视为 **OpenAI-compatible** endpoint（`baseURL` + `ap
 
 用户配置一般只需 URL + key；**不必**懂 sync/async。诊断：`repochan image status`（显示 `mode → effectiveMode`）。客户端从不自动 re-POST 整次生图，也不在 504 后换 mode 重打。
 
+模型（endpoint 级 `model`，新建 endpoint 默认 `gpt-image-2.5-sunburst`）：
+
+| model | 说明 |
+|-------|------|
+| `gpt-image-2.5-sunburst` | **默认**。生成与编辑能力最强，适合 foundation sheet、参考图改写、cutout 修复 |
+| `gpt-image-2.5-flare` | 最快的高质量生成，适合批量网格与草稿 |
+| `gpt-image-2` | 上一代，仍完整支持 |
+
+quality 取值 `low | medium | high | xhigh | max | auto`（`xhigh`/`max` 仅 2.5 模型支持，`gpt-image-2` 上限为 `high`）；尺寸除推荐档 `1024x1024` / `1536x1024` / `1024x1536` 外，2.5 模型接受自定义 `WIDTHxHEIGHT`（16 的倍数、比例 1:3–3:1、单边 ≤ 3840）。第三方中转站可能尚未上架 2.5，切换 endpoint 的 model 前先确认。
+
 资产模板（构图骨架、尺寸、grid）在 `@repochan/templates`，经 `repochan template list|get` 消费；项目可在 `.repochan/templates/` 覆盖同 id。
 
 ---

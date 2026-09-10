@@ -9,6 +9,7 @@ import {
   normalizeImageRequestMode,
   IMAGE_AGENT_BASH_TIMEOUT_MS,
   IMAGE_ASYNC_MAX_WAIT_MS,
+  type ImageQuality,
   type ImageRequestMode,
 } from "@repochan/image-gen";
 // modeOverride: only force when user passes --mode openai|openai-async
@@ -65,7 +66,13 @@ export async function runImageGen(
 
   const aspect = options.aspect as "landscape" | "square" | "portrait" | undefined;
   const size = options.size as string | undefined;
-  const quality = options.quality as "low" | "medium" | "high" | "auto" | undefined;
+  const quality = options.quality as ImageQuality | undefined;
+  if (quality && !["low", "medium", "high", "xhigh", "max", "auto"].includes(quality)) {
+    throw new UsageError(
+      `--quality must be low | medium | high | xhigh | max | auto (got "${options.quality}")`,
+      "`xhigh` and `max` require a GPT-Image-2.5 endpoint (gpt-image-2.5-sunburst / gpt-image-2.5-flare).",
+    );
+  }
   const outputFormat = options.outputFormat as "png" | "jpeg" | "webp" | undefined;
   const background = options.background as "transparent" | "opaque" | "auto" | undefined;
   if (outputFormat && !["png", "jpeg", "webp"].includes(outputFormat)) {
