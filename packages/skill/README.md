@@ -12,7 +12,7 @@ This is a pure-markdown package (no build step, no code). It is the C-position o
 - `repochan-persona` — Creative Team: build the mascot persona.
 - `repochan-art-director` — Art Director: create the foundation sheet (visual anchor) + downstream tasks.
 - `repochan-painter` — Painter: execute image generation tasks.
-- `repochan-page-designer` — Starter Localizer/Assembler (optional): pull an existing starter, project repository data, localize content, apply slot assets, and validate the instance. It does not redesign the site.
+- `repochan-starter-localizer` — Starter Localizer/Assembler (optional): pull an existing starter, project repository data, localize content, apply slot assets, and validate the instance. It does not redesign the site.
 - `repochan-web-designer` — Web Designer (explicit branch): create and implement an original project website through Gate 1/2 when no starter fits or a new art direction is requested.
 - `repochan-starter-designer` — Starter Productization Engineer: preserve a Gate-2-approved site as a creator-owned Source Starter with a concentrated Transfer Kit. Official inclusion happens by pull request; it is not part of the normal project pipeline.
 

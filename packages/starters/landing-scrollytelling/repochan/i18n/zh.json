@@ -114,7 +114,7 @@
     },
     "page": {
       "ariaLabel": "第五幕：页面装配",
-      "tag": "<b>[stage 05]</b> 页面装配 — web-designer / page-designer 接单",
+      "tag": "<b>[stage 05]</b> 页面装配 — web-designer / starter-localizer 接单",
       "titleHtml": "最后一棒——<br>就是<span class=\"accent\">这个页面</span>。",
       "subHtml": "你正在滚动的这个页面，就是流水线的最后一件产物。上面的设定集、贴纸、海报、纹理、角色抠图——<em>没有一张图库素材</em>，全部来自前面四棒。",
       "echoHtml": "左边这个迷你浏览器里，是这条流水线本身：<b>analysis → persona → foundation → painter → page</b>。滚到这里，六个格子就全部点亮了。<b>This website was built by the pipeline it describes.</b>",

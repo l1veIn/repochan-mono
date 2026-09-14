@@ -40,7 +40,7 @@
         { "role": "角色设计", "name": "repochan-persona · 角色设计师" },
         { "role": "美术总监", "name": "repochan-art-director" },
         { "role": "摄影 / 生成", "name": "repochan-painter" },
-        { "role": "剪辑 / 装配", "name": "repochan-page-designer" },
+        { "role": "剪辑 / 装配", "name": "repochan-starter-localizer" },
         { "role": "网页美术", "name": "repochan-web-designer" },
         { "role": "剧本顾问", "name": "repochan-interviewer" },
         { "role": "调研", "name": "repochan-analysis" }

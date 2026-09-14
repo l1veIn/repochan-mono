@@ -114,7 +114,7 @@
     },
     "page": {
       "ariaLabel": "Act 5: page assembly",
-      "tag": "<b>[stage 05]</b> page assembly — web-designer / page-designer take the order",
+      "tag": "<b>[stage 05]</b> page assembly — web-designer / starter-localizer take the order",
       "titleHtml": "The final leg —<br>is <span class=\"accent\">this very page</span>.",
       "subHtml": "The page you're scrolling right now is the pipeline's final artifact. The foundation sheet, stickers, poster, pattern, character cutouts above — <em>not a single stock image</em>; everything came from the previous four stages.",
       "echoHtml": "In the mini browser on the left lives the pipeline itself: <b>analysis → persona → foundation → painter → page</b>. By the time you scroll here, all six cells are lit. <b>This website was built by the pipeline it describes.</b>",

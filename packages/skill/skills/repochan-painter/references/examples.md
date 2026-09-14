@@ -93,7 +93,7 @@
      "notes": "Grid order: AD-declared layout-guide (composition) + foundation passed as --reference composition constraints."
    }
    EOF
-   -> Painter delivers the original sheet only; slicing/QA belongs to the Page Designer's asset-apply
+   -> Painter delivers the original sheet only; slicing/QA belongs to the Starter Localizer's asset-apply
 ```
 
 ### Review Loop (Image-to-Image Revision)

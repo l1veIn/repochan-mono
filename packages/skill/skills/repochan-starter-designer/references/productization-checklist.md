@@ -14,7 +14,7 @@
 - Keys, types, and array lengths are fully consistent across all supported locales and the default locale.
 - Original deliverable assets in `assets.json` use `source`; every required slot has a runnable source output.
 - Each slot only describes the asset the downstream needs to replace, the target path, the order template, the migration reference, and deterministic post-processing.
-- Bundles use named `publications[]` + a single `extract-grid`; the Page Designer does not need to manually slice grids or assemble states.
+- Bundles use named `publications[]` + a single `extract-grid`; the Starter Localizer does not need to manually slice grids or assemble states.
 
 ## Complex Baked Images
 

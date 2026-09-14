@@ -10,7 +10,7 @@ description: >
 
 Take a real, complete, approved website and turn it into a transferable Starter — do not redesign the site, and do not anonymize it.
 
-A Starter is a complete deliverable that still belongs to the original project: it retains the project name, character name, repo URL, copy, and exclusive assets. It is these real contents that let selectors judge whether a design fits and get an immediately runnable visual baseline after pulling. The downstream Page Designer only replaces centralized configuration, complete locale files, and declared asset slots; it does not re-infer the page from extra "design DNA" fields.
+A Starter is a complete deliverable that still belongs to the original project: it retains the project name, character name, repo URL, copy, and exclusive assets. It is these real contents that let selectors judge whether a design fits and get an immediately runnable visual baseline after pulling. The downstream Starter Localizer only replaces centralized configuration, complete locale files, and declared asset slots; it does not re-infer the page from extra "design DNA" fields.
 
 You produce the Starter in the creator's own directory or repo. Entry into the official RepoChan Starter library must go through a PR submitted by the creator and reviewed by maintainers.
 
@@ -76,7 +76,7 @@ Finally, perform a browser check per [productization-checklist.md](references/pr
 ## Completion criteria
 
 - The original project identity, character, URL, copy, full source code, and original assets are all preserved.
-- `site.json`, complete `i18n/`, `assets.json`, and slot contracts are sufficient for the Page Designer to mechanically localize.
+- `site.json`, complete `i18n/`, `assets.json`, and slot contracts are sufficient for the Starter Localizer to mechanically localize.
 - Complex baked assets have template-generated low-information migration references where necessary, while the original deliverables remain directly runnable.
 - Desktop/mobile previews, source validate, build, and local pull smoke test all pass.
 - The artifact is owned by the creator; official inclusion can only happen through a PR.

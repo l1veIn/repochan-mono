@@ -123,7 +123,7 @@ RepoChan 给 agent 提供一套**交付拓扑**：每个角色的工作目标不
 
 - 入口：`packages/skill/skills/*/SKILL.md`（纯 markdown，无构建步骤）。
 - **C 位是向导 skill `repochan`**：默认一句话调度全流程；显式 yolo 在已授权范围采用默认创意决策；非交互环境不扩大外部写权限；逐团队是高级模式。
-- 默认团队 skill：`repochan-analysis` / `repochan-interviewer` / `repochan-persona` / `repochan-art-director` / `repochan-painter` / `repochan-page-designer`。其中 Page Designer 的稳定机器 id 保留，但职责是既有 starter 的本地化与装配，只编辑 pull 后实例。
+- 默认团队 skill：`repochan-analysis` / `repochan-interviewer` / `repochan-persona` / `repochan-art-director` / `repochan-painter` / `repochan-starter-localizer`。Starter Localizer 负责既有 starter 的本地化与装配，只编辑 pull 后实例；id 直接表达职责。它历史上叫 `repochan-page-designer`——那个名字暗示"设计"，但该角色从不做设计，是已纠正的命名遗留（见 `docs/proposals/skill-role-naming-page-designer.md`）。
 - 原创分支 skill：`repochan-web-designer`。它为具体项目负责信息架构、艺术方向、整页/section 母稿、bake mask、生产资产策略、实现与 Gate 1/2；不写 source starter。
 - 产品化 skill：`repochan-starter-designer`。它把 Gate-2-approved implemented page 保真整理为创作者持有的 Source Starter 与 Transfer Kit；保留原项目身份与完整资产。进入 `packages/starters/` 必须由创作者提交 PR 并经过维护者审核，不属于普通项目生成流水线。
 - 采用 progressive disclosure：精炼 `SKILL.md` + 按需 `references/`。
@@ -286,7 +286,7 @@ repochan setup                   # 检测 agent、安装 skill、可选配置 im
 ④ 美术总监   repochan-art-director  → 全部订单（foundation + 下游）
 ⑤ 画师       repochan-painter       → 先 foundation，再下游（引用 foundation）
    ⏸ 检查点 2：foundation 出图
-⑥ 模板本地化 repochan-page-designer → 既有 starter 的项目实例
+⑥ 模板本地化 repochan-starter-localizer → 既有 starter 的项目实例
    ⏸ 检查点 3：部署前
 ```
 

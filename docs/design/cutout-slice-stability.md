@@ -17,11 +17,11 @@ RepoChan 当前网格/抠图生产链路依赖「prompt 约束 uniform matte + �
 
 本设计提出**多层稳定性架构**，严格遵守 monorepo 包边界与 **AGENTS.md 产品不变量 #5**：
 
-> **`image-edit` 是 page-assembly 依赖，绝不是 Painter 依赖。** 派生抠图/切分产物只进入组装站点的 `public/`，经 `repochan starter asset-apply`（page-designer）完成；**永不**回写 order-result / `.repochan/` 协议产物。
+> **`image-edit` 是 page-assembly 依赖，绝不是 Painter 依赖。** 派生抠图/切分产物只进入组装站点的 `public/`，经 `repochan starter asset-apply`（starter-localizer）完成；**永不**回写 order-result / `.repochan/` 协议产物。
 
 1. **生成侧（templates + painter skill）**：matte 色相规则、可选 layout-guide 作 `image gen --reference`、高价值订单可选 row/single-cell 拆单。Painter **只**负责原图交付；**不**调用 extract。
 2. **提取侧（`@repochan/image-edit` + CLI 绑定）**：soft-alpha unmix（v2 opt-in）、subject-aware matte、centroid grid（opt-in）、hybrid ML fallback（显式、默关）。
-3. **组装侧（page-designer / `starter asset-apply`）**：唯一生产 extract 入口；结构化 defect 回流给向导/painter 做**重生**决策。
+3. **组装侧（starter-localizer / `starter asset-apply`）**：唯一生产 extract 入口；结构化 defect 回流给向导/painter 做**重生**决策。
 4. **迁移**：默认保持今日行为（equal-cell + chroma v1）直到 canary 与 golden 通过后由 PR7 切换。
 5. **非目标**：animation strip / GIF 生产路径 / video2dsprite。
 
@@ -35,7 +35,7 @@ RepoChan 当前网格/抠图生产链路依赖「prompt 约束 uniform matte + �
 flowchart LR
   T["templates YAML"] --> P["painter<br/>image gen only"]
   P --> R["order result PNG<br/>immutable"]
-  R --> A["Path A: extractMatteGrid<br/>page-designer asset-apply"]
+  R --> A["Path A: extractMatteGrid<br/>starter-localizer asset-apply"]
   R --> B["Path B: extract-stickers<br/>CLI / scalar postprocess"]
   R --> C["Path C: chroma-key / bg-remove<br/>scalar postprocess"]
   A --> S["starter public/ named assets"]
@@ -45,7 +45,7 @@ flowchart LR
 
 | 路径 | 代码入口 | 策略 | 生产用途 | 调用方 |
 |------|----------|------|----------|--------|
-| **A** | `extractMatteGrid` | 等分 cell → `extractChromaKey` → alpha QA → trim → normalize | starter bundle `extract-grid` | **仅** `stageGridBundle`（`starter.ts`）via page-designer `asset-apply` |
+| **A** | `extractMatteGrid` | 等分 cell → `extractChromaKey` → alpha QA → trim → normalize | starter bundle `extract-grid` | **仅** `stageGridBundle`（`starter.ts`）via starter-localizer `asset-apply` |
 | **B** | `extractStickersFromImage` | 整图 ISNet → CC → blob 数 = rows×cols | CLI `extract-stickers`；scalar postprocess | 调试 / 少数 scalar 管线 |
 | **C** | `chromaKeyImage` / `removeImageBackground` | 单图 chroma 或 ISNet | cutout scalar | starter postprocess（neobrutal / scrollytelling / character-game-page 等） |
 
@@ -93,7 +93,7 @@ qa: { ...item.qa, geometry: item.geometry }
 
 | 约束 | 本设计的遵守方式 |
 |------|------------------|
-| AGENTS #5 image-edit ≠ Painter | extract / asset-apply / 结构化 QA 属 **page-designer**；painter 只 gen + 按回流缺陷改 prompt |
+| AGENTS #5 image-edit ≠ Painter | extract / asset-apply / 结构化 QA 属 **starter-localizer**；painter 只 gen + 按回流缺陷改 prompt |
 | image-edit 零凭证、无协议 | 维持；ML 网络能力显式标注 |
 | CLI 原子、无 `repochan run` | extract 不自动重生；编排在 skill |
 | order-result 不可变 | 派生文件只写 starter `public/` |
@@ -110,7 +110,7 @@ qa: { ...item.qa, geometry: item.geometry }
    - **门禁 B（PR7 前）**：真实失败样例集（若有）通过率 ≥ **80%**，且 canary starter 端到端无回归。
    - 合成套件至少覆盖：干净 3×3、邻格溢出、粘连双主体、matte 撞色条带、soft fringe、empty cell、edge sheet。
 2. **统一库内 API**：`extractAssets` 策略枚举；**对外兼容** 旧函数与 `extract-stickers` JSON。
-3. **Fail loud + 结构化 defect**：CLI/`asset-apply` 在 `--json` 失败时输出可解析 `defects[]`；**重生决策**在 page-designer 向导链 → painter（**不**由 painter 跑 extract）。
+3. **Fail loud + 结构化 defect**：CLI/`asset-apply` 在 `--json` 失败时输出可解析 `defects[]`；**重生决策**在 starter-localizer 向导链 → painter（**不**由 painter 跑 extract）。
 4. **包边界不破**；`core.validateExtractGridArgs` 扩展已知键校验。
 5. **向后兼容直至 PR7**：默认 `strategy=equal-cell`、scalar `chroma-key` 默认 **pipeline v1**；新能力 opt-in。
 
@@ -136,7 +136,7 @@ qa: { ...item.qa, geometry: item.geometry }
 sequenceDiagram
   participant Painter as repochan-painter
   participant Order as order result PNG
-  participant PD as repochan-page-designer
+  participant PD as repochan-starter-localizer
   participant Apply as starter asset-apply
   participant IE as image-edit extract
 
@@ -163,7 +163,7 @@ sequenceDiagram
 **例外说明（不破坏 #5）**：
 
 - **Layout guide**：确定性几何 PNG（`writeLayoutGuide`），painter 仅将其作为 `image gen --reference` 的构图约束，**不是**对 order 做 extract。
-- **调试**：page-designer 文档已写「只有调试 image-edit 本身时才直接调用 `repochan image edit`」——保持；**不**写入 painter checklist。
+- **调试**：starter-localizer 文档已写「只有调试 image-edit 本身时才直接调用 `repochan image edit`」——保持；**不**写入 painter checklist。
 - **Scalar cutout Path C**：仍由 **asset-apply 的 postprocess**（`chroma-key` / `bg-remove`）执行，不是 painter 步骤。
 
 ---
@@ -177,7 +177,7 @@ sequenceDiagram
 | 维度 | **agent-sprite-forge** | **sprite-gen** | **RepoChan（现状）** |
 |------|------------------------|----------------|----------------------|
 | 产品目标 | 游戏 2D sprite / map | component-row 精灵 + 变体 sheet | Web：贴纸、cutout、icon、web state |
-| Agent 角色 | Codex skill 拥有 plan | Skill + `sprite-request.json` | Painter gen；page-designer assemble；CLI 原子 |
+| Agent 角色 | Codex skill 拥有 plan | Skill + `sprite-request.json` | Painter gen；starter-localizer assemble；CLI 原子 |
 | Matte | 默认 `#FF00FF` | **auto 远离主体 hue** | 模板文字 + 四角 mode |
 | 布局 | layout / anchor guide 图 | draw_guide | 纯 prompt |
 | 提取几何 | 帧切 + CC 过滤 | **CC centroid / slice-sheet** | A 等分；B 全局 CC 硬计数 |
@@ -245,7 +245,7 @@ flowchart TB
     MODE["full-grid | row | single-cell degrade"]
   end
 
-  subgraph Assemble["Layer A — Page assembly（page-designer）"]
+  subgraph Assemble["Layer A — Page assembly（starter-localizer）"]
     APPLY["starter asset-apply"]
     RETRY["读 defects → 要求 painter 重生"]
   end
@@ -446,7 +446,7 @@ export function selectMatteColor(
 
 - **`auto` 在 v1 默认路径**：保持今日 **corner mode**（`estimateMatteColor`），避免 silent 行为变化。
 - **`auto` + `matteSelect: "subject-aware"`** 或 canary starter 显式开启：候选键对主体像素 `min_distance` 打分；拒绝 `min_subject_distance < eraseRadius`；全失败则取 max score + `clearsEraseRadius: false`。
-- 生成侧 skill 色相表（写入 **page-designer 回流说明 + templates**，非 painter extract）：粉/紫→绿；绿→洋红；深红→绿。
+- 生成侧 skill 色相表（写入 **starter-localizer 回流说明 + templates**，非 painter extract）：粉/紫→绿；绿→洋红；深红→绿。
 
 #### Matte / residue 硬失败规则（规范性）
 
@@ -507,7 +507,7 @@ residueEdgeDepthPx?: number;   // default 2; Chebyshev dist to transparent
 // fringeDelta for residue: chroma.fringeDelta ?? 18 (shared v1/v2)
 ```
 
-Skill 表中这两码 **仅在上述 hard 条件满足时**出现；page-designer 重生表保持有效。
+Skill 表中这两码 **仅在上述 hard 条件满足时**出现；starter-localizer 重生表保持有效。
 
 ### 3. Grid strategies 与默认迁移
 
@@ -856,7 +856,7 @@ repochan image edit layout-guide --rows R --cols C --out guide.png
 |----|------|
 | **`runStarterAssetApply`** | **拥有** apply 失败信封（`slot` / `orderId` / `strategyUsed` / `matteColor`）。在 `try` 内捕获 `ExtractError`（及 stageGridBundle 抛出的包装错误），**在 rethrow/`process.exit` 前** 若 `options.json` 则 `printJson(applyEnvelope)`；`finally` **必须** `rm(tempRoot)`（今日已有 finally 语义保留）。捕获后：`throw new ApplyFailurePrintedError()` 或设 `process.exitCode=1` 并 return，避免 `main` 再打印一份。 |
 | **`printError` + `main`** | **裸** `image edit extract` 等路径的 fallback。无 slot/order 上下文。 |
-| **page-designer** | 只消费 JSON；不手改 public。 |
+| **starter-localizer** | 只消费 JSON；不手改 public。 |
 
 #### `main()` 必改（PR4）
 
@@ -1034,13 +1034,13 @@ manifest 校验阶段失败 → 拉 starter / validate 即报错，而非 asset-
 
 | 文件 | 变更 |
 |------|------|
-| `repochan-page-designer/SKILL.md` + `phase2-assemble.md` | asset-apply 失败 → 解析 defects JSON；表：defect → 要求 painter 的动作；强调只有调试才直接 image edit |
-| `repochan-painter/references/asset-type-guides.md` | 贴纸表：**只**强化 gen 约束（matte 色相、间距、layout-guide ref）；明确「切分/QA 由 page-designer asset-apply」 |
-| `repochan-painter/references/extract-qa-retry.md`（可选） | **由 page-designer 引用** 或向导引用：缺陷码→重生策略；painter 只读「如何改 prompt」 |
+| `repochan-starter-localizer/SKILL.md` + `phase2-assemble.md` | asset-apply 失败 → 解析 defects JSON；表：defect → 要求 painter 的动作；强调只有调试才直接 image edit |
+| `repochan-painter/references/asset-type-guides.md` | 贴纸表：**只**强化 gen 约束（matte 色相、间距、layout-guide ref）；明确「切分/QA 由 starter-localizer asset-apply」 |
+| `repochan-painter/references/extract-qa-retry.md`（可选） | **由 starter-localizer 引用** 或向导引用：缺陷码→重生策略；painter 只读「如何改 prompt」 |
 | templates `chibi_3x3` / `web_state_grid_3x3` / `character_cutout` | matte 非白、安全区、禁止画 guide 线 |
 | `image-edit/README.md` | 双轨 pipeline；offline vs ML；#5 边界重申 |
 
-### Defect → 重生动作表（page-designer 拥有，painter 执行 gen）
+### Defect → 重生动作表（starter-localizer 拥有，painter 执行 gen）
 
 | Code | Page-designer | Painter |
 |------|---------------|---------|
@@ -1093,7 +1093,7 @@ manifest 校验阶段失败 → 拉 starter / validate 即报错，而非 asset-
 1. PR1–3：库能力，**默认行为不变**  
 2. PR4：CLI extract + **失败 JSON**  
 3. PR5：validateExtractGridArgs + canary starter **显式** chroma-grid+v2  
-4. PR6：page-designer / painter / templates 文档（ownership 正确）  
+4. PR6：starter-localizer / painter / templates 文档（ownership 正确）  
 5. 门禁 A+B 通过  
 6. **PR7**：默认 `extractMatteGrid` → chroma-grid + 可选 v2（或分两步：先几何后 pipeline）  
 7. 回滚：starter `strategy=equal-cell` / `pipeline:v1`；可选 env `REPOCHAN_EXTRACT_STRATEGY`（debug only）
@@ -1135,7 +1135,7 @@ manifest 校验阶段失败 → 拉 starter / validate 即报错，而非 asset-
 2. **生产默认保持 `equal-cell` + chroma v1，直至 PR7** — 向后兼容；canary opt-in。  
 3. **equal-cell 保持 per-cell chroma + 整图 matte 采样**（与今日一致）；仅 chroma-grid/hybrid 整图 chroma。  
 4. **chroma v2 = sprite-gen 常数，与 v1 28/34 分轨**；scalar `chroma-key` 默认 v1。  
-5. **Extract QA 归属 page-designer / asset-apply，不属 Painter** — AGENTS #5。  
+5. **Extract QA 归属 starter-localizer / asset-apply，不属 Painter** — AGENTS #5。  
 6. **Fail loud + JSON defects**；**apply 层组装 slot/orderId 信封**；`main` 传 `--json` 给 `printError`。  
 7. **extract-stickers JSON 形状冻结**；新形状仅 `image edit extract`。  
 8. **`hybrid` 必须 `mlFallback: true`**；否则用 `chroma-grid`。ml-blobs/hybrid 显式触网。  
@@ -1170,7 +1170,7 @@ manifest 校验阶段失败 → 拉 starter / validate 即报错，而非 asset-
 - `packages/image-edit/README.md`（page-assembly 边界）  
 - `packages/cli/src/commands/{image,starter}.ts`；`packages/cli/src/lib/output.ts`  
 - `packages/core/src/starter.ts` `validateExtractGridArgs`  
-- `packages/skill/skills/repochan-page-designer/`；`repochan-painter/references/asset-type-guides.md`  
+- `packages/skill/skills/repochan-starter-localizer/`；`repochan-painter/references/asset-type-guides.md`  
 - Prior art：`/tmp/repochan-research/sprite-gen/sprite_gen/{extract,slice_sheet}.py`；`agent-sprite-forge/.../make_layout_guide.py`  
 - Licenses：sprite-gen Apache-2.0（NOTICE 归因）
 
@@ -1255,8 +1255,8 @@ function runChromaPipelineV2(rgba, key, T=96, F=180, D=18, R=4, spillFrac=0.005)
 
 ### PR6 — Skills & templates（ownership-correct）
 
-- **Title**: `docs(skill,templates): page-designer extract QA loop; painter gen-only`
-- **Files**: page-designer skills, painter asset-type-guides, templates, image-edit README
+- **Title**: `docs(skill,templates): starter-localizer extract QA loop; painter gen-only`
+- **Files**: starter-localizer skills, painter asset-type-guides, templates, image-edit README
 - **Deps**: PR4/5 命令与 defect 形状稳定
 - **Notes**: **禁止** painter 强制 extract
 

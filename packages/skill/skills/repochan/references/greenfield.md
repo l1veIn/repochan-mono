@@ -20,7 +20,7 @@ When the user wants to create a brand new project (no existing repo, no code yet
 ⑥ ⏸ Checkpoint 1: persona + suggested final repo name → user confirms
      ↓                   if name changed: rename directory
 ⑦ [Everything below is identical to the standard pipeline]
-   Art Director → Painter → Page Designer → Deploy
+   Art Director → Painter → Starter Localizer → Deploy
 ```
 
 **Key design decision — bootstrap before interview, not after**: By creating the directory and running `repochan init` first, the `.repochan/` protocol directory exists from the start. This means the interview report, analysis stub, and persona are all **properly persisted** via standard CLI commands — no floating context-only artifacts. The working directory name is temporary; the user can rename it at the checkpoint.

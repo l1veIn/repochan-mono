@@ -49,7 +49,7 @@ public/
   favicon.ico / icon-*.png / apple-touch-icon.png   # 由 icon slot 离线派生
 ```
 
-## 本地化入口（Page Designer 只动这些）
+## 本地化入口（Starter Localizer 只动这些）
 
 - **文案**：`repochan/i18n/{zh,en}.json`；两 locale 键、类型、数组长度必须一致
   （`starter validate` 强制）。

@@ -7,7 +7,7 @@
 | **Date** | 2026-07-20 |
 | **Status** | Draft proposal（开放决策中;非已承诺的计划） |
 | **Scope** | `@repochan/starters` 规模化、官方发现面、选型对 text-only agent 友好;**不含** web-designer 原创分支、不含把 starter 改成 npm 多包依赖图 |
-| **Packages (impacted if accepted)** | `packages/starters` · `packages/cli`（`starter-loader` / `starter pull`）· `@repochan/core`（manifest/catalog schema）· `packages/skill`（`repochan-page-designer` 选型段）· 可选独立 registry 仓 / Gallery 静态站 |
+| **Packages (impacted if accepted)** | `packages/starters` · `packages/cli`（`starter-loader` / `starter pull`）· `@repochan/core`（manifest/catalog schema）· `packages/skill`（`repochan-starter-localizer` 选型段）· 可选独立 registry 仓 / Gallery 静态站 |
 
 ---
 
@@ -23,7 +23,7 @@
   - `npm pack --dry-run` ≈ **29.0 MB** 包体 / **29.7 MB** 解压后 / **420** 个文件
   - 大致拆分:**~28 MB 图片**,**~1.3 MB** 代码+JSON(不含 `node_modules` / `dist`)
 - 贡献速度很高(近期历史里有多个 `feat(starters): …` PR);把每个完整站点当作 monorepo + 单一 npm payload 对待,无法扩展。
-- Page Designer skill 指示 agent 在选 starter 前检查 desktop/mobile previews(`packages/skill/skills/repochan-page-designer/SKILL.md`)。**很多 agent host 是 text-only 的,看不到图片**;那条指令是已知的错误默认值。
+- Starter Localizer skill 指示 agent 在选 starter 前检查 desktop/mobile previews(`packages/skill/skills/repochan-starter-localizer/SKILL.md`)。**很多 agent host 是 text-only 的,看不到图片**;那条指令是已知的错误默认值。
 - Manifest 已经带了轻量文本(`description`、`style`、`tags`)和必需的 `previews` 路径(`packages/core/src/starter.ts` / `repochan.starter.v1`)。没有结构化的 fit 契约,没有 `demo` URL 字段,也没有 registry/catalog 抽象。
 
 ### 1.2 产品约束(必须保持)
@@ -219,7 +219,7 @@ repochan starter list | get | pull
 }
 ```
 
-已有的 `description` / `style` / `tags` 保留;`fit` 是 page-designer 用来对照 analysis + persona 做 shortlist 的依据。
+已有的 `description` / `style` / `tags` 保留;`fit` 是 starter-localizer 用来对照 analysis + persona 做 shortlist 的依据。
 
 #### 可选 `demo`(author vs official)
 
@@ -230,7 +230,7 @@ repochan starter list | get | pull
 
 **鼓励作者自托管 URL 作为可选的 PR 便利,但不作为唯一的发现系统。** 不得要求 agent 去 fetch 或渲染它。
 
-#### Skill 行为(page-designer)
+#### Skill 行为(starter-localizer)
 
 **所有**模型的默认路径:
 
@@ -341,7 +341,7 @@ repochan starter pull --from <dir>         # 不变的本地权威
 
 1. 非默认 starter 不再被要求撑大发布的 npm tarball。
 2. 远程条目的 `starter pull` 校验 digest 并使用本地 cache。
-3. page-designer skill 不再普适地要求看 preview 图片。
+3. starter-localizer skill 不再普适地要求看 preview 图片。
 4. 官方 starter 暴露机器可读的 `fit`(或等价物)供 list/get 使用。
 5. `demo` 的 author URL 保持可选;任何"official demo"都从和被 pull 的树同一份产物构建。
 
@@ -353,7 +353,7 @@ repochan starter pull --from <dir>         # 不变的本地权威
 - `packages/cli/src/commands/starter.ts` —— `runStarterList`、`runStarterGet`、`runStarterPull`(`--from`、`fs.cp` filter)
 - `packages/core/src/starter.ts` —— `StarterManifest`、`validateStarterManifest`、previews 安全
 - `packages/starters/package.json` —— 发布的 `files` glob
-- `packages/skill/skills/repochan-page-designer/SKILL.md` —— 选型工作流(preview 假设)
+- `packages/skill/skills/repochan-starter-localizer/SKILL.md` —— 选型工作流(preview 假设)
 - `docs/releasing.md` —— smoke:`starter list` / `pull --starter minimal` / `validate`
 - `ARCHITECTURE.md` / `Agents.md` —— 包规则与产品不变式
 

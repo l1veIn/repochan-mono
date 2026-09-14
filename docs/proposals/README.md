@@ -21,6 +21,8 @@ markdown 文件,讨论范围大于单个 PR。
 本目录目前有三份关于 starters 扩展与发现的方案,来自不同视角,互相补充而非
 互斥。读者建议按下列顺序阅读:
 
+此外还有一份关于 skill 角色命名的方案,主题独立,列在最后。
+
 ### 主方案
 
 - [`starters-catalog-cache-and-text-first-selection.md`](./starters-catalog-cache-and-text-first-selection.md) ——
@@ -40,6 +42,17 @@ markdown 文件,讨论范围大于单个 PR。
   path/content 分离、`registryDependencies` 共享底座),哪些不该抄
   (五种 address 全上、`components.json` 用户侧配置、内联 content 发布)。
 
+### 角色命名(独立话题)
+
+- [`skill-role-naming-page-designer.md`](./skill-role-naming-page-designer.md) ——
+  `repochan-starter-localizer` 的名字与职责错配(它不做设计,做 starter 本地化
+  + 装配;设计职责已搬到 `repochan-web-designer`)。诊断命名轴为何选错、
+  改名在 CLI 安装模型里的真实成本。**已执行(2026-09-14)**:直接改名为
+  `repochan-starter-localizer`,不发布迁移 shim(未推广,存量安装趋近于零,
+  不值得为一次几乎不存在的一次性成本引入长期资产)。代价是存量机器要按
+  `CHANGELOG.md` 的指引手工清一次旧 skill 目录;唯一改动的代码是
+  fresh-install 验证器的名单。
+
 ## 方案之间的关系
 
 三份方案观察的是同一个压力面(`packages/starters` 扩展 + starter 发现),
@@ -52,3 +65,6 @@ markdown 文件,讨论范围大于单个 PR。
 它们之间没有矛盾 —— 主方案的 Phase 0–5 和补充方案的 Phase 1–3 在时间线上
 对应,措辞差异反映的是讨论发生时的不同阶段。接受任一份时,把两者合并成单一
 tracked work 列表即可。
+
+角色命名方案与上述三份无交集:它不碰 catalog / 分发 / 选型,只处理 skill 标识
+与职责的一致性,以及 `setup` 的装卸归属判定。两者可以独立推进。

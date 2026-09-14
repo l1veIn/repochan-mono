@@ -28,7 +28,7 @@ Canonical translations for all domain-specific terms. Use these consistently acr
 | 创意团队 | Creative Team | repochan-persona |
 | 美术总监 | Art Director | repochan-art-director |
 | 画师 | Painter | repochan-painter |
-| 模板本地化 | Starter Localizer / Assembler | repochan-page-designer |
+| 模板本地化 | Starter Localizer / Assembler | repochan-starter-localizer |
 
 ## Pipeline Modes
 

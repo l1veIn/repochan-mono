@@ -12,7 +12,7 @@ pnpm build      # → dist/（/、/zh/、/404.html）
 pnpm dev        # 本地开发
 ```
 
-## 本地化入口（Page Designer 只动这些）
+## 本地化入口（Starter Localizer 只动这些）
 
 | 文件 | 内容 |
 |---|---|

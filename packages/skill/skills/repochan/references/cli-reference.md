@@ -161,7 +161,7 @@ Create a structured review. Read `repochan-art-director` for order orchestration
 | `repochan starter validate --all` | Validate all built-in Starter sources. |
 | `repochan starter preview <id> [--port N] [--no-open] [--rebuild]` | Install, build, and preview a Starter locally using the dist cache. |
 
-Starters are no longer installed with the CLI runtime. Run `starter sync` before the first selection. The default instance directory is `.repochan/web-starter/`. Do not replace `asset-apply` bundle or postprocessing behavior with direct file copies, and never fabricate `assets.json` manually. Read `repochan-page-designer` for the complete assembly workflow.
+Starters are no longer installed with the CLI runtime. Run `starter sync` before the first selection. The default instance directory is `.repochan/web-starter/`. Do not replace `asset-apply` bundle or postprocessing behavior with direct file copies, and never fabricate `assets.json` manually. Read `repochan-starter-localizer` for the complete assembly workflow.
 
 ## Templates and images
 

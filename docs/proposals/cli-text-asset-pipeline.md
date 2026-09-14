@@ -6,7 +6,7 @@
 | **Author** | agent 使用反馈 (2026-08-05, RambleDesk social-preview + README banner 工作流) |
 | **Date** | 2026-08-05 |
 | **Status** | Draft proposal（开放决策中;非已承诺的计划） |
-| **Scope** | 社交卡 / README banner 等带文字交付物的生成 → 排版 → 质检链路;顺带三条 CLI 摩擦;**不含** web-designer 分支、不含 Image-edit 的 ML 能力(切图/去背仍归 Page Designer) |
+| **Scope** | 社交卡 / README banner 等带文字交付物的生成 → 排版 → 质检链路;顺带三条 CLI 摩擦;**不含** web-designer 分支、不含 Image-edit 的 ML 能力(切图/去背仍归 Starter Localizer) |
 | **Packages (impacted if accepted)** | `packages/cli`(`image edit compose` / `image qa text` / `order update` / `image gen` 端点回退)· `packages/core`(order references 可变性、模板契约)· 模板库(`readme-banner` 系)· `packages/skill`(Painter 文字质检边界) |
 
 ---
@@ -37,7 +37,7 @@
 
 1. **CLI 是唯一 binding surface** —— 排版/质检若新增,必须是 `repochan image …` 子命令,不开第二个真相源。
 2. **确定性操作不带模型调用** —— `image edit` 类工具不得隐式调用生成模型(现有 `layout-guide` 已是先例:确定性渲染,非生成)。
-3. **Painter 不做 image-edit 装配** —— 切图、去背、排版归 Page Designer / assembly 阶段;但**文字叠加**目前落在任何角色之外,是空洞。
+3. **Painter 不做 image-edit 装配** —— 切图、去背、排版归 Starter Localizer / assembly 阶段;但**文字叠加**目前落在任何角色之外,是空洞。
 4. **`generationPrompt` 必须完整落档** —— 质检命令不得绕过 create-result 的存档要求。
 
 ### 1.4 Non-goals

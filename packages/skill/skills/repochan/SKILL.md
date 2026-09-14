@@ -30,7 +30,7 @@ This rule overrides the skill's own writing language. The skill files are author
 Do not expand every `/repochan` request into the full brand pipeline:
 
 - **Full brand pipeline**: when the user wants a persona, asset suite, website, or deployment, use the staged flow below.
-- **Direct image utility**: when the user only wants to process an existing image — crop, extract, remove a background, resize, make PNG/ICO/icon-font outputs, compress, or encode a GIF — read [image-tools.md](references/image-tools.md) and execute the smallest matching workflow. Do not initialize the protocol, load Page Designer, or start the full pipeline just to access image-edit.
+- **Direct image utility**: when the user only wants to process an existing image — crop, extract, remove a background, resize, make PNG/ICO/icon-font outputs, compress, or encode a GIF — read [image-tools.md](references/image-tools.md) and execute the smallest matching workflow. Do not initialize the protocol, load Starter Localizer, or start the full pipeline just to access image-edit.
 - **Direct generation**: scratch output explicitly outside the project protocol may call `repochan image gen` directly. A project asset inside an initialized RepoChan project still requires an approved order and Painter delivery.
 - **CLI help or troubleshooting**: when the user asks about commands, configuration, protocol state, or errors, read [cli-reference.md](references/cli-reference.md) and perform only the minimum required operation.
 - **Per-team task**: when the user explicitly names analysis, persona, painter, or another stage, load that team skill.
@@ -65,14 +65,14 @@ Only enter yolo mode (no stopping) when the user **explicitly** says things like
 ④ Art Director    → repochan-art-director   → Create all orders at once (yolo: status=approved; non-yolo: draft)
 ⑤ Painter         → repochan-painter        → Execute foundation first, then downstream (referencing foundation ref image)
    ⏸ Checkpoint 2: stop after foundation is generated (non-yolo only; yolo continues to downstream)
-⑥ Starter Localizer → repochan-page-designer → Pull, configure, and assemble an existing Astro starter
+⑥ Starter Localizer → repochan-starter-localizer → Pull, configure, and assemble an existing Astro starter
    ⏸ Checkpoint 3: stop before deployment, final user confirmation (outbound irreversible operation)
 ⑦ Deploy          → Build + deploy to GitHub Pages
 ```
 
 At each step: read the corresponding team skill's guidance → follow its instructions (run CLI subcommands, use `repochan <entity> get` to read upstream artifacts) → move to the next stage when done.
 
-The default chain only does starter localization and assembly. If the user explicitly requests an original website, a new information architecture / section / art direction, or the Page Designer determines no starter fits, explicitly enter the `repochan-web-designer` branch and deliver the project website after completing Gate 1/2. Only invoke `repochan-starter-designer` when the user explicitly requests productization: it organizes a Source Starter in the creator's directory; inclusion in the official starter library requires a PR from the creator and is not part of the default project pipeline.
+The default chain only does starter localization and assembly. If the user explicitly requests an original website, a new information architecture / section / art direction, or the Starter Localizer determines no starter fits, explicitly enter the `repochan-web-designer` branch and deliver the project website after completing Gate 1/2. Only invoke `repochan-starter-designer` when the user explicitly requests productization: it organizes a Source Starter in the creator's directory; inclusion in the official starter library requires a PR from the creator and is not part of the default project pipeline.
 
 If entering the Web Designer branch under explicit yolo or non-interactive execution, Gate 1/2 does not block local, reversible design work: the executing agent records candidates, auto-selects a recommended direction, and records the auto-selected decision after automated QA passes fully; this is not equivalent to human aesthetic approval, and the delivery report must clearly note it. Non-interactive environments do not inherently grant permission for push, deploy, publish, or other external write operations.
 
@@ -172,7 +172,7 @@ Each team skill uses progressive disclosure: a lean `SKILL.md` + on-demand `refe
 | ③ Persona | `repochan-persona` | Creative Team builds the mascot persona |
 | ④ Art Direction | `repochan-art-director` | Create all orders at once (foundation + downstream) |
 | ⑤ Painting | `repochan-painter` | Execute foundation first, then downstream |
-| ⑥ Starter Localization | `repochan-page-designer` | Select, configure, and assemble an existing starter; do not redesign |
+| ⑥ Starter Localization | `repochan-starter-localizer` | Select, configure, and assemble an existing starter; do not redesign |
 
 Explicit extension roles:
 
@@ -195,7 +195,7 @@ When you need detail on a particular step, load the corresponding team skill's f
 
 **Your behavior** (Direct image utility):
 1. Read [image-tools.md](references/image-tools.md), locate the source icon, and confirm from context that the requested outputs are ordinary derived files.
-2. Run `repochan image edit resize` for the required PNG sizes and `repochan image edit favicon` for the multi-resolution ICO. Do not initialize `.repochan/` or load Page Designer.
+2. Run `repochan image edit resize` for the required PNG sizes and `repochan image edit favicon` for the multi-resolution ICO. Do not initialize `.repochan/` or load Starter Localizer.
 3. Inspect the emitted paths and dimensions, then report the delivered files. Never rewrite a published order result if the icon came from one.
 
 **User**: "Generate a full asset suite for my project and deploy to GitHub Pages"
@@ -210,7 +210,7 @@ When you need detail on a particular step, load the corresponding team skill's f
 7. Load `repochan-painter`, execute foundation first.
 8. **Checkpoint 2**: present the foundation image, ask "Happy with the visual style?"
 9. After confirmation, painter continues with downstream orders (referencing the foundation ref image).
-10. Load `repochan-page-designer`, select, configure, and assemble an existing starter; if no starter fits, report and enter the explicit Web Designer branch — do not improvise a redesign on the spot.
+10. Load `repochan-starter-localizer`, select, configure, and assemble an existing starter; if no starter fits, report and enter the explicit Web Designer branch — do not improvise a redesign on the spot.
 11. **Checkpoint 3**: verify whether the original request explicitly asked for deployment; if not, ask "Ready to deploy to GitHub Pages — confirm go-live?"
 12. Explicit deploy authorization present → build + deploy; otherwise stop at deployable artifacts and report.
 
@@ -228,4 +228,4 @@ When you need detail on a particular step, load the corresponding team skill's f
 5. **Pass 2 — Enrich analysis**: update stub with interview signals via `repochan analysis update`.
 6. Load `repochan-persona`. It reads the analysis and builds a persona named "Linnea".
 7. **Checkpoint 1**: Present the persona. "Linnea feels right — shall we name the repo `linnea`? (The icon will be her face, the app name will be her name.)" User confirms. `mv ../dotvault ../linnea`.
-8. From here, identical to standard pipeline: Art Director → Painter → Page Designer → Deploy.
+8. From here, identical to standard pipeline: Art Director → Painter → Starter Localizer → Deploy.

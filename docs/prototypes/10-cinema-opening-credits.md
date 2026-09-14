@@ -67,7 +67,7 @@
    | 角色设计 | 角色设计师 |
    | 美术总监 | repochan-art-director |
    | 摄影 / 生成 | repochan-painter |
-   | 剪辑 / 装配 | repochan-page-designer |
+   | 剪辑 / 装配 | repochan-starter-localizer |
    | 剧本顾问 | repochan-interviewer |
    | 调研 | repochan-analysis |
 

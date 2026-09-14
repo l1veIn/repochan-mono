@@ -21,7 +21,7 @@ The **Transfer Kit** is the small, concentrated handoff surface inside that full
 └── package.json
 ```
 
-The Transfer Kit is not a second package or manifest. It lets the Page Designer replace deterministic configuration, complete locale values, and declared asset slots without reconstructing the design or copying fields by hand.
+The Transfer Kit is not a second package or manifest. It lets the Starter Localizer replace deterministic configuration, complete locale values, and declared asset slots without reconstructing the design or copying fields by hand.
 
 Core owns the manifest and config schemas. The CLI owns discovery, projection, order materialization, deterministic post-processing, local-source pull, and validation.
 

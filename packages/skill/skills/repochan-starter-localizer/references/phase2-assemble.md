@@ -34,7 +34,7 @@ First distinguish missing dependencies from pixel QA: if the error type is `Miss
 repochan image edit ml install
 ```
 
-After successful installation, retry the failed `repochan starter asset-apply ...` command as-is. If installation fails, stop and report the original error; do not loop installation. Network downloads only occur during explicit install; post-install ML operations read from the capability cache using local runtime and models, with no further network access. Missing dependencies are a Page Designer assembly environment issue, not a source image problem; do not request Painter regeneration to circumvent this.
+After successful installation, retry the failed `repochan starter asset-apply ...` command as-is. If installation fails, stop and report the original error; do not loop installation. Network downloads only occur during explicit install; post-install ML operations read from the capability cache using local runtime and models, with no further network access. Missing dependencies are a Starter Localizer assembly environment issue, not a source image problem; do not request Painter regeneration to circumvent this.
 
 When `asset-apply` fails due to extract QA, it exits non-zero; running with `--json` outputs a structured envelope to stdout (human-readable mode only prints a summary; when troubleshooting, always rerun with `--json`):
 

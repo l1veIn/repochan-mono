@@ -14,7 +14,7 @@ npm run dev       # 本地开发
 
 要求 Node ≥ 18（Astro 4）。
 
-## 本地化入口（Page Designer 只动这些）
+## 本地化入口（Starter Localizer 只动这些）
 
 | 文件 | 内容 |
 |---|---|

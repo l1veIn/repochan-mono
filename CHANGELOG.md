@@ -4,6 +4,33 @@ This changelog records coordinated public package sets.
 
 ## Unreleased
 
+### Skill rename: `repochan-page-designer` → `repochan-starter-localizer`
+
+- The default-chain team skill that localizes and assembles an existing Starter is
+  renamed. The old id never described the role: it implied page design, while the
+  role explicitly must not redesign a site ("Do not add/remove sections, change
+  information architecture, redo art direction"). Original site design belongs to
+  `repochan-web-designer`. The id was a leftover from when this role really did
+  design a landing page; the Starter system replaced those duties but kept the name.
+- The wizard, Painter, Starter Designer, package READMEs, the 13 Starter READMEs,
+  `ARCHITECTURE.md` / `AGENTS.md`, and the fresh-install skill inventory in
+  `scripts/release-preflight.mjs` now use the new id. Two Starter demo locales
+  (`landing-cinema-credits`, `landing-scrollytelling`) referenced the old id in
+  their own content and were updated with them.
+- **Upgrade note.** No migration shim was shipped, because almost nobody has these
+  skills installed yet. `repochan setup` copies skill directories and never prunes,
+  so a machine that installed the skills before this change keeps
+  `repochan-page-designer/` alongside the new directory, still holding the old
+  contract. Delete that directory once (the container is `.codex/skills/`,
+  `.claude/skills/`, … depending on the agent):
+  `rm -rf <skill-container>/repochan-page-designer`.
+- `repochan setup --remove` does **not** clear it: that command only deletes the
+  directory names still present in the shipped skill set, and this name is gone
+  from the set — so the old directory survives, and running `repochan setup`
+  afterwards installs the new skills beside it. This was verified end to end, not
+  assumed. Do not leave both copies in place: role selection then sees two skills
+  claiming the same job, one of them stale.
+
 ### GPT-Image-2.5 support
 
 - New endpoints default to `gpt-image-2.5-sunburst` (released 2026-09-08): OpenAI's

@@ -154,7 +154,7 @@ shadcn 解决的是类似问题(分发大量带交叉引用的代码单元),但�
   `recommend` 只读 index;`get` / `pull` / `validate` 仍打开完整 manifest。
   index 缺失时回退到今天的 readdir 行为。
 - 把每个 `previews/*.webp` 压到 ≤ 150 KB,走 `cwebp -q 72 -resize 1280x0`。
-  previews 是给 Page Designer 看的缩略图,不是印刷级资产。预期降幅:
+  previews 是给 Starter Localizer 看的缩略图,不是印刷级资产。预期降幅:
   ~4.1 MB → ~1.5 MB。
 
 **发现(D1 + D3):**

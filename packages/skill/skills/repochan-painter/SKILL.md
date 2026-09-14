@@ -233,7 +233,7 @@ Full bash-level examples (Foundation Sheet / downstream / review loop) → [exam
 | [prompt-assembly.md](references/prompt-assembly.md) | Filling templates / no-template assembly |
 | [prompt-methodology.md](references/prompt-methodology.md) | Methodology before writing any prompt |
 | [asset-type-guides.md](references/asset-type-guides.md) | Before generating per assetType |
-| [extract-qa-retry.md](references/extract-qa-retry.md) | page-designer loop when extract QA defects |
+| [extract-qa-retry.md](references/extract-qa-retry.md) | starter-localizer loop when extract QA defects |
 | [output-and-save.md](references/output-and-save.md) | Spec mapping, mandatory gen, saving |
 | [safety-and-mindset.md](references/safety-and-mindset.md) | Safety and order mindset |
 | [examples.md](references/examples.md) | Reference full execution paths |

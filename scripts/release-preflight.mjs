@@ -441,10 +441,10 @@ async function candidateFreshInstallSmoke(entries) {
     "repochan-analysis",
     "repochan-art-director",
     "repochan-interviewer",
-    "repochan-page-designer",
     "repochan-painter",
     "repochan-persona",
     "repochan-starter-designer",
+    "repochan-starter-localizer",
     "repochan-web-designer",
   ];
   const installedSkillsRoot = path.join(hostProject, ".codex", "skills");
@@ -465,7 +465,7 @@ async function candidateFreshInstallSmoke(entries) {
   for (const currentContract of [
     "repochan foundation find",
     "repochan-painter",
-    "repochan-page-designer",
+    "repochan-starter-localizer",
     "does not auto-upgrade to yolo",
     "external writes still require explicit authorization in the user's original request",
     "non-interactive environments do not expand authorization",

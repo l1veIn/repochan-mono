@@ -17,7 +17,7 @@
 | `persona.keyMotifs` | `brand.motifs` |
 | `persona.signaturePatterns` | `brand.patterns` |
 
-`theme.ink` is the human-readable foreground color auto-derived by CLI/Core; the Starter uses it for body text, dark sections, and button text. Do not let the Page Designer manually rearrange the palette. Do not manually copy these fields, nor modify `src/lib/site.ts`.
+`theme.ink` is the human-readable foreground color auto-derived by CLI/Core; the Starter uses it for body text, dark sections, and button text. Do not let the Starter Localizer manually rearrange the palette. Do not manually copy these fields, nor modify `src/lib/site.ts`.
 
 ## Agent-Authored Fields
 
