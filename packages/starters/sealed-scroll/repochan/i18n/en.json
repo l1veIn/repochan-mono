@@ -104,35 +104,35 @@
       "note": "Image libraries never write .repochan/; protocol writes always go through core. Core is zero-credential, zero-agent, zero-pixel by construction."
     },
     "brandKit": {
-      "eyebrow": "The proof",
-      "title": "This page is its own pipeline output",
-      "lede": "Every visual on this site was produced by the pipeline it describes — persona, foundation, stickers, poster, banner, pattern, icon. Each card carries its verifiable order id.",
+      "eyebrow": "Source examples",
+      "title": "RepoChan's original pipeline outputs",
+      "lede": "These six images are preserved examples from RepoChan's original Source Starter. Their order IDs belong to that source project, not to a localized target. Project asset-slot replacements do not alter these examples.",
       "cards": [
         { "img": "/assets/gallery-foundation.webp", "square": true, "title": "Foundation sheet", "body": "The single visual anchor every downstream asset references.", "orderId": "ord-foundation-001", "alt": "Repo-chan foundation character sheet" },
         { "img": "/assets/gallery-poster.webp", "title": "Poster", "body": "Night-workshop signature scene; style reference for later art.", "orderId": "ord-poster-001", "alt": "Repo-chan poster, night workshop scene" },
-        { "img": "/assets/gallery-sticker.webp", "square": true, "title": "Sticker sheet 3×3", "body": "Uniform-matte semantic grid — the cameos on this page are sliced from it.", "orderId": "ord-sticker-001", "alt": "Repo-chan 3 by 3 chibi sticker sheet" },
-        { "img": "/assets/icon.webp", "square": true, "title": "Icon", "body": "Brand mark, favicon source, nav seal.", "orderId": "ord-icon-001", "alt": "RepoChan wax-seal icon" },
+        { "img": "/assets/gallery-sticker.webp", "square": true, "title": "Sticker sheet 3×3", "body": "Original RepoChan grid — the Source Starter's cameos were sliced from it.", "orderId": "ord-sticker-001", "alt": "Repo-chan 3 by 3 chibi sticker sheet" },
+        { "img": "/assets/gallery-source-icon.webp", "square": true, "title": "Icon", "body": "RepoChan's original brand mark, favicon source, and nav seal.", "orderId": "ord-icon-001", "alt": "Original RepoChan wax-seal icon" },
         { "img": "/assets/gallery-banner.webp", "title": "README banner", "body": "Social / og:image preview banner.", "orderId": "ord-readme-banner-001", "alt": "RepoChan README banner" },
-        { "img": "/assets/pattern-tile.webp", "square": true, "title": "Pattern tile", "body": "The canonical L1b: one seamless wax-seal tile, CSS-parameterized sitewide.", "orderId": "ord-pattern-001", "alt": "Seamless wax-seal pattern tile" }
+        { "img": "/assets/gallery-source-pattern.webp", "square": true, "title": "Pattern tile", "body": "RepoChan's original L1b: a seamless wax-seal tile reused across the Source Starter.", "orderId": "ord-pattern-001", "alt": "Original RepoChan seamless wax-seal pattern" }
       ],
       "self": {
-        "title": "…and this page",
-        "body": "Hero and CTA composites, cameo slices, palette and type — all delivered through the same orders pipeline you just read about.",
+        "title": "…and the original Source Starter website",
+        "body": "These hero and CTA orders built RepoChan's original page. A localized project's images and order provenance must be tracked separately.",
         "orderId": "ord-web-hero-composite-001 · ord-web-cta-composite-001"
       },
       "lightboxClose": "Close"
     },
     "starters": {
       "eyebrow": "The starters",
-      "title": "Shipped scaffolds you can pull today",
-      "lede": "Four complete Astro landing starters ship with the monorepo — inspect, pull, localize.",
+      "title": "Other Source Starter examples",
+      "lede": "These previews show original Source Starter sites, not the localized project. Sync and list the current catalog; landing-museum is the default Starter.",
       "items": [
         { "id": "caddy", "img": "/assets/starters/caddy.webp", "name": "Caddy Gatehouse", "body": "Automatic HTTPS story with gateway motifs and ordered transitions." },
         { "id": "marktext", "img": "/assets/starters/marktext.webp", "name": "MarkText Midnight Editorial", "body": "Midnight Art Deco hero, paper sections, real editor gallery." },
-        { "id": "minimal", "img": "/assets/starters/minimal.webp", "name": "Minimal Hero", "body": "The default Hero-only starter: one composition, one visual slot." },
+        { "id": "minimal", "img": "/assets/starters/minimal.webp", "name": "Minimal Hero", "body": "A Hero-only starter: one composition, one visual slot." },
         { "id": "redis", "img": "/assets/starters/redis.webp", "name": "Redis Signal Relay", "body": "Kinetic cel-shaded art with a shared seamless relay pattern." }
       ],
-      "previewAltPrefix": "Preview screenshot of the ",
+      "previewAltPrefix": "Source Starter preview of the ",
       "cmdPrefix": "repochan starter pull --starter "
     },
     "principles": {

@@ -20,9 +20,9 @@ Avoid over-constraining with fragile pixel-precise instructions. The brief shoul
 
 Never run or import target repo code for image generation, auth discovery, model discovery, prompt execution, or asset production. The target repo is treated as a black box.
 
-- Only read repo files for context via standard Pi session tools.
-- Only use standard Pi session capabilities for generation: native model image support, registered Pi image tools/packages, or user-provided files.
-- Do not run `uv run python`, `python`, project CLI, project tests, or ad-hoc imports from the target repo.
+- Read repository files for context through the current agent host's available file tools.
+- Generate through `repochan image gen`; the CLI owns endpoint selection and authentication. Native host image tools are not a parallel generation path for this role.
+- Do not run target-project code, tests, or ad-hoc imports for image generation or auth discovery. RepoChan CLI commands are the binding surface.
 
 
 ## Built-in Safety Constraints (Always Active)

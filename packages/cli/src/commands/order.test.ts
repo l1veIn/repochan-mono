@@ -328,7 +328,7 @@ describe("order extract", () => {
     expect(entry.slot).toBe("manual");
     expect(entry.starter).toBe("image-edit");
     expect(entry.resultVersion).toBe("v1");
-    expect(entry.archiveDir).toMatch(/^derived\/.+--extract$/);
+    expect(entry.archiveDir).toMatch(/^derived\/.+--extract--[a-f0-9-]{36}$/);
     expect(entry.steps).toHaveLength(1);
     expect(entry.steps[0].op).toBe("extract-grid");
     expect(entry.steps[0].args).toMatchObject({
@@ -390,7 +390,7 @@ describe("order extract", () => {
 
     const derived = JSON.parse(await readFile(path.join(orderDir, "derived.json"), "utf8"));
     expect(derived.entries).toHaveLength(2);
-    expect(derived.entries[1].archiveDir).toMatch(/^derived\/.+--extract$/);
+    expect(derived.entries[1].archiveDir).toMatch(/^derived\/.+--extract--[a-f0-9-]{36}$/);
     expect(await readdir(path.join(orderDir, "versions"))).toEqual(["v1"]);
 
     // a pre-existing asset-apply-style entry is preserved untouched

@@ -1,7 +1,10 @@
 import { promises as fs } from "node:fs";
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import {
   appendOrderDerivedEntry,
+  assertNoProtocolSymlinkPath,
+  initProtocol,
   type OrderDerivedArtifact,
   type OrderDerivedStep,
 } from "@repochan/core";
@@ -10,7 +13,7 @@ import {
  * Shared derived-artifact archive binding (audit bypass).
  *
  * Both `starter asset-apply` and `order extract` copy postprocess artifacts
- * into `.repochan/orders/<orderId>/derived/<appliedAt>--<label>/` and append
+ * into `.repochan/orders/<orderId>/derived/<appliedAt>--<label>--<nonce>/` and append
  * one entry to the order's derived.json (`repochan.order-derived.v1`) via
  * core's appendOrderDerivedEntry. This is the sanctioned exception to
  * "derived assets never flow back into .repochan/": the copies are an audit
@@ -76,7 +79,9 @@ async function archiveStepOutput(
     const artifactOut = stat.isDirectory() ? `${out}/${path.relative(source, file).split(path.sep).join("/")}` : out;
     const stored = `${archiveDir}/${artifactOut}`;
     const destination = path.join(orderRoot, ...stored.split("/"));
+    await assertNoProtocolSymlinkPath(destination);
     await fs.mkdir(path.dirname(destination), { recursive: true });
+    await assertNoProtocolSymlinkPath(destination);
     await fs.copyFile(file, destination);
     artifacts.push({ out: artifactOut, stored });
   }
@@ -98,12 +103,15 @@ export async function archiveOrderDerivedRun(input: {
   /** derived.json entry field (schema requires a non-empty string). */
   starter: string;
   resultVersion: string;
-  /** Archive directory label: `derived/<appliedAt>--<archiveLabel>`. */
+  /** Archive directory label: `derived/<appliedAt>--<archiveLabel>--<nonce>`. */
   archiveLabel: string;
   steps: OrderDerivedArchiveStep[];
 }): Promise<string> {
+  // A generic rollback can restore the entire order directory. Recover it
+  // before creating audit copies so append's own recovery cannot remove them.
+  await initProtocol(input.cwd);
   const appliedAt = new Date().toISOString();
-  const archiveDir = `derived/${appliedAt.replace(/[:.]/g, "-")}--${input.archiveLabel}`;
+  const archiveDir = `derived/${appliedAt.replace(/[:.]/g, "-")}--${input.archiveLabel}--${randomUUID()}`;
   const orderRoot = path.join(input.cwd, ".repochan", "orders", input.orderId);
   const steps: OrderDerivedStep[] = [];
   for (const step of input.steps) {

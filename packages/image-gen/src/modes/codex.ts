@@ -126,6 +126,7 @@ export function parseCodexResponsesSSE(text: string): { b64: string; revisedProm
   }
   throw new ImageGenError(
     "Codex /responses stream completed without an image_generation_call result.",
+    { billedRisk: true },
   );
 }
 

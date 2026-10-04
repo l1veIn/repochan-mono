@@ -28,9 +28,10 @@ Do not proactively suggest candidate state. Only use it when the user requests i
    Each candidate uses a different versionId (e.g., c1, c2, c3). They do not change the order's `currentVersion` or `status` — the order stays in its current state, candidates are only recorded as alternatives.
 
 2. **User/AD can first review each candidate** (optional):
+   Follow the exact-version read/create/replace rule in [workflows-review.md](workflows-review.md): read the candidate's existing Review first; omit `overwrite` for an initial Review, or use `"overwrite": true` to replace an existing one with automatic history archival. The example below replaces an existing candidate Review. Record the actual reviewer and feedback; existing user authorization remains valid.
    ```bash
    repochan review create <<'EOF'
-   { "orderId": "<orderId>", "versionId": "c1", "verdict": "pass", "notes": "..." }
+   { "orderId": "<orderId>", "versionId": "c1", "verdict": "pass", "notes": "...", "overwrite": true }
    EOF
    ```
    Reviews work directly on candidates; core strictly reads their `meta.json` and actual delivery files.

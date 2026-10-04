@@ -567,9 +567,16 @@ describe("unified validation layer", () => {
     });
 
     it("accepts non-empty revision request", async () => {
+      await setOrderStatus(projectRoot, "ord-revision-001", "approved");
       const order = await addOrderRevision(projectRoot, "ord-revision-001", "make hair longer");
       expect(order.status).toBe("needs_revision");
       expect(order.revisions).toHaveLength(1);
+    });
+
+    it.each(["draft", "cancelled"] as const)("does not move %s to needs_revision", async (status) => {
+      if (status === "cancelled") await setOrderStatus(projectRoot, "ord-revision-001", "cancelled");
+      await expect(addOrderRevision(projectRoot, "ord-revision-001", "redo")).rejects.toThrow(/illegal transition/);
+      expect(await readOrder(projectRoot, "ord-revision-001")).toMatchObject({ status });
     });
   });
 

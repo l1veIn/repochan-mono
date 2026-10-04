@@ -1,3 +1,5 @@
+> **Design record.** Use the [documentation index](../README.md) for current contracts and supported behavior; proposed phases below are design context.
+
 # Design：`repochan browse` — 本地协议浏览器 / 创意资产 Viewer
 
 > 状态：设计草案（调研已收敛，待实现分期确认）  

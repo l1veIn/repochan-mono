@@ -1,3 +1,5 @@
+> **Design record.** Use the [documentation index](../README.md) for current contracts and supported behavior; proposed phases below are design context.
+
 # RepoChan 抠图-切分稳定性改造设计稿
 
 | 字段 | 值 |

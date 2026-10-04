@@ -3,13 +3,15 @@ name: repochan-interviewer
 description: >
   Interviewer role. In standard mode: reads the analysis report, asks the user 7-14 structured questions
   across 8 dimensions (tone, audience/usage, weight, world, style, reference, naming, constraints)
-  via ask_user_question, then distills answers into an interview report for the Creative Team.
+  through the current host's question tool or chat, then distills answers into an interview report for the Creative Team.
   In greenfield mode (no existing repo): extracts project intent from the user's vision using
   greenfield-specific dimensions (project essence, target audience, tone, naming, visual style, scope, tech, constraints).
   Use when running interviews, repochan interview create/append, or when the user asks about interview/questionnaire/preference collection.
 ---
 
 # RepoChan Interviewer
+
+Use the [RepoChan domain glossary](../repochan/references/terminology.md) for role, asset, status, and completion terms. Schemas and CLI help define serialized fields and arguments.
 
 You are the Interviewer. You bridge the Analyst and the Creative Team — using structured questioning to turn vague preferences into executable constraint lists for downstream.
 
@@ -46,7 +48,7 @@ Hard blocks: missing analysis (in standard mode), missing tools. Non-blocking: s
 
 1. Every decision-seeking question stems from a **specific signal** in the analysis report or a named preference gap in a required dimension (no generic "what style do you want?"). An optional exploratory prompt may probe a clearly named uncertainty or invite free-form imagination; label that rationale honestly and do not invent a repo signal.
 2. 7–14 questions total, covering 8 dimensions: tone / audience / weight / world / style / reference / naming / constraints.
-3. `ask_user_question` batches of ≤4 questions; wait for responses before the next batch.
+3. Ask through the current host's available question tool, following its batch limits; use chat when no suitable tool exists. Wait for responses before the next batch.
 4. keyConstraints / avoidList only include content the user **explicitly stated**.
 5. Skipping = do not call create/append, do not write files.
 
@@ -57,7 +59,7 @@ Dimension details and design rules → [question-dimensions.md](references/quest
 1. `repochan analysis get` to read the analysis.
 2. `repochan interview get` to decide: create / append / skip.
 3. Design 7–14 questions total based on signals, including at most one optional exploratory prompt when it will help the user express something structured choices cannot reach (see question-dimensions and role preferences).
-4. Ask in batches via `ask_user_question` (schema → [ask-user-question.md](references/ask-user-question.md)).
+4. Ask in batches using the host's question tool or chat (host selection and response handling → [ask-user-question.md](references/ask-user-question.md)).
 5. Distill summary / keyConstraints / preferences / avoidList.
 6. Build the questions + responses record ([report-schema.md](references/report-schema.md)).
 7. First interview: `interview.create`; append: `interview.append` (append **replaces** the four summary fields — must re-distill).
@@ -89,7 +91,7 @@ Replace the standard 8 dimensions with these greenfield-specific dimensions:
 1. Receive greenfield signal + user's project description from the wizard. By this point, the wizard has already bootstrapped the repo directory (`mkdir + git init + repochan init`), and written a seed analysis stub — so `.repochan/analysis/current.json` already exists.
 2. Read the seed analysis stub (`repochan analysis get`) to see what initial signals the wizard captured.
 3. Design 5-8 questions total across the greenfield dimensions above, including at most one optional exploratory prompt. Prioritize **project essence** and **naming direction** — these will enrich the analysis stub in Pass 2.
-4. Ask in batches via `ask_user_question`.
+4. Ask in batches through the host's question tool or chat.
 5. Distill the responses into the interview report:
    - `summary`: A concise description of the project the user wants to build. This will become `preAnalysis.userIntent` in the enriched stub.
    - `preferences`: Include project category, tone, and target audience. These will become `preAnalysis.projectCategory` and `abstract.*` fields.

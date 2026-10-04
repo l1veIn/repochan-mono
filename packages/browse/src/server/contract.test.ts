@@ -95,13 +95,14 @@ describe("browse server API contract", () => {
     await fs.writeFile(artifactFile, PNG_BYTES);
 
     await fs.writeFile(path.join(proto, "notes.exe"), "nope");
+    await fs.writeFile(path.join(proto, "owned.svg"), '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
 
     // Fixture starter with a mock build (node script writes dist) — no astro needed.
     starterDir = path.join(projectRoot, "fixture-starters", "tiny");
-    await fs.mkdir(path.join(starterDir, "node_modules"), { recursive: true }); // skip npm install
     await fs.mkdir(path.join(starterDir, "repochan", "previews"), { recursive: true });
     await fs.writeFile(path.join(starterDir, "repochan", "starter.json"), JSON.stringify({ id: "tiny" }));
     await fs.writeFile(path.join(starterDir, "repochan", "previews", "desktop.webp"), PNG_BYTES);
+    await fs.writeFile(path.join(starterDir, "repochan", "previews", "owned.svg"), '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
     await fs.writeFile(path.join(starterDir, "package.json"), JSON.stringify({
       name: "tiny-starter",
       type: "module",
@@ -111,7 +112,7 @@ describe("browse server API contract", () => {
 import { promises as fs } from "node:fs";
 await fs.mkdir("dist", { recursive: true });
 await fs.writeFile("dist/index.html", "<!doctype html><title>tiny</title><h1>tiny starter</h1>");
-const countFile = "build-count.txt";
+const countFile = ${JSON.stringify(path.join(projectRoot, "build-count.txt"))};
 const count = Number(await fs.readFile(countFile, "utf8").catch(() => "0")) + 1;
 await fs.writeFile(countFile, String(count));
 `);
@@ -242,6 +243,15 @@ await fs.writeFile(countFile, String(count));
     expect(res.headers.get("content-disposition")).toBe(`attachment; filename="img.png"; filename*=UTF-8''${encodeURIComponent("img.png")}`);
   });
 
+  it("GET protocol SVG is sandboxed as image data, including direct document navigation", async () => {
+    const res = await get("/api/file?path=owned.svg");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toBe("image/svg+xml");
+    expect(res.headers.get("content-security-policy")).toBe("default-src 'none'; style-src 'unsafe-inline'; sandbox");
+    expect(res.headers.get("x-content-type-options")).toBe("nosniff");
+    expect(await res.text()).toContain("<script>alert(1)</script>");
+  });
+
   it("GET /api/file rejects traversal, escapes, symlinks-adjacent tricks, and non-servable extensions", async () => {
     for (const p of ["../../etc/passwd", "../outside.json", "/etc/passwd", "orders/../../secret"]) {
       const res = await get(`/api/file?path=${encodeURIComponent(p)}`);
@@ -253,6 +263,20 @@ await fs.writeFile(countFile, String(count));
     expect(ext.status).toBe(403);
     const missing = await get(`/api/file?path=${encodeURIComponent("orders/ord-icon-001/nope.png")}`);
     expect(missing.status).toBe(404);
+  });
+
+  it("GET /api/file rejects an earlier symlink even when a later component is named .repochan", async () => {
+    const outside = path.join(projectRoot, "outside-files");
+    await fs.mkdir(path.join(outside, ".repochan"), { recursive: true });
+    await fs.writeFile(path.join(outside, ".repochan", "outside.png"), PNG_BYTES);
+    const link = path.join(projectRoot, ".repochan", "linked-files");
+    await fs.symlink(outside, link, process.platform === "win32" ? "junction" : "dir");
+    try {
+      const res = await get(`/api/file?path=${encodeURIComponent("linked-files/.repochan/outside.png")}`);
+      expect(res.status).toBe(403);
+    } finally {
+      await fs.unlink(link);
+    }
   });
 
   it("GET / serves the SPA when built, 404 otherwise", async () => {
@@ -283,6 +307,14 @@ await fs.writeFile(countFile, String(count));
     expect(unknown.status).toBe(404);
   });
 
+  it("GET Starter SVG has the same image-document sandbox headers", async () => {
+    const res = await get(`/api/starters/tiny/file?path=${encodeURIComponent("repochan/previews/owned.svg")}`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toBe("image/svg+xml");
+    expect(res.headers.get("content-security-policy")).toBe("default-src 'none'; style-src 'unsafe-inline'; sandbox");
+    expect(res.headers.get("x-content-type-options")).toBe("nosniff");
+  });
+
   it("POST /api/actions/starter-sync delegates to the injected sync and refreshes the list", async () => {
     const res = await fetch(`${base}/api/actions/starter-sync`, { method: "POST" });
     expect(res.status).toBe(200);
@@ -310,13 +342,16 @@ await fs.writeFile(countFile, String(count));
 
     const page = await fetch(first.url);
     expect(page.status).toBe(200);
+    expect(page.headers.get("content-security-policy")).toBeNull();
     expect(await page.text()).toContain("tiny starter");
 
     const second = await post({ id: "tiny" });
     expect(second).toMatchObject({ ok: true, reused: true, url: first.url, port: first.port });
 
-    const buildCount = await fs.readFile(path.join(starterDir, "build-count.txt"), "utf8");
+    const buildCount = await fs.readFile(path.join(projectRoot, "build-count.txt"), "utf8");
     expect(buildCount).toBe("1");
+    await expect(fs.stat(path.join(starterDir, "dist"))).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(fs.stat(path.join(starterDir, "node_modules"))).rejects.toMatchObject({ code: "ENOENT" });
 
     const missing = await post({ id: "nope" });
     expect(missing.error).toMatch(/unknown starter/);
@@ -324,8 +359,6 @@ await fs.writeFile(countFile, String(count));
 
   it("POST /api/actions/starter-preview surfaces build failures", async () => {
     // Break the fixture build, force a rebuild, expect a transparent error.
-    await fs.rename(path.join(starterDir, "dist"), path.join(starterDir, "dist-keep"));
-    await fs.rm(path.join(starterDir, "dist"), { recursive: true, force: true });
     await fs.writeFile(path.join(starterDir, "build.js"), `process.exit(3);\n`);
     // Drop the registry's cached server so the rebuild path actually runs.
     await closeStarterPreviews();

@@ -36,12 +36,4 @@ repochan template list --tag poster
 repochan template get official/foundation-sheet
 ```
 
-## Scale roadmap
-
-| Stage | Strategy |
-|---|---|
-| Now (~12 official) | Ship with CLI via this data package; semver-locked |
-| Dozens + community | Keep official set here; add remote registry / git pull later |
-| Hundreds+ | CLI becomes a pure client; remote hub is the source of truth |
-
-Page/Astro **project** scaffolds are a different kind of template and are **not** stored here.
+Discover the current catalog with `repochan template list`; counts are not an API contract. Complete website sources belong to [`@repochan/starters`](../starters/README.md).

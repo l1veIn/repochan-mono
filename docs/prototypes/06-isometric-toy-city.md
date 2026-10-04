@@ -1,3 +1,5 @@
+> **Visual direction brief.** This document records design intent. For runnable sources, consult the [Starter catalog](../../packages/starters/README.md).
+
 # 06 · Isometric Toy City（等距玩具城 · 管线沙盘）
 
 | 字段 | 值 |

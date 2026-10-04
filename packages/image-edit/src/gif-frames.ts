@@ -1,16 +1,18 @@
 import { promises as fs } from "node:fs";
-import gifenc from "gifenc";
+import { createRequire } from "node:module";
 import { loadSharp } from "./sharp.js";
 
-const { GIFEncoder, quantize, applyPalette } = gifenc;
+// gifenc's Node entry exports an object while its bundler entry defaults to
+// the encoder function. Resolve the Node entry consistently in this library.
+const { GIFEncoder, quantize, applyPalette } = createRequire(import.meta.url)("gifenc") as typeof import("gifenc");
 
 /** Options for combining frames into an animated GIF. */
 export type FramesToGifOptions = {
   /** Frames per second. Used to derive per-frame delay in ms. Default 10 (100ms/frame). */
   fps?: number;
-  /** Per-frame delay in ms. Overrides fps when given. Length should match frames; a single value applies to all. */
+  /** Per-frame delay in ms. Overrides fps. An array must match the frame count; a scalar applies to all. */
   delay?: number | number[];
-  /** Number of times to loop. 0 = infinite (default). */
+  /** Repeat count. -1 = play once, 0 = infinite (default). */
   loop?: number;
   /** Max palette colors per frame (GIF limit 256). Default 256. */
   palette?: number;
@@ -23,6 +25,7 @@ export type FramesToGifResult = {
   frameCount: number;
   width: number;
   height: number;
+  /** First frame's actual encoded delay in ms, rounded to GIF's 10ms precision. */
   delay: number;
   loop: number;
 };
@@ -57,6 +60,12 @@ export async function framesToGif(
   const fps = options.fps ?? 10;
   const perFrameDelay = resolveDelay(options.delay, fps, framePaths.length);
   const maxColors = options.palette ?? 256;
+  if (!Number.isInteger(loop) || loop < -1 || loop > 65535) {
+    throw new Error("framesToGif: loop must be an integer from -1 to 65535.");
+  }
+  if (!Number.isInteger(maxColors) || maxColors < 2 || maxColors > 256) {
+    throw new Error("framesToGif: palette must be an integer from 2 to 256.");
+  }
 
   // Decode all frames to uniform-size RGBA via the package's pinned Sharp.
   const sharp = (await loadSharp()).default;
@@ -74,12 +83,43 @@ export async function framesToGif(
   }
 
   // Encode with gifenc.
-  const gif = GIFEncoder(width, height);
+  const gif = GIFEncoder();
   for (let i = 0; i < rawFrames.length; i++) {
     const rgba = rawFrames[i];
-    const palette = quantize(rgba, maxColors, { format: "rgba4444" });
-    const index = applyPalette(rgba, palette, "rgba4444");
-    gif.writeFrame(index, width, height, { palette, delay: perFrameDelay[i] });
+    // GIF supports one transparent palette entry. Reserve it explicitly so
+    // color quantization cannot merge transparent pixels into opaque colors.
+    const opaque = new Uint8Array(rgba.length);
+    let opaqueLength = 0;
+    let hasTransparency = false;
+    for (let offset = 0; offset < rgba.length; offset += 4) {
+      if (rgba[offset + 3] <= 127) {
+        hasTransparency = true;
+      } else {
+        opaque.set(rgba.subarray(offset, offset + 3), opaqueLength);
+        opaque[opaqueLength + 3] = 255;
+        opaqueLength += 4;
+      }
+    }
+    const palette = opaqueLength > 0
+      ? quantize(opaque.slice(0, opaqueLength), maxColors - Number(hasTransparency), { format: "rgba4444" })
+      : [];
+    const index = palette.length > 0
+      ? applyPalette(rgba, palette, "rgba4444")
+      : new Uint8Array(width * height);
+    const transparentIndex = palette.length;
+    if (hasTransparency) {
+      palette.push([0, 0, 0, 0]);
+      for (let pixel = 0; pixel < index.length; pixel++) {
+        if (rgba[pixel * 4 + 3] <= 127) index[pixel] = transparentIndex;
+      }
+    }
+    gif.writeFrame(index, width, height, {
+      palette,
+      delay: perFrameDelay[i],
+      repeat: loop,
+      transparent: hasTransparency,
+      transparentIndex,
+    });
   }
   gif.finish();
 
@@ -100,16 +140,26 @@ export async function framesToGif(
  * Returns an array of length `frameCount`.
  */
 function resolveDelay(delay: number | number[] | undefined, fps: number, frameCount: number): number[] {
+  if (!Number.isFinite(fps) || fps <= 0) {
+    throw new Error("framesToGif: fps must be finite and positive.");
+  }
+  let delays: number[];
   if (Array.isArray(delay)) {
-    if (delay.length === frameCount) return delay;
-    // Broadcast single-element array or pad/truncate.
-    const d = delay[0] ?? Math.round(1000 / fps);
-    return new Array(frameCount).fill(d);
+    if (delay.length !== frameCount) {
+      throw new Error(`framesToGif: delay array must contain exactly ${frameCount} entries.`);
+    }
+    delays = delay;
+  } else {
+    delays = new Array(frameCount).fill(delay ?? 1000 / fps);
   }
-  if (typeof delay === "number") {
-    return new Array(frameCount).fill(delay);
-  }
-  return new Array(frameCount).fill(Math.round(1000 / fps));
+  return Array.from(delays, (value) => {
+    if (!Number.isFinite(value) || value < 0 || value > 655350) {
+      throw new Error("framesToGif: delay must be finite and from 0 to 655350ms.");
+    }
+    // The GIF graphic control extension stores an unsigned 16-bit count of
+    // centiseconds. Pass the same quantized value to gifenc and the result.
+    return Math.round(value / 10) * 10;
+  });
 }
 
 async function exists(p: string): Promise<boolean> {

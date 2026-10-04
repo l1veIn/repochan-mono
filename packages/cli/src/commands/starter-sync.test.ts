@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import { promises as fs } from "node:fs";
 import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -27,7 +28,7 @@ async function tempDir() {
 beforeAll(async () => {
   // Local fixture registry stand-in: a real .tgz with a flattened
   // package/<starter-id>/repochan/starter.json layout, built with system tar.
-  fixtureRoot = await mkdtemp(path.join(os.tmpdir(), "repochan-sync-fixture-"));
+  fixtureRoot = await mkdtemp(path.join(os.tmpdir(), "repochan sync fixture-"));
   const packageRoot = path.join(fixtureRoot, "package");
   await mkdir(path.join(packageRoot, "fixture-starter", "repochan"), { recursive: true });
   await writeFile(path.join(packageRoot, "package.json"), JSON.stringify({ name: "@repochan/starters", version: "9.9.9" }));
@@ -43,10 +44,7 @@ beforeAll(async () => {
     assets: [],
   }));
   fixtureTarball = path.join(fixtureRoot, "repochan-starters-9.9.9.tgz");
-  const createArgs = process.platform === "win32"
-    ? ["-czf", fixtureTarball.replaceAll("\\", "/"), "--force-local", "-C", fixtureRoot.replaceAll("\\", "/"), "package"]
-    : ["-czf", fixtureTarball, "-C", fixtureRoot, "package"];
-  await execFileAsync("tar", createArgs);
+  await execFileAsync("tar", ["-czf", `./${path.basename(fixtureTarball)}`, "package"], { cwd: fixtureRoot });
 });
 
 afterAll(async () => {
@@ -84,13 +82,15 @@ describe("starter sync", () => {
       });
   });
 
-  it("scopes the tar force-local workaround to Windows", () => {
+  it("uses relative archive names without tar-specific flags", () => {
     expect(resolveTarExtractionArgs("C:\\tmp\\starters.tgz", "C:\\tmp\\out", "win32"))
-      .toEqual(["-xzf", "C:/tmp/starters.tgz", "--force-local", "-C", "C:/tmp/out"]);
+      .toEqual(["-xzf", "./starters.tgz", "-C", "C:\\tmp\\out"]);
+    expect(resolveTarExtractionArgs("\\\\host\\shared dir\\starters.tgz", "C:\\cache dir\\out", "win32"))
+      .toEqual(["-xzf", "./starters.tgz", "-C", "C:\\cache dir\\out"]);
     expect(resolveTarExtractionArgs("/tmp/starters.tgz", "/tmp/out", "darwin"))
-      .toEqual(["-xzf", "/tmp/starters.tgz", "-C", "/tmp/out"]);
+      .toEqual(["-xzf", "./starters.tgz", "-C", "/tmp/out"]);
     expect(resolveTarExtractionArgs("/tmp/starters.tgz", "/tmp/out", "linux"))
-      .toEqual(["-xzf", "/tmp/starters.tgz", "-C", "/tmp/out"]);
+      .toEqual(["-xzf", "./starters.tgz", "-C", "/tmp/out"]);
   });
 
   it.runIf(process.platform === "win32")("can execute npm through the Windows invocation", async () => {
@@ -115,6 +115,50 @@ describe("starter sync", () => {
     expect(source).toMatchObject({ kind: "cache", version: "9.9.9" });
     const starters = await listStarters({ env: {}, homeDir });
     expect(starters.map((starter) => [starter.id, starter.source])).toEqual([["fixture-starter", "cache"]]);
+  });
+
+  it.each(process.platform === "win32"
+    ? ["-starters fixture.tgz"]
+    : ["-starters fixture.tgz", "starters:fixture.tgz"])("extracts %s with relative archive and cache paths", async (filename) => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const home = await mkdtemp(path.join(process.cwd(), "repochan-sync-relative-"));
+    tempDirs.push(home);
+    const homeDir = path.relative(process.cwd(), home);
+    expect(path.isAbsolute(homeDir)).toBe(false);
+    const result = await runStarterSync("", { json: true }, {
+      ...fixtureDeps(homeDir),
+      download: async (_version, destDir) => {
+        const destination = path.join(destDir, filename);
+        await copyFile(fixtureTarball, destination);
+        const archive = path.relative(process.cwd(), path.resolve(destination));
+        expect(path.isAbsolute(archive)).toBe(false);
+        return archive;
+      },
+    }) as any;
+
+    expect(result.updated).toBe(true);
+    const cache = getStartersCacheDir(homeDir);
+    expect(await readFile(path.join(cache, "VERSION"), "utf8")).toBe("9.9.9\n");
+    expect(JSON.parse(await readFile(path.join(cache, "fixture-starter", "repochan", "starter.json"), "utf8")).id)
+      .toBe("fixture-starter");
+  });
+
+  it("stages beside the home cache so publication never crosses filesystems", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const homeDir = await tempDir();
+    const cacheParent = path.dirname(getStartersCacheDir(homeDir));
+    const rename = fs.rename;
+    const renameSpy = vi.spyOn(fs, "rename").mockImplementation(async (source, destination) => {
+      const relative = path.relative(cacheParent, String(source));
+      if (relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+        throw Object.assign(new Error("cross-device rename"), { code: "EXDEV" });
+      }
+      return rename(source, destination);
+    });
+
+    await runStarterSync("", { json: true }, fixtureDeps(homeDir));
+    expect(renameSpy).toHaveBeenCalled();
+    expect(await readFile(path.join(getStartersCacheDir(homeDir), "VERSION"), "utf8")).toBe("9.9.9\n");
   });
 
   it("resolves an explicit next channel instead of the default latest channel", async () => {
@@ -201,5 +245,66 @@ describe("starter sync", () => {
     expect(await readFile(path.join(cacheDir, "VERSION"), "utf8")).toBe("9.9.9\n");
     const starters = await listStarters({ env: {}, homeDir });
     expect(starters.map((starter) => starter.id)).toEqual(["fixture-starter"]);
+  });
+
+  it("leaves the old cache untouched when tar rejects a damaged archive", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const homeDir = await tempDir();
+    await runStarterSync("", { json: true }, fixtureDeps(homeDir));
+    const cache = getStartersCacheDir(homeDir);
+    const originalManifest = await readFile(path.join(cache, "fixture-starter", "repochan", "starter.json"));
+
+    await expect(runStarterSync("", { json: true }, {
+      homeDir,
+      resolveLatest: async () => "10.0.0",
+      download: async (_version, destDir) => {
+        const destination = path.join(destDir, "broken.tgz");
+        await writeFile(destination, "damaged archive");
+        return destination;
+      },
+    })).rejects.toThrow(/tar extraction failed/);
+
+    expect(await readFile(path.join(cache, "VERSION"), "utf8")).toBe("9.9.9\n");
+    expect(await readFile(path.join(cache, "fixture-starter", "repochan", "starter.json")))
+      .toEqual(originalManifest);
+    expect((await fs.readdir(path.dirname(cache))).some((name) => name.startsWith(".starters-sync-"))).toBe(false);
+  });
+
+  it("preserves the old cache when moving it to a backup fails", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const homeDir = await tempDir();
+    const deps = fixtureDeps(homeDir);
+    await runStarterSync("", { json: true }, deps);
+    const cache = getStartersCacheDir(homeDir);
+    const rename = fs.rename;
+    vi.spyOn(fs, "rename").mockImplementation(async (source, destination) => {
+      if (String(source) === cache) throw Object.assign(new Error("backup move failed"), { code: "EIO" });
+      return rename(source, destination);
+    });
+
+    await expect(runStarterSync("", { json: true, force: true }, deps)).rejects.toThrow("backup move failed");
+    expect(await readFile(path.join(cache, "VERSION"), "utf8")).toBe("9.9.9\n");
+  });
+
+  it("keeps the newly published cache when backup cleanup fails", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const homeDir = await tempDir();
+    const deps = fixtureDeps(homeDir);
+    await runStarterSync("", { json: true }, deps);
+    const cache = getStartersCacheDir(homeDir);
+    let published = false;
+    const rename = fs.rename;
+    vi.spyOn(fs, "rename").mockImplementation(async (source, destination) => {
+      await rename(source, destination);
+      if (String(destination) === cache && !String(source).startsWith(`${cache}.backup-`)) published = true;
+    });
+    const remove = fs.rm;
+    vi.spyOn(fs, "rm").mockImplementation(async (target, options) => {
+      if (published && String(target).startsWith(`${cache}.backup-`)) throw new Error("backup cleanup failed");
+      return remove(target, options);
+    });
+
+    await expect(runStarterSync("", { json: true, force: true }, deps)).resolves.toMatchObject({ updated: true });
+    expect(await readFile(path.join(cache, "VERSION"), "utf8")).toBe("9.9.9\n");
   });
 });

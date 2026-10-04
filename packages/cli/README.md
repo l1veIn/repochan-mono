@@ -1,81 +1,89 @@
-# repochan
+# repochan CLI
 
-CLI for [RepoChan](https://github.com/l1veIn/repochan-mono) — turn a git repo into brand assets (persona, art, stickers, landing page) with a **deterministic protocol** under `.repochan/` and **bring-your-own agent** skills.
+The command-line tools for [RepoChan](https://github.com/l1veIn/repochan-mono). Your coding agent follows the bundled skills; the CLI exposes deterministic operations and delegates protocol rules to Core.
 
-No embedded model runtime. The agent (Claude Code, Codex, Pi, …) orchestrates; `repochan` is the only binding surface.
+## Start in your project
 
-## Install
+Requires Node.js ≥ 20.9 and an existing coding agent.
 
 ```bash
 npm install -g repochan
-# requires Node.js >= 20
+cd /path/to/your/project
+repochan setup --project
 ```
 
-The default CLI install includes the `sharp`-based offline pixel operations used by official Starters (`chroma-grid`, chroma-key, resize, compression, and related QA), but not the large optional ML runtime. Install ML matting only when an operation asks for it:
+Select your agent and image-generation configuration in the setup prompts. If you skip images, configure them before generating:
+
+```bash
+repochan image configure
+repochan image status
+```
+
+Open your agent in the project and ask it to use the RepoChan skill to design a mascot, starting with the character sheet. The agent coordinates the workflow; there is no CLI model loop.
+
+For skills available in all projects, use `repochan setup --global`, followed by `repochan image configure` if needed. Global setup installs skills; the project setup flow also offers image configuration. After upgrading the CLI, rerun setup for the scope and agents you use. `repochan status` reports installed-skill version drift.
+
+## Discover commands
+
+Use `repochan --help` and `<command> --help` for flags. For Agent calls, prefer `--json` and `--data-file` for large structured inputs.
+
+| Area | Commands |
+| --- | --- |
+| Setup and health | `setup`, `status`, `validate`, `init` |
+| Repository evidence | `analysis run`, `analysis get`, `analysis update`, `analysis enrich` |
+| Preferences and character | `interview`, `persona`, `persona candidate`, `persona review` |
+| Asset production | `order`, `order resolve-references`, `order candidate`, `order review`, `foundation find` |
+| Images | `image configure`, `image status`, `image probe`, `image gen`, `image edit` |
+| Image briefs | `template list`, `template get` |
+| Website assembly | `starter list|get|pull|configure|create-order|asset-apply|asset-import|validate|preview|sync` |
+| Local review | `browse` |
+
+The Wizard initializes project protocol as needed. Direct image utilities can produce ordinary files without starting the full brand workflow.
+
+## Image generation
+
+Image configuration belongs in `~/.repochan/image.json`, managed by image-gen. Configure an OpenAI-compatible endpoint or choose Codex login. Provider details and credential boundaries are in the [image-gen guide](../image-gen/README.md).
+
+`image configure` saves global configuration and reports the current project's effective default endpoint. An existing `.repochan/image.json` replaces the global endpoint map; configure reports that source without changing it. With `--json`, `scope`, `effectiveScope`, `effectiveConfigPath`, `effectiveEndpoint`, and `projectOverridesGlobal` describe this distinction.
+
+`image status` reports configuration only. `image probe` checks `GET /models` for an OpenAI-compatible endpoint or resolves a Codex OAuth token, without generating an image or verifying image-generation availability. `image configure --probe --json` includes that result in `probe`; Codex results use `authOk` / `authNote`, while actual `GET /models` responses use `modelsOk` / `modelsStatus`.
+
+`image gen --reference <path>` accepts PNG, JPEG, and WebP based on the file's actual bytes. A different filename extension does not change its upload MIME type; unsupported reference contents are rejected before generation is submitted.
+
+```bash
+repochan image gen --prompt "…" --out /tmp/mascot.png
+repochan image gen --prompt "…" --reference /tmp/mascot.png --reference /tmp/layout.png
+```
+
+Use one `--reference` flag per file. Existing explicit outputs require `--overwrite`; refusal happens before submitting a generation. Paid generations are not automatically resubmitted after a failure. If a remote job was accepted, preserve its job identity and inspect the failure before deciding what to do next.
+
+Image generation returns original files. Website assembly applies local postprocessing. The default install supports offline chroma-grid, chroma-key, resize, compression, and related QA. ML matting is an optional capability:
 
 ```bash
 repochan image edit ml install
 ```
 
-`bg-remove`, `ml-blobs`, and `hybrid` may require that capability. When it is absent, the CLI exits with `MissingImageMlCapabilityError` / `REPOCHAN_IMAGE_ML_MISSING` and prints the install command; after one successful install, retry the original command. Network download occurs only during that explicit install. ML execution then reads the runtime and bundled model files from the local capability cache without network access. Starter Localizer agents normally encounter this through atomic `starter asset-apply`; Web Designer agents may invoke it directly. Painter never installs or runs image-edit ML, and official Starters' current `chroma-grid` path needs no ML install.
+Run that only when an operation reports `REPOCHAN_IMAGE_ML_MISSING`. Default official Starter assembly does not need ML. See the [image-edit guide](../image-edit/README.md) for operations.
 
-## Quick start
+## Website sources and instances
+
+The CLI downloads the independent Starter package on demand; it does not bundle it as a runtime dependency.
 
 ```bash
-cd your-git-repo
-
-# Install skills into your agent + optional image endpoint
-repochan setup
-
-# Image generation (OpenAI-compatible base URL + key; mode defaults to auto)
-repochan image configure
-repochan image status
-
-# Protocol (examples)
-repochan analysis run
-repochan persona get --json
-repochan order list --json
-repochan image gen --prompt "a chibi mascot" --out /tmp/t.png
-
-# Landing-page starters
+repochan starter sync
 repochan starter list
-repochan starter get minimal --json
-repochan starter pull                     # scaffold default → .repochan/web-starter/
-repochan starter configure                # analysis/persona → repochan/site.json
-repochan starter create-order hero-composite --intent "..." --foundation ord-found-001
-repochan starter asset-apply hero-composite --order ord-hero-001 --overwrite
-repochan starter validate --output-dir .repochan/web-starter
+repochan starter pull --starter landing-museum
 ```
 
-`repochan order create-result` requires at least one readable, non-empty regular
-file in the payload's `files` array. Missing paths and metadata-only results are
-rejected before a version directory is written or the order is marked `delivered`.
-Candidate promotion also re-checks its recorded files before changing the current
-version. Result replacement stages a complete version directory, removes stale
-omitted files, and restores the previous version and order if publication fails.
-Mutations for the same order must be serialized by the caller. If an active
-transaction or retained recovery directory is present, Core rejects another
-result write or candidate promotion with the directory path; retry after the
-first mutation completes, or recover the retained directory before continuing.
-Publication uses an order-byte compare-and-swap guard, so a revision/status/current
-mutation that completes during staging is preserved and the older transaction
-fails with a conflict. A retained transaction contains `recovery.json`; manage it
-only through `repochan order recovery list|recover|abort`. `recover` restores the
-manifest's original state. `abort` accepts the current state only after Core
-validates it. Never hand-edit or delete recovery directories.
-An active publisher holds the order lock, so recovery commands fail with a
-retryable conflict. After a crash, Core reclaims a stale same-host lock:
-`prepared` and `recovery_required` transactions can be recovered, while a
-`staging_unprepared` directory has no recoverable manifest and is therefore
-abort-only.
-Core anchors every real transaction outside its staging directory with an identity
-and nonce, then validates fixed backup mappings plus order/version semantics before
-and after recovery. It rejects simple forged transaction directories; it is not a
-security boundary against an actor able to rewrite the whole workspace and its
-anchors. Protocol state is changed only through schema-validated entity
-commands. Published result directories, including `meta.json`, remain byte-for-byte
-immutable after creation. Local pixel derivations belong in a pulled Starter's
-`public/` through `starter asset-apply`, not in an order result version.
+Pull creates an editable instance, by default in `.repochan/web-starter/`. `--from` selects a trusted local source. Source and output must be separate directories; explicit overwrite permission never authorizes deleting the source.
+
+The Agent uses `starter configure`, `starter create-order`, and `starter asset-apply` to replace project configuration and assets. `starter asset-import` supports explicit local-file inputs. `starter validate --localized --output-dir <site>` checks required customized slots and locale/configuration consistency; build and visual review are separate checks. See the [Starter guide](../starters/README.md).
+
+## Protocol integrity and recovery
+
+Use entity commands to mutate `.repochan/`, including new-project bootstrap. Result publication requires materialized files. Published Order Result versions are immutable; revising an image creates a new version. Locks and compare-and-swap checks prevent stale writes from replacing newer work.
+
+If an interrupted operation retains a recovery transaction, resolve it through the CLI before further mutation:
 
 ```bash
 repochan order recovery list <order-id>
@@ -83,55 +91,16 @@ repochan order recovery recover <order-id> <transaction-id>
 repochan order recovery abort <order-id> <transaction-id>
 ```
 
-`repochan order extract <orderId>` runs cutout extraction (`@repochan/image-edit`
-`extractAssets`, default strategy `chroma-grid` + pipeline `v2`) directly against a
-delivered order result version — no starter/site required — and archives the output
-into the order's derived audit copy (`.repochan/orders/<id>/derived/<ts>--extract/`
-plus an append-only `derived.json` entry, same `repochan.order-derived.v1` mechanism
-as `starter asset-apply`, recorded with slot `manual` / starter `image-edit`). The
-immutable `versions/` directory is never touched. `--rows`/`--cols` default from the
-order template's `grid` when the order has a `templateId`; pass both explicitly
-otherwise. `--result-version` selects a non-current version; `ml-blobs`/`hybrid`
-require the optional image ML capability. QA defects (`ExtractError`) fail the
-command with structured defects (JSON under `--json`) and archive nothing.
+`recover` restores the recorded prior state. `abort` accepts the current state only after Core validates it. Both preserve recovery evidence on failure. Never delete or hand-edit transaction directories to bypass a conflict.
 
-```bash
-repochan order extract ord-stickers-001                          # grid from the order template
-repochan order extract ord-stickers-001 --rows 4 --cols 4        # explicit grid override
-repochan order extract ord-stickers-001 --result-version v2 --json
-```
+Explicit manual `order extract <order-id>` archives derived grid outputs at Order level; it does not alter the original version. The same append-only archive is used by Starter asset application. See [Core](../core/README.md) for the underlying entity contracts.
 
-## Image endpoints
+## More
 
-Config: `~/.repochan/image.json` (credentials stay in image-gen; not in project protocol).
+- [Domain glossary](../skill/skills/repochan/references/terminology.md)
+- [Agent roles](../skill/README.md)
+- [Local viewer and previews](../browse/README.md)
+- [Contributing](../../CONTRIBUTING.md) · [Architecture](../../ARCHITECTURE.md)
+- [Release verification](../../docs/releasing.md)
 
-| Mode | Meaning |
-|------|---------|
-| `auto` (default) | Classic OpenAI Images API; polls if the relay returns a job id. Host rules (e.g. `*.65535.space`) may use async headers. |
-| `openai` | Force classic (no `X-Async-Mode`). |
-| `openai-async` | Force async submit + poll. |
-
-```bash
-repochan image configure   # interactive
-repochan image probe
-repochan image gen --prompt "…" [--reference path] [--reference path2] [--aspect landscape|square|portrait] [--quality low|medium|high|auto]
-# Multiple --reference flags: each gets its own flag (--reference A --reference B)
-```
-
-## Packages (also published)
-
-- `@repochan/core` — protocol / schema / rules
-- `@repochan/image-gen` — prompt → PNG
-- `@repochan/image-edit` — slice / bg-remove / chroma-key / compress / resize / favicon
-- `@repochan/browse` — local protocol viewer and Starter preview server
-- `@repochan/skill` — agent skill markdown
-- `@repochan/templates` — asset YAML templates
-- `@repochan/starters` — landing-page scaffolds (Astro/Tailwind project directories); not bundled with the CLI — `repochan starter sync` downloads them on demand
-
-## Docs
-
-Monorepo: [github.com/l1veIn/repochan-mono](https://github.com/l1veIn/repochan-mono)
-
-## License
-
-MIT
+[MIT](../../LICENSE).

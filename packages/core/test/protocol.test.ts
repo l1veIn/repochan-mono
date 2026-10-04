@@ -83,6 +83,23 @@ describe('protocol primitives', () => {
     }
   });
 
+  it('does not let a nested .repochan component hide an earlier symlink', async () => {
+    await initProtocol(projectRoot);
+    const outside = await fs.mkdtemp(path.join(os.tmpdir(), 'repochan-core-outside-'));
+    await fs.mkdir(path.join(outside, PROTOCOL_DIR));
+    const outsideFile = path.join(outside, PROTOCOL_DIR, 'external.json');
+    await fs.writeFile(outsideFile, JSON.stringify({ external: true }));
+    await symlinkDir(outside, path.join(projectRoot, PROTOCOL_DIR, 'linked'));
+    const target = safeProtocolPath(projectRoot, 'linked/.repochan/external.json');
+    try {
+      await expect(readJson(target)).rejects.toThrow(/symbolic link/);
+      await expect(writeJson(target, { replaced: true }, true)).rejects.toThrow(/symbolic link/);
+      expect(JSON.parse(await fs.readFile(outsideFile, 'utf8'))).toEqual({ external: true });
+    } finally {
+      await fs.rm(outside, { recursive: true, force: true });
+    }
+  });
+
   it('protocolVersionPath produces conventional locations', () => {
     const v1 = protocolVersionPath('analysis/current.json');
     expect(v1).toMatch(/^analysis\/versions\/.*\.json$/);

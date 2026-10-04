@@ -213,7 +213,7 @@ export async function handleImageSubmitResponse(
   try {
     parsed = parseJson(text, label);
   } catch (err) {
-    throw new ImageGenError(err instanceof Error ? err.message : String(err), { billedRisk: res.status < 500 });
+    throw new ImageGenError(err instanceof Error ? err.message : String(err), { billedRisk: res.ok || res.status >= 500 });
   }
 
   const jobId = extractJobId(parsed);
@@ -221,8 +221,12 @@ export async function handleImageSubmitResponse(
 
   // Prefer image if present even with job_id
   if (imageRef && res.ok) {
-    const bytes = await imageRefToBytes(imageRef, ctx.fetchFn, ctx.signal);
-    return { bytes, jobId };
+    try {
+      const bytes = await imageRefToBytes(imageRef, ctx.fetchFn, ctx.signal);
+      return { bytes, jobId };
+    } catch (error) {
+      throw new ImageGenError(error instanceof Error ? error.message : String(error), { jobId, billedRisk: true });
+    }
   }
 
   // Async submit
@@ -254,8 +258,8 @@ export async function handleImageSubmitResponse(
     if (res.status === 504) {
       throw new ImageGenError(
         `Image API 504 sync wait timeout: ${msg}. ` +
-          `Job may still finish in the background — do not re-submit the same prompt. ` +
-          `If this relay requires async submit headers, set mode openai-async (or add a host rule) and retry once deliberately.`,
+          `Job may still finish in the background. Recover its status/result through the relay's documented task tools or dashboard before deciding on another generation; ` +
+          `do not re-submit this prompt or switch modes while its outcome is unresolved.`,
         { jobId, billedRisk: true },
       );
     }
@@ -266,7 +270,7 @@ export async function handleImageSubmitResponse(
   }
 
   if (!imageRef) {
-    throw new ImageGenError(`${label} returned no image data: ${text.slice(0, 300)}`, { jobId });
+    throw new ImageGenError(`${label} returned no image data: ${text.slice(0, 300)}`, { jobId, billedRisk: true });
   }
 
   const bytes = await imageRefToBytes(imageRef, ctx.fetchFn, ctx.signal);
@@ -310,6 +314,7 @@ export async function postEdits(ctx: ModeContext): Promise<SubmitOutcome> {
   form.set("prompt", ctx.params.prompt);
   form.set("n", "1");
   form.set("size", ctx.size);
+  if (ctx.params.quality) form.set("quality", ctx.params.quality);
   if (ctx.params.outputFormat && isGptImage2FamilyModel(ctx.endpoint.model)) {
     form.set("output_format", ctx.params.outputFormat);
   }
@@ -353,7 +358,8 @@ export async function postEdits(ctx: ModeContext): Promise<SubmitOutcome> {
     const jobId = parsed ? extractJobId(parsed) : undefined;
     throw new ImageGenError(
       `GPT-Image-2 /images/edits failed (${res.status}): ${msg}. ` +
-        `Not falling back to /images/generations (avoids double billing). Retry deliberately if needed.`,
+        `Not falling back to /images/generations (avoids double billing). ` +
+        `Recover the original job's status/result through the relay's documented task tools or dashboard before deciding on another generation.`,
       { jobId, billedRisk: true },
     );
   }

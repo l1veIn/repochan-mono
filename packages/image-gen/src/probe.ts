@@ -1,5 +1,5 @@
 /**
- * Lightweight connectivity probe — does not generate (bill) images.
+ * Lightweight endpoint diagnostics — does not generate (bill) images.
  * GET {base}/models when available; failure does not prove the URL unusable.
  */
 
@@ -14,6 +14,10 @@ export type ProbeResult = {
   mode: string;
   model: string;
   hasKey: boolean;
+  /** Codex OAuth token resolution only; does not verify image generation. */
+  authOk?: boolean;
+  authNote?: string;
+  /** Actual GET /models response only; absent for Codex OAuth checks. */
   modelsStatus?: number;
   modelsOk?: boolean;
   modelsNote?: string;
@@ -44,8 +48,6 @@ export async function probeEndpoint(
     mode: ep.mode ?? "openai",
     model: ep.model,
     hasKey: Boolean(ep.apiKey?.trim()),
-    modelsNote:
-      "GET /models is an OpenAI-compatible probe only. Failure does not mean image generation is unavailable.",
   };
 
   // Codex endpoints authenticate via OAuth; probe by resolving a valid token
@@ -55,17 +57,18 @@ export async function probeEndpoint(
     try {
       const { tokens } = await getValidAccessToken(false);
       result.hasKey = true;
-      result.modelsOk = true;
-      result.modelsStatus = 200;
-      result.modelsNote = `Codex OAuth OK (account ${tokens.account_id}). Token resolves${tokens.refresh_token ? " + refreshes" : ""} without error.`;
+      result.authOk = true;
+      result.authNote = `Codex OAuth token resolved (account ${tokens.account_id}). Image generation was not tested.`;
     } catch (err) {
-      result.modelsOk = false;
+      result.hasKey = false;
+      result.authOk = false;
       result.error = err instanceof Error ? err.message : String(err);
-      result.modelsNote = "Codex OAuth probe failed. Run `codex login` then retry.";
+      result.authNote = "Codex OAuth token could not be resolved. Run `codex login` then retry. Image generation was not tested.";
     }
     return result;
   }
 
+  result.modelsNote = "GET /models is an OpenAI-compatible probe only. Failure does not mean image generation is unavailable.";
   if (!result.hasKey) {
     result.error = "API key empty after env expansion";
     return result;

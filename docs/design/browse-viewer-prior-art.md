@@ -1,3 +1,5 @@
+> **Design record.** Use the [documentation index](../README.md) for current contracts and supported behavior; proposed phases below are design context.
+
 # Prior-Art：创意资产管线浏览器 / 本地协议 Viewer
 
 > 调研目标：为 `repochan browse`（本地查看 `.repochan/` 人设、订单、版本、reference 关系，以及后续 starter / template / gen·edit 工作台）寻找开源可参考与可复用项。  

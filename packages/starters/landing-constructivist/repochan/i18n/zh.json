@@ -96,7 +96,7 @@
         "copyLabel": "复制命令",
         "copiedLabel": "已复制",
         "docsLabel": "文档与源码 →",
-        "fine": "Node.js ≥ 20 · 自带 coding agent · 无内嵌运行时"
+        "fine": "Node.js ≥ 20.9 · 自带 coding agent · 无内嵌运行时"
       }
     },
     "progress": {

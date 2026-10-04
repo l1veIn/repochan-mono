@@ -1,10 +1,12 @@
 import { execFile } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import { removeRecursive, renameReplacing } from "@repochan/core";
 import { emitResult, type OutputOptions } from "../lib/output.js";
+import { resolveNpmInvocation } from "../lib/npm.js";
+export { resolveNpmInvocation, type NpmInvocation } from "../lib/npm.js";
 import {
   getStartersCacheDir,
   readCachedStartersVersion,
@@ -50,48 +52,18 @@ function syncFailure(error: unknown): Error {
 // mirrors, auth). A plain-https registry fetch is the fallback for minimal
 // environments without an npm binary on PATH. Both avoid new dependencies.
 
-export type NpmInvocation = {
-  command: string;
-  args: string[];
-};
-
 /**
- * Windows exposes npm as a .cmd shim, which child_process.execFile cannot
- * execute directly. Route it through ComSpec there; keep direct execution on
- * POSIX so npm still inherits the user's registry/auth configuration.
- */
-export function resolveNpmInvocation(
-  args: string[],
-  platform: NodeJS.Platform = process.platform,
-  comSpec: string | undefined = process.env.ComSpec,
-): NpmInvocation {
-  if (platform === "win32") {
-    return {
-      command: comSpec || "cmd.exe",
-      args: ["/d", "/s", "/c", "npm", ...args],
-    };
-  }
-  return { command: "npm", args: [...args] };
-}
-
-/**
- * Windows bsdtar interprets drive-letter paths as remote archives unless
- * --force-local is present. BSD tar on macOS does not support that option, so
- * keep the workaround scoped to win32 and leave POSIX paths untouched.
+ * Run tar from the archive's directory and pass a relative archive name.
+ * This avoids GNU tar's drive-letter/remote-archive ambiguity without using
+ * flags unsupported by BSD tar (including the Windows system tar).
  */
 export function resolveTarExtractionArgs(
   tarball: string,
   destination: string,
   platform: NodeJS.Platform = process.platform,
 ): string[] {
-  if (platform !== "win32") return ["-xzf", tarball, "-C", destination];
-  return [
-    "-xzf",
-    tarball.replaceAll("\\", "/"),
-    "--force-local",
-    "-C",
-    destination.replaceAll("\\", "/"),
-  ];
+  const paths = platform === "win32" ? path.win32 : path.posix;
+  return ["-xzf", `./${paths.basename(tarball)}`, "-C", destination];
 }
 
 async function execNpm(args: string[]) {
@@ -184,9 +156,11 @@ async function httpsDownload(version: string, destDir: string): Promise<string> 
  * Windows 10+ bsdtar) so the CLI needs no npm dependency for archive handling.
  */
 async function extractTarball(tarball: string, destination: string): Promise<void> {
-  await fs.mkdir(destination, { recursive: true });
+  const archive = path.resolve(tarball);
+  const target = path.resolve(destination);
+  await fs.mkdir(target, { recursive: true });
   try {
-    await execFileAsync("tar", resolveTarExtractionArgs(tarball, destination));
+    await execFileAsync("tar", resolveTarExtractionArgs(archive, target), { cwd: path.dirname(archive) });
   } catch (error) {
     throw syncFailure(new Error(`tar extraction failed for ${tarball}: ${error instanceof Error ? error.message : String(error)}`));
   }
@@ -194,19 +168,29 @@ async function extractTarball(tarball: string, destination: string): Promise<voi
 
 /** Atomically replace the cache: staging dir → rename, with backup rollback. */
 async function publishCache(staging: string, cacheDir: string): Promise<void> {
-  const backup = `${cacheDir}.backup-${process.pid}`;
-  await removeRecursive(backup);
+  const backup = `${cacheDir}.backup-${randomUUID()}`;
   const hadPrevious = (await fs.stat(cacheDir).catch(() => undefined))?.isDirectory() === true;
+  let previousMoved = false;
   try {
-    if (hadPrevious) await renameReplacing(cacheDir, backup);
+    if (hadPrevious) {
+      await renameReplacing(cacheDir, backup);
+      previousMoved = true;
+    }
     await fs.mkdir(path.dirname(cacheDir), { recursive: true });
     await renameReplacing(staging, cacheDir);
-    await removeRecursive(backup);
   } catch (error) {
-    await removeRecursive(cacheDir).catch(() => undefined);
-    if (hadPrevious) await renameReplacing(backup, cacheDir).catch(() => undefined);
+    if (previousMoved) {
+      await removeRecursive(cacheDir).catch(() => undefined);
+      try {
+        await renameReplacing(backup, cacheDir);
+      } catch (rollbackError) {
+        throw new AggregateError([error, rollbackError], `Starter cache publication failed; restore the previous cache from ${backup}.`);
+      }
+    }
     throw error;
   }
+  // A cleanup failure must never roll back a successful publication.
+  if (previousMoved) await removeRecursive(backup).catch(() => undefined);
 }
 
 export async function runStarterSync(_cwd: string, options: StarterSyncOptions, deps: StarterSyncDeps = {}) {
@@ -228,7 +212,9 @@ export async function runStarterSync(_cwd: string, options: StarterSyncOptions, 
     });
   }
 
-  const workRoot = await fs.mkdtemp(path.join(os.tmpdir(), "repochan-starters-sync-"));
+  // Atomic publication requires staging and the user's cache on the same volume.
+  await fs.mkdir(path.dirname(cacheDir), { recursive: true });
+  const workRoot = await fs.mkdtemp(path.join(path.dirname(cacheDir), ".starters-sync-"));
   try {
     const tarball = await download(version, workRoot);
     const extracted = path.join(workRoot, "extracted");

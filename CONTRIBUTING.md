@@ -8,7 +8,7 @@ Security vulnerabilities must be reported privately according to
 
 ## Development setup
 
-RepoChan requires Node.js 20 or newer and uses the pnpm version declared in the
+RepoChan requires Node.js 20.9 or newer and uses the pnpm version declared in the
 root `package.json` (`pnpm@9.15.4`). From the repository root:
 
 ```bash
@@ -34,12 +34,18 @@ pnpm release:pack-smoke
 ```
 
 The full `pnpm test` command includes the workspace tests, release-contract
-tests, and compatibility-debt check. If a check is not relevant or cannot run in
+tests, compatibility-debt check, documentation-link checks, and package architecture
+checks. Documentation checks include references as installed skills see them, not
+just files that happen to exist in the developer's workspace. If a check is not relevant or cannot run in
 your environment, explain that clearly in the pull request.
 
 ## Architecture boundaries
 
 Read [`ARCHITECTURE.md`](./ARCHITECTURE.md) before changing package boundaries.
+Use the [domain glossary](./packages/skill/skills/repochan/references/terminology.md)
+when naming domain concepts, roles, or completion states. The
+[documentation index](./docs/README.md) separates current references from design
+records and experiments.
 The required dependency direction is:
 
 ```text

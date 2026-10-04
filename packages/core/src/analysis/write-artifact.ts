@@ -16,12 +16,6 @@ export async function writeAnalysisArtifact(
   validateInput("analysis.run", AnalysisRunParamsSchema, params);
   await initProtocol(projectRoot);
   const target = path.join(root(projectRoot), "analysis", "current.json");
-  const targetExists = await exists(target);
-  if (targetExists && !params.overwrite) {
-    throw new Error(
-      ".repochan/analysis/current.json already exists. Ask whether to reuse it or rerun with params.overwrite=true (params.versionPrevious defaults to true).",
-    );
-  }
   const generated = await performAnalysis(projectRoot, params);
   const data = {
     ...generated,
@@ -29,8 +23,14 @@ export async function writeAnalysisArtifact(
     generatedAt: stamp(),
   } as AnalysisResult;
   validateInput("analysis.artifact", AnalysisArtifactSchema, data);
-  const prior = targetExists && params.versionPrevious !== false ? await readAnalysisArtifact(projectRoot) : undefined;
   await withProtocolRollback([path.join(root(projectRoot), "analysis")], async () => {
+    const targetExists = await exists(target);
+    if (targetExists && !params.overwrite) {
+      throw new Error(
+        ".repochan/analysis/current.json already exists. Ask whether to reuse it or rerun with params.overwrite=true (params.versionPrevious defaults to true).",
+      );
+    }
+    const prior = targetExists && params.versionPrevious !== false ? await readAnalysisArtifact(projectRoot) : undefined;
     if (prior) await writeJson(path.join(root(projectRoot), "analysis", "versions", `${stampForPath()}.json`), prior, false);
     await writeJson(target, data, Boolean(params.overwrite));
   });
@@ -58,26 +58,24 @@ export async function updateAnalysisArtifact(
   }
 
   const target = path.join(root(projectRoot), "analysis", "current.json");
-  if (!(await exists(target))) {
-    throw new Error("Missing .repochan/analysis/current.json. Run analysis.run first.");
-  }
-
-  const current = await readAnalysisArtifact(projectRoot);
-  const data = {
-    ...deepMerge(current, params.patch),
-    schemaVersion: "repochan.analysis.v1" as const,
-    updatedAt: stamp(),
-    ...(typeof params.reason === "string" && params.reason.trim() ? { revisionReason: params.reason.trim() } : {}),
-  } as AnalysisResult;
-
-  validateInput("analysis.artifact", AnalysisArtifactSchema, data);
-  await withProtocolRollback([path.join(root(projectRoot), "analysis")], async () => {
+  return withProtocolRollback([path.join(root(projectRoot), "analysis")], async () => {
+    if (!(await exists(target))) {
+      throw new Error("Missing .repochan/analysis/current.json. Run analysis.run first.");
+    }
+    const current = await readAnalysisArtifact(projectRoot);
+    const data = {
+      ...deepMerge(current, params.patch),
+      schemaVersion: "repochan.analysis.v1" as const,
+      updatedAt: stamp(),
+      ...(typeof params.reason === "string" && params.reason.trim() ? { revisionReason: params.reason.trim() } : {}),
+    } as AnalysisResult;
+    validateInput("analysis.artifact", AnalysisArtifactSchema, data);
     if (params.versionPrevious !== false) {
       await writeJson(path.join(root(projectRoot), "analysis", "versions", `${stampForPath()}-previous.json`), current, false);
     }
     await writeJson(target, data, true);
+    return { path: relativeProtocolPath(projectRoot, target), data };
   });
-  return { path: relativeProtocolPath(projectRoot, target), data };
 }
 
 export type EnrichAnalysisInput = {
@@ -92,21 +90,20 @@ export async function enrichAnalysisArtifact(
   validateInput("analysis.enrich", AnalysisEnrichParamsSchema, params);
   await initProtocol(projectRoot);
   const target = path.join(root(projectRoot), "analysis", "current.json");
-  if (!(await exists(target))) {
-    throw new Error("Missing .repochan/analysis/current.json. Run analysis.run first.");
-  }
-
-  const current = await readAnalysisArtifact(projectRoot);
-  const data: AnalysisResult = {
-    ...current,
-    ...(params.preAnalysis ? { preAnalysis: params.preAnalysis } : {}),
-    ...(params.abstract ? { abstract: params.abstract } : {}),
-    enrichedAt: stamp(),
-  } as AnalysisResult;
-  validateInput("analysis.artifact", AnalysisArtifactSchema, data);
-  await withProtocolRollback([path.join(root(projectRoot), "analysis")], async () => {
+  return withProtocolRollback([path.join(root(projectRoot), "analysis")], async () => {
+    if (!(await exists(target))) {
+      throw new Error("Missing .repochan/analysis/current.json. Run analysis.run first.");
+    }
+    const current = await readAnalysisArtifact(projectRoot);
+    const data: AnalysisResult = {
+      ...current,
+      ...(params.preAnalysis ? { preAnalysis: params.preAnalysis } : {}),
+      ...(params.abstract ? { abstract: params.abstract } : {}),
+      enrichedAt: stamp(),
+    } as AnalysisResult;
+    validateInput("analysis.artifact", AnalysisArtifactSchema, data);
     await writeJson(path.join(root(projectRoot), "analysis", "versions", `${stampForPath()}-pre-enrich.json`), current, false);
     await writeJson(target, data, true);
+    return { path: relativeProtocolPath(projectRoot, target), data };
   });
-  return { path: relativeProtocolPath(projectRoot, target), data };
 }

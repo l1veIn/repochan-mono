@@ -218,7 +218,7 @@ export async function scanReleaseSurfaceDebt(repositoryRoot) {
         if (![".git", ".zcode", "node_modules", "dist", "test-repos", "test-results", "score-review"].includes(entry.name)) await walk(relative);
         continue;
       }
-      const isPublicDocument = topLevel.has(relative) || relative.startsWith("docs/") || (relative.startsWith("packages/") && relative.endsWith("/README.md"));
+      const isPublicDocument = relative.endsWith(".md") && (topLevel.has(relative) || relative.startsWith("docs/") || (relative.startsWith("packages/") && relative.endsWith("/README.md")));
       const isRuntimeCommentSurface = /packages\/[^/]+\/src\/.*\.ts$/.test(relative) && !/\.(?:test|spec)\.ts$/.test(relative);
       const isSkillContract = relative.startsWith("packages/skill/skills/") && /\.md$/.test(relative);
       if (isPublicDocument || isRuntimeCommentSurface || isSkillContract) {

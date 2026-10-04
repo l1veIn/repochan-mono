@@ -157,11 +157,21 @@ export async function generate(
         error: `Image API returned empty or tiny payload (${bytes.length} bytes).`,
       };
     }
+    const mimeType = mimeTypeForImageBytes(bytes);
+    if (mimeType === "application/octet-stream") {
+      return {
+        success: false,
+        ...baseMeta,
+        jobId: outcome.jobId,
+        billedRisk: true,
+        error: `Image API returned an unsupported image format (${bytes.length} bytes); expected PNG, JPEG, or WebP.`,
+      };
+    }
 
     return {
       success: true,
       image: bytes,
-      mimeType: mimeTypeForImageBytes(bytes),
+      mimeType,
       ...baseMeta,
       jobId: outcome.jobId,
     };

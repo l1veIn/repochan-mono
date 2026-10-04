@@ -9,12 +9,14 @@
 2. repochan template get official/foundation-sheet
    -> prompt_template, size, grid, and technical constraints
 
-3. Read persona current.json
+3. repochan persona get --json
    -> rolePrompt, hairColor, eyeColor, outfit, accessories, signaturePose
 
 4. Fill the template's prompt_template slots, and refine each slot with persona precision fields
 
-5. Parse output specs from official/foundation-sheet. If 1:1:
+5. After confirming this order's execution is already authorized, mark it in progress.
+   repochan order set-status ord-foundation-001 in_progress
+   Parse output specs from official/foundation-sheet. If 1:1:
    repochan image gen --prompt "<assembled prompt>" --aspect square --size 1024x1024
    -> Command output prints the generated image path, e.g. ~/.cache/repochan/generated-<timestamp>.png
 
@@ -29,19 +31,23 @@
      "notes": "Generated Foundation Sheet cover from persona. No references (first anchor)."
    }
    EOF
+   -> Fetch the delivered exact version with order get-result --json and show
+      its top-level files paths. Guided Mode returns to Wizard Checkpoint 2;
+      a first-cover-only request ends here, including under yolo.
 ```
 
 ### Downstream Order (With References)
 
 ```
 1. repochan order get ord-readme-hero-001 --json
-   -> references: [{ type: "order", orderId: "ord-foundation-001", role: "character" }]
+   -> references: [{ type: "order", orderId: "ord-foundation-001", role: "character" },
+                   { type: "file", role: "composition", path: "references/layout-guide-3x3.png" }]
 
 2. repochan order resolve-references ord-readme-hero-001 --json
        -> [{ type: "order", role: "character", orderId: "ord-foundation-001", versionId: "v1",
         files: ["<absolute path returned by resolve-references>"] }]
 
-3. repochan template get <templateId> + read persona current.json -> assemble prompt
+3. repochan template get <templateId> + repochan persona get --json -> assemble prompt
    -> Pass the foundation's resolved path as `--reference` to the generation command, letting the Reference image anchor character identity
 
 4. Parse output specs from the selected template/order, then call:
@@ -74,10 +80,11 @@
 3. repochan order resolve-references ord-item-grid-001 --json
    -> [{ role: "composition", files: ["<order references/layout-guide-3x3.png>"] },   <- declared by the AD at order creation
        { role: "character",   files: ["<foundation absolute path>"] }]
-   -> Fallback (grid order with no declared guide): render it yourself, then pass it as an extra --reference:
-      repochan image edit layout-guide --rows 3 --cols 3 --out guide-3x3.png
+   -> If no usable guide resolves, return to AD for completion; resolve again
+      after AD has added the prepared guide through order update.
 
-4. Generate with BOTH references (one --reference flag per path, composition first):
+4. repochan order set-status ord-item-grid-001 in_progress
+   Generate with BOTH references (one --reference flag per path, composition first):
    repochan image gen --prompt "<assembled grid prompt>" \
      --reference "<layout-guide path>" --reference "<foundation path>" \
      --aspect square --size 2048x2048
@@ -106,14 +113,21 @@
 2. repochan protocol read orders/ord-foundation-001/reviews/v1.json --json
    -> verdict: "revise", notes: "Main color leans blue, persona requires #1E3A5F deep navy"
    -> criteriaResults: [{ criterion: "color consistency", passed: false, note: "actual leans #2B4A7B" }]
+   -> If v1 has no Review because order add-revision recorded the feedback,
+      use the explicit modification request from order.revisions returned in
+      step 1; do not fabricate a Review verdict or treat its absence as approval.
 
 3. repochan order get-result ord-foundation-001 --result-version v1 --json
-   -> files: ["<absolute path returned by resolve-references>"]
+   -> files: ["<absolute readable path for v1 returned by get-result>"]
+      version.files: ["<portable filename stored in v1 metadata>"]
+   -> Use the TOP-LEVEL files array for the revision reference; version.files
+      contains filenames, and get-result selected v1 even if current changed.
 
 4. Normal prompt assembly + layer on review correction instructions:
    "...adjust main hair/coat color to #1E3A5F deep navy, keep existing composition, pose, and layout unchanged..."
 
-5. Generate revised image using the previous version Artifact as base:
+5. repochan order set-status ord-foundation-001 in_progress
+   Generate revised image using the previous version Artifact as base:
    repochan image gen --prompt "<prompt with review corrections layered on>" --reference "<previous version Artifact path>" --aspect square --size 1024x1024
    -> Command output prints the generated image path, e.g. ~/.cache/repochan/generated-<timestamp>.png
 

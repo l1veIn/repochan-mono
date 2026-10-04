@@ -1,3 +1,5 @@
+> **Visual direction brief.** This document records design intent. For runnable sources, consult the [Starter catalog](../../packages/starters/README.md).
+
 # 07 · Museum White Cube（美术馆白盒子 · 资产展览）
 
 | 字段 | 值 |

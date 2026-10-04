@@ -1,4 +1,5 @@
 import { promises as fs } from "node:fs";
+import { randomUUID } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import ora from "ora";
@@ -6,14 +7,16 @@ import {
   generate,
   loadConfig,
   listEndpoints,
+  mimeTypeForImageBytes,
   normalizeImageRequestMode,
   IMAGE_AGENT_BASH_TIMEOUT_MS,
   IMAGE_ASYNC_MAX_WAIT_MS,
   type ImageQuality,
   type ImageRequestMode,
+  type GenerateResult,
 } from "@repochan/image-gen";
 // modeOverride: only force when user passes --mode openai|openai-async
-import { emitResult, type OutputOptions, UsageError } from "../lib/output.js";
+import { emitResult, type OutputOptions, UsageError, ImageGenerationError } from "../lib/output.js";
 import {
   contextualizeImageMlCapabilityError,
   ensureImageMlCapability,
@@ -47,6 +50,7 @@ export async function runImageGen(
     quality?: string;
     outputFormat?: string;
     background?: string;
+    overwrite?: boolean;
   },
 ) {
   const prompt = options.prompt;
@@ -95,8 +99,16 @@ export async function runImageGen(
         os.homedir(),
         ".cache",
         "repochan",
-        `generated-${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}.${defaultExt}`,
+        `generated-${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}-${randomUUID()}.${defaultExt}`,
       );
+
+  if (!options.overwrite) {
+    const present = await fs.lstat(outFile).then(() => true, (error: NodeJS.ErrnoException) => {
+      if (error.code === "ENOENT") return false;
+      throw error;
+    });
+    if (present) throw new UsageError(`Image output file already exists: ${outFile}. Pass --overwrite to replace.`);
+  }
 
   let referenceImages: Array<{ data: Uint8Array; mimeType: string }> | undefined;
   const refRaw = options.reference;
@@ -105,9 +117,11 @@ export async function runImageGen(
     referenceImages = [];
     for (const refPath of refList) {
       const absRef = path.resolve(cwd, refPath);
-      const ext = path.extname(absRef).toLowerCase();
-      const mimeType = ext === ".jpg" || ext === ".jpeg" ? "image/jpeg" : "image/png";
       const data = await fs.readFile(absRef);
+      const mimeType = mimeTypeForImageBytes(data);
+      if (!["image/png", "image/jpeg", "image/webp"].includes(mimeType)) {
+        throw new UsageError(`Unsupported reference image format: ${absRef}. Expected PNG, JPEG, or WebP.`);
+      }
       referenceImages.push({ data: new Uint8Array(data), mimeType });
     }
     if (!options.json) {
@@ -141,12 +155,14 @@ export async function runImageGen(
     spinner.text = `Waiting for image… ${sec}s elapsed`;
   }, 1000);
 
+  let submittedResult: GenerateResult | undefined;
   try {
     const result = await generate(
       { prompt, aspectRatio: aspect, size, quality, outputFormat, background, referenceImages },
       config,
       { endpoint: options.endpoint, mode: modeOverride },
     );
+    submittedResult = result;
     clearInterval(tick);
     if (!result.success) {
       spinner.fail();
@@ -157,15 +173,16 @@ export async function runImageGen(
           "Upstream may already have billed — check the relay dashboard before re-running the same prompt.",
         );
       }
-      throw new UsageError(
+      throw new ImageGenerationError(
         `Generation failed: ${result.error}`,
-        extra.length ? extra.join(" ") : undefined,
+        { jobId: result.jobId, billedRisk: Boolean(result.billedRisk), hint: extra.length ? extra.join(" ") : undefined },
       );
     }
-    const actualExt = extensionForMimeType(result.mimeType);
+    const accepted = await validateGeneratedImage(result.image!, result.mimeType);
+    const actualExt = extensionForMimeType(accepted.mimeType);
     const finalOutFile = !options.out && actualExt ? replaceExtension(outFile, actualExt) : outFile;
     await fs.mkdir(path.dirname(finalOutFile), { recursive: true });
-    await fs.writeFile(finalOutFile, result.image!);
+    await fs.writeFile(finalOutFile, result.image!, { flag: options.overwrite ? "w" : "wx" });
     const elapsed = Math.floor((Date.now() - started) / 1000);
     spinner.succeed(`Done in ${elapsed}s`);
     emitResult(
@@ -174,7 +191,9 @@ export async function runImageGen(
       {
         path: finalOutFile,
         bytes: result.image!.length,
-        mimeType: result.mimeType,
+        mimeType: accepted.mimeType,
+        width: accepted.width,
+        height: accepted.height,
         requestedOutputFormat: outputFormat ?? config.outputFormat,
         formatMismatch: outputFormat !== undefined && result.mimeType !== undefined
           ? mimeTypeForRequestedFormat(outputFormat) !== result.mimeType
@@ -192,7 +211,37 @@ export async function runImageGen(
   } catch (err) {
     clearInterval(tick);
     spinner.fail();
+    if (submittedResult?.success && !(err instanceof ImageGenerationError)) {
+      throw new ImageGenerationError(
+        `Generated image could not be accepted or saved: ${err instanceof Error ? err.message : String(err)}`,
+        {
+          jobId: submittedResult.jobId,
+          billedRisk: true,
+          hint: "Upstream may already have billed — recover this job's result before re-running the same prompt.",
+          cause: err,
+        },
+      );
+    }
     throw err;
+  }
+}
+
+async function validateGeneratedImage(bytes: Uint8Array, mimeType: string | undefined) {
+  const temporaryDirectory = await fs.mkdtemp(path.join(os.tmpdir(), "repochan-image-accept-"));
+  try {
+    const { inspectImage } = await import("@repochan/image-edit");
+    const candidate = path.join(temporaryDirectory, "candidate");
+    await fs.writeFile(candidate, bytes);
+    const inspection = await inspectImage(candidate);
+    const actualMime = mimeTypeForRequestedFormat(inspection.format);
+    if (!actualMime || actualMime !== mimeType) {
+      throw new Error(`Generated image format ${inspection.format} does not match the reported MIME ${mimeType}.`);
+    }
+    // inspectImage drains a full decode, including all frames, before accepting
+    // the result. Publish the unmodified provider bytes after this validation.
+    return { mimeType: actualMime, width: inspection.width, height: inspection.height };
+  } finally {
+    await fs.rm(temporaryDirectory, { recursive: true, force: true });
   }
 }
 
@@ -550,7 +599,7 @@ export async function runImageEditGifFromFrames(
     spinner.succeed(`Animated GIF → ${path.relative(cwd, absOut) || absOut}`);
     emitResult(
       options,
-      `Combined ${result.frameCount} frames into ${result.outFile} (${result.width}×${result.height}, ${result.delay}ms/frame, loop=${result.loop})`,
+      `Combined ${result.frameCount} frames into ${result.outFile} (${result.width}×${result.height}, first frame delay=${result.delay}ms, loop=${result.loop})`,
       {
         outFile: result.outFile,
         path: absOut,

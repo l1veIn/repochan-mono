@@ -1,50 +1,14 @@
-# Using the ask_user_question Tool
+# Ask Interview Questions on the Current Host
 
-`ask_user_question` comes from the `@juicesharp/rpiv-ask-user-question` extension.
+Use the coding agent's available question tool when it supports the interview. Inspect that tool's actual schema and mode restrictions instead of assuming a particular extension. Follow its question, option, and batch limits. If it is unavailable or unsuitable, ask in chat; missing questionnaire tooling does not block an interview.
 
-### Schema
+- Offer concrete choices with their implications and a way to express an unlisted preference.
+- Ask one short batch, wait for the user's answers, then adapt the next batch. Do not send all 7–14 questions at once.
+- Put a recommendation first when helpful, while following the host's labeling convention.
+- Use multiple selection only when the host supports it and the question needs it. Otherwise let the user list choices in chat.
 
-```json
-{
-  "questions": [
-    {
-      "question": "Full question text, ending with ?",
-      "header": "Short label (≤16 chars)",
-      "options": [
-        { "label": "Option A (1-5 words, ≤60 chars)", "description": "What this option means" },
-        { "label": "Option B", "description": "..." }
-      ],
-      "multiSelect": false
-    }
-  ]
-}
-```
+## Save the User's Answers
 
-### Calling Rules
+Map actual responses to the interview report described in [report-schema.md](report-schema.md). Preserve the question text and selected labels or free-form wording; tool-specific response envelopes are not the protocol.
 
-- **Max 4 questions per call**. If you designed 8 questions, split into two batches.
-- Each question **2-4 options**. Users can always type freely (the "Type something." line is auto-appended).
-- If you recommend an option, put it first and append "(Recommended)" after the label.
-- **Do not fire multiple ask_user_question calls back-to-back**. Ask one batch, wait for responses, then ask the next batch.
-- `multiSelect: true` for multi-select scenarios (e.g., "Which visual elements should the character include?"). The free-text line is suppressed in multi-select mode.
-
-### Response Format
-
-The tool returns `details.answers` as an array, each element:
-
-```json
-{
-  "questionIndex": 0,
-  "question": "Original question text",
-  "kind": "option",          // "option" | "custom" | "chat" | "multi"
-  "answer": "The option label",    // The option label when selected, input text when custom, null when multi
-  "selected": ["Tag 1", "Tag 2"],  // multi kind only
-  "notes": "User notes"          // Optional
-}
-```
-
-- `kind: "option"` → User selected a preset option
-- `kind: "custom"` → User entered free text
-- `kind: "multi"` → User selected multiple options
-- `kind: "chat"` → User wants to abandon the questionnaire for free chat — treat as skipped
-- `cancelled: true` → User cancelled the entire questionnaire — treat all as skipped
+A request to continue in free chat changes the question format; it does not erase answers already supplied. If the user skips or cancels the interview, stop asking and follow their intent about retaining earlier answers. A fully skipped interview creates no file. Persist only explicitly expressed constraints and preferences through `repochan interview create` or `append`.

@@ -1,149 +1,69 @@
 # Greenfield: new project from scratch
 
-When the user wants to create a brand new project (no existing repo, no code yet), RepoChan runs a modified pipeline that starts with project intent extraction and converges back to the standard pipeline after the persona checkpoint.
+For a new project, use the user's stated intent as creative input while keeping repository facts distinct. After a valid analysis and confirmed persona exist, continue through Art Director → Painter → Starter Localizer, or the explicitly requested Web Designer branch. Deployment still follows the user's authorization.
 
-**Core principle**: the greenfield pipeline differs only in the *upstream* (analysis source). Once a valid analysis artifact exists and the persona is confirmed, everything downstream (art director → painter → page designer → deploy) is identical to the standard pipeline. The convergence point is the persona checkpoint.
+## Bootstrap and establish analysis
 
-## Greenfield pipeline
-
-```
-① Bootstrap repo      → mkdir <temp-name> && cd <temp-name> && git init && repochan init
-     ↓                   (temp-name derived from user's description; can be renamed at checkpoint)
-② Seed analysis stub  → construct minimal analysis from user's description, write via CLI
-     ↓
-③ Interviewer         → greenfield mode: extract project intent, enrich signals
-     ↓                   repochan interview create (persisted — .repochan/ already exists!)
-④ Update analysis     → repochan analysis update with richer interview signals
-     ↓
-⑤ Creative Team       → repochan-persona → build persona (repochan persona create, persisted)
-     ↓
-⑥ ⏸ Checkpoint 1: persona + suggested final repo name → user confirms
-     ↓                   if name changed: rename directory
-⑦ [Everything below is identical to the standard pipeline]
-   Art Director → Painter → Starter Localizer → Deploy
-```
-
-**Key design decision — bootstrap before interview, not after**: By creating the directory and running `repochan init` first, the `.repochan/` protocol directory exists from the start. This means the interview report, analysis stub, and persona are all **properly persisted** via standard CLI commands — no floating context-only artifacts. The working directory name is temporary; the user can rename it at the checkpoint.
-
-**Naming convention — persona name = repo name**: RepoChan's default identity strategy is that the mascot's name IS the repo name. A persona named "Linnea" belongs in `github.com/user/linnea`. The app icon is the character's face. This creates a tight, consistent brand: one name, one face, one identity. At Checkpoint 1, **default to using the persona name as the final repo name** unless the user explicitly chose a different name during the interview. Present it as the natural choice: "Linnea feels right — shall we name the repo `linnea`?"
-
-## Greenfield analysis stub (two-pass)
-
-Since `repochan interview create` and `repochan persona create` both require a valid analysis artifact, you must write one **before** running the interview. Use a two-pass approach:
-
-**Pass 1 — Seed stub (before interview):**
-Construct a minimal analysis from the user's initial project description alone. This stub only needs to satisfy the schema validator so the interview can be created.
-
-**Pass 2 — Enrich (after interview):**
-Update the stub with richer signals from the interview responses.
-
-### Pass 1 procedure
-
-1. Extract what you can from the user's initial description: project category, key terms, naming hints.
-2. Construct the patch object (the analysis content you want to write) and wrap it in the params structure that `analysis update` expects:
-   ```bash
-   repochan analysis update --data-file /tmp/greenfield-patch.json
-   ```
-   Where `/tmp/greenfield-patch.json` contains:
-   ```json
-   {
-     "overwrite": true,
-     "patch": {
-       "context": { ... },
-       "preAnalysis": { ... },
-       "abstract": { ... }
-     }
-   }
-   ```
-   If `analysis update` fails because no analysis exists yet (the command requires an existing artifact to update), write the file directly as a one-time bootstrap exception:
-   ```bash
-   mkdir -p .repochan/analysis/versions
-   cat > .repochan/analysis/current.json << 'ENDOFFILE'
-   { ... greenfield analysis stub JSON ... }
-   ENDOFFILE
-   ```
-   This is the **only place** in the entire RepoChan pipeline where an agent directly writes a protocol file. It is justified because the greenfield scenario has no upstream analysis to update — it must be seeded. All subsequent protocol writes use standard CLI commands.
-
-### Pass 2 procedure
-
-1. After the interview completes, read the interview report (`repochan interview get`).
-2. Update the analysis stub with richer signals and write via CLI:
-   ```bash
-   repochan analysis update --data-file /tmp/greenfield-enriched.json
-   ```
-   The file must contain `{"overwrite": true, "patch": { ... }}` — same params structure as Pass 1.
-
-### Minimal valid greenfield analysis stub
-
-```json
-{
-  "schemaVersion": "repochan.analysis.v1",
-  "generatedAt": "<ISO timestamp>",
-  "context": {
-    "basic": {
-      "project_name": "<name candidate from interview>",
-      "source": "greenfield",
-      "readme_exists": false,
-      "has_git": false
-    },
-    "identity": {
-      "namingSeeds": {
-        "primary": ["<keyword1>", "<keyword2>", "..."],
-        "secondary": [],
-        "rationale": ["Greenfield project — signals extracted from user interview"]
-      }
-    },
-    "file_structure": {},
-    "inventory": {},
-    "tech_stack": {},
-    "pre_analysis": {},
-    "git_profile": { "has_git": false },
-    "docs_narrative": {},
-    "github_meta": {},
-    "color_palette": {},
-    "core_samples": {},
-    "deterministic_tooling": {}
-  },
-  "persona": null,
-  "error": null,
-  "preAnalysis": {
-    "source": "greenfield-interview",
-    "userIntent": "<1-2 sentence summary of what the user wants to build>",
-    "projectCategory": "<category from interview: CLI tool / web app / library / ...>"
-  },
-  "abstract": {
-    "source": "greenfield-interview",
-    "tonePreference": "<tone from interview: playful / serious / minimalist / ...>",
-    "targetAudience": "<audience from interview>"
-  }
-}
-```
-
-### Field population rules (Pass 1 — seed)
-
-- `basic.project_name`: Derive a working slug from the user's project description.
-- `identity.namingSeeds.primary`: Extract 3-5 key terms from the user's initial description.
-- `preAnalysis.userIntent`: The user's own words about what they're building.
-- `preAnalysis.projectCategory`: Map the user's description to a category label (CLI tool / web app / library / mobile app / desktop app / game / other).
-- All other `context.*` fields: leave as empty objects `{}`.
-
-### Field population rules (Pass 2 — enrich)
-
-- `preAnalysis.userIntent`: Refine with interview insights.
-- `abstract.tonePreference` / `abstract.targetAudience`: Populate from interview responses.
-- `identity.namingSeeds`: Add any new keywords from the interview.
-- Other fields: populate as interview signals allow.
-
-## Repo bootstrapping (step ①)
-
-Create the working directory before any artifacts are written:
+Create the working directory only when the user has asked to start a new project. Derive a provisional name from the description; inspect an existing directory before reusing it.
 
 ```bash
-# Derive a working name from the user's description
 mkdir <working-name>
 cd <working-name>
 git init
 repochan init
+repochan analysis run
+repochan analysis get --full --json
 ```
 
-The working name is provisional. Common derivation: slugify the most distinctive keyword from the user's description. The user renames at Checkpoint 1 if desired.
+`analysis run` creates the schema-valid artifact through CLI/core even for an empty repository. Preserve its measured file inventory, git state, timestamps, and protocol metadata. If analysis already exists, read and reuse it; do not overwrite it merely to restart the greenfield flow.
+
+Then add the user's project intent with `analysis update --overwrite`. The flag is required when updating existing analysis; a payload field alone is not a substitute.
+
+```bash
+repochan analysis update --overwrite <<'EOF'
+{
+  "patch": {
+    "preAnalysis": {
+      "source": "greenfield-user-intent",
+      "summary": "Planned project: <the user's stated project purpose>",
+      "project_category": "<category supported by the description>"
+    }
+  }
+}
+EOF
+```
+
+Use a patch rather than reconstructing the whole artifact. `preAnalysis.summary` and `project_category` match the Analyst's existing enrichment vocabulary; `source` and the planned-project wording distinguish intent from measured repository facts. Starter configuration can consume this summary. Never hand-write `.repochan/` files. If scan or update fails, report the CLI error and resolve it before proceeding to dependent roles.
+
+## Interview and enrich
+
+1. Dispatch Interviewer in greenfield mode with the project description. It reads the seeded analysis and saves the interview through `repochan interview create`.
+2. Read the saved report with `repochan interview get --json`.
+3. Update only the fields supported by the user's answers:
+
+```bash
+repochan analysis update --overwrite <<'EOF'
+{
+  "patch": {
+    "preAnalysis": {
+      "source": "greenfield-interview",
+      "summary": "Planned project: <purpose refined from the user's answers>",
+      "project_category": "<confirmed category>"
+    },
+    "abstract": {
+      "source": "greenfield-interview",
+      "tonePreference": "<expressed tone preference>",
+      "targetAudience": "<expressed target audience>"
+    }
+  }
+}
+EOF
+```
+
+Omit unexpressed preferences. Keep repository-derived naming seeds; add interview naming terms only when the user supplies them, with their provenance recorded. If the interview is skipped, use the initial project description and record no fabricated interview.
+
+## Persona checkpoint and continuation
+
+Creative Team consumes the analysis and optional interview, creates the persona through the CLI, and presents it at Checkpoint 1. RepoChan's greenfield naming convention is to suggest the mascot's name as the project name; the user's existing name or naming preference takes precedence. Rename the working directory only after the user chooses that name. If the repository facts need a rescan afterward, use `repochan analysis run --overwrite` and reapply the recorded intent patch; do not fabricate metadata.
+
+After confirmation, use the normal downstream workflow: commission orders, generate the foundation first, show it at Checkpoint 2, then create matching assets and the requested website. Original website design and Starter productization remain explicit branches.

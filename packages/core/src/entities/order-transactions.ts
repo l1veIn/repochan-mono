@@ -181,6 +181,27 @@ export async function assertOrderBytesUnchanged(orderFile: string, expected: Buf
   }
 }
 
+/** Call while holding the mutation lock; unprepared staging still permits CAS-safe mutations. */
+export async function assertNoPendingOrderRecovery(projectRoot: string, orderId: string): Promise<void> {
+  const root = orderDir(projectRoot, orderId);
+  await assertNoSymlinkComponents(projectRoot, root, "Recovery order root");
+  const entries = await fs.readdir(root, { withFileTypes: true }).catch((error) => {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+    throw error;
+  });
+  for (const entry of entries) {
+    if (!entry.name.startsWith(".result-txn-") && !entry.name.startsWith(".promotion-txn-")) continue;
+    const transactionRoot = await resolveInside(root, entry.name, "Recovery transaction");
+    const manifest = await fs.lstat(path.join(transactionRoot, "recovery.json")).catch((error) => {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
+      throw error;
+    });
+    if (manifest) {
+      throw new Error(`Order ${orderId} has pending recovery at ${transactionRoot}. Recover or abort it before changing the order.`);
+    }
+  }
+}
+
 export async function prepareRecoveryManifest(
   projectRoot: string,
   orderId: string,

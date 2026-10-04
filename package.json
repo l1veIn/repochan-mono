@@ -17,7 +17,7 @@
   },
   "scripts": {
     "build": "pnpm -r build",
-    "test": "pnpm --filter repochan... build && pnpm -r test && pnpm test:release-contract && pnpm test:compatibility-debt",
+    "test": "pnpm --filter repochan... build && pnpm -r test && pnpm test:release-contract && pnpm test:compatibility-debt && pnpm test:documentation && pnpm test:architecture",
     "test:release-contract": "node --test scripts/release-contract.test.mjs",
     "test:compatibility-debt": "node scripts/compatibility-debt.mjs",
     "release:pack-smoke": "node scripts/release-preflight.mjs",
@@ -25,7 +25,9 @@
     "dev": "pnpm --filter repochan exec tsx src/index.ts",
     "lint": "pnpm --filter repochan... build && pnpm -r lint",
     "cli": "pnpm --filter repochan run cli",
-    "cli:dev": "pnpm --filter repochan exec tsx src/index.ts"
+    "cli:dev": "pnpm --filter repochan exec tsx src/index.ts",
+    "test:documentation": "node --test scripts/documentation-contract.test.mjs && node scripts/documentation-contract.mjs",
+    "test:architecture": "node --test scripts/architecture-contract.test.mjs && node scripts/architecture-contract.mjs"
   },
   "devDependencies": {
     "tar": "^7.5.19",

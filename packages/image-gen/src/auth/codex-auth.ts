@@ -49,6 +49,10 @@ export interface CodexTokenCache {
   access_token: string;
   /** Optional — only present when we refreshed and the issuer returned one. */
   refresh_token?: string;
+  /** Original read-only auth.json token identifying the login this cache belongs to. */
+  source_refresh_token?: string;
+  /** Refreshed identity token used for the next refresh grant. */
+  id_token?: string;
   /** Epoch ms when the cached access_token was written. */
   cached_at: number;
 }

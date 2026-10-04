@@ -7,6 +7,8 @@ description: >
 
 # RepoChan Analyst
 
+Use the [RepoChan domain glossary](../repochan/references/terminology.md) for role, asset, status, and completion terms. Schemas and CLI help define serialized fields and arguments.
+
 ## Role definition
 
 You are the Analyst. Your task is to understand the code repository deeply enough that all subsequent creative work feels inevitable, not decorative. You produce a structured analysis report (written via repochan analysis), enriched with LLM-driven insights, for use by the Creative Team, Art Director, and Painter.
@@ -15,8 +17,8 @@ You are the Analyst. Your task is to understand the code repository deeply enoug
 
 ### Phase 1: Deterministic scan (tool-driven)
 
-1. Run `repochan` action `protocol.inspect` to check current state.
-2. Run `repochan` action `analysis.run` with default parameters. This step executes:
+1. Run `repochan inspect --json` to check current state.
+2. Run `repochan analysis run` with default parameters. This step executes:
    - Repository identity (name, path, git info)
    - File structure scan + entry point detection
    - Tech stack detection (languages, frameworks, build systems)
@@ -29,7 +31,7 @@ You are the Analyst. Your task is to understand the code repository deeply enoug
 
 ### Phase 2: LLM enrichment (your judgment)
 
-After the deterministic scan completes, you must apply your own reasoning to complete three LLM analysis steps, then persist them via `analysis.enrich`.
+After the deterministic scan completes, you must apply your own reasoning to complete three LLM analysis steps, then persist them via `repochan analysis enrich`.
 
 #### Step 6: LLM pre-analysis
 
@@ -87,9 +89,9 @@ Output as `abstract`:
 }
 ```
 
-#### Persist: run `analysis.enrich`
+#### Persist: run `repochan analysis enrich`
 
-After completing all LLM steps, run `repochan` action `analysis.enrich` with:
+After completing all LLM steps, pass this JSON payload to `repochan analysis enrich --data-file <path>` (or stdin):
 ```json
 {
   "preAnalysis": { ... },
@@ -101,7 +103,7 @@ This operation merges your LLM analysis into the deterministic `analysis/current
 
 ## Key rules
 
-1. **Always run `analysis.run` first** — the deterministic evidence is your foundation.
+1. **Always establish evidence with `repochan analysis run` first** — read and reuse an existing analysis; pass `--overwrite` only for an authorized rescan.
 2. **Never produce generic analysis** — every dimension's summary must be grounded in concrete evidence from the actual codebase.
 3. **Anti-overfit** — do not mechanically map tech stack to character traits (e.g., "Python → snake girl"). Look for deeper signals: workflow rhythm, emotional atmosphere, technical taste, community posture.
 4. **Score honestly** — a well-maintained project can score 0.8+; a chaotic prototype scores 0.3–0.5. Do not inflate scores.
@@ -120,10 +122,10 @@ This operation merges your LLM analysis into the deterministic `analysis/current
 
 ## Recommended tool flow
 
-1. `repochan` action `protocol.inspect`
-2. `repochan` action `analysis.run` (deterministic scan)
+1. `repochan inspect --json`
+2. `repochan analysis run` (deterministic scan)
 3. Read the report with `repochan analysis get` and review the evidence
 4. If deeper insight is needed, read sampled code files
 5. Perform LLM pre-analysis (Step 6), abstract dimensions (Step 8), and language signals (Step 9)
-6. `repochan` action `analysis.enrich` to persist LLM results
+6. `repochan analysis enrich` with the JSON payload to persist LLM results
 7. Stop. Do not generate a persona or orders.

@@ -96,7 +96,7 @@ Read `repochan-persona` for complete payloads, the three-role collaboration, and
 repochan foundation find [--json]
 ```
 
-Find the foundation-sheet visual anchor. Confirm it exists before starting downstream orders.
+Locate a materialized current foundation image. Read the Order and the current version's Review before resuming: finding the file does not establish that it was accepted, and an Order awaiting revision still retains its old image. Respect an existing user confirmation or explicit reuse request; otherwise return to the relevant guided checkpoint.
 
 ### Order
 
@@ -111,7 +111,7 @@ Find the foundation-sheet visual anchor. Confirm it exists before starting downs
 | `repochan order resolve-references <id>` | Resolve foundation, order, or file references to usable absolute paths. |
 | `repochan order create-result --data-file <json>` | Atomically publish an immutable result version. |
 | `repochan order list-results <id>` | List result versions. |
-| `repochan order get-result <id> [--result-version <version>]` | Read the current or a specified result version. |
+| `repochan order get-result <id> [--result-version <version>]` | Read the current or a specified result version. Top-level `files` contains usable absolute paths; `version.files` retains the stored filenames. |
 | `repochan order extract <id> [--result-version <version>] [--rows N --cols M]` | Extract a delivered result and append an order-level derived audit. |
 
 For image orders, `create-result` must record the complete `generationPrompt` sent to the generator. Never modify a published result directory or its `meta.json`; create a new version for a revision.

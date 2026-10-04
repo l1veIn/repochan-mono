@@ -67,6 +67,7 @@ export type WalkResult = { dirs: string[]; files: string[] };
 
 export type ParsedGitCommit = {
   hash: string;
+  parents?: string[];
   author: string;
   date: string;
   message_summary: string;

@@ -1,6 +1,6 @@
 # Human Visual Gates
 
-The following gates are decided by a human in the normal interactive flow. Only when the upstream wizard has explicitly entered yolo or non-interactive CI may the agent auto-select a recommended candidate and record `auto-approved`; the record must include the candidate, selection rationale, automated QA, and a "no human aesthetic approval" marker, and must not falsely claim human-approved.
+The following gates are decided by a human in the normal guided flow. When the user explicitly accepts default creative choices (including yolo), record the direction as `auto-selected` within the authorized task scope. In non-interactive execution, continue already authorized local work and record provisional choices; CI itself grants neither execution approval nor aesthetic acceptance. Keep candidate/version, selection rationale, automated QA, and pending human aesthetic review explicit. Build/QA success is separate from a reviewer's acceptance; never label an auto-selected candidate human-approved.
 
 ## Gate 1: Visual Master Design Selection (Mandatory)
 

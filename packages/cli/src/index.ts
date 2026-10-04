@@ -271,7 +271,7 @@ cli.command("image <sub>", "Image generation, configure, status, probe, and edit
   .option("--fps <n>", "Frames per second (image edit gif-from-frames)", { default: undefined })
   .option("--delay <ms>", "Per-frame delay in ms, single or comma-list (image edit gif-from-frames)")
   .option("--loop <n>", "Loop count, 0 = infinite (image edit gif-from-frames)", { default: undefined })
-  .option("--overwrite", "Overwrite existing output (bg-remove / gif-from-frames)")
+  .option("--overwrite", "Overwrite existing image output (generation / image edit)")
   .option("--force", "Reinstall the pinned image ML runtime (image edit ml install)")
   .action(async (_p: any, opts: any) => {
     const args = cli.args; // [sub, imagePath?]

@@ -55,4 +55,4 @@ Design 1-2 questions per category (7-14 total):
 - Each question 2-4 options
 - Options must have concrete `description` fields explaining what each choice means
 - Questions marked `optional: true` allow the user to skip
-- Don't ask what the "Type something." line auto-appended by `ask_user_question` already covers — that's the free-text fallback
+- When the host provides a free-text fallback, do not add a duplicate question for it; in chat, let the user answer in their own words.

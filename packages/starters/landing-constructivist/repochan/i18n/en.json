@@ -96,7 +96,7 @@
         "copyLabel": "Copy command",
         "copiedLabel": "Copied",
         "docsLabel": "Docs & source →",
-        "fine": "Node.js ≥ 20 · bring your own coding agent · no embedded runtime"
+        "fine": "Node.js ≥ 20.9 · bring your own coding agent · no embedded runtime"
       }
     },
     "progress": {

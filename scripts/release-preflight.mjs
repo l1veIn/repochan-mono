@@ -461,14 +461,20 @@ async function candidateFreshInstallSmoke(entries) {
       throw new Error(`Fresh-install skill ${skill} is missing its named SKILL.md contract.`);
     }
   }
+  const glossaryRelative = path.join("repochan", "references", "terminology.md");
+  const installedGlossary = await fs.readFile(path.join(installedSkillsRoot, glossaryRelative));
+  const sourceGlossary = await fs.readFile(path.join(sourceRoot, "packages", "skill", "skills", glossaryRelative));
+  if (!installedGlossary.equals(sourceGlossary)) {
+    throw new Error("Fresh-install setup did not preserve the authoritative domain glossary.");
+  }
   const wizardContract = await fs.readFile(path.join(installedSkillsRoot, "repochan", "SKILL.md"), "utf8");
   for (const currentContract of [
     "repochan foundation find",
     "repochan-painter",
     "repochan-starter-localizer",
     "does not auto-upgrade to yolo",
-    "external writes still require explicit authorization in the user's original request",
-    "non-interactive environments do not expand authorization",
+    "external writes still require explicit authorization",
+    "environment alone grants no approval or additional scope",
   ]) {
     if (!wizardContract.includes(currentContract)) throw new Error(`Fresh-install wizard skill is missing current contract ${currentContract}.`);
   }
@@ -591,6 +597,7 @@ async function candidateFreshInstallSmoke(entries) {
     analysis: "passed",
     setupScope: "Codex project-local only",
     skills: expectedSkills,
+    glossaryInstalled: true,
     templates: templateIds,
     templateGet: "official/foundation-sheet passed",
     starterSync: starterSync.version,

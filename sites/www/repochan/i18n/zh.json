@@ -58,7 +58,7 @@
       "noteTitle": "展览说明",
       "noteBody": "本馆常设展是 RepoChan 自己的 pipeline 真交付物。楼下「仓库娘化实录」是对公开仓库的非官方同人演示——不代表上游项目。",
       "ctaPrimary": "复制安装命令",
-      "ctaPrimaryCommand": "npm install -g repochan && repochan setup",
+      "ctaPrimaryCommand": "npm install -g repochan",
       "ctaSecondary": "看案例 ↓",
       "copied": "已复制",
       "ctaSecondaryHref": "#showcase",
@@ -298,19 +298,19 @@
     "shop": {
       "kicker": "Museum Shop",
       "title": "把流水线带回家",
-      "intro": "Node.js ≥ 20 · 你已有的 coding agent · 可选图像 endpoint。",
+      "intro": "Node.js ≥ 20.9 · 你已有的 coding agent · 生图前配置好图像 endpoint。",
       "copyLabel": "复制",
       "copiedLabel": "已复制",
       "cards": [
         {
           "title": "安装并装好 skill",
-          "desc": "一条命令：装 CLI + 把向导 skill 写入你的 agent。",
-          "command": "npm install -g repochan && repochan setup"
+          "desc": "在你的 Git 项目目录运行，按提示选择 agent 并配置生图。若跳过生图配置，生成前运行 repochan image configure。",
+          "command": "npm install -g repochan && repochan setup --project"
         },
         {
           "title": "开始创作",
-          "desc": "在项目里打开 agent，输入 /repochan 或自然语言即可。",
-          "command": "/repochan"
+          "desc": "在同一项目里打开 coding agent，发送这段请求。支持斜杠命令的 agent 也可以用 /repochan。",
+          "command": "用 RepoChan 为这个仓库设计看板娘。先生成角色设定封面，等我反馈后再继续。"
         },
         {
           "title": "查一件藏品",

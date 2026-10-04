@@ -6,36 +6,16 @@ import { PersonaView } from "./views/PersonaView";
 import { ArtifactView } from "./views/ArtifactView";
 import { CanvasView } from "./views/CanvasView";
 import { StartersView } from "./views/StartersView";
-
-type View =
-  | { name: "orders" }
-  | { name: "order"; orderId: string }
-  | { name: "persona" }
-  | { name: "analysis" }
-  | { name: "interview" }
-  | { name: "starters" }
-  | { name: "canvas"; nodeId?: string };
-
-function parseHash(): View {
-  const hash = window.location.hash.replace(/^#\/?/, "");
-  const [head, arg] = hash.split("/");
-  if (head === "order" && arg) return { name: "order", orderId: decodeURIComponent(arg) };
-  if (head === "canvas") return { name: "canvas", nodeId: arg ? decodeURIComponent(arg) : undefined };
-  if (head === "persona" || head === "analysis" || head === "interview" || head === "starters") return { name: head };
-  return { name: "orders" };
-}
-
-function viewHash(view: View): string {
-  if (view.name === "order") return `#/order/${encodeURIComponent(view.orderId)}`;
-  if (view.name === "canvas" && view.nodeId) return `#/canvas/${encodeURIComponent(view.nodeId)}`;
-  return `#/${view.name}`;
-}
+import { parseHash, viewHash, type View } from "./routing";
 
 export default function App() {
-  const [view, setViewState] = useState<View>(() => parseHash());
+  const [view, setViewState] = useState<View>(() => parseHash(window.location.hash));
   const [health, setHealth] = useState<Health | null>(null);
   const [orders, setOrders] = useState<OrderSummary[]>([]);
   const [starters, setStarters] = useState<StartersInfo | null>(null);
+  const [refreshRevision, setRefreshRevision] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
 
   const setView = useCallback((next: View) => {
     setViewState(next);
@@ -43,16 +23,28 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const onHash = () => setViewState(parseHash());
+    const onHash = () => setViewState(parseHash(window.location.hash));
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
-  useEffect(() => {
-    getJSON<Health>("/api/health").then(setHealth).catch(() => setHealth(null));
-    getJSON<{ orders: OrderSummary[] }>("/api/orders").then((r) => setOrders(r.orders)).catch(() => setOrders([]));
-    getJSON<StartersInfo>("/api/starters").then(setStarters).catch(() => setStarters(null));
+  const refresh = useCallback(async () => {
+    setRefreshing(true);
+    setRefreshError(null);
+    const results = await Promise.allSettled([
+      getJSON<Health>("/api/health").then(setHealth),
+      getJSON<{ orders: OrderSummary[] }>("/api/orders").then((r) => setOrders(r.orders)),
+      getJSON<StartersInfo>("/api/starters").then(setStarters),
+    ]);
+    if (results.some((result) => result.status === "rejected")) {
+      setRefreshError("Some data could not be refreshed. Try Refresh again.");
+    }
+    // Reload the current detail/artifact/canvas view as well as navigation counts.
+    setRefreshRevision((revision) => revision + 1);
+    setRefreshing(false);
   }, []);
+
+  useEffect(() => { void refresh(); }, [refresh]);
 
   const projectName = useMemo(() => {
     if (!health?.projectRoot) return "…";
@@ -83,6 +75,9 @@ export default function App() {
           </span>
         ) : null}
         <span className="spacer" />
+        <button className="canvas-btn" onClick={() => void refresh()} disabled={refreshing}>
+          {refreshing ? "Refreshing…" : "↻ Refresh"}
+        </button>
         <button
           className={`canvas-btn ${view.name === "canvas" ? "active" : ""}`}
           onClick={() => setView({ name: "canvas" })}
@@ -129,7 +124,8 @@ export default function App() {
           </div>
         </nav>
 
-        <main className="stage">
+        <main className="stage" key={refreshRevision}>
+          {refreshError ? <div role="alert" className="dim">{refreshError}</div> : null}
           {view.name === "orders" ? <OrdersView orders={orders} onOpen={openOrder} /> : null}
           {view.name === "order" ? (
             <OrderDetailView orderId={view.orderId} onBack={() => setView({ name: "orders" })} onOpenOrder={openOrder} />

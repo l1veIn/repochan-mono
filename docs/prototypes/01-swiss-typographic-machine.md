@@ -1,3 +1,5 @@
+> **Visual direction brief.** This document records design intent. For runnable sources, consult the [Starter catalog](../../packages/starters/README.md).
+
 # 01 · Typographic Machine（瑞士国际主义 · 纯字体机）
 
 | 字段 | 值 |

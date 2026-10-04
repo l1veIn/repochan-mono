@@ -1,3 +1,5 @@
+> **Visual design archive.** For current installation and usage, read the [root README](../../../README.md). This layout preserves a design experiment.
+
 <div align="center">
 
 <picture>
@@ -88,7 +90,7 @@ flowchart LR
 
 ## Character file — RepoChan (仓库酱)
 
-The persona below is not marketing copy. It is the actual content of [`.repochan/persona/current.json`](../../../.repochan/persona/current.json) (`repochan.persona.v2`), produced by the creative team and confirmed at checkpoint ① — the same artifact your repo would get.
+The persona below is not marketing copy. It is the actual content of `.repochan/persona/current.json` (`.repochan/persona/current.json`, local generation record) (`repochan.persona.v2`), produced by the creative team and confirmed at checkpoint ① — the same artifact your repo would get.
 
 | Field | Value |
 |-------|-------|

@@ -1,3 +1,5 @@
+> **Design record.** Use the [documentation index](../README.md) for current contracts and supported behavior; proposed phases below are design context.
+
 # Design：RepoChan README 艺术方向方案
 
 > 状态：设计草案（待实现）  

@@ -5,7 +5,7 @@ import type { AnalysisContext, AnalysisResult } from "./types.js";
 import { heuristicAbstract } from "./abstract.js";
 import { extractThemeColors } from "./colors.js";
 import { analyzeGit } from "./git-profile.js";
-import { collectInventory, detectDependencies, docsNarrative } from "./inventory.js";
+import { collectInventory, detectDependencies, docsNarrative, hasCiConfig } from "./inventory.js";
 import { sampleCoreCode } from "./sample.js";
 import { buildSystem, detectFrameworks, detectProjectType, findEntryPoints, inferProjectCategory, packageManager } from "./tech-stack.js";
 import { collectLanguages, countLines, HARD_IGNORE_DIRS, rel, walkProject } from "./walk.js";
@@ -60,7 +60,7 @@ export async function performAnalysis(projectRoot: string, options: AnalyzeInput
   const frameworks = detectFrameworks(files);
   const projectType = detectProjectType(files);
   const relFiles = files.map((f) => rel(projectRoot, f)).sort();
-  const inventory = collectInventory(projectRoot, relFiles, dirs);
+  const inventory = { ...collectInventory(projectRoot, relFiles, dirs), has_ci: await hasCiConfig(projectRoot) };
   const configFiles = relFiles.filter((f) => /(^|\/)(package\.json|pyproject\.toml|Cargo\.toml|go\.mod|tsconfig\.json|vite\.config\.|next\.config\.|Dockerfile|Makefile|ruff\.toml|eslint|prettier|biome)/.test(f));
   const git_profile = await analyzeGit(projectRoot);
   const manifests = await detectDependencies(projectRoot);

@@ -1,10 +1,10 @@
 # RepoChan Design Prototypes（风格方向库）
 
-> 设计探索文档，**不是**可运行站点。  
-> 在现有 4 套 dogfood 站之外，扩展更多大胆的视觉与信息架构方向。  
-> 落地顺序建议：本目录 brief → `web-design/prototypes/` HTML 原型 → Gate 1 → Astro 生产化 → starter 化。
+> 本目录保留视觉方向 brief；它们不是当前工程待办。
+> 多个方向已有可运行 Starter，当前库存和源代码见 [Starter 目录](../../packages/starters/README.md)。
+> brief 中的优先级和分期用于理解当时的设计选择；原创网站与产品化遵循当前角色合同。
 
-## 已占位（勿重复）
+## 设计探索时的已有方向
 
 | 现网 / 现 starter | 类型 | 风格槽 |
 |-------------------|------|--------|
@@ -60,7 +60,7 @@
 6. **文案语气** — 标题范式与禁忌  
 7. **风险与验收** — 何时算「这个方向立住了」
 
-## 推荐落地顺序
+## 设计探索时的推荐顺序
 
 1. **P0**：06 Toy City → 08 Wireframe → 07 Museum（架构差异最大）  
 2. **P1**：03 Glitch OS → 02 Memphis → 05 Solarpunk  

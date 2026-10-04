@@ -1,3 +1,5 @@
+> **Visual direction brief.** This document records design intent. For runnable sources, consult the [Starter catalog](../../packages/starters/README.md).
+
 # 04 · Propaganda Machine（构成主义 · 宣传海报站）
 
 | 字段 | 值 |

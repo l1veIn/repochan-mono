@@ -10,6 +10,23 @@ export class UsageError extends Error {
   }
 }
 
+/** A submitted generation failed, or its result could not be accepted/saved. */
+export class ImageGenerationError extends UsageError {
+  readonly jobId?: string;
+  readonly billedRisk: boolean;
+  readonly code?: string | number;
+
+  constructor(message: string, options: { jobId?: string; billedRisk: boolean; hint?: string; cause?: unknown }) {
+    super(message, options.hint);
+    this.name = "ImageGenerationError";
+    this.jobId = options.jobId;
+    this.billedRisk = options.billedRisk;
+    this.cause = options.cause;
+    const code = options.cause instanceof Error ? (options.cause as Error & { code?: unknown }).code : undefined;
+    if (typeof code === "string" || typeof code === "number") this.code = code;
+  }
+}
+
 /**
  * Sentinel thrown by `starter asset-apply` (PR5) after it has already printed
  * the structured apply failure envelope to stdout. main() skips printError for
@@ -83,7 +100,14 @@ export function printError(error: unknown, opts?: OutputOptions) {
     return;
   }
   if (opts?.json && error instanceof UsageError) {
-    printJson({ ok: false, error: "UsageError", message: error.message, hint: error.hint ?? null });
+    printJson({
+      ok: false, error: error.name, message: error.message, hint: error.hint ?? null,
+      ...(error instanceof ImageGenerationError ? {
+        jobId: error.jobId ?? null,
+        billedRisk: error.billedRisk,
+        ...(error.code !== undefined ? { code: error.code } : {}),
+      } : {}),
+    });
     return;
   }
   const missingImageMl = asMissingImageMlCapabilityError(error);
@@ -96,6 +120,16 @@ export function printError(error: unknown, opts?: OutputOptions) {
     return;
   }
   const message = error instanceof Error ? error.message : String(error);
+  if (opts?.json) {
+    const code = error instanceof Error ? (error as Error & { code?: unknown }).code : undefined;
+    printJson({
+      ok: false,
+      error: error instanceof Error ? error.name : "Error",
+      message,
+      ...(typeof code === "string" || typeof code === "number" ? { code } : {}),
+    });
+    return;
+  }
   console.error(`${chalk.red("error")}: ${message}`);
   if (error instanceof UsageError && error.hint) console.error(dim(error.hint));
   if (error instanceof UsageError) console.error(dim("Run `repochan --help` to see available commands."));

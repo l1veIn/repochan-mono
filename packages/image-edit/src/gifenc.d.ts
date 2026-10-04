@@ -21,7 +21,7 @@ declare module "gifenc" {
     writeHeader(): void;
   }
 
-  export function GIFEncoder(width: number, height: number, opts?: { auto?: boolean; initialCapacity?: number }): GifEncoderInstance;
+  export function GIFEncoder(opts?: { auto?: boolean; initialCapacity?: number }): GifEncoderInstance;
 
   export function quantize(
     rgba: Uint8Array,
@@ -40,14 +40,5 @@ declare module "gifenc" {
   export function prequantize(rgba: Uint8Array, opts?: { roundRGB?: number; roundAlpha?: number }): void;
   export function snapColorsToPalette(palette: number[][], maxColors: number): void;
 
-  const _default: {
-    GIFEncoder: typeof GIFEncoder;
-    quantize: typeof quantize;
-    applyPalette: typeof applyPalette;
-    nearestColor: typeof nearestColor;
-    nearestColorIndex: typeof nearestColorIndex;
-    prequantize: typeof prequantize;
-    snapColorsToPalette: typeof snapColorsToPalette;
-  };
-  export default _default;
+  export default GIFEncoder;
 }

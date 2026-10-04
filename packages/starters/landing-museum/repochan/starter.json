@@ -654,6 +654,486 @@
           "out": "public/assets/webstates"
         }
       ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "study-excited",
+      "required": true,
+      "output": "public/assets/studies/expr-excited.webp",
+      "description": "A cheerful, excited expression study of the target project mascot, with a readable upper-body silhouette. Localize this declared slot; keep the original source artwork until application.",
+      "order": {
+        "assetType": "character_study",
+        "brief": {
+          "intent": "A cheerful, excited expression study of the target project mascot, with a readable upper-body silhouette.",
+          "mustInclude": [
+            "exactly one isolated subject centered inside the square canvas",
+            "use the selected Foundation Sheet for character identity and visual language",
+            "perfectly flat uniform matte background in a color absent from the subject",
+            "generous clear margins around the whole subject"
+          ],
+          "avoid": [
+            "text",
+            "labels",
+            "borders",
+            "scenery",
+            "shadows on the matte",
+            "cropped subject"
+          ],
+          "creativeFreedom": [
+            "pose or object details appropriate to the target Persona",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "study-excited-matte",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "1024x1024"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "chroma-key",
+          "args": {
+            "matte": "auto",
+            "pipeline": "v2"
+          },
+          "out": "public/assets/studies/expr-excited.png"
+        },
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 88,
+            "maxWidth": 640
+          },
+          "out": "public/assets/studies/expr-excited.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "study-focused",
+      "required": true,
+      "output": "public/assets/studies/expr-focused.webp",
+      "description": "A focused expression study of the target project mascot, with a readable upper-body silhouette. Localize this declared slot; keep the original source artwork until application.",
+      "order": {
+        "assetType": "character_study",
+        "brief": {
+          "intent": "A focused expression study of the target project mascot, with a readable upper-body silhouette.",
+          "mustInclude": [
+            "exactly one isolated subject centered inside the square canvas",
+            "use the selected Foundation Sheet for character identity and visual language",
+            "perfectly flat uniform matte background in a color absent from the subject",
+            "generous clear margins around the whole subject"
+          ],
+          "avoid": [
+            "text",
+            "labels",
+            "borders",
+            "scenery",
+            "shadows on the matte",
+            "cropped subject"
+          ],
+          "creativeFreedom": [
+            "pose or object details appropriate to the target Persona",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "study-focused-matte",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "1024x1024"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "chroma-key",
+          "args": {
+            "matte": "auto",
+            "pipeline": "v2"
+          },
+          "out": "public/assets/studies/expr-focused.png"
+        },
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 88,
+            "maxWidth": 640
+          },
+          "out": "public/assets/studies/expr-focused.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "study-deadpan",
+      "required": true,
+      "output": "public/assets/studies/expr-deadpan.webp",
+      "description": "A deadpan expression study of the target project mascot, with a readable upper-body silhouette. Localize this declared slot; keep the original source artwork until application.",
+      "order": {
+        "assetType": "character_study",
+        "brief": {
+          "intent": "A deadpan expression study of the target project mascot, with a readable upper-body silhouette.",
+          "mustInclude": [
+            "exactly one isolated subject centered inside the square canvas",
+            "use the selected Foundation Sheet for character identity and visual language",
+            "perfectly flat uniform matte background in a color absent from the subject",
+            "generous clear margins around the whole subject"
+          ],
+          "avoid": [
+            "text",
+            "labels",
+            "borders",
+            "scenery",
+            "shadows on the matte",
+            "cropped subject"
+          ],
+          "creativeFreedom": [
+            "pose or object details appropriate to the target Persona",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "study-deadpan-matte",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "1024x1024"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "chroma-key",
+          "args": {
+            "matte": "auto",
+            "pipeline": "v2"
+          },
+          "out": "public/assets/studies/expr-deadpan.png"
+        },
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 88,
+            "maxWidth": 640
+          },
+          "out": "public/assets/studies/expr-deadpan.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "study-chibi",
+      "required": true,
+      "output": "public/assets/studies/chibi-full.webp",
+      "description": "A complete, full-body chibi interpretation of the target project mascot. Localize this declared slot; keep the original source artwork until application.",
+      "order": {
+        "assetType": "chibi_character",
+        "brief": {
+          "intent": "A complete, full-body chibi interpretation of the target project mascot.",
+          "mustInclude": [
+            "exactly one isolated subject centered inside the square canvas",
+            "use the selected Foundation Sheet for character identity and visual language",
+            "perfectly flat uniform matte background in a color absent from the subject",
+            "generous clear margins around the whole subject"
+          ],
+          "avoid": [
+            "text",
+            "labels",
+            "borders",
+            "scenery",
+            "shadows on the matte",
+            "cropped subject"
+          ],
+          "creativeFreedom": [
+            "pose or object details appropriate to the target Persona",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "study-chibi-matte",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "1024x1024"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "chroma-key",
+          "args": {
+            "matte": "auto",
+            "pipeline": "v2"
+          },
+          "out": "public/assets/studies/chibi-full.png"
+        },
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 88,
+            "maxWidth": 640
+          },
+          "out": "public/assets/studies/chibi-full.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "prop-one",
+      "required": true,
+      "output": "public/assets/props/motif-clip-alpha.webp",
+      "description": "The first distinctive object from the target mascot's world, selected from its Persona and Foundation Sheet. Localize this declared slot; keep the original source artwork until application.",
+      "order": {
+        "assetType": "item_prop",
+        "brief": {
+          "intent": "The first distinctive object from the target mascot's world, selected from its Persona and Foundation Sheet.",
+          "mustInclude": [
+            "exactly one isolated subject centered inside the square canvas",
+            "use the selected Foundation Sheet for character identity and visual language",
+            "perfectly flat uniform matte background in a color absent from the subject",
+            "generous clear margins around the whole subject"
+          ],
+          "avoid": [
+            "text",
+            "labels",
+            "borders",
+            "scenery",
+            "shadows on the matte",
+            "cropped subject"
+          ],
+          "creativeFreedom": [
+            "pose or object details appropriate to the target Persona",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "prop-one-matte",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "1024x1024"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "chroma-key",
+          "args": {
+            "matte": "auto",
+            "pipeline": "v2"
+          },
+          "out": "public/assets/props/motif-clip-alpha.png"
+        },
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 88,
+            "maxWidth": 640
+          },
+          "out": "public/assets/props/motif-clip-alpha.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "prop-two",
+      "required": true,
+      "output": "public/assets/props/motif-earring-alpha.webp",
+      "description": "The second distinctive object from the target mascot's world, visually distinct from the first. Localize this declared slot; keep the original source artwork until application.",
+      "order": {
+        "assetType": "item_prop",
+        "brief": {
+          "intent": "The second distinctive object from the target mascot's world, visually distinct from the first.",
+          "mustInclude": [
+            "exactly one isolated subject centered inside the square canvas",
+            "use the selected Foundation Sheet for character identity and visual language",
+            "perfectly flat uniform matte background in a color absent from the subject",
+            "generous clear margins around the whole subject"
+          ],
+          "avoid": [
+            "text",
+            "labels",
+            "borders",
+            "scenery",
+            "shadows on the matte",
+            "cropped subject"
+          ],
+          "creativeFreedom": [
+            "pose or object details appropriate to the target Persona",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "prop-two-matte",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "1024x1024"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "chroma-key",
+          "args": {
+            "matte": "auto",
+            "pipeline": "v2"
+          },
+          "out": "public/assets/props/motif-earring-alpha.png"
+        },
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 88,
+            "maxWidth": 640
+          },
+          "out": "public/assets/props/motif-earring-alpha.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "prop-three",
+      "required": true,
+      "output": "public/assets/props/motif-headphones-alpha.webp",
+      "description": "The third distinctive object from the target mascot's world, visually distinct from the other displayed objects. Localize this declared slot; keep the original source artwork until application.",
+      "order": {
+        "assetType": "item_prop",
+        "brief": {
+          "intent": "The third distinctive object from the target mascot's world, visually distinct from the other displayed objects.",
+          "mustInclude": [
+            "exactly one isolated subject centered inside the square canvas",
+            "use the selected Foundation Sheet for character identity and visual language",
+            "perfectly flat uniform matte background in a color absent from the subject",
+            "generous clear margins around the whole subject"
+          ],
+          "avoid": [
+            "text",
+            "labels",
+            "borders",
+            "scenery",
+            "shadows on the matte",
+            "cropped subject"
+          ],
+          "creativeFreedom": [
+            "pose or object details appropriate to the target Persona",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "prop-three-matte",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "1024x1024"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "chroma-key",
+          "args": {
+            "matte": "auto",
+            "pipeline": "v2"
+          },
+          "out": "public/assets/props/motif-headphones-alpha.png"
+        },
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 88,
+            "maxWidth": 640
+          },
+          "out": "public/assets/props/motif-headphones-alpha.webp"
+        }
+      ]
+    },
+    {
+      "kind": "scalar",
+      "slot": "prop-four",
+      "required": true,
+      "output": "public/assets/props/motif-pendant-alpha.webp",
+      "description": "The fourth distinctive object from the target mascot's world, visually distinct from the other displayed objects. Localize this declared slot; keep the original source artwork until application.",
+      "order": {
+        "assetType": "item_prop",
+        "brief": {
+          "intent": "The fourth distinctive object from the target mascot's world, visually distinct from the other displayed objects.",
+          "mustInclude": [
+            "exactly one isolated subject centered inside the square canvas",
+            "use the selected Foundation Sheet for character identity and visual language",
+            "perfectly flat uniform matte background in a color absent from the subject",
+            "generous clear margins around the whole subject"
+          ],
+          "avoid": [
+            "text",
+            "labels",
+            "borders",
+            "scenery",
+            "shadows on the matte",
+            "cropped subject"
+          ],
+          "creativeFreedom": [
+            "pose or object details appropriate to the target Persona",
+            "matte color choice"
+          ]
+        },
+        "deliverables": [
+          {
+            "name": "prop-four-matte",
+            "format": "png",
+            "width": 1024,
+            "height": 1024,
+            "aspectRatio": "1:1",
+            "genSize": "1024x1024"
+          }
+        ]
+      },
+      "postprocess": [
+        {
+          "op": "chroma-key",
+          "args": {
+            "matte": "auto",
+            "pipeline": "v2"
+          },
+          "out": "public/assets/props/motif-pendant-alpha.png"
+        },
+        {
+          "op": "compress",
+          "args": {
+            "format": "webp",
+            "quality": 88,
+            "maxWidth": 640
+          },
+          "out": "public/assets/props/motif-pendant-alpha.webp"
+        }
+      ]
     }
   ]
 }

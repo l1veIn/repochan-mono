@@ -26,3 +26,9 @@ pnpm dev        # 本地开发
 ## Asset slots
 
 `hero-composite` / `cta-composite`（带 lineart 迁移参考）、`pattern-tile`、`icon`、`sticker-cells`（3×3 bundle，`publications[]` + `extract-grid`）。详见 `repochan/starter.json` 与 `PRODUCTIZATION.md`。
+
+## 示例与本地化验收
+
+Brand Kit 六张卡片均保留 RepoChan 原 Source Starter 产物示例；所列 orderId 属于原项目，不能改写成目标项目的交付证明。Icon 和 pattern 示例使用独立 `gallery-source-*.webp` 原字节副本，不随目标项目槽位替换而改变。若改为目标项目真实成果，必须同步真实图片、说明与订单来源，不能只改标题或署名。四张其他 Starter 预览也继续表示原网站示例。
+
+`starter validate --localized` 机械验收已声明的必需槽位、配置与 locale 结构，不验证全部页面文案或示例的来源真实性。尚未声明的 favicon、Apple/PWA 图标等品牌派生文件不随 icon 槽位自动更新，也不属于该机械验收。交付时说明这些文件的实际状态；不得把校验通过说成所有品牌文件都已更新。Starter Localizer 正式装配通过原子 `starter asset-apply` / `asset-import`；不要用手动 `image edit` 或改 `public/` 来绕过未声明的派生合同。

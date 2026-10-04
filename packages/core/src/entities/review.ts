@@ -6,6 +6,7 @@ import { ReviewArtifactSchema, ReviewCreateParamsSchema } from "../schemas/index
 import { validateOrderId, validateVersionId } from "../utils/index.js";
 import { readOrderResult } from "./orders.js";
 import { readOrder } from "./shared.js";
+import { assertNoPendingOrderRecovery } from "./order-transactions.js";
 
 export async function createReview(projectRoot: string, params: JsonObject) {
   validateInput("review.create", ReviewCreateParamsSchema, params);
@@ -19,6 +20,7 @@ export async function createReview(projectRoot: string, params: JsonObject) {
   const orderFile = orderJsonPath(projectRoot, orderId);
   const reviewFile = reviewJsonPath(projectRoot, orderId, versionId);
   return withProtocolRollback([path.dirname(reviewFile), orderFile], async () => {
+    await assertNoPendingOrderRecovery(projectRoot, orderId);
     if (!(await exists(orderFile))) {
       throw new Error(`Cannot review: order ${orderId} does not exist.`);
     }

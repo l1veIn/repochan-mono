@@ -136,15 +136,28 @@ function parseManifest(value: unknown, intent: TransactionIntent): TransactionMa
 }
 
 async function restoreSnapshots(protocolRoot: string, transactionRoot: string, manifest: TransactionManifest): Promise<void> {
-  for (const snapshot of [...manifest.snapshots].reverse()) {
+  async function validateBackup(backup: string): Promise<void> {
+    await assertNoProtocolSymlinkPath(backup);
+    const stat = await fs.lstat(backup);
+    if (!stat.isFile() && !stat.isDirectory()) throw new Error(`Invalid protocol transaction backup: ${backup}`);
+    if (stat.isDirectory()) {
+      for (const entry of await fs.readdir(backup)) await validateBackup(path.join(backup, entry));
+    }
+  }
+  const prepared = [];
+  // Validate the entire recovery batch before deleting even one live target.
+  for (const snapshot of manifest.snapshots) {
     const target = resolveTransactionTarget(protocolRoot, snapshot.target);
     const backup = path.resolve(transactionRoot, snapshot.backup);
     if (!backup.startsWith(`${path.resolve(transactionRoot)}${path.sep}`)) throw new Error("Protocol transaction backup escapes its root.");
     await assertNoProtocolSymlinkPath(target);
+    if (snapshot.existed) await validateBackup(backup);
+    prepared.push({ snapshot, target, backup });
+  }
+  for (const { snapshot, target, backup } of prepared.reverse()) {
     await removeRecursive(target);
     if (snapshot.existed) {
       const stat = await fs.lstat(backup);
-      if (!stat.isFile() && !stat.isDirectory()) throw new Error(`Invalid protocol transaction backup: ${backup}`);
       await fs.mkdir(path.dirname(target), { recursive: true });
       await fs.cp(backup, target, { recursive: stat.isDirectory(), preserveTimestamps: true });
       await syncPath(target);

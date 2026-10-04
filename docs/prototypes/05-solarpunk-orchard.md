@@ -1,3 +1,5 @@
+> **Visual direction brief.** This document records design intent. For runnable sources, consult the [Starter catalog](../../packages/starters/README.md).
+
 # 05 · Solarpunk Orchard（太阳朋克 · 品牌果园）
 
 | 字段 | 值 |

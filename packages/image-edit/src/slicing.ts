@@ -1,5 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { randomUUID } from "node:crypto";
 import { loadSharp } from "./sharp.js";
 
 // ---------------------------------------------------------------------------
@@ -172,7 +173,7 @@ export type SliceGridResult = {
  * wherever it wants.
  *
  * @param imagePath absolute path to a PNG grid image
- * @param outDir    directory to write tile PNGs (created; cleared if overwrite)
+ * @param outDir    directory to publish the complete tile PNG set (replaced if overwrite)
  * @param options   { rows, cols, padding?, nameTemplate?, overwrite? }
  */
 export async function sliceGridToFiles(
@@ -193,12 +194,20 @@ export async function sliceGridToFiles(
   const grid = computeTileCells(width, height, rows, cols);
   const sourceFile = imagePath.split(/[\\/]/).pop()!;
 
-  // Prepare output directory.
+  const files = grid.cells.map((_, index) => nameTemplate.replace("{i}", String(index)));
+  for (const file of files) {
+    if (!file || file === "." || file === ".." || /[\\/\0]/.test(file)
+      || path.basename(file) !== file || path.win32.basename(file) !== file) {
+      throw new Error(`sliceGridToFiles: output name must be a safe basename (got ${JSON.stringify(file)}).`);
+    }
+  }
+  if (new Set(files).size !== files.length) {
+    throw new Error("sliceGridToFiles: nameTemplate must produce a unique basename for every tile.");
+  }
+
   if ((await exists(outDir)) && !overwrite) {
     throw new Error(`sliceGridToFiles: output directory already exists: ${outDir}. Pass overwrite=true to replace.`);
   }
-  await fs.rm(outDir, { recursive: true, force: true });
-  await fs.mkdir(outDir, { recursive: true });
 
   // Clamp padding so a crop stays at least 1px in each dimension.
   const maxPadX = Math.max(0, Math.floor(grid.cellW / 2) - 1);
@@ -208,20 +217,55 @@ export async function sliceGridToFiles(
 
   const sharp = (await loadSharp()).default;
   const tiles: SlicedTile[] = [];
+  const destination = path.resolve(outDir);
+  const parent = path.dirname(destination);
+  const base = path.basename(destination);
+  await fs.mkdir(parent, { recursive: true });
+  const staging = await fs.mkdtemp(path.join(parent, `.${base}.tmp-`));
+  const backup = path.join(parent, `.${base}.backup-${randomUUID()}`);
+  let existingMoved = false;
+  let published = false;
 
-  for (let i = 0; i < grid.cells.length; i++) {
-    const cell = grid.cells[i];
-    const cropX = cell.x + padX;
-    const cropY = cell.y + padY;
-    const cropW = cell.w - padX * 2;
-    const cropH = cell.h - padY * 2;
-    const file = nameTemplate.replace("{i}", String(i));
-    const outFile = path.join(outDir, file);
-    await sharp(imagePath)
-      .extract({ left: cropX, top: cropY, width: cropW, height: cropH })
-      .png()
-      .toFile(outFile);
-    tiles.push({ index: i, file, crop: { x: cropX, y: cropY, w: cropW, h: cropH }, width: cropW, height: cropH });
+  try {
+    for (let i = 0; i < grid.cells.length; i++) {
+      const cell = grid.cells[i];
+      const cropX = cell.x + padX;
+      const cropY = cell.y + padY;
+      const cropW = cell.w - padX * 2;
+      const cropH = cell.h - padY * 2;
+      const file = files[i];
+      await sharp(imagePath)
+        .extract({ left: cropX, top: cropY, width: cropW, height: cropH })
+        .png()
+        .toFile(path.join(staging, file));
+      tiles.push({ index: i, file, crop: { x: cropX, y: cropY, w: cropW, h: cropH }, width: cropW, height: cropH });
+    }
+
+    if (await exists(destination)) {
+      if (!overwrite) {
+        throw new Error(`sliceGridToFiles: output directory already exists: ${outDir}. Pass overwrite=true to replace.`);
+      }
+      await fs.rename(destination, backup);
+      existingMoved = true;
+    }
+    try {
+      await fs.rename(staging, destination);
+      published = true;
+    } catch (publishError) {
+      if (existingMoved) {
+        try {
+          await fs.rename(backup, destination);
+          existingMoved = false;
+        } catch (rollbackError) {
+          throw new AggregateError([publishError, rollbackError],
+            `sliceGridToFiles: publish failed and the previous output could not be restored from ${backup}`);
+        }
+      }
+      throw publishError;
+    }
+    if (existingMoved) await fs.rm(backup, { recursive: true, force: true }).catch(() => undefined);
+  } finally {
+    if (!published) await fs.rm(staging, { recursive: true, force: true }).catch(() => undefined);
   }
 
   return { sourceFile, tiles };

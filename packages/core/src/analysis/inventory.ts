@@ -53,6 +53,20 @@ export function collectInventory(projectRoot: string, relFiles: string[], dirs: 
   };
 }
 
+/** CI configs live under dot paths deliberately excluded from the code walk. */
+export async function hasCiConfig(projectRoot: string): Promise<boolean> {
+  const gitlab = await fs.lstat(path.join(projectRoot, ".gitlab-ci.yml")).catch(() => undefined);
+  if (gitlab?.isFile()) return true;
+  const github = path.join(projectRoot, ".github");
+  const githubStat = await fs.lstat(github).catch(() => undefined);
+  if (!githubStat?.isDirectory()) return false;
+  const workflows = path.join(github, "workflows");
+  const workflowsStat = await fs.lstat(workflows).catch(() => undefined);
+  if (!workflowsStat?.isDirectory()) return false;
+  const entries = await fs.readdir(workflows, { withFileTypes: true });
+  return entries.some((entry) => entry.isFile() && /\.ya?ml$/i.test(entry.name));
+}
+
 export async function docsNarrative(projectRoot: string, relFiles: string[]) {
   const readme = relFiles.find((f) => path.basename(f).toLowerCase().startsWith("readme"));
   if (!readme) return { readme_exists: false, headings: [], opening_excerpt: "" };

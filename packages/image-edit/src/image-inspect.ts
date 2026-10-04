@@ -33,6 +33,11 @@ export async function inspectImage(imagePath: string): Promise<ImageInspection> 
   let metadata: Awaited<ReturnType<ReturnType<typeof sharp>["metadata"]>>;
   try {
     metadata = await sharp(input).metadata();
+    // metadata() reads headers only. Drain decoded pixels from every frame so
+    // corrupt image data cannot pass delivery validation; retain no raw copy.
+    for await (const _chunk of sharp(input, { animated: true, failOn: "warning" }).raw()) {
+      // Consuming the stream completes decoding before inspection succeeds.
+    }
   } catch (error) {
     throw new Error(`Unsupported or unreadable image: ${imagePath}`, { cause: error });
   }

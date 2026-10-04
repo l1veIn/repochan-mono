@@ -1,3 +1,5 @@
+> **Visual design archive.** For current installation and usage, read the [root README](../../../README.md). This layout preserves a design experiment.
+
 <div align="center">
 
 <img src="./assets/hero-terminal.webp" alt="A dark terminal window running a real RepoChan session — npm install, repochan setup, analysis run, persona create, image gen, starter pull — with the mascot as a small circular badge overlapping the bottom-right corner" width="100%">

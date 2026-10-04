@@ -1,3 +1,5 @@
+> **Design record.** Use the [documentation index](../README.md) for current contracts and supported behavior; proposed phases below are design context.
+
 # Plan：`sites/www` — RepoChan 官方站点
 
 > 状态：**已实现骨架**（`sites/www`，museum 气质 + showcase）  

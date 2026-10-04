@@ -2,6 +2,7 @@ import { promises as fs } from "node:fs";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import {
+  initProtocol,
   createOrders,
   exists,
   listOrders,
@@ -178,6 +179,23 @@ export async function runStarterGet(_cwd: string, id: string | undefined, option
   emitResult(options, lines.join("\n"), starter);
 }
 
+/** Resolve symlinked ancestors even when the final output does not exist yet. */
+async function physicalPath(filePath: string): Promise<string> {
+  try {
+    return await fs.realpath(filePath);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    const parent = path.dirname(filePath);
+    if (parent === filePath) throw error;
+    return path.join(await physicalPath(parent), path.basename(filePath));
+  }
+}
+
+function containsPath(parent: string, child: string): boolean {
+  const relative = path.relative(parent, child);
+  return relative !== "" && relative !== ".." && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative);
+}
+
 export async function runStarterPull(cwd: string, options: StarterOptions, deps: StarterSourceDeps = {}) {
   const target = outputDir(cwd, options.outputDir);
   if (options.from && options.starter) throw new UsageError("starter pull accepts either --starter <id> or --from <local-dir>, not both.");
@@ -207,12 +225,15 @@ export async function runStarterPull(cwd: string, options: StarterOptions, deps:
     if (!selected) throw new Error(`Unknown starter '${starterId}'. Available: ${starters.map((starter) => starter.id).join(", ") || "(none)"}`);
     source = selected.dir;
   }
-  if (path.resolve(target) === path.resolve(source)) {
+  const [physicalTarget, physicalSource] = await Promise.all([physicalPath(target), physicalPath(source)]);
+  if (physicalTarget === physicalSource) {
     return void emitResult(options, `Starter already present at ${target}.`, { outputDir: target, starter: starterId, generated: false });
   }
-  const relativeTarget = path.relative(source, target);
-  if (relativeTarget && !relativeTarget.startsWith(`..${path.sep}`) && relativeTarget !== ".." && !path.isAbsolute(relativeTarget)) {
+  if (containsPath(physicalSource, physicalTarget)) {
     throw new UsageError(`Starter output cannot be inside its source directory: ${target}`);
+  }
+  if (containsPath(physicalTarget, physicalSource)) {
+    throw new UsageError(`Starter output cannot contain its source directory: ${target}`);
   }
   if (await exists(target)) {
     if (!options.overwrite) throw new UsageError(`outputDir exists: ${target}. Pass --overwrite to replace.`);
@@ -318,9 +339,18 @@ export async function runStarterCreateOrder(cwd: string, slotName: string | unde
   const manifest = await readStarterInstance(target);
   const slot = getSlot(manifest, slotName);
   if (!slot.order) throw new UsageError(`Starter slot '${slot.slot}' does not declare an order.`);
-  if (!slot.order.assetType || !slot.order.templateId) throw new UsageError(`Starter slot '${slot.slot}' order requires assetType and templateId.`);
-  const templates = await loadAllTemplates(await getBuiltinTemplatesDir(), cwd);
-  const templateIssue = gridTemplateIssue(slot, templates.find((template) => template.id === slot.order!.templateId));
+  if (!slot.order.assetType?.trim()) throw new UsageError(`Starter slot '${slot.slot}' order requires assetType.`);
+  let template: TemplateData | undefined;
+  if (slot.order.templateId) {
+    const templates = await loadAllTemplates(await getBuiltinTemplatesDir(), cwd);
+    template = templates.find((item) => item.id === slot.order!.templateId);
+    if (!template) throw new UsageError(`${slot.slot}: unknown templateId ${slot.order.templateId}`);
+  } else if (slot.kind === "bundle") {
+    throw new UsageError(`Starter bundle '${slot.slot}' order requires a verified grid templateId.`);
+  } else if (!slot.order.deliverables?.length) {
+    throw new UsageError(`Starter scalar '${slot.slot}' order without templateId requires non-empty deliverables.`);
+  }
+  const templateIssue = gridTemplateIssue(slot, template);
   if (templateIssue) throw new UsageError(templateIssue);
   if (!options.intent?.trim()) throw new UsageError("starter create-order requires --intent <text>.");
   const listed = await listOrders(cwd);
@@ -357,7 +387,7 @@ export async function runStarterCreateOrder(cwd: string, slotName: string | unde
     status: options.status ?? "draft",
     requestType: "new_asset",
     assetType: slot.order.assetType,
-    templateId: slot.order.templateId,
+    ...(slot.order.templateId ? { templateId: slot.order.templateId } : {}),
     brief: {
       intent: options.intent.trim(),
       mustInclude,
@@ -607,6 +637,7 @@ export async function runStarterAssetApply(
   const manifest = await readStarterInstance(target);
   const slot = getSlot(manifest, slotName);
   if (!options.order) throw new UsageError("starter asset-apply requires --order <orderId>.");
+  await initProtocol(cwd);
   const order = await readOrder(cwd, options.order);
   if (order.status !== "delivered") throw new UsageError(`Order ${options.order} must be delivered before asset-apply (status: ${order.status}).`);
   if (slot.order?.templateId && order.templateId !== slot.order.templateId) {

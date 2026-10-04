@@ -1,4 +1,5 @@
 // API client + shared types for the browse SPA. Shapes mirror packages/browse/src/server.
+import type { AssetOrder, StoredReviewArtifact } from "@repochan/core";
 
 export type Health = {
   ok: boolean;
@@ -28,6 +29,8 @@ export type OrderVersion = {
   generationPrompt?: string;
   notes?: string;
   files: VersionFile[];
+  review: StoredReviewArtifact | null;
+  reviewError: string | null;
 };
 
 export type ResolvedReference = {
@@ -55,6 +58,7 @@ export type OrderDetail = {
     deliverables?: Array<{ name: string; format: string; width?: number; height?: number }>;
     acceptanceCriteria?: string[];
     references?: unknown[];
+    revisions?: AssetOrder["revisions"];
   };
   currentVersion: string | null;
   candidateVersions: string[];

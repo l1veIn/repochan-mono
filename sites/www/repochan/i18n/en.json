@@ -58,7 +58,7 @@
       "noteTitle": "Exhibition notes",
       "noteBody": "The permanent galleries are real RepoChan pipeline deliverables for this project. The case wing shows unofficial mascot demos run on public repos — not affiliated with upstream.",
       "ctaPrimary": "Copy install command",
-      "ctaPrimaryCommand": "npm install -g repochan && repochan setup",
+      "ctaPrimaryCommand": "npm install -g repochan",
       "ctaSecondary": "See cases ↓",
       "copied": "Copied",
       "ctaSecondaryHref": "#showcase",
@@ -298,19 +298,19 @@
     "shop": {
       "kicker": "Museum Shop",
       "title": "Take the Pipeline Home",
-      "intro": "Node.js ≥ 20 · a coding agent you already use · optional image endpoint.",
+      "intro": "Node.js ≥ 20.9 · your coding agent · a configured image endpoint for generation.",
       "copyLabel": "Copy",
       "copiedLabel": "Copied",
       "cards": [
         {
           "title": "Install CLI + skills",
-          "desc": "One command: install the CLI and wire skills into your agent.",
-          "command": "npm install -g repochan && repochan setup"
+          "desc": "Run this in your Git repository. Select your agent and configure images in setup; if you skip image setup, run repochan image configure before generating.",
+          "command": "npm install -g repochan && repochan setup --project"
         },
         {
           "title": "Start creating",
-          "desc": "Open your agent in a project and run /repochan (or plain language).",
-          "command": "/repochan"
+          "desc": "Open your coding agent in the same project and send this request. Agents that support slash commands can also use /repochan.",
+          "command": "Use RepoChan to design a mascot for this repository. Generate its character sheet first and wait for my feedback."
         },
         {
           "title": "Look up a work",

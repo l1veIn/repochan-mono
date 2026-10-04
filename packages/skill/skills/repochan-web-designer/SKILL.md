@@ -10,6 +10,8 @@ description: >
 
 # RepoChan Original Web Designer
 
+Use the [RepoChan domain glossary](../repochan/references/terminology.md) for role, asset, status, and completion terms. Schemas and CLI help define serialized fields and arguments.
+
 Create and implement a website for a specific project. You decide information architecture, art
 direction, section composition, character appearance modes, and motion effects;
 
@@ -50,9 +52,10 @@ full rules.
 Generate a full-page direction master and necessary section master designs, resolving composition,
 character frequency, information density, color evolution, and transitions. Every non-trivial section
 must record a master design order/version, or explicitly state the `html-first` rationale. Complete
-Gate 1 per [visual-gates.md](references/visual-gates.md): non-yolo must have human approval of the
-design direction before producing all assets; yolo/CI auto-selects a recommended direction and
-preserves auto-approved evidence.
+Gate 1 per [visual-gates.md](references/visual-gates.md): the guided flow records the human's
+direction choice; explicit yolo/acceptance of defaults permits an `auto-selected` direction within
+the authorized scope. CI alone grants no execution approval; continue authorized local work and
+record provisional choices without claiming human aesthetic acceptance.
 
 ### 3. Audit bake mask and production assets
 
@@ -104,9 +107,11 @@ extrapolate its styles to other sections without design.
 ### 5. Gate 2
 
 Complete build, desktop/mobile, locale, keyboard, overflow, cutout, and reduced-motion checks,
-and hand the actual page to a human for acceptance. yolo/CI records `auto-approved` Gate 2 after
-all automated QA passes green, and explicitly states it has no human aesthetic approval. The Gate 2
-deliverable is an **approved implemented page**, not a source starter.
+and hand the actual page to a human for acceptance. Record automated QA separately from aesthetic
+acceptance. Under explicit yolo/accepted defaults or authorized non-interactive local work, report
+the implemented page, `auto-selected` choices, and any pending human aesthetic review. CI alone
+cannot produce an approval claim. The deliverable is the project website; Source Starter
+productization is a separate requested task.
 
 Only hand off to `repochan-starter-designer` when the user separately requests productizing this
 page; provide Gate 1/2 decisions, page source, asset origins, section provenance, transition
@@ -118,8 +123,9 @@ contracts, viewport screenshots, and known limitations.
   sections have a design rationale.
 - Characters, patterns, and motion effects serve the content, not a pile-up of foundation elements.
 - Every section has a bake mask, responsive rules, and traceable production assets.
-- The page passes build and both visual gates; human approval in the normal flow; yolo/CI explicitly
-  records `auto-approved` and must not impersonate human-approved.
+- Build and automated visual checks pass; record exact human gate decisions when provided.
+  Otherwise identify provisional/auto-selected choices and pending human aesthetic acceptance;
+  neither yolo nor CI is evidence of a human-approved website.
 
 ## References
 

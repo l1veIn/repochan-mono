@@ -118,10 +118,10 @@ function strng(v: unknown): string {
 }
 
 /**
- * In-memory cache of the most recently used token set. Keyed by refresh_token
- * so a re-login under the same process invalidates the cache naturally.
+ * Key the cache by the read-only auth.json login token, while tokens contains
+ * the latest rotated token set. A fresh login still invalidates the cache.
  */
-let memoryCache: { refresh_token: string; tokens: CodexTokenSet } | null = null;
+let memoryCache: { sourceRefreshToken: string; tokens: CodexTokenSet } | null = null;
 
 /** Test-only loader override (avoids hitting the real ~/.codex/auth.json). */
 let loaderOverride: CodexAuthLoadResult | null = null;
@@ -133,17 +133,23 @@ let loaderOverride: CodexAuthLoadResult | null = null;
 export function resolveCodexTokenSet(): CodexAuthLoadResult {
   const loaded = loaderOverride ?? loadCodexAuth();
   if (!loaded.ok) return loaded;
-  if (memoryCache && memoryCache.refresh_token === loaded.tokens.refresh_token) {
+  if (memoryCache && memoryCache.sourceRefreshToken === loaded.tokens.refresh_token) {
     return { ok: true, tokens: memoryCache.tokens };
   }
-  // Prefer a refreshed access_token from the cache file if the refresh_token matches.
+  // A rotated refresh token differs from auth.json; match its original login identity.
   const cached = bypassDiskCacheForTests ? null : readTokenCache();
-  if (cached && cached.refresh_token && cached.refresh_token === loaded.tokens.refresh_token) {
-    const merged: CodexTokenSet = { ...loaded.tokens, access_token: cached.access_token };
-    memoryCache = { refresh_token: loaded.tokens.refresh_token, tokens: merged };
+  const cachedLogin = cached?.source_refresh_token ?? cached?.refresh_token;
+  if (cached && cachedLogin === loaded.tokens.refresh_token) {
+    const merged: CodexTokenSet = {
+      ...loaded.tokens,
+      access_token: cached.access_token,
+      refresh_token: cached.refresh_token ?? loaded.tokens.refresh_token,
+      id_token: cached.id_token ?? loaded.tokens.id_token,
+    };
+    memoryCache = { sourceRefreshToken: loaded.tokens.refresh_token, tokens: merged };
     return { ok: true, tokens: merged };
   }
-  memoryCache = { refresh_token: loaded.tokens.refresh_token, tokens: loaded.tokens };
+  memoryCache = { sourceRefreshToken: loaded.tokens.refresh_token, tokens: loaded.tokens };
   return { ok: true, tokens: loaded.tokens };
 }
 
@@ -153,7 +159,13 @@ export function readTokenCache(): CodexTokenCache | null {
     const raw = readFileSync(CODEX_TOKEN_CACHE_PATH, "utf8");
     const parsed = JSON.parse(raw) as Partial<CodexTokenCache>;
     if (typeof parsed?.access_token === "string" && typeof parsed?.cached_at === "number") {
-      return { access_token: parsed.access_token, refresh_token: parsed.refresh_token, cached_at: parsed.cached_at };
+      return {
+        access_token: parsed.access_token,
+        refresh_token: typeof parsed.refresh_token === "string" ? parsed.refresh_token : undefined,
+        source_refresh_token: typeof parsed.source_refresh_token === "string" ? parsed.source_refresh_token : undefined,
+        id_token: typeof parsed.id_token === "string" ? parsed.id_token : undefined,
+        cached_at: parsed.cached_at,
+      };
     }
     return null;
   } catch {
@@ -192,6 +204,7 @@ export async function getValidAccessToken(
     return { access_token: tokens.access_token, tokens };
   }
 
+  const sourceRefreshToken = memoryCache?.sourceRefreshToken ?? tokens.refresh_token;
   const refreshed = await refreshAccessToken({
     refreshToken: tokens.refresh_token,
     idToken: tokens.id_token,
@@ -204,12 +217,14 @@ export async function getValidAccessToken(
     refresh_token: refreshed.refresh_token ?? tokens.refresh_token,
     account_id: tokens.account_id,
   };
-  memoryCache = { refresh_token: next.refresh_token, tokens: next };
+  memoryCache = { sourceRefreshToken, tokens: next };
   try {
     if (!bypassDiskCacheForTests) {
       writeTokenCache({
         access_token: next.access_token,
         refresh_token: next.refresh_token,
+        source_refresh_token: sourceRefreshToken,
+        id_token: next.id_token,
         cached_at: Date.now(),
       });
     }

@@ -25,7 +25,7 @@ After collecting all responses, use your own judgment to distill four fields:
 
 ## Building the Questions and Responses Record
 
-You need to convert ask_user_question questions and answers into the interview report's `questions` and `responses` arrays.
+Convert the actual questions and answers from the current host's tool or chat into the interview report's `questions` and `responses` arrays. Host envelopes are not the protocol schema.
 
 ### questions Array
 
@@ -62,11 +62,11 @@ Record each response as:
 ```
 
 Mapping rules:
-- ask_user_question `kind: "option"` → interview `kind: "option"`, `answer` = option label
-- ask_user_question `kind: "custom"` → interview `kind: "custom"`, `answer` = input text
-- ask_user_question `kind: "multi"` → interview `kind: "multi"`, `answer: null`, `selected` = tag array
-- ask_user_question `kind: "chat"` → interview `kind: "skipped"`, `answer: null`
-- ask_user_question `cancelled: true` → all unanswered questions recorded as `kind: "skipped"`
+- A selected option → `kind: "option"`, `answer` = the option label.
+- An answer in the user's own words, including chat → `kind: "custom"`, `answer` = the actual text.
+- Multiple selected options → `kind: "multi"`, `answer: null`, `selected` = label array.
+- An explicitly skipped or still-unanswered question at cancellation → `kind: "skipped"`, `answer: null`.
+- Switching from a question tool to chat changes the interface; it does not skip answered questions or discard earlier answers. Preserve collected answers when cancelled. If the interview is fully skipped with no answers, create no fabricated report.
 
 
 ## Saving the Interview Report

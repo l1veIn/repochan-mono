@@ -1,6 +1,7 @@
 import http from "node:http";
 import path from "node:path";
 import { promises as fs } from "node:fs";
+import { allowLocalRequest } from "./local-request.js";
 
 /** Minimal content-type map for static site serving (SPA + astro dist). */
 export const STATIC_CONTENT_TYPES: Record<string, string> = {
@@ -80,6 +81,7 @@ export async function serveStaticPath(rootDir: string, urlPath: string, res: htt
 export function createStaticFileServer(options: StaticServerOptions): http.Server {
   const rootDir = path.resolve(options.rootDir);
   return http.createServer((req, res) => {
+    if (!allowLocalRequest(req, res)) return;
     void (async () => {
       if (req.method !== "GET" && req.method !== "HEAD") {
         res.writeHead(405, { "content-type": "application/json" });
