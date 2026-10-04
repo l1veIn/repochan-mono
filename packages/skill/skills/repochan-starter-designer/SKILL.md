@@ -8,6 +8,8 @@ description: >
 
 # RepoChan Starter Productization Engineer
 
+Use the [RepoChan domain glossary](../repochan/references/terminology.md) for role, asset, status, and completion terms. Schemas and CLI help define serialized fields and arguments.
+
 Take a real, complete, approved website and turn it into a transferable Starter — do not redesign the site, and do not anonymize it.
 
 A Starter is a complete deliverable that still belongs to the original project: it retains the project name, character name, repo URL, copy, and exclusive assets. It is these real contents that let selectors judge whether a design fits and get an immediately runnable visual baseline after pulling. The downstream Starter Localizer only replaces centralized configuration, complete locale files, and declared asset slots; it does not re-infer the page from extra "design DNA" fields.

@@ -49,8 +49,7 @@ Examples of security-relevant reports include:
 An actor who can already rewrite the entire local workspace and its transaction
 anchors is outside the protocol recovery mechanism's security boundary. Ordinary
 bugs, feature requests, and documentation corrections that do not expose
-sensitive details may be filed in the public issue tracker after the repository
-is public.
+sensitive details may be filed in the public issue tracker.
 
 ## What to expect
 

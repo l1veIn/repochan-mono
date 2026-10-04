@@ -1,3 +1,5 @@
+> **Visual direction brief.** This document records design intent. For runnable sources, consult the [Starter catalog](../../packages/starters/README.md).
+
 # 03 · Glitch OS Desktop（故障艺术 · 桌面操作系统）
 
 | 字段 | 值 |

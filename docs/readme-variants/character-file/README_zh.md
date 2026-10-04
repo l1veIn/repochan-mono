@@ -1,3 +1,5 @@
+> **Visual design archive.** For current installation and usage, read the [root README](../../../README.md). This layout preserves a design experiment.
+
 <div align="center">
 
 <picture>
@@ -88,7 +90,7 @@ flowchart LR
 
 ## 角色档案——仓库酱（RepoChan）
 
-下面这份档案不是宣传文案。它是 [`.repochan/persona/current.json`](../../../.repochan/persona/current.json)（`repochan.persona.v2`）的真实内容，由创意团队产出、在检查点 ① 确认——你的仓库跑完产线也会得到同构的一份。
+下面这份档案不是宣传文案。它是 `.repochan/persona/current.json` (`.repochan/persona/current.json`, local generation record)（`repochan.persona.v2`）的真实内容，由创意团队产出、在检查点 ① 确认——你的仓库跑完产线也会得到同构的一份。
 
 | 字段 | 值 |
 |------|-----|

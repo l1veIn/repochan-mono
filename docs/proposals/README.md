@@ -16,12 +16,16 @@ markdown 文件,讨论范围大于单个 PR。
   重新评估的触发条件)三部分分开。
 - 涉及代码库的论断要引用真实文件路径和 commit SHA,不空谈。
 
-## 当前方案
+## 方案阅读入口
+
+当前代码合同见[文档导航](../README.md)。下列文档的 Status 与阶段列表记录各自的讨论状态，不能代替实现和测试证据。
 
 本目录目前有三份关于 starters 扩展与发现的方案,来自不同视角,互相补充而非
 互斥。读者建议按下列顺序阅读:
 
-此外还有一份关于 skill 角色命名的方案,主题独立,列在最后。
+此外还有 skill 角色命名和文本资产 CLI 两个独立话题。
+
+- [`cli-text-asset-pipeline.md`](./cli-text-asset-pipeline.md) — 文本资产与确定性渲染的候选方向；按该文 Status 判断，不能据此假定已有对应子命令。
 
 ### 主方案
 
@@ -45,7 +49,7 @@ markdown 文件,讨论范围大于单个 PR。
 ### 角色命名(独立话题)
 
 - [`skill-role-naming-page-designer.md`](./skill-role-naming-page-designer.md) ——
-  `repochan-starter-localizer` 的名字与职责错配(它不做设计,做 starter 本地化
+  `repochan-page-designer` 的名字与职责错配(它不做设计,做 starter 本地化
   + 装配;设计职责已搬到 `repochan-web-designer`)。诊断命名轴为何选错、
   改名在 CLI 安装模型里的真实成本。**已执行(2026-09-14)**:直接改名为
   `repochan-starter-localizer`,不发布迁移 shim(未推广,存量安装趋近于零,

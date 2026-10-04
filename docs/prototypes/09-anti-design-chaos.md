@@ -1,3 +1,5 @@
+> **Visual direction brief.** This document records design intent. For runnable sources, consult the [Starter catalog](../../packages/starters/README.md).
+
 # 09 · Anti-Design Chaos Board（反设计 · 混乱布告板）
 
 | 字段 | 值 |

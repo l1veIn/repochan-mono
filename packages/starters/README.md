@@ -32,7 +32,11 @@ Each slot is either:
 - `scalar`: one `output`;
 - `bundle`: named `publications[]` plus one exclusive `extract-grid` postprocess.
 
+An order may reference a verified Asset Template. A custom scalar order can instead declare an `assetType`, complete brief, and non-empty `deliverables`; a bundle order requires a verified grid template whose geometry and semantic cells match its publications.
+
 `repochan/assets.json` mirrors the discriminant. `source` means the original finished Starter asset is present and buildable. `customized` means the pulled instance has replaced it for the target project. Source validation accepts the preserved original; `starter validate --localized` requires every required slot to be customized.
+
+Localized validation covers declared required slots, configuration, and locale structure. It does not establish aesthetic acceptance, prove every gallery caption's provenance, or update undeclared favicon/Apple/PWA derivatives. Preserve Source Starter examples as source examples; do not relabel their images or order IDs as target-project results. Report remaining brand derivatives explicitly. Manual `image edit` recipes in a Source Starter's maintenance notes are not the Starter Localizer's publication path; slot assembly uses atomic `starter asset-apply` / `asset-import`, and undeclared derived publication requires a separate contract.
 
 For a complex baked composition, the original full asset remains in the Starter. A slot may additionally reference a low-information migration guide, such as a pose line drawing produced by `official/hero-pose-lineart-extract`. The guide preserves composition and safe zones while reducing character or background identity; it never replaces the original artwork.
 

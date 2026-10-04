@@ -1,3 +1,5 @@
+> **Visual direction brief.** This document records design intent. For runnable sources, consult the [Starter catalog](../../packages/starters/README.md).
+
 # 02 · Memphis Playground（孟菲斯 · 几何游乐场）
 
 | 字段 | 值 |

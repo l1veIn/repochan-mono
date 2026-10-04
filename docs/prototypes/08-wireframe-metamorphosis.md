@@ -1,3 +1,5 @@
+> **Visual direction brief.** This document records design intent. For runnable sources, consult the [Starter catalog](../../packages/starters/README.md).
+
 # 08 · Wireframe Metamorphosis（线框羽化 · 协议长出血肉）
 
 | 字段 | 值 |

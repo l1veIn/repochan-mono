@@ -309,7 +309,8 @@ function reportResults(
   if (mode === "install") {
     const names = results.map((r) => r.displayName).join(", ");
     console.log();
-    console.log(`Next: open ${names} and say "generate all assets and deploy".`);
+    console.log(`Next: open ${names} in this project and say:`);
+    console.log('  "Use the RepoChan skill to design a mascot for this repository. Generate the character sheet first, then wait for my feedback before making matching assets and a website."');
     console.log(dim("The agent will run `repochan init` if .repochan/ is missing."));
   } else {
     const removed = results.filter((r) => r.instructionAction === "removed");

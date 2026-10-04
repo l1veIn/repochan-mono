@@ -15,7 +15,7 @@ Image models don't understand "not X" as a boundary — they treat negation as a
 
 1. **Describe what you want, not what you don't want.** Write "modern university lab, fluorescent lighting, pragmatic architecture" — not "no sci-fi, no cyberpunk."
 2. **`mustInclude` is the primary description carrier.** Fill it with concrete positive visual anchors: specific scenes, materials, lighting, atmosphere.
-3. **`avoid` is a lightweight trailing guardrail.** Use sparingly for hard exclusions that truly cannot be expressed positively (e.g., "complex backgrounds," "text annotations"). Don't use `avoid` as a substitute for positive description — the Painter will transform or discard avoid items; overstuffing wastes signal.
+3. **`avoid` is a lightweight trailing guardrail.** Use sparingly for hard exclusions that truly cannot be expressed positively (e.g., "unrelated characters" or "complex backgrounds" when the selected template requires a clean field). Don't use `avoid` as a substitute for positive description — the Painter will transform or discard avoid items; overstuffing wastes signal.
 4. **Prefer multi-word qualifying phrases over single adjectives.** Single English adjectives have an outsized semantic radius in image models. "shabby" → dirty/cheap; "disheveled" → unkempt and messy. Use "well-worn but maintained," "slightly tousled" instead.
 
 

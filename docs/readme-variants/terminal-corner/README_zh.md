@@ -1,3 +1,5 @@
+> **Visual design archive.** For current installation and usage, read the [root README](../../../README.md). This layout preserves a design experiment.
+
 <div align="center">
 
 <img src="./assets/hero-terminal.webp" alt="深色终端窗口里跑着一段真实的 RepoChan 会话——npm install、repochan setup、analysis run、persona create、image gen、starter pull——右下角叠着圆形角标看板娘" width="100%">

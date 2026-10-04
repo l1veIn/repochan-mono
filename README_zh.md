@@ -12,7 +12,7 @@
 
 ## 开始生成
 
-你需要 **Node.js ≥ 20** 和一个 coding agent，例如 Claude Code、Codex、Pi 或 Cursor。
+你需要 **Node.js ≥ 20.9** 和一个 coding agent，例如 Claude Code、Codex、Pi 或 Cursor。
 
 ```bash
 npm install -g repochan
@@ -54,6 +54,7 @@ RepoChan 为你正在使用的 coding agent 提供 skills 和 CLI 工具。角�
 - [CLI 使用与生图配置](./packages/cli/README.md)
 - [网站模板](./packages/starters/README.md)
 - [Skills 与各阶段说明](./packages/skill/README.md)
+- [文档导航与贡献指南](./docs/README.md) · [贡献开发](./CONTRIBUTING.md)
 - [架构设计](./ARCHITECTURE.md) · [发布指南](./docs/releasing.md)
 
 ## 许可证与致谢

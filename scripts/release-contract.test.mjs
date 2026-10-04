@@ -104,6 +104,14 @@ test("release surface gate rejects process history on every public document", ()
   assert.deepEqual(detectReleaseSurfaceDebt("README.md", "Current architecture and supported release contract."), []);
 });
 
+test("release surface scan reads documentation, not binary assets", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "repochan-release-binary-"));
+  await mkdir(path.join(root, "docs", "assets"), { recursive: true });
+  await writeFile(path.join(root, "docs", "assets", "sample.png"), Buffer.from("ADR Previous architecture"));
+  await writeFile(path.join(root, "docs", "guide.md"), "Current supported contract.");
+  assert.deepEqual(await scanReleaseSurfaceDebt(root), []);
+});
+
 test("release surface gate rejects hidden internal planning directories", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "repochan-release-surface-"));
   await Promise.all([

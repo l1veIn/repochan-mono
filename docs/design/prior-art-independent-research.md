@@ -1,3 +1,5 @@
+> **Design record.** Use the [documentation index](../README.md) for current contracts and supported behavior; proposed phases below are design context.
+
 # Prior-Art 独立研究报告：AI 网格图切分与 chroma-key 抠图
 
 > 研究对象：`test-repos/sprite-gen/`（Python，v1.56.x）与 `test-repos/agent-sprite-forge/`（Codex skill）。

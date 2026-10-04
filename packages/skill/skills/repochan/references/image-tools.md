@@ -33,7 +33,9 @@ repochan image configure
 - `configure --provider codex` reuses `codex login` and does not start a separate OAuth flow.
 - `configure --provider openai` uses the OpenAI API. `--provider custom` configures a compatible endpoint.
 - Normally omit `--mode` and keep the endpoint default at `auto`. Use `openai` or `openai-async` only when diagnosing a confirmed synchronous or asynchronous compatibility issue.
-- `probe` checks connectivity without running a billed image generation.
+- `openai-async` adds headers to OpenAI Images submissions; it does not implement native `POST /v1/tasks`. The current `65535.space` host rule selects it under `auto`; explicit `openai` / `openai-async` endpoint or CLI modes override the rule. Async headers can still receive a synchronous `200` image response.
+- `status` describes configuration, not successful authentication or generation. `configure` saves global settings; if its output reports a project override, inspect the effective project endpoint before retrying generation.
+- `probe` does not generate an image. For bearer endpoints, it checks `GET /models`; failure there does not establish that image generation is unavailable. For Codex, `authOk` reports token resolution, not a `GET /models` response or successful image generation. Preserve the returned diagnostic result when reporting a failure.
 
 ### Generate
 
@@ -61,7 +63,28 @@ repochan image gen --prompt "..." \
   --aspect square
 ```
 
-Generation may take several minutes. Run only one instance of the same request at a time. If an error includes `jobId` or `billedRisk`, inspect the endpoint job or completed outputs before resubmitting the same prompt. Without `--out`, the CLI writes the result under `~/.cache/repochan/` and returns an absolute path.
+Generation may take several minutes. Run only one instance of the same request at a time.
+The async poll budget begins after the submit response provides a task/job ID. Without `--out`,
+the CLI writes the result under `~/.cache/repochan/` and returns an absolute path.
+
+### Recover an interrupted generation
+
+When an error includes `jobId` or `billedRisk`, resolve the original request before another paid call:
+
+1. **Known ID**: inspect that task through the endpoint's documented read-only task tools or dashboard.
+2. **No ID with billing risk**: use a task list only if the endpoint's documented contract provides one.
+   Match the complete prompt and model against the original submission context to identify exactly one
+   task. Multiple matches or no match leave recovery unresolved; never select the first result or infer
+   that no task was created. Preserve the exact prompt, endpoint, model, and known submission details.
+3. **Known outcome**: for `pending` / `running`, keep checking the same task; for `done`, download its
+   existing output and inspect it before publishing through `repochan order create-result`; for `failed`,
+   inspect the terminal error before deciding whether a new paid generation is appropriate.
+
+The CLI currently has no task-list or job-recovery command. Provider-specific read paths such as
+`GET /v1/tasks?kind=image` must come from that endpoint's contract, not guessed probes across providers.
+Keep unidentified or unfinished requests unresolved; do not automatically switch modes and re-POST.
+A successful image response still requires visual inspection of alpha edges and layout, and does not
+establish general endpoint reliability.
 
 ## Local image-edit commands
 

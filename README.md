@@ -12,7 +12,7 @@ This is the character sheet RepoChan generated for itself. Your project starts w
 
 ## Get started
 
-You need **Node.js ≥ 20** and a coding agent such as Claude Code, Codex, Pi, or Cursor.
+You need **Node.js ≥ 20.9** and a coding agent such as Claude Code, Codex, Pi, or Cursor.
 
 ```bash
 npm install -g repochan
@@ -54,6 +54,7 @@ RepoChan gives your existing coding agent the skills and CLI tools to do this. C
 - [CLI usage and image configuration](./packages/cli/README.md)
 - [Website templates](./packages/starters/README.md)
 - [Skills and individual stages](./packages/skill/README.md)
+- [Documentation and contributing](./docs/README.md) · [Contributing](./CONTRIBUTING.md)
 - [Architecture](./ARCHITECTURE.md) · [Release guide](./docs/releasing.md)
 
 ## License and credits

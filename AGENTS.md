@@ -4,6 +4,8 @@
 >
 > Authoritative overview: [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 >
+> Domain names and completion claims: [authoritative glossary](./packages/skill/skills/repochan/references/terminology.md). Read it when changing product language, roles, entity names, or Starter state. Current document entry points: [`docs/README.md`](./docs/README.md).
+>
 > **core + skill at the center · CLI is the sole binding surface · agent is BYO · no embedded runtime.**
 
 ## Package rules

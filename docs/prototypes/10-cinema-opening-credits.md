@@ -1,3 +1,5 @@
+> **Visual direction brief.** This document records design intent. For runnable sources, consult the [Starter catalog](../../packages/starters/README.md).
+
 # 10 · Cinema Opening Credits（电影片头 · 演职员表）
 
 | 字段 | 值 |

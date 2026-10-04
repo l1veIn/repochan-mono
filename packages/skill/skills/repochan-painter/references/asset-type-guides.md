@@ -35,7 +35,7 @@ Sticker sheets are **grid production assets**. They carry expressions and can al
 - **Matte and subject hue separation**: Matte must be a non-white solid color, and far from any part of the character's colors. Choose matte by subject hue: pink/purple subject -> green matte; green subject -> magenta matte; deep red subject -> green matte.
 - **Ensure sufficient spacing**: Stickers must have abundant matte whitespace between them; stickers must not touch cell edges or each other. Insufficient spacing causes stickers to be truncated or stuck together during slicing.
 - **~10% safe margin inside cells**: Each cell has ~10% inset on all four sides as a safe zone; sticker subjects (including props, effects, outlines) must not enter this margin band.
-- **Grid orders use layout-guide reference**: First use `repochan image edit layout-guide --rows R --cols C --out <guide.png>` to generate a deterministic composition reference, then pass it together with the foundation as `repochan image gen --reference` (one flag per reference for multiple references). The guide only constrains composition — **do not** paint the guide's frame lines, safe zone lines, crosshairs, or cell numbers into the final image.
+- **Grid orders use the declared layout-guide reference**: Resolve and read the prepared composition guide, then pass it together with the foundation as `repochan image gen --reference` (one flag per reference). If it is missing, return the order to AD before generation. The guide constrains composition — **do not** paint its frame lines, safe zone lines, crosshairs, or cell numbers into the final image.
 - **Keep square aspect ratio**: The overall image must be 1:1 square, otherwise cell proportions deform after slicing.
 - **Keep cells consistent**: 3x3/4x4 grid rows, columns, camera distance, character scale, and safe margins are strictly consistent; each cell expresses only one state defined by the order.
 - **Control alpha risk**: Avoid character colors close to the matte, large semi-transparent areas, glow, hair color bleeding, and cross-cell elements; for high-risk states, split to separate production orders.
@@ -49,13 +49,13 @@ Templates `official/isolated-character` (`assetType=character_cutout`) and `offi
 - Pass `--background transparent --output-format png` on `repochan image gen`. This is the template contract, not an optional quality tweak.
 - Keep the prompt as an isolated subject: no backdrop, no floor, no cast shadow, no contact shadow. Do not invent a matte color.
 - Leave generous transparent margin on all four sides; hair tips, straps, and glow stay in frame.
-- **Native alpha is reliable on text-to-image.** Passing `--reference` (the `/images/edits` path) often returns an opaque RGB PNG with a painted checkerboard or near-white field, especially for a full foundation sheet or a scene-coupled subject. For isolated templates, put identity in the prompt from the persona / foundation description; only add `--reference` when the user explicitly wants image-to-image and accepts a chroma-key fallback if alpha QA fails.
-- Do not pass a scene master as a composition reference when the goal is native transparency — same-canvas extraction from a preview is unstable on the GPT-Image-2 family.
+- **Preserve declared identity references.** Resolve and pass every declared reference, including the foundation; do not substitute a text description to bypass the order. Transparent output with references is endpoint-dependent, so the assembly owner verifies actual alpha with `assert-alpha`.
+- If a declared scene/composition reference conflicts with isolation, return the conflict to AD to revise the order before generation. Do not silently omit it or change the template/background.
 - Deliver the original PNG. Do not chroma-key, bg-remove, or otherwise rewrite the order result. Page assembly runs `assert-alpha` then compresses into `public/`.
 
 **Do not use these templates for**: sticker / web-state / prop **grids**. Grids stay on uniform matte + chroma-grid (`official/character-cutout`, `official/chibi-grid-3x3`, `official/item-prop-grid-3x3`, …). Native transparent does not replace cell geometry.
 
-If the endpoint ignores `background` and returns an opaque image, deliver it anyway and record the opaque backdrop in notes. Regeneration onto a matte template is a new order, not a silent swap of `--background`.
+If output is known to be opaque despite the transparent request, report the generation defect; do not publish it as a successful transparent deliverable. The assembly owner's alpha QA may also return this defect. Retry only within the authorized generation budget, or ask AD to commission the existing matte-template path as a separate order. Never silently swap `--background` or rewrite the original pixels.
 
 ### Closed Eyes (blink sibling)
 
@@ -63,7 +63,7 @@ Template `official/eyes-closed` produces the closed-eye frame of an existing iso
 
 **Must**:
 - `repochan template get official/eyes-closed --json`, then `image gen --background transparent --output-format png`.
-- Pass **only** the open-eyes character as `--reference`. That reference must be a single isolated figure. Do not pass a foundation sheet, a scene master, or a sticker grid — those references make the GPT-Image-2 family return an opaque RGB image.
+- The order should declare the open-eyes isolated character as its identity reference. Resolve and pass its declared references. If AD has also declared a scene master, grid, or other reference that conflicts with a same-canvas blink sibling, return the order for correction before generation; do not omit references yourself.
 - Keep pose, outfit, hair, and canvas. The prompt's only job is closed lids.
 - Deliver the PNG as its own order result. Page assembly (or the user) stacks it on the open frame; do not chroma-key a native-alpha result.
 

@@ -1,3 +1,5 @@
+> **Visual design archive.** For current installation and usage, read the [root README](../../../README.md). This layout preserves a design experiment.
+
 <div align="center">
 
 <picture>

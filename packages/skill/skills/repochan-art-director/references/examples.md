@@ -12,15 +12,15 @@
   "references": [],
   "brief": {
     "intent": "Create the project's visual anchor: a character reference sheet.",
-    "mustInclude": ["Full-body signature pose", "Chibi", "3-4 expression avatars", "Color palette swatches"],
-    "avoid": ["Complex backgrounds", "Text annotations"],
+    "mustInclude": ["Full-body signature pose", "Chibi", "3-4 expression avatars", "Color palette swatches", "Readable character, palette, and motif labels required by the template"],
+    "avoid": ["Complex backgrounds", "Illegible or excessive text beyond the template's labels"],
     "creativeFreedom": ["Choosing expression combinations", "Arranging elements on the reference sheet"]
   },
   "deliverables": [{ "name": "foundation_sheet", "format": "png", "width": 1024, "height": 1024 }]
 }
 ```
 
-> The yolo example writes `"status": "approved"`. Non-yolo can omit status (defaults to draft) or explicitly set `"draft"`.
+> This example assumes the user's request/checkpoint already authorized execution. Explicit yolo accepts defaults within that scope. Otherwise omit status (defaults to draft); CI alone grants no approval. Required references must be complete before approving.
 
 
 ## Downstream Order with References Example
