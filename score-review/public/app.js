@@ -7,6 +7,7 @@ const $$ = (sel) => [...document.querySelectorAll(sel)];
 
 const state = {
   archive: null,
+  archiveRequest: 0,
   items: [],
   scores: {},
   currentIndex: 0,
@@ -14,6 +15,8 @@ const state = {
   dirty: false,
   saving: false,
   saveTimer: null,
+  savePromise: null,
+  editRevision: 0,
   imageIndex: 0,
   viewer: null,
   viewerOpen: false,
@@ -73,68 +76,63 @@ async function api(path, opts) {
   return res.json();
 }
 
-async function saveCurrent({ silent = false } = {}) {
-  if (!state.archive || !state.items.length) return;
+async function saveCurrent({ silent = false, indexOnly = false } = {}) {
+  if (!state.archive || !state.items.length) return true;
   const item = state.items[state.currentIndex];
-  if (!item) return;
-
+  if (!item) return true;
+  const archive = state.archive;
+  const currentIndex = state.currentIndex;
+  const revision = state.editRevision;
   const scoreBtn = $(".score-buttons button.active");
-  const comment = $("#comment").value;
-
-  const prev = state.scores[item.id] || {};
   const entry = {
     score: scoreBtn ? Number(scoreBtn.dataset.score) : null,
-    comment,
-    rater: getRater() || prev.rater,
+    comment: $("#comment").value,
+    rater: getRater() || state.scores[item.id]?.rater,
   };
-
-  // skip network if nothing meaningful changed vs last known
-  const same =
-    (prev.score ?? null) === (entry.score ?? null) &&
-    (prev.comment || "") === (entry.comment || "") &&
-    (prev.rater || "") === (entry.rater || "");
-
-  state.scores[item.id] = { ...prev, ...entry };
-
-  if (same && !state.dirty) {
-    // still persist currentIndex when navigating
+  // Serialize writes. Only acknowledged scores enter state.scores; a slow response
+  // must not clear edits made while its request was in flight.
+  const operation = (state.savePromise || Promise.resolve()).then(async () => {
+    const prev = state.scores[item.id] || {};
+    const same = (prev.score ?? null) === entry.score
+      && (prev.comment || "") === entry.comment
+      && (prev.rater || "") === (entry.rater || "");
+    state.saving = true;
+    if (!silent) setSaveStatus("saving", "保存中…");
     try {
-      await api(`/api/archives/${encodeURIComponent(state.archive)}/scores`, {
+      const saved = await api(`/api/archives/${encodeURIComponent(archive)}/scores`, {
         method: "PUT",
-        body: JSON.stringify({ currentIndex: state.currentIndex }),
+        body: JSON.stringify({ currentIndex, ...(!indexOnly && !same ? { itemId: item.id, entry } : {}) }),
       });
-    } catch {
-      /* ignore index-only failures quietly */
+      if (state.archive === archive) {
+        state.scores = saved.scores || state.scores;
+        if (state.items[state.currentIndex]?.id === item.id && state.editRevision === revision && !indexOnly) {
+          state.dirty = false;
+        }
+        setSaveStatus(state.dirty ? "saving" : "saved", state.dirty ? "有未保存修改" : "已保存");
+        if (state.items[state.currentIndex]?.id === item.id) updateScoreMeta(item.id);
+        renderQueue();
+      }
+      return true;
+    } catch (err) {
+      if (state.archive === archive) {
+        state.dirty = true;
+        setSaveStatus("error", "保存失败，请重试后再切换");
+      }
+      console.error(err);
+      return false;
+    } finally {
+      if (state.savePromise === operation) {
+        state.savePromise = null;
+        state.saving = false;
+      }
     }
-    return;
-  }
-
-  state.saving = true;
-  if (!silent) setSaveStatus("saving", "保存中…");
-
-  try {
-    const saved = await api(`/api/archives/${encodeURIComponent(state.archive)}/scores`, {
-      method: "PUT",
-      body: JSON.stringify({
-        currentIndex: state.currentIndex,
-        itemId: item.id,
-        entry,
-      }),
-    });
-    state.scores = saved.scores || state.scores;
-    state.dirty = false;
-    setSaveStatus("saved", "已保存");
-    updateScoreMeta(item.id);
-    renderQueue();
-  } catch (err) {
-    setSaveStatus("error", "保存失败");
-    console.error(err);
-  } finally {
-    state.saving = false;
-  }
+  });
+  state.savePromise = operation;
+  return operation;
 }
 
 function scheduleSave() {
+  state.editRevision += 1;
   state.dirty = true;
   setSaveStatus("saving", "…");
   clearTimeout(state.saveTimer);
@@ -143,9 +141,12 @@ function scheduleSave() {
 
 async function flushSave() {
   clearTimeout(state.saveTimer);
-  if (state.dirty || state.items.length) {
-    await saveCurrent({ silent: false });
-  }
+  if (!state.archive || !state.items.length) return true;
+  do {
+    if (!await saveCurrent()) return false;
+    clearTimeout(state.saveTimer);
+  } while (state.dirty);
+  return true;
 }
 
 // ── home ─────────────────────────────────────────────────────────────────────
@@ -173,7 +174,7 @@ async function loadHome() {
             <span>${a.scoredCount}/${a.itemCount} 已评</span>
           </div>
           <div class="bar"><span style="width:${pct}%"></span></div>
-          <div class="meta-line">${escapeHtml(updated)} · 续评索引 #${(a.currentIndex ?? 0) + 1}</div>
+          <div class="meta-line">${escapeHtml(updated)} · 续评索引 #${escapeHtml((a.currentIndex ?? 0) + 1)}</div>
         </article>
       `;
     })
@@ -187,8 +188,19 @@ async function loadHome() {
 // ── review ───────────────────────────────────────────────────────────────────
 
 async function openArchive(name) {
+  const request = ++state.archiveRequest;
   setSaveStatus("", "加载中…");
-  const data = await api(`/api/archives/${encodeURIComponent(name)}`);
+  let data;
+  try {
+    data = await api(`/api/archives/${encodeURIComponent(name)}`);
+  } catch (error) {
+    if (request === state.archiveRequest) {
+      setSaveStatus("error", "归档加载失败，请重试");
+      console.error(error);
+    }
+    return false;
+  }
+  if (request !== state.archiveRequest) return false;
   state.archive = name;
   state.items = data.items || [];
   state.scores = data.scores?.scores || {};
@@ -206,12 +218,14 @@ async function openArchive(name) {
 
   buildScoreButtons();
   renderQueue();
-  await showItem(state.currentIndex, { skipSave: true });
-  setSaveStatus("saved", state.items.length ? "就绪" : "无图片");
+  if (await showItem(state.currentIndex, { skipSave: true }) !== false
+    && request === state.archiveRequest && !state.dirty) {
+    setSaveStatus("saved", state.items.length ? "就绪" : "无图片");
+  }
 }
 
 async function backHome() {
-  await flushSave();
+  if (!await flushSave()) return;
   state.archive = null;
   state.items = [];
   $("#review").classList.add("hidden");
@@ -275,9 +289,9 @@ function updateScoreMeta(itemId) {
 }
 
 async function showItem(index, { skipSave = false } = {}) {
-  if (!skipSave) await flushSave();
+  if (!skipSave && !await flushSave()) return false;
 
-  if (index < 0 || index >= state.items.length) return;
+  if (!Number.isInteger(index) || index < 0 || index >= state.items.length) return;
   state.currentIndex = index;
   state.imageIndex = 0;
   state.dirty = false;
@@ -374,17 +388,9 @@ async function showItem(index, { skipSave = false } = {}) {
   $("#btn-next").disabled = index >= total - 1;
 
   renderQueue();
+  const saved = await saveCurrent({ silent: true, indexOnly: true });
   await loadProjectContext(item.project);
-
-  // persist index even without score change
-  try {
-    await api(`/api/archives/${encodeURIComponent(state.archive)}/scores`, {
-      method: "PUT",
-      body: JSON.stringify({ currentIndex: state.currentIndex }),
-    });
-  } catch {
-    /* non-fatal */
-  }
+  return saved;
 }
 
 function clearScoreSilent() {
@@ -392,19 +398,27 @@ function clearScoreSilent() {
 }
 
 async function loadProjectContext(project) {
-  if (!state.projectCache[project]) {
-    $("#persona-content").innerHTML = `<p class="muted">加载中…</p>`;
-    $("#project-content").textContent = "加载中…";
+  const archive = state.archive;
+  const cache = state.projectCache;
+  const isCurrent = () => state.archive === archive && state.projectCache === cache
+    && state.items[state.currentIndex]?.project === project;
+  if (!cache[project]) {
+    if (isCurrent()) {
+      $("#persona-content").innerHTML = `<p class="muted">加载中…</p>`;
+      $("#project-content").textContent = "加载中…";
+    }
     try {
-      state.projectCache[project] = await api(
-        `/api/archives/${encodeURIComponent(state.archive)}/project/${encodeURIComponent(project)}`
+      cache[project] = await api(
+        `/api/archives/${encodeURIComponent(archive)}/project/${encodeURIComponent(project)}`
       );
     } catch (err) {
-      state.projectCache[project] = { error: String(err) };
+      cache[project] = { error: String(err) };
     }
   }
-  renderPersona(state.projectCache[project]);
-  renderProject(state.projectCache[project]);
+  if (isCurrent()) {
+    renderPersona(cache[project]);
+    renderProject(cache[project]);
+  }
 }
 
 function renderPersona(data) {
@@ -419,7 +433,7 @@ function renderPersona(data) {
     return;
   }
 
-  const colors = [p.mainColor, p.secondaryColor, ...(p.accentColors || [])].filter(Boolean);
+  const colors = [p.mainColor, p.secondaryColor, ...(Array.isArray(p.accentColors) ? p.accentColors : [])].filter(Boolean);
   const fields = [
     ["世界观", p.world ? `${p.world.name || ""}\n${p.world.coreRule || ""}\n${p.world.atmosphere || ""}` : null],
     ["性格", p.personality],
@@ -507,7 +521,7 @@ function renderQueue() {
         <button type="button" class="queue-item${rated ? " rated" : ""}${current ? " current" : ""}" data-i="${i}">
           <span class="idx">${i + 1}</span>
           <span class="label">${escapeHtml(item.project)} / ${escapeHtml(item.orderId)}</span>
-          <span class="score-pill">${entry?.score != null ? entry.score : ""}</span>
+          <span class="score-pill">${escapeHtml(entry?.score)}</span>
         </button>
       `;
     })
