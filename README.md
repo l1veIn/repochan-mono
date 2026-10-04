@@ -1,6 +1,6 @@
-# RepoChan
+# RepoChan — Your repo, but make it a girl!
 
-**Give your Git repository an anime mascot and matching brand assets, using your own coding agent.**
+Give your Git repository an anime mascot and matching brand assets, using your own coding agent.
 
 **English** · [中文](./README_zh.md) · [Website](https://repochan.com)
 

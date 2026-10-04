@@ -1,6 +1,6 @@
-# RepoChan
+# RepoChan — 把你的仓库变成仓库娘！
 
-**让你的 coding agent 为 Git 仓库设计专属看板娘，并生成配套品牌素材。**
+让你的 coding agent 为 Git 仓库设计专属看板娘，并生成配套品牌素材。
 
 [English](./README.md) · **中文** · [官网](https://repochan.com)
 
