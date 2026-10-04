@@ -1,9 +1,11 @@
 import { spawn } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
 import { removeRecursive, renameReplacing } from "@repochan/core";
+import { resolveNpmInvocation } from "./npm.js";
 const require = createRequire(import.meta.url);
 
 export const IMAGE_ML_CAPABILITY = "image-ml";
@@ -186,7 +188,7 @@ export async function ensureImageMlCapability(requiredBy: string, deps: ImageMlC
 async function defaultNpmInstall(stagingDir: string, packageSpec: string): Promise<void> {
   console.error(`Installing ${packageSpec} (native runtime and bundled models; this may take a few minutes)…`);
   await new Promise<void>((resolve, reject) => {
-    const child = spawn("npm", [
+    const invocation = resolveNpmInvocation([
       "install",
       "--prefix", stagingDir,
       "--no-save",
@@ -197,7 +199,8 @@ async function defaultNpmInstall(stagingDir: string, packageSpec: string): Promi
       "--progress=true",
       "--loglevel=notice",
       packageSpec,
-    ], { stdio: ["ignore", "pipe", "pipe"] });
+    ]);
+    const child = spawn(invocation.command, invocation.args, { stdio: ["ignore", "pipe", "pipe"] });
     // npm and native install scripts may write to either stream. Route both to
     // stderr so --json keeps stdout reserved for its single final JSON value.
     child.stdout.on("data", (chunk) => process.stderr.write(chunk));
@@ -231,18 +234,27 @@ async function validateBundledModels(runtimeRoot: string): Promise<void> {
 }
 
 async function publishRuntime(staging: string, target: string): Promise<void> {
-  const backup = `${target}.backup-${process.pid}`;
+  const backup = `${target}.backup-${randomUUID()}`;
   const hadPrevious = (await fs.stat(target).catch(() => undefined))?.isDirectory() === true;
-  await removeRecursive(backup);
+  let previousMoved = false;
   try {
-    if (hadPrevious) await renameReplacing(target, backup);
+    if (hadPrevious) {
+      await renameReplacing(target, backup);
+      previousMoved = true;
+    }
     await renameReplacing(staging, target);
-    await removeRecursive(backup);
   } catch (error) {
-    await removeRecursive(target).catch(() => undefined);
-    if (hadPrevious) await renameReplacing(backup, target).catch(() => undefined);
+    if (previousMoved) {
+      await removeRecursive(target).catch(() => undefined);
+      try {
+        await renameReplacing(backup, target);
+      } catch (rollbackError) {
+        throw new AggregateError([error, rollbackError], `Image ML publication failed; restore the previous runtime from ${backup}.`);
+      }
+    }
     throw error;
   }
+  if (previousMoved) await removeRecursive(backup).catch(() => undefined);
 }
 
 export async function installImageMlCapability(
@@ -285,7 +297,7 @@ export async function installImageMlCapability(
   } catch (error) {
     await removeRecursive(staging);
     throw new Error(
-      `Failed to install ${packageSpec}: ${error instanceof Error ? error.message : String(error)}. Existing capability caches were left untouched.`,
+      `Failed to install ${packageSpec}: ${error instanceof Error ? error.message : String(error)}`,
       { cause: error },
     );
   }

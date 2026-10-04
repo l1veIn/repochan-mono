@@ -33,11 +33,11 @@
     "package.json"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=20.9.0"
   },
   "dependencies": {
     "gifenc": "^1.0.3",
-    "sharp": "0.34.5"
+    "sharp": "0.35.4"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

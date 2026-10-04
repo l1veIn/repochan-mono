@@ -1,4 +1,6 @@
 import { input, password, select, confirm } from "@inquirer/prompts";
+import { existsSync } from "node:fs";
+import path from "node:path";
 import {
   GLOBAL_CONFIG_PATH,
   hasConfiguredEndpoints,
@@ -13,6 +15,7 @@ import {
   type ImageGenConfig,
   type ImageRequestMode,
   type EndpointAuth,
+  type ProbeResult,
 } from "@repochan/image-gen";
 import { emitResult, type OutputOptions, UsageError, dim, heading, bullet } from "../lib/output.js";
 
@@ -20,6 +23,14 @@ const OPENAI_BASE_URL = "https://api.openai.com/v1";
 const CODEX_BASE_URL = "https://chatgpt.com/backend-api/codex";
 /** New endpoints default to GPT-Image-2.5 Sunburst (see @repochan/image-gen). */
 const DEFAULT_MODEL = DEFAULT_IMAGE_MODEL;
+
+/** Call after loadConfig has validated the complete configuration layers. */
+function effectiveConfigSource(cwd: string) {
+  const projectConfigPath = path.resolve(cwd, ".repochan", "image.json");
+  return existsSync(projectConfigPath)
+    ? { scope: "project" as const, configPath: projectConfigPath }
+    : { scope: "global" as const, configPath: GLOBAL_CONFIG_PATH };
+}
 
 export type ImageConfigureChoice = "openai" | "codex" | "custom" | "skip";
 
@@ -125,7 +136,8 @@ export async function maybeConfigureImageDuringSetup(
     if (!options.json) {
       const eps = listEndpoints(loadConfig(cwd));
       console.log();
-      console.log(dim(`Image: already configured (${eps.join(", ")} → ${GLOBAL_CONFIG_PATH})`));
+      const source = effectiveConfigSource(cwd);
+      console.log(dim(`Image: already configured (${eps.join(", ")} → ${source.configPath}, ${source.scope})`));
     }
     return;
   }
@@ -424,26 +436,24 @@ async function finishSaved(
     mode: ImageRequestMode;
   },
 ) {
-  const statuses = listEndpointStatuses(loadConfig(cwd));
+  const config = loadConfig(cwd);
+  const statuses = listEndpointStatuses(config);
   const st = statuses.find((s) => s.id === saved.endpoint);
+  // loadConfig has already validated the project file. Every valid persisted
+  // config declares endpoints, so its presence identifies the replacement layer.
+  const source = effectiveConfigSource(cwd);
+  const projectOverridesGlobal = source.scope === "project";
   const enriched = {
     ...saved,
+    scope: "global" as const,
+    effectiveScope: source.scope,
+    effectiveConfigPath: source.configPath,
+    effectiveEndpoint: statuses.find((s) => s.isDefault)?.id ?? null,
+    projectOverridesGlobal,
     effectiveMode: st?.effectiveMode,
     modeSource: st?.modeSource,
+    ...(options.probe ? { probe: await probeEndpoint(config, { endpoint: saved.endpoint }) } : {}),
   };
-
-  if (options.probe) {
-    const probe = await probeEndpoint(loadConfig(cwd), { endpoint: saved.endpoint });
-    if (!options.json) {
-      console.log(
-        dim(
-          `Probe GET /models: ${probe.modelsOk ? "ok" : "not ok"}` +
-            (probe.modelsStatus != null ? ` (${probe.modelsStatus})` : "") +
-            (probe.modelsNote ? ` — ${probe.modelsNote}` : ""),
-        ),
-      );
-    }
-  }
   return reportSaved(options, enriched);
 }
 
@@ -457,19 +467,36 @@ function reportSaved(
     mode: ImageRequestMode;
     effectiveMode?: string;
     modeSource?: string;
+    scope: "global";
+    effectiveScope: "global" | "project";
+    effectiveConfigPath: string;
+    effectiveEndpoint: string | null;
+    projectOverridesGlobal: boolean;
+    probe?: ProbeResult;
   },
 ) {
   if (options.json) {
     return void emitResult(options, "", { action: "configured", ...saved });
   }
-  heading("Image generation configured");
+  heading("Image configuration saved");
   bullet("endpoint", saved.endpoint);
   bullet("baseURL", saved.baseURL);
   bullet("model", saved.model);
   bullet("mode", saved.mode + (saved.effectiveMode ? ` → effective ${saved.effectiveMode} (${saved.modeSource})` : ""));
   bullet("config", saved.path);
-  console.log(dim('\nTry: repochan image gen --prompt "a chibi mascot" --out /tmp/test.png'));
-  console.log(dim("     repochan image status"));
+  bullet("scope", saved.scope);
+  bullet("current default endpoint", saved.effectiveEndpoint ?? "(none)");
+  if (saved.projectOverridesGlobal) {
+    console.log(dim(`This project uses ${saved.effectiveConfigPath}, which replaces global endpoints.`));
+    console.log(dim("The saved global endpoint is not applied here. Run `repochan image status` to inspect this project's endpoints."));
+  } else {
+    console.log(dim('\nTry: repochan image gen --prompt "a chibi mascot" --out /tmp/test.png'));
+    console.log(dim("     repochan image status"));
+  }
+  if (saved.probe) {
+    console.log();
+    printProbeResult(saved.probe);
+  }
   return { action: "configured" as const, ...saved };
 }
 
@@ -483,8 +510,9 @@ export async function runImageStatus(cwd: string, options: OutputOptions = {}) {
       "Run `repochan image configure` (OpenAI or custom OpenAI-compatible).",
     );
   }
+  const source = effectiveConfigSource(cwd);
   if (options.json) {
-    return void emitResult(options, "", { endpoints: statuses, configPath: GLOBAL_CONFIG_PATH });
+    return void emitResult(options, "", { endpoints: statuses, ...source });
   }
   heading("Image endpoints");
   for (const s of statuses) {
@@ -499,7 +527,7 @@ export async function runImageStatus(cwd: string, options: OutputOptions = {}) {
       ),
     );
   }
-  console.log(dim(`\nConfig: ${GLOBAL_CONFIG_PATH}`));
+  console.log(dim(`\nConfig: ${source.configPath} (${source.scope})`));
   console.log(dim("auto = classic OpenAI unless a host rule or mode=openai-async applies."));
   console.log(dim("auth=codex → OAuth via `codex login`, drives the GPT-Image-2 family through /responses."));
 }
@@ -517,7 +545,7 @@ export async function runImageProbe(
   const statuses = listEndpointStatuses(config);
   const st = statuses.find((s) => s.id === result.endpoint);
   if (options.json) {
-    return void emitResult(options, "", { ...result, ...st });
+    return void emitResult(options, "", { ...st, ...result });
   }
   heading(`Probe: ${result.endpoint}`);
   bullet("baseURL", result.baseURL || "(none)");
@@ -526,14 +554,22 @@ export async function runImageProbe(
   }
   bullet("model", result.model);
   bullet("hasKey", result.hasKey ? "yes" : "no");
+  printProbeResult(result);
+}
+
+function printProbeResult(result: ProbeResult) {
   if (result.error) {
     console.log(dim(`  error: ${result.error}`));
   }
+  if (result.authOk !== undefined) {
+    bullet("Codex OAuth token", result.authOk ? "resolved" : "unavailable");
+  }
+  if (result.authNote) console.log(dim(`  note: ${result.authNote}`));
   if (result.modelsStatus != null) {
     bullet("GET /models", `${result.modelsOk ? "ok" : "fail"} (${result.modelsStatus})`);
   } else if (result.modelsNote) {
     bullet("GET /models", result.modelsOk === false ? "fail" : "n/a");
   }
   if (result.modelsNote) console.log(dim(`  note: ${result.modelsNote}`));
-  console.log(dim("\nThis does not generate an image (no bill). Use `repochan image gen` to test live."));
+  console.log(dim("\nThis probe does not generate an image (no bill) or verify image-generation availability."));
 }

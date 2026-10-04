@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import os from "node:os";
@@ -131,6 +131,83 @@ async function makeColorGrid(opts: {
 }
 
 describe("sliceGridToFiles", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it.each(["../outside-{i}.png", "..\\outside-{i}.png", "/outside-{i}.png", "C:outside-{i}.png", "tile.png"])(
+    "rejects unsafe or duplicate output names before touching existing files: %s", async (nameTemplate) => {
+      const dir = await fs.mkdtemp(path.join(os.tmpdir(), "ie-grid-names-"));
+      try {
+        const image = path.join(dir, "grid.png");
+        const out = path.join(dir, "out");
+        await makeColorGrid({ width: 20, height: 10, rows: 1, cols: 2, colors: [[255, 0, 0], [0, 255, 0]], outputPath: image });
+        await fs.mkdir(out);
+        await fs.writeFile(path.join(out, "prior.txt"), "prior output");
+        await fs.writeFile(path.join(dir, "outside-0.png"), "outside output");
+        await expect(sliceGridToFiles(image, out, { rows: 1, cols: 2, nameTemplate, overwrite: true }))
+          .rejects.toThrow(/basename/);
+        expect(await fs.readFile(path.join(out, "prior.txt"), "utf8")).toBe("prior output");
+        expect(await fs.readFile(path.join(dir, "outside-0.png"), "utf8")).toBe("outside output");
+      } finally {
+        await fs.rm(dir, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it.each([false, true])("preserves the destination when a header-readable source cannot decode (existing=%s)", async (existing) => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "ie-grid-decode-"));
+    try {
+      const image = path.join(dir, "grid.png");
+      const out = path.join(dir, "out");
+      await fs.writeFile(image, makePng(20, 10));
+      if (existing) {
+        await fs.mkdir(out);
+        await fs.writeFile(path.join(out, "prior.txt"), "complete prior output");
+      }
+      await expect(sliceGridToFiles(image, out, { rows: 1, cols: 2, overwrite: true })).rejects.toThrow();
+      if (existing) {
+        expect(await fs.readdir(out)).toEqual(["prior.txt"]);
+        expect(await fs.readFile(path.join(out, "prior.txt"), "utf8")).toBe("complete prior output");
+      } else {
+        await expect(fs.stat(out)).rejects.toThrow();
+      }
+      expect((await fs.readdir(dir)).filter((name) => name.startsWith(".out."))).toEqual([]);
+    } finally {
+      await fs.rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it.each([false, true])("stages all tiles and preserves recoverable prior output on publish failure (rollbackFailure=%s)", async (rollbackFailure) => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "ie-grid-publish-"));
+    try {
+      const image = path.join(dir, "grid.png");
+      const out = path.join(dir, "out");
+      await makeColorGrid({ width: 20, height: 10, rows: 1, cols: 2, colors: [[255, 0, 0], [0, 255, 0]], outputPath: image });
+      await fs.mkdir(out);
+      await fs.writeFile(path.join(out, "prior.txt"), "complete prior output");
+      const rename = fs.rename.bind(fs);
+      let calls = 0;
+      vi.spyOn(fs, "rename").mockImplementation(async (from, to) => {
+        calls++;
+        if (calls === 2) {
+          expect(await fs.readdir(from)).toEqual(["tile-0.png", "tile-1.png"]);
+          throw new Error("induced publish failure");
+        }
+        if (calls === 3 && rollbackFailure) throw new Error("induced rollback failure");
+        return rename(from, to);
+      });
+      await expect(sliceGridToFiles(image, out, { rows: 1, cols: 2, overwrite: true }))
+        .rejects.toThrow(rollbackFailure ? /could not be restored from/ : /induced publish failure/);
+      const backups = (await fs.readdir(dir)).filter((name) => name.startsWith(".out.backup-"));
+      const preserved = rollbackFailure ? path.join(dir, backups[0]) : out;
+      expect(backups).toHaveLength(rollbackFailure ? 1 : 0);
+      expect(await fs.readdir(preserved)).toEqual(["prior.txt"]);
+      expect(await fs.readFile(path.join(preserved, "prior.txt"), "utf8")).toBe("complete prior output");
+      expect((await fs.readdir(dir)).filter((name) => name.startsWith(".out.tmp-"))).toEqual([]);
+    } finally {
+      await fs.rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it("crops a 2×2 grid into 4 tile PNGs on disk", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "ie-gridf-"));
     const gridPath = path.join(dir, "grid.png");

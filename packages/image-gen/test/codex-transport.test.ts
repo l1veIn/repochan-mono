@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { readFileSync } from "node:fs";
 import {
   buildCodexResponsesBody,
   parseCodexResponsesSSE,
@@ -37,15 +38,7 @@ const codexEndpoint: EndpointConfig = {
   auth: { kind: "codex" },
 };
 
-const TINY_PNG_B64 = Buffer.from(
-  Uint8Array.from([
-    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
-    0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53,
-    0xde, 0x00, 0x00, 0x00, 0x0c, 0x49, 0x44, 0x41, 0x54, 0x08, 0xd7, 0x63, 0xf8, 0xcf, 0xc0, 0x00,
-    0x00, 0x00, 0x03, 0x00, 0x01, 0x00, 0x05, 0xfe, 0xd4, 0xef, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45,
-    0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
-  ]),
-).toString("base64");
+const VALID_PNG_B64 = readFileSync(new URL("./fixtures/valid.png", import.meta.url)).toString("base64");
 
 describe("isCodexEndpoint", () => {
   it("true when auth.kind=codex", () => {
@@ -140,13 +133,13 @@ describe("parseCodexResponsesSSE", () => {
       `data: {"type":"response.output_text.delta","delta":"thinking"}`,
       ``,
       `event: response.image_generation_call`,
-      `data: {"type":"image_generation_call","result":"${TINY_PNG_B64}","revised_prompt":"a tiny png"}`,
+      `data: {"type":"image_generation_call","result":"${VALID_PNG_B64}","revised_prompt":"a tiny png"}`,
       ``,
       `data: [DONE]`,
       ``,
     ].join("\n");
     const out = parseCodexResponsesSSE(sse);
-    expect(out.b64).toBe(TINY_PNG_B64);
+    expect(out.b64).toBe(VALID_PNG_B64);
     expect(out.revisedPrompt).toBe("a tiny png");
   });
 
@@ -156,15 +149,15 @@ describe("parseCodexResponsesSSE", () => {
   });
 
   it("skips non-JSON keepalive lines gracefully", () => {
-    const sse = `: keepalive\n\ndata: {"type":"image_generation_call","result":"${TINY_PNG_B64}"}\n\n`;
-    expect(parseCodexResponsesSSE(sse).b64).toBe(TINY_PNG_B64);
+    const sse = `: keepalive\n\ndata: {"type":"image_generation_call","result":"${VALID_PNG_B64}"}\n\n`;
+    expect(parseCodexResponsesSSE(sse).b64).toBe(VALID_PNG_B64);
   });
 
   it("finds results nested in a non-streamed response.output array", () => {
     const json = JSON.stringify({
-      output: [{ type: "image_generation_call", result: TINY_PNG_B64 }],
+      output: [{ type: "image_generation_call", result: VALID_PNG_B64 }],
     });
-    expect(parseCodexResponsesSSE(`data: ${json}\n\n`).b64).toBe(TINY_PNG_B64);
+    expect(parseCodexResponsesSSE(`data: ${json}\n\n`).b64).toBe(VALID_PNG_B64);
   });
 });
 
@@ -195,7 +188,7 @@ describe("generateCodex (mocked fetch + injected auth)", () => {
     });
   }
 
-  const successSse = `data: {"type":"image_generation_call","result":"${TINY_PNG_B64}"}\n\n`;
+  const successSse = `data: {"type":"image_generation_call","result":"${VALID_PNG_B64}"}\n\n`;
 
   it("posts to /responses with codex headers and returns decoded bytes", async () => {
     const fetchFn = vi.fn().mockResolvedValue(mockSseResponse(200, successSse));

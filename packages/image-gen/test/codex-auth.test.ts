@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { readFileSync } from "node:fs";
+import { writeConfigFileAtomic } from "../src/config-file.js";
 import {
   CODEX_CLIENT_ID,
   CODEX_EXPIRY_SKEW_S,
@@ -19,6 +21,12 @@ import {
   refreshAccessToken,
   CodexAuthError,
 } from "../src/index.js";
+
+vi.mock("node:fs", async (importOriginal) => ({
+  ...await importOriginal<typeof import("node:fs")>(),
+  readFileSync: vi.fn(),
+}));
+vi.mock("../src/config-file.js", () => ({ writeConfigFileAtomic: vi.fn() }));
 
 /** Build an unsigned JWT string with a given payload (testing only). */
 function fakeJwt(payload: Record<string, unknown>): string {
@@ -349,6 +357,8 @@ describe("resolveCodexTokenSet / getValidAccessToken (injected loader)", () => {
     __resetCodexAuthMemoryCacheForTests();
     __bypassCodexAuthDiskCacheForTests(false);
     vi.restoreAllMocks();
+    vi.mocked(readFileSync).mockReset();
+    vi.mocked(writeConfigFileAtomic).mockReset();
   });
 
   it("resolveCodexTokenSet returns the loaded set when fresh", () => {
@@ -412,6 +422,62 @@ describe("resolveCodexTokenSet / getValidAccessToken (injected loader)", () => {
     const out = await getValidAccessToken(true, fetchFn);
     expect(fetchFn).toHaveBeenCalledTimes(1);
     expect(out.access_token).toBe(refreshedAccess);
+  });
+
+  it("reuses a rotated refresh token while auth.json still contains its source token", async () => {
+    __setCodexAuthLoaderForTests(tokenSet(expiredToken));
+    const fetchFn = vi.fn().mockImplementation(async (_url, init) => {
+      const refresh = new URLSearchParams(String(init?.body)).get("refresh_token");
+      return new Response(JSON.stringify({
+        access_token: freshToken,
+        id_token: jwtWith({ accountId: "acct_1" }),
+        refresh_token: refresh === "rt_1" ? "rt_rotated" : "rt_rotated_twice",
+      }), { status: 200 });
+    });
+
+    await getValidAccessToken(false, fetchFn);
+    const reused = await getValidAccessToken(false, fetchFn);
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+    expect(reused.tokens.refresh_token).toBe("rt_rotated");
+    await getValidAccessToken(true, fetchFn);
+    expect(new URLSearchParams(String(fetchFn.mock.calls[1][1]?.body)).get("refresh_token"))
+      .toBe("rt_rotated");
+  });
+
+  it("invalidates rotated tokens after a fresh login changes the source refresh token", async () => {
+    __setCodexAuthLoaderForTests(tokenSet(expiredToken));
+    const fetchFn = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      access_token: freshToken,
+      id_token: jwtWith({ accountId: "acct_1" }),
+      refresh_token: "rt_rotated",
+    }), { status: 200 }));
+    await getValidAccessToken(false, fetchFn);
+
+    const relogged = tokenSet(freshToken);
+    relogged.tokens.refresh_token = "rt_new_login";
+    __setCodexAuthLoaderForTests(relogged);
+    expect((await getValidAccessToken(false, fetchFn)).tokens.refresh_token).toBe("rt_new_login");
+  });
+
+  it("persists and hydrates rotated tokens from the disk cache in a fresh process", async () => {
+    __setCodexAuthLoaderForTests(tokenSet(expiredToken));
+    __bypassCodexAuthDiskCacheForTests(false);
+    const refreshedId = jwtWith({ accountId: "acct_1", expSec: 1234 });
+    const fetchFn = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      access_token: freshToken, refresh_token: "rt_rotated", id_token: refreshedId,
+    }), { status: 200 }));
+    await getValidAccessToken(false, fetchFn);
+    const persisted = vi.mocked(writeConfigFileAtomic).mock.calls[0][1];
+    expect(JSON.parse(persisted)).toMatchObject({ source_refresh_token: "rt_1", refresh_token: "rt_rotated" });
+
+    __resetCodexAuthMemoryCacheForTests();
+    __setCodexAuthLoaderForTests(tokenSet(expiredToken));
+    vi.mocked(readFileSync).mockReturnValue(persisted);
+    const reused = await getValidAccessToken(false, fetchFn);
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+    expect(reused.tokens).toMatchObject({
+      access_token: freshToken, refresh_token: "rt_rotated", id_token: refreshedId,
+    });
   });
 
   it("throws a friendly error when load fails", async () => {

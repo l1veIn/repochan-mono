@@ -1,7 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { loadSharp } from "./sharp.js";
-import { readPngSize } from "./slicing.js";
 
 // ---------------------------------------------------------------------------
 // Resize: scale a source image to one or more target sizes
@@ -64,40 +63,87 @@ export async function resizeImage(
   const fit = options.fit ?? "inside";
 
   const sourceFile = imagePath.split(/[\\/]/).pop()!;
-  let sourceWidth: number;
-  let sourceHeight: number;
-  try {
-    ({ width: sourceWidth, height: sourceHeight } = await readPngSize(imagePath));
-  } catch {
-    // Not a PNG — let sharp read it.
-    const sharp = (await loadSharp()).default;
-    const meta = await sharp(imagePath).metadata();
-    sourceWidth = meta.width!;
-    sourceHeight = meta.height!;
-  }
-
-  await fs.mkdir(outDir, { recursive: true });
-
   const sharp = (await loadSharp()).default;
+  // Buffer input gives every target the same snapshot and releases the source
+  // file handle before publication, including when resizing in place on Windows.
+  const input = await fs.readFile(imagePath);
+  const meta = await sharp(input).metadata();
+  const sourceWidth = meta.width!;
+  const sourceHeight = meta.height!;
   const stem = sourceFile.replace(/\.[^.]+$/, "");
-  const outputs: ResizeResult["outputs"] = [];
-
-  for (const target of options.targets) {
-    const w = target.width;
-    const h = target.height ?? Math.round((w * sourceHeight) / sourceWidth);
-    const file = target.filename ?? `${stem}-${w}x${h}.png`;
-    const outPath = path.join(outDir, file);
-
-    if (!overwrite && (await exists(outPath))) {
-      throw new Error(`resizeImage: output file already exists: ${outPath}. Pass overwrite=true to replace.`);
+  const names = new Set<string>();
+  const destination = path.resolve(outDir);
+  const targets = options.targets.map((target) => {
+    const width = target.width;
+    const height = target.height ?? Math.round((width * sourceHeight) / sourceWidth);
+    if (![width, height].every((value) => Number.isInteger(value) && value > 0 && value <= 2147483647)) {
+      throw new Error("resizeImage: target dimensions must be positive integers no larger than 2147483647.");
     }
+    const file = target.filename ?? `${stem}-${width}x${height}.png`;
+    const key = file.normalize("NFC").toLowerCase();
+    if (!file || file === "." || file === ".." || /[\\/:\0]/.test(file)
+      || path.basename(file) !== file || path.win32.basename(file) !== file) {
+      throw new Error(`resizeImage: output name must be a safe basename (got ${JSON.stringify(file)}).`);
+    }
+    if (names.has(key)) throw new Error(`resizeImage: output filenames must be unique (${file}).`);
+    names.add(key);
+    return { file, width, height, path: path.join(destination, file) };
+  });
+  async function checkTarget(file: string): Promise<boolean> {
+    const stat = await fs.lstat(file).catch((error) => {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
+      throw error;
+    });
+    if (stat && !overwrite) throw new Error(`resizeImage: output file already exists: ${file}. Pass overwrite=true to replace.`);
+    if (stat && !stat.isFile()) throw new Error(`resizeImage: output must be a regular file: ${file}.`);
+    return Boolean(stat);
+  }
+  for (const target of targets) await checkTarget(target.path);
 
-    await sharp(imagePath)
-      .resize(w, h, { fit })
-      .png()
-      .toFile(outPath);
-
-    outputs.push({ file, width: w, height: h, path: outPath });
+  const parent = path.dirname(destination);
+  await fs.mkdir(parent, { recursive: true });
+  const staging = await fs.mkdtemp(path.join(parent, `.${path.basename(destination)}.resize-`));
+  const files = path.join(staging, "files");
+  const backups = path.join(staging, "backups");
+  const moved: Array<{ path: string; backup: string }> = [];
+  const published: string[] = [];
+  let preserveBackups = false;
+  const destinationExisted = await exists(destination);
+  const outputs: ResizeResult["outputs"] = [];
+  try {
+    await fs.mkdir(files);
+    await fs.mkdir(backups);
+    for (const target of targets) {
+      const info = await sharp(input).resize(target.width, target.height, { fit }).png().toFile(path.join(files, target.file));
+      outputs.push({ file: target.file, width: info.width, height: info.height, path: target.path });
+    }
+    // Recheck the entire set after generation, before touching prior outputs.
+    for (const target of targets) await checkTarget(target.path);
+    await fs.mkdir(destination, { recursive: true });
+    for (const [index, target] of targets.entries()) {
+      if (await checkTarget(target.path)) {
+        const backup = path.join(backups, String(index));
+        await fs.rename(target.path, backup);
+        moved.push({ path: target.path, backup });
+      }
+      const source = path.join(files, target.file);
+      // link is an atomic no-clobber publish if another writer won the race.
+      if (overwrite) await fs.rename(source, target.path);
+      else await fs.link(source, target.path);
+      published.push(target.path);
+    }
+  } catch (error) {
+    const rollbackErrors: unknown[] = [];
+    for (const file of published.reverse()) await fs.unlink(file).catch((failure) => rollbackErrors.push(failure));
+    for (const prior of moved.reverse()) await fs.rename(prior.backup, prior.path).catch((failure) => rollbackErrors.push(failure));
+    if (!destinationExisted) await fs.rmdir(destination).catch(() => undefined);
+    if (rollbackErrors.length) {
+      preserveBackups = true;
+      throw new AggregateError([error, ...rollbackErrors], `resizeImage: publication failed; recovery files remain at ${staging}`);
+    }
+    throw error;
+  } finally {
+    if (!preserveBackups) await fs.rm(staging, { recursive: true, force: true }).catch(() => undefined);
   }
 
   return { sourceFile, sourceWidth, sourceHeight, outputs };
@@ -154,6 +200,10 @@ export async function generateIco(
   const sizes = options.sizes ?? [16, 32, 48, 180, 256];
   const overwrite = options.overwrite ?? false;
 
+  if (sizes.length === 0 || sizes.some((size) => !Number.isInteger(size) || size < 1 || size > 256)) {
+    throw new Error("generateIco: sizes must contain integers from 1 to 256.");
+  }
+
   if (!outPath.toLowerCase().endsWith(".ico")) {
     throw new Error(`generateIco: output path must end with .ico (got: ${outPath})`);
   }
@@ -169,7 +219,7 @@ export async function generateIco(
   const pngBuffers: Buffer[] = [];
   for (const sz of sizes) {
     const buf = await sharp(imagePath)
-      .resize(sz, sz, { fit: "inside" })
+      .resize(sz, sz, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
       .png()
       .toBuffer();
     pngBuffers.push(buf);

@@ -87,11 +87,20 @@ describe("printError --json", () => {
     expect(err.join("\n")).toContain("repochan image edit ml install");
   });
 
-  it("falls back to the human stderr path for generic errors even under --json", () => {
+  it("renders generic failures as JSON under --json", () => {
     const { out, err } = capture();
-    printError(new Error("plain failure"), { json: true });
-    expect(out).toEqual([]);
-    expect(err.join("\n")).toContain("plain failure");
+    printError(Object.assign(new Error("plain failure"), { code: "ENOENT" }), { json: true });
+    expect(err).toEqual([]);
+    expect(JSON.parse(out.join("\n"))).toEqual({
+      ok: false, error: "Error", message: "plain failure", code: "ENOENT",
+    });
+  });
+
+  it("renders non-Error throws as JSON without inspecting arbitrary properties", () => {
+    const { out, err } = capture();
+    printError("plain failure", { json: true });
+    expect(err).toEqual([]);
+    expect(JSON.parse(out.join("\n"))).toEqual({ ok: false, error: "Error", message: "plain failure" });
   });
 
   it("keeps the human stderr path for ExtractError without --json", () => {

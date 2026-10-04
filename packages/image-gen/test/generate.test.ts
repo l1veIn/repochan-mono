@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { promises as fs } from "node:fs";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import {
@@ -27,15 +28,105 @@ import { writeConfigFileAtomic } from "../src/config-file.js";
 
 const itE2E = process.env.IMAGE_GEN_E2E === "1" ? it : it.skip;
 
-const TINY_PNG = Uint8Array.from([
-  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00,
-  0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xde, 0x00, 0x00, 0x00, 0x0c, 0x49,
-  0x44, 0x41, 0x54, 0x08, 0xd7, 0x63, 0xf8, 0xcf, 0xc0, 0x00, 0x00, 0x00, 0x03, 0x00, 0x01, 0x00, 0x05, 0xfe, 0xd4,
-  0xef, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
-]);
-const FAKE_PNG = new Uint8Array(1200);
-FAKE_PNG.set(TINY_PNG, 0);
-const FAKE_B64 = Buffer.from(FAKE_PNG).toString("base64");
+// Real 32x32 images encoded offline; transport tests have no codec dependency.
+const VALID_PNG = readFileSync(new URL("./fixtures/valid.png", import.meta.url));
+const VALID_B64 = VALID_PNG.toString("base64");
+
+describe("generation output format", () => {
+  afterEach(() => vi.restoreAllMocks());
+  const config = { endpoints: {
+    fixture: { id: "fixture", baseURL: "https://fixture.invalid/v1", apiKey: "fixture", model: "gpt-image-2" },
+  } };
+
+  it.each(["png", "jpeg", "webp"])("accepts a real %s image", async (format) => {
+    const bytes = readFileSync(new URL(`./fixtures/valid.${format}`, import.meta.url));
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({
+      job_id: "job_image", data: [{ b64_json: bytes.toString("base64") }],
+    }), { status: 200 }));
+
+    const result = await generate({ prompt: "fixture" }, config);
+    expect(result).toMatchObject({ success: true, jobId: "job_image", mimeType: `image/${format}` });
+    expect(Buffer.from(result.image!)).toEqual(bytes);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["html", "partial-png"])("rejects a large %s payload and retains recovery metadata", async (kind) => {
+    const bytes = kind === "html" ? Buffer.from(`<html>${"upstream error ".repeat(100)}</html>`) : Buffer.alloc(1200);
+    if (kind === "partial-png") bytes.set([0x89, 0x50, 0x4e, 0x47]);
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({
+      job_id: "job_invalid", data: [{ b64_json: bytes.toString("base64") }],
+    }), { status: 200 }));
+
+    const result = await generate({ prompt: "fixture" }, config);
+    expect(result).toMatchObject({ success: false, jobId: "job_invalid", billedRisk: true });
+    expect(result.image).toBeUndefined();
+    expect(result.error).toMatch(/unsupported image format/i);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("reference edit quality", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("passes the requested rendering quality through multipart edits", async () => {
+    let postedQuality: FormDataEntryValue | null = null;
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) => {
+      postedQuality = (init!.body as FormData).get("quality");
+      return new Response(JSON.stringify({ data: [{ b64_json: VALID_B64 }] }), { status: 200 });
+    });
+
+    const result = await generate({
+      prompt: "edit fixture", quality: "max",
+      referenceImages: [{ data: VALID_PNG, mimeType: "image/png" }],
+    }, { version: 2, endpoints: {
+      fixture: { id: "fixture", baseURL: "https://fixture.invalid/v1", apiKey: "fixture", model: "gpt-image-2.5-sunburst" },
+    } });
+    expect(result.success, result.error).toBe(true);
+    expect(postedQuality).toBe("max");
+  });
+});
+
+describe("generation failure recovery", () => {
+  afterEach(() => vi.restoreAllMocks());
+  const config = { version: 2, endpoints: {
+    fixture: { id: "fixture", baseURL: "https://fixture.invalid/v1", apiKey: "fixture", model: "gpt-image-2" },
+  } };
+
+  it("retains a completed submission's job id when downloading its image fails", async () => {
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        job_id: "job_completed", data: [{ url: "https://fixture.invalid/completed.png" }],
+      }), { status: 200 }))
+      .mockRejectedValueOnce(new Error("download interrupted"));
+
+    const result = await generate({ prompt: "fixture" }, config);
+    expect(result).toMatchObject({ success: false, jobId: "job_completed", billedRisk: true });
+    expect(result.error).toContain("download interrupted");
+  });
+
+  it("reports billing uncertainty for a non-JSON server failure", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("upstream interrupted", { status: 502 }));
+    expect(await generate({ prompt: "fixture" }, config)).toMatchObject({ success: false, billedRisk: true });
+  });
+
+  it("reports billing uncertainty for a successful response missing its image", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("{}", { status: 200 }));
+    expect(await generate({ prompt: "fixture" }, config)).toMatchObject({ success: false, billedRisk: true });
+  });
+
+  it("directs a 504 without a job id to recovery without another submission", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({
+      error: { message: "sync wait expired" },
+    }), { status: 504 }));
+
+    const result = await generate({ prompt: "fixture" }, config);
+    expect(result).toMatchObject({ success: false, billedRisk: true });
+    expect(result.jobId).toBeUndefined();
+    expect(result.error).toContain("Recover its status/result");
+    expect(result.error).toContain("do not re-submit this prompt or switch modes while its outcome is unresolved");
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+});
 
 describe("config (pure)", () => {
   const endpoint = (id: string) => ({
@@ -383,9 +474,15 @@ describe("authHeaders by mode", () => {
 
 describe("image byte MIME detection", () => {
   it("detects PNG, WebP, and JPEG magic bytes", () => {
-    expect(mimeTypeForImageBytes(TINY_PNG)).toBe("image/png");
+    expect(mimeTypeForImageBytes(VALID_PNG)).toBe("image/png");
     expect(mimeTypeForImageBytes(Uint8Array.from(Buffer.from("RIFFxxxxWEBPVP8 ")))).toBe("image/webp");
     expect(mimeTypeForImageBytes(Uint8Array.from([0xff, 0xd8, 0xff, 0xe0]))).toBe("image/jpeg");
+  });
+
+  it.each([4, 5, 6, 7])("requires PNG signature byte %i as well as the PNG prefix", (index) => {
+    const bytes = Buffer.from(VALID_PNG);
+    bytes[index] = 0;
+    expect(mimeTypeForImageBytes(bytes)).toBe("application/octet-stream");
   });
 });
 
@@ -440,7 +537,7 @@ describe("generate modes (mock fetch)", () => {
     const calls: Array<{ url: string; headers: HeadersInit | undefined; body?: string }> = [];
     globalThis.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       calls.push({ url: String(input), headers: init?.headers, body: String(init?.body ?? "") });
-      return new Response(JSON.stringify({ data: [{ b64_json: FAKE_B64 }] }), {
+      return new Response(JSON.stringify({ data: [{ b64_json: VALID_B64 }] }), {
         status: 200,
         headers: { "content-type": "application/json" },
       });
@@ -466,7 +563,7 @@ describe("generate modes (mock fetch)", () => {
     let posted: Record<string, unknown> | undefined;
     globalThis.fetch = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
       posted = JSON.parse(String(init?.body));
-      return new Response(JSON.stringify({ data: [{ b64_json: FAKE_B64 }] }), {
+      return new Response(JSON.stringify({ data: [{ b64_json: VALID_B64 }] }), {
         status: 200,
         headers: { "content-type": "application/json" },
       });
@@ -503,7 +600,7 @@ describe("generate modes (mock fetch)", () => {
           { status: 200 },
         );
       }
-      if (url.includes("cdn.test")) return new Response(FAKE_PNG, { status: 200 });
+      if (url.includes("cdn.test")) return new Response(VALID_PNG, { status: 200 });
       return new Response("no", { status: 404 });
     }) as any;
 
@@ -532,7 +629,7 @@ describe("generate modes (mock fetch)", () => {
           { status: 200 },
         );
       }
-      if (url.includes("cdn.test")) return new Response(FAKE_PNG, { status: 200 });
+      if (url.includes("cdn.test")) return new Response(VALID_PNG, { status: 200 });
       return new Response("no", { status: 404 });
     }) as any;
 
@@ -562,11 +659,14 @@ describe("generate modes (mock fetch)", () => {
     }) as any;
 
     const result = await generate(
-      { prompt: "edit me", referenceImages: [{ data: FAKE_PNG, mimeType: "image/png" }] },
+      { prompt: "edit me", referenceImages: [{ data: VALID_PNG, mimeType: "image/png" }] },
       cfg("auto"),
     );
     expect(result.success).toBe(false);
+    expect(result.billedRisk).toBe(true);
     expect(result.error).toMatch(/edits failed|Not falling back/i);
+    expect(result.error).toContain("Recover the original job's status/result");
+    expect(urls).toHaveLength(1);
     expect(urls.some((u) => u.includes("/images/generations"))).toBe(false);
   });
 });
@@ -583,7 +683,7 @@ describe("GPT-Image-2.5 family", () => {
   });
 
   const okB64 = () =>
-    new Response(JSON.stringify({ data: [{ b64_json: FAKE_B64 }] }), {
+    new Response(JSON.stringify({ data: [{ b64_json: VALID_B64 }] }), {
       status: 200,
       headers: { "content-type": "application/json" },
     });
@@ -648,7 +748,7 @@ describe("GPT-Image-2.5 family", () => {
     }) as any;
 
     const result = await generate(
-      { prompt: "edit me", referenceImages: [{ data: FAKE_PNG, mimeType: "image/png" }] },
+      { prompt: "edit me", referenceImages: [{ data: VALID_PNG, mimeType: "image/png" }] },
       cfg25("gpt-image-2.5-sunburst"),
     );
     expect(result.success).toBe(false);

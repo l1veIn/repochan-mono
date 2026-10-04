@@ -26,10 +26,12 @@ export async function runImageMlInstall(
   try {
     result = await installImageMlCapability(options, deps);
   } catch (error) {
-    throw new UsageError(
+    const failure = new UsageError(
       error instanceof Error ? error.message : String(error),
-      "Check npm registry access and free disk space, then retry. Existing capability caches remain usable.",
+      "Check any reported recovery path, capability status, npm registry access, and free disk space before retrying.",
     );
+    failure.cause = error;
+    throw failure;
   }
   const message = result.updated
     ? `Installed image ML capability ${result.packageName}@${result.requiredVersion} → ${result.runtimeRoot}. ML operations are now fully offline.`
