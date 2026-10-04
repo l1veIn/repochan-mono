@@ -6,6 +6,8 @@ import os from 'node:os';
 import {
   createOrders,
   createOrderResult,
+  createReview,
+  appendOrderDerivedEntry,
   addOrderRevision,
   abortOrderRecovery,
   listOrderRecoveries,
@@ -89,6 +91,17 @@ describe('entities (core business operations)', () => {
 
     const listed = await listOrders(projectRoot);
     expect(listed.orders.some((o: any) => o.orderId === 'ord-test-001')).toBe(true);
+  });
+
+  it('rejects an empty assetType before publishing an unreadable order', async () => {
+    const ordersDir = path.join(projectRoot, '.repochan', 'orders');
+    const before = await snapshotDirectory(ordersDir);
+    await expect(createOrders(projectRoot, { order: {
+      orderId: 'ord-empty-type', requestType: 'new_asset', assetType: '',
+      brief: { intent: 'invalid asset type', mustInclude: [], avoid: [], creativeFreedom: [] },
+      deliverables: [], acceptanceCriteria: [],
+    } })).rejects.toThrow(/assetType/);
+    expect(await snapshotDirectory(ordersDir)).toEqual(before);
   });
 
   it('restores the order tree when materializing the second create reference fails', async () => {
@@ -610,6 +623,54 @@ describe('entities (core business operations)', () => {
     expect(await fs.readFile(orderFile)).toEqual(orderBefore);
     await expect(fs.stat(path.join(projectRoot, '.repochan/orders/ord-recovery-retain/versions/v1'))).rejects.toThrow();
     await expect(fs.stat(recoveryDir)).rejects.toThrow();
+  });
+
+  it.each(['prepared', 'recovery_required'])('blocks ordinary mutations while %s recovery could overwrite their state', async (state) => {
+    const orderId = 'ord-recovery-block-writes';
+    const inputOrder = {
+      orderId, requestType: 'new_asset', assetType: 'icon',
+      brief: { intent: 'preserve pending recovery', mustInclude: [], avoid: [], creativeFreedom: [] },
+      deliverables: [], acceptanceCriteria: [],
+    };
+    await createOrders(projectRoot, { order: inputOrder });
+    await setOrderStatus(projectRoot, orderId, 'approved');
+    const orderRoot = path.join(projectRoot, '.repochan/orders', orderId);
+    const orderFile = path.join(orderRoot, 'order.json');
+    const originalOrder = await fs.readFile(orderFile);
+    const source = path.join(projectRoot, 'recovery-current.png');
+    await fs.writeFile(source, 'materialized result');
+    await createOrderResult(projectRoot, { orderId, versionId: 'v1', files: [source], tool: 'manual' });
+    const currentOrder = await fs.readFile(orderFile);
+    const transactionId = '.result-txn-block-writes';
+    const transactionRoot = path.join(orderRoot, transactionId);
+    await fs.mkdir(transactionRoot);
+    const nonce = await anchorTransaction(orderId, transactionId, 'result_publish', 'v1');
+    await fs.writeFile(path.join(transactionRoot, 'previous-order.json'), originalOrder);
+    await fs.writeFile(path.join(transactionRoot, 'recovery.json'), JSON.stringify({
+      schemaVersion: 'repochan.order-recovery.v1', transactionId, orderId,
+      kind: 'result_publish', nonce, versionId: 'v1', state, entries: [
+        { destination: 'versions/v1', backup: 'previous-version', kind: 'directory', existedBefore: false },
+        { destination: 'order.json', backup: 'previous-order.json', kind: 'file', existedBefore: true,
+          beforeSha256: createHash('sha256').update(originalOrder).digest('hex') },
+      ],
+    }));
+    for (const mutate of [
+      () => setOrderStatus(projectRoot, orderId, 'delivered'),
+      () => addOrderRevision(projectRoot, orderId, 'revision that recovery would erase'),
+      () => updateOrder(projectRoot, { orderId, overwrite: true, patch: { notes: 'new notes' } }),
+      () => createOrders(projectRoot, { order: inputOrder, overwrite: true }),
+      () => createReview(projectRoot, { orderId, versionId: 'v1', verdict: 'pass' }),
+      () => appendOrderDerivedEntry(projectRoot, orderId, {
+        slot: 'icon', starter: 'minimal', resultVersion: 'v1', appliedAt: new Date().toISOString(), archiveDir: 'derived/audit', steps: [],
+      }),
+    ]) {
+      await expect(mutate()).rejects.toThrow(/pending recovery/);
+      expect(await fs.readFile(orderFile)).toEqual(currentOrder);
+      expect(await fs.readFile(path.join(transactionRoot, 'previous-order.json'))).toEqual(originalOrder);
+    }
+    await recoverOrderRecovery(projectRoot, orderId, transactionId);
+    expect(await fs.readFile(orderFile)).toEqual(originalOrder);
+    await expect(addOrderRevision(projectRoot, orderId, 'revision after recovery')).resolves.toMatchObject({ status: 'needs_revision' });
   });
 
   it('atomically aborts a stale recovery marker only when current order state is valid', async () => {

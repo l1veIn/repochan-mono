@@ -19,6 +19,7 @@ import {
   resolveOrderReferences,
   readOrder,
   inspectProtocol,
+  initProtocol,
   exists,
   orderVersionDir,
   OrderAddRevisionParamsSchema,
@@ -97,8 +98,20 @@ export async function runOrderAddRevision(cwd: string, orderId: string, dataFile
 // repochan order create-result --data-file
 export async function runOrderCreateResult(cwd: string, dataFile: string | undefined, options: OutputOptions) {
   const params = readDataFile(dataFile);
+  await inspectBitmapResultFiles(cwd, params.files);
   const result = await createOrderResult(cwd, params);
   emitResult(options, "Created order result version.", result);
+}
+
+/** Pixel acceptance belongs in the CLI binding; core publishes opaque artifacts. */
+async function inspectBitmapResultFiles(cwd: string, files: unknown): Promise<void> {
+  if (!Array.isArray(files)) return;
+  const { imageFormatForExtension, inspectImage } = await import("@repochan/image-edit");
+  for (const raw of files) {
+    if (typeof raw !== "string" || !raw.trim()) continue;
+    const source = path.isAbsolute(raw) ? path.resolve(raw) : path.resolve(cwd, raw);
+    if (imageFormatForExtension(source)) await inspectImage(source);
+  }
 }
 
 // repochan order list-results <id>
@@ -118,7 +131,9 @@ export async function runOrderGetResult(
   const usage = "Usage: repochan order get-result <id> [--result-version <version-id>]";
   if (!orderId) throw new UsageError(usage);
   const result = await readOrderResult(cwd, orderId, resultVersion);
-  emitResult(options, JSON.stringify(result, null, 2), result);
+  const versionDir = orderVersionDir(path.resolve(cwd), result.orderId, result.version.versionId);
+  const delivery = { ...result, files: result.version.files.map((file) => path.join(versionDir, file)) };
+  emitResult(options, JSON.stringify(delivery, null, 2), delivery);
 }
 
 // repochan order resolve-references <id>
@@ -133,6 +148,7 @@ export async function runOrderResolveReferences(cwd: string, orderId: string, op
 // repochan order candidate create --data-file
 export async function runOrderCandidateCreate(cwd: string, dataFile: string | undefined, options: OutputOptions) {
   const params = readDataFile(dataFile);
+  await inspectBitmapResultFiles(cwd, params.files);
   const result = await createOrderCandidate(cwd, params);
   emitResult(options, "Created order result candidate.", result);
 }
@@ -213,6 +229,7 @@ export async function runOrderExtract(
       "[--strategy chroma-grid|equal-cell|ml-blobs|hybrid] [--pipeline v1|v2] [--ml-fallback] [--model small|medium] [--json]",
     );
   }
+  await initProtocol(cwd);
   const order = await readOrder(cwd, orderId);
   if (order.status !== "delivered") {
     throw new UsageError(`Order ${orderId} must be delivered before order extract (status: ${order.status}). Deliver a result first (order create-result / candidate promote, then set-status delivered).`);

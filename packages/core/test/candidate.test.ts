@@ -92,6 +92,18 @@ describe("candidate lifecycle pointers", () => {
     expect((await listOrderResults(projectRoot, "ord-candidate-promote")).results.map((result) => result.versionId).sort()).toEqual(["c1", "c2", "v1"]);
   });
 
+  it.each(["cancelled", "draft"] as const)("does not deliver a candidate from %s status", async (status) => {
+    await seed("ord-candidate-inactive");
+    await candidate("ord-candidate-inactive", "c1");
+    await setOrderStatus(projectRoot, "ord-candidate-inactive", "cancelled");
+    if (status === "draft") await setOrderStatus(projectRoot, "ord-candidate-inactive", "draft");
+    const orderFile = path.join(projectRoot, ".repochan/orders/ord-candidate-inactive/order.json");
+    const before = await fs.readFile(orderFile);
+    await expect(promoteCandidate(projectRoot, "ord-candidate-inactive", "c1")).rejects.toThrow(/cannot promote.*status=/);
+    expect(await fs.readFile(orderFile)).toEqual(before);
+    expect(await readOrder(projectRoot, "ord-candidate-inactive")).toMatchObject({ status, candidateVersions: ["c1"] });
+  });
+
   it("refuses non-candidates, missing evidence, symlinks, and current creation over a candidate id", async () => {
     await seed("ord-candidate-guards");
     await candidate("ord-candidate-guards", "c1");

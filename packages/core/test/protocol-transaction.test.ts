@@ -9,9 +9,10 @@ import {
   createPersonaCandidate,
   promotePersonaCandidate,
 } from "../src/entities/index.js";
-import { updateAnalysisArtifact } from "../src/analysis/write-artifact.js";
+import { enrichAnalysisArtifact, updateAnalysisArtifact } from "../src/analysis/write-artifact.js";
 import { initProtocol, withProtocolRollback } from "../src/protocol/index.js";
 import { seedAnalysis } from "../test-support/fixtures.js";
+import { symlinkDir } from "../test-support/symlink.js";
 
 async function snapshotTree(root: string): Promise<Record<string, string>> {
   const snapshot: Record<string, string> = {};
@@ -147,6 +148,52 @@ describe("multi-file protocol transaction rollback", () => {
     await expect(first).rejects.toThrow(/first mutation failed/);
   });
 
+  it.each(["analysis.update", "analysis.enrich", "interview.append"])(
+    "locks %s before reading the current artifact and preserves a retried update",
+    async (operation) => {
+      const isInterview = operation === "interview.append";
+      if (isInterview) await createOrUpdateInterview(projectRoot, { interview });
+      const target = path.join(projectRoot, ".repochan", isInterview ? "interview" : "analysis", "current.json");
+      const originalRead = fs.readFile.bind(fs);
+      let started!: () => void;
+      let resume!: () => void;
+      const readStarted = new Promise<void>((resolve) => { started = resolve; });
+      const gate = new Promise<void>((resolve) => { resume = resolve; });
+      let paused = false;
+      vi.spyOn(fs, "readFile").mockImplementation(async (file, options) => {
+        const bytes = await originalRead(file, options as never);
+        if (!paused && path.resolve(String(file)) === path.resolve(target)) {
+          paused = true;
+          started();
+          await gate;
+        }
+        return bytes;
+      });
+      const mutate = (marker: string) => isInterview
+        ? appendToInterview(projectRoot, { summary: marker, slug: marker, responses: [{ questionId: marker, kind: "custom", answer: marker }] })
+        : operation === "analysis.enrich"
+          ? enrichAnalysisArtifact(projectRoot, { [marker === "first" ? "preAnalysis" : "abstract"]: { marker } })
+          : updateAnalysisArtifact(projectRoot, { overwrite: true, patch: { context: { basic: { [marker]: true } } } });
+      const first = mutate("first");
+      await readStarted;
+      try {
+        await expect(mutate("second")).rejects.toThrow(/already active/);
+      } finally {
+        resume();
+      }
+      await first;
+      vi.restoreAllMocks();
+      await mutate("second");
+      const current = JSON.parse(await originalRead(target, "utf8"));
+      if (isInterview) expect(current.responses.map((response: { questionId: string }) => response.questionId)).toEqual(["first", "second"]);
+      else if (operation === "analysis.enrich") expect(current).toMatchObject({ preAnalysis: { marker: "first" }, abstract: { marker: "second" } });
+      else expect(current.context.basic).toMatchObject({ first: true, second: true });
+      const archives = await fs.readdir(path.join(path.dirname(target), "versions"));
+      const archived = await Promise.all(archives.map((name) => originalRead(path.join(path.dirname(target), "versions", name), "utf8")));
+      expect(archived.some((raw) => raw.includes("first"))).toBe(true);
+    },
+  );
+
   it("recovers a prepared durable transaction on the next protocol init", async () => {
     const protocolRoot = path.join(projectRoot, ".repochan");
     const analysisRoot = path.join(protocolRoot, "analysis");
@@ -187,6 +234,41 @@ describe("multi-file protocol transaction rollback", () => {
     expect(await fs.stat(path.join(analysisRoot, "concurrent.json")).then(() => true).catch(() => false)).toBe(false);
     expect(await snapshotTree(analysisRoot)).toEqual(expected);
   });
+
+  it.each(["missing", "symlink", "directory-with-symlink"])(
+    "preserves every current target when one backup is %s",
+    async (backupKind) => {
+      const protocolRoot = path.join(projectRoot, ".repochan");
+      const analysisRoot = path.join(protocolRoot, "analysis");
+      const transactionId = "txn-00000000-0000-4000-8000-000000000002";
+      const transactionRoot = path.join(protocolRoot, ".transactions", transactionId);
+      const backupsRoot = path.join(transactionRoot, "backups");
+      await fs.mkdir(backupsRoot, { recursive: true });
+      const firstTarget = path.join(analysisRoot, "current.json");
+      const secondTarget = path.join(analysisRoot, "second.json");
+      await fs.writeFile(secondTarget, "second current bytes");
+      await fs.copyFile(secondTarget, path.join(backupsRoot, "1"));
+      if (backupKind === "symlink") await fs.symlink(firstTarget, path.join(backupsRoot, "0"));
+      if (backupKind === "directory-with-symlink") {
+        await fs.mkdir(path.join(backupsRoot, "0"));
+        await symlinkDir(analysisRoot, path.join(backupsRoot, "0", "linked"));
+      }
+      const owner = { pid: 999_999_999, hostname: os.hostname(), nonce: "backup-preflight", startedAt: new Date().toISOString() };
+      const intent = {
+        schemaVersion: "repochan.protocol-transaction.v1", transactionId, owner,
+        targets: ["analysis/current.json", "analysis/second.json"],
+      };
+      await fs.writeFile(path.join(transactionRoot, "intent.json"), JSON.stringify(intent));
+      await fs.writeFile(path.join(transactionRoot, "manifest.json"), JSON.stringify({ ...intent, state: "prepared", snapshots: [
+        { target: intent.targets[0], existed: true, backup: "backups/0" },
+        { target: intent.targets[1], existed: true, backup: "backups/1" },
+      ] }));
+      const before = await snapshotTree(analysisRoot);
+      await expect(initProtocol(projectRoot)).rejects.toThrow(backupKind === "missing" ? /ENOENT/ : /symbolic link/);
+      expect(await snapshotTree(analysisRoot)).toEqual(before);
+      expect(await fs.stat(transactionRoot).then((stat) => stat.isDirectory())).toBe(true);
+    },
+  );
 
   it("cleans a pre-intent crash without blocking protocol initialization", async () => {
     const transactionRoot = path.join(

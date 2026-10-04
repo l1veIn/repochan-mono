@@ -171,6 +171,61 @@ async function slotReferenceFixture() {
 }
 
 describe("starter v1 commands", () => {
+  it("creates a custom scalar order without a template when deliverables are explicit", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const { root, siteDir, manifestPath } = await slotReferenceFixture();
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    const slot = manifest.assets.find((item: any) => item.slot === "scene-night");
+    delete slot.order.templateId;
+    slot.order.deliverables = [{ name: "scene-night", format: "webp", width: 640, height: 480 }];
+    await writeFile(manifestPath, JSON.stringify(manifest));
+
+    await runStarterCreateOrder(root, "scene-night", { outputDir: siteDir, intent: "A custom night scene", json: true });
+    const order = JSON.parse(await readFile(path.join(root, ".repochan/orders/ord-scene-night-001/order.json"), "utf8"));
+    expect(order).toMatchObject({
+      assetType: "scene", brief: { intent: "A custom night scene", mustInclude: ["night mood"] },
+      deliverables: [{ name: "scene-night", format: "webp", width: 640, height: 480 }],
+    });
+    expect(order).not.toHaveProperty("templateId");
+  });
+
+  it("rejects an unknown scalar template before creating the order", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const { root, siteDir, manifestPath } = await slotReferenceFixture();
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    manifest.assets.find((item: any) => item.slot === "scene-night").order.templateId = "missing/unknown";
+    await writeFile(manifestPath, JSON.stringify(manifest));
+    await expect(runStarterCreateOrder(root, "scene-night", { outputDir: siteDir, intent: "night", json: true }))
+      .rejects.toThrow(/unknown templateId.*missing\/unknown/);
+    await expect(readFile(path.join(root, ".repochan/orders/ord-scene-night-001/order.json"))).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it.each(["missing", "empty"])("rejects a custom scalar order with %s deliverables", async (kind) => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const { root, siteDir, manifestPath } = await slotReferenceFixture();
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    const slot = manifest.assets.find((item: any) => item.slot === "scene-night");
+    delete slot.order.templateId;
+    if (kind === "empty") slot.order.deliverables = [];
+    else delete slot.order.deliverables;
+    await writeFile(manifestPath, JSON.stringify(manifest));
+    await expect(runStarterCreateOrder(root, "scene-night", { outputDir: siteDir, intent: "night", json: true }))
+      .rejects.toThrow(/non-empty deliverables/);
+  });
+
+  it("keeps bundles dependent on a verified grid template", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const { root, siteDir } = await gridBundleFixture();
+    const manifestPath = path.join(siteDir, "repochan/starter.json");
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    manifest.assets[0].order = {
+      assetType: "web_state_stickers", deliverables: [{ name: "states", format: "png", width: 128, height: 64 }],
+    };
+    await writeFile(manifestPath, JSON.stringify(manifest));
+    await expect(runStarterCreateOrder(root, "web-states", { outputDir: siteDir, intent: "states", json: true }))
+      .rejects.toThrow(/bundle.*requires.*templateId/);
+  });
+
   it("discovers landing-museum as the sole default through repochan/starter.json", async () => {
     const root = await projectFixture();
     const bundledDir = await getBuiltinStartersDir();
@@ -223,6 +278,35 @@ describe("starter v1 commands", () => {
     await expect(readFile(path.join(siteDir, "dist", "stale.html"))).rejects.toThrow();
     expect(await readFile(path.join(siteDir, "repochan", "site.json"), "utf8"))
       .toBe(await readFile(path.join(sourceDir, "repochan", "site.json"), "utf8"));
+  });
+
+  it("rejects overwriting an ancestor of the local starter source before deleting files", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const root = await projectFixture();
+    const target = path.join(root, "creator-owned");
+    const source = path.join(target, "starter");
+    await runStarterPull(root, { starter: "minimal", outputDir: source, json: true });
+    const marker = path.join(target, "keep.txt");
+    await writeFile(marker, "keep ancestor contents");
+
+    await expect(runStarterPull(root, { from: source, outputDir: target, overwrite: true, json: true }))
+      .rejects.toThrow(/output cannot contain its source/);
+    expect(await readFile(marker, "utf8")).toBe("keep ancestor contents");
+    expect((await readStarterInstance(source)).id).toBe("minimal");
+  });
+
+  it("rejects ancestor outputs when the source is reached through a directory symlink", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const root = await projectFixture();
+    const target = path.join(root, "creator-owned");
+    const source = path.join(target, "starter");
+    await runStarterPull(root, { starter: "minimal", outputDir: source, json: true });
+    const alias = path.join(root, "source-alias");
+    await symlinkDir(source, alias);
+
+    await expect(runStarterPull(root, { from: alias, outputDir: target, overwrite: true, json: true }))
+      .rejects.toThrow(/output cannot contain its source/);
+    expect((await readStarterInstance(source)).id).toBe("minimal");
   });
 
   it("rejects missing or non-file declared previews during starter validation", async () => {
@@ -792,7 +876,7 @@ describe("starter v1 commands", () => {
     expect(entry.slot).toBe("hero-composite");
     expect(entry.starter).toBe("minimal");
     expect(entry.resultVersion).toBe("v1");
-    expect(entry.archiveDir).toMatch(/^derived\/.+--hero-composite$/);
+    expect(entry.archiveDir).toMatch(/^derived\/.+--hero-composite--[a-f0-9-]{36}$/);
     expect(entry.steps).toHaveLength(2);
     // kept intermediate step: archived with its artifact record
     expect(entry.steps[0]).toMatchObject({ op: "compress", out: "public/assets/intermediate.webp" });
@@ -816,7 +900,7 @@ describe("starter v1 commands", () => {
     const after = JSON.parse(await readFile(path.join(orderDir, "derived.json"), "utf8"));
     expect(after.entries).toHaveLength(2);
     expect(after.entries[0]).toEqual(entry);
-    expect(after.entries[1].archiveDir).toMatch(/^derived\/.+--hero-composite$/);
+    expect(after.entries[1].archiveDir).toMatch(/^derived\/.+--hero-composite--[a-f0-9-]{36}$/);
   });
 
   it("archives grid bundle publications into the order derived/ copy", async () => {
@@ -840,7 +924,7 @@ describe("starter v1 commands", () => {
     expect(derived.entries).toHaveLength(1);
     const entry = derived.entries[0];
     expect(entry.slot).toBe("web-states");
-    expect(entry.archiveDir).toMatch(/^derived\/.+--web-states$/);
+    expect(entry.archiveDir).toMatch(/^derived\/.+--web-states--[a-f0-9-]{36}$/);
     expect(entry.steps).toHaveLength(1);
     expect(entry.steps[0].op).toBe("extract-grid");
     expect(entry.steps[0].artifacts).toEqual([

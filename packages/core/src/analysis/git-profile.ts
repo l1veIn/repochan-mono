@@ -11,7 +11,7 @@ export async function analyzeGit(projectRoot: string): Promise<GitProfile> {
       git.raw(["rev-parse", "--abbrev-ref", "HEAD"]).then((s) => s.trim()).catch(() => ""),
       git.raw(["remote", "-v"]).then((s) => s.trim()).catch(() => ""),
       git.raw(["status", "--short"]).then((s) => s.trim()).catch(() => ""),
-      git.raw(["log", "--all", "--numstat", "--format=%H|%an|%ai|%s", "--no-merges"]),
+      git.raw(["log", "--all", "--numstat", "--format=%H|%P|%an|%ai|%s"]),
     ]);
     const commits = parseGitLog(raw);
     return computeGitProfile(commits, { branch, remote, status });
@@ -31,9 +31,10 @@ export function parseGitLog(raw: string): ParsedGitCommit[] {
       const parts = line.split("|");
       current = {
         hash: (parts[0] ?? "").slice(0, 8),
-        author: parts[1] ?? "",
-        date: parts[2] ?? "",
-        message_summary: parts.slice(3).join("|").trim(),
+        parents: (parts[1] ?? "").split(/\s+/).filter(Boolean),
+        author: parts[2] ?? "",
+        date: parts[3] ?? "",
+        message_summary: parts.slice(4).join("|").trim(),
         files_changed: 0,
         insertions: 0,
         deletions: 0,
@@ -68,11 +69,16 @@ export function computeGitProfile(commits: ParsedGitCommit[], meta: GitMeta): Gi
   const fileChurn = new Map<string, { commits: number; lines: number }>();
   const messageThemes = new Map<string, number>();
   for (const c of commits) {
-    const d = new Date(c.date);
+    const instant = new Date(c.date);
+    const offset = /([+-])(\d{2}):?(\d{2})$/.exec(c.date.trim());
+    const offsetMinutes = offset ? (Number(offset[2]) * 60 + Number(offset[3])) * (offset[1] === "-" ? -1 : 1) : 0;
+    // `%ai` includes the author's original UTC offset. Shift to that wall
+    // clock and use UTC accessors so the scanner's timezone cannot alter it.
+    const d = new Date(instant.getTime() + offsetMinutes * 60_000);
     if (!Number.isNaN(d.getTime())) {
-      const h = d.getHours();
+      const h = d.getUTCHours();
       if (h >= 22 || h < 6) night += 1;
-      if (d.getDay() === 0 || d.getDay() === 6) weekend += 1;
+      if (d.getUTCDay() === 0 || d.getUTCDay() === 6) weekend += 1;
       hours[h] += 1;
     }
     const summary = String(c.message_summary ?? "").trim().toLowerCase();
@@ -87,7 +93,7 @@ export function computeGitProfile(commits: ParsedGitCommit[], meta: GitMeta): Gi
   }
   const totalFiles = commits.reduce((a, c) => a + c.files_changed, 0);
   const totalLines = commits.reduce((a, c) => a + c.insertions + c.deletions, 0);
-  const mergeCount = commits.filter((c) => String(c.message_summary).includes("Merge")).length;
+  const mergeCount = commits.filter((c) => (c.parents?.length ?? 0) > 1).length;
   return {
     has_git: true,
     branch: meta.branch,

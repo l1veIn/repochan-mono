@@ -47,6 +47,7 @@ import { readOrder, validateStoredOrder, IMAGE_EXTENSIONS } from "./shared.js";
 import {
   abortOrderTransaction,
   assertOrderBytesUnchanged,
+  assertNoPendingOrderRecovery,
   listOrderRecoveryTransactions,
   markRecoveryRequired,
   prepareRecoveryManifest,
@@ -139,7 +140,7 @@ export async function createOrders(projectRoot: string, params: JsonObject) {
   if (!inputOrders?.length) throw new Error("order.create requires params.order or params.orders.");
   const orders = inputOrders.map((order) => normalizeOrder(order as AssetOrder));
   for (const order of orders) {
-    validateOrderId(order.orderId);
+    validateStoredOrder(order, order.orderId);
     if (order.status === "delivered" || order.currentVersion !== undefined || order.candidateVersions.length !== 0) {
       throw new Error("order.create cannot create delivered/current result state. Create the order first, then publish materialized files with order.create_result.");
     }
@@ -152,6 +153,7 @@ export async function createOrders(projectRoot: string, params: JsonObject) {
   const written: string[] = [];
   await withProtocolRollback(orders.map((order) => orderDir(projectRoot, order.orderId)), async () => {
     for (const order of orders) {
+      await assertNoPendingOrderRecovery(projectRoot, order.orderId);
       const file = orderJsonPath(projectRoot, order.orderId);
       if ((await exists(file)) && !overwrite) throw new Error(`Order ${order.orderId} already exists. Ask before overwrite=true.`);
       await fs.mkdir(orderVersionsDir(projectRoot, order.orderId), { recursive: true });
@@ -214,6 +216,7 @@ export async function updateOrder(projectRoot: string, params: JsonObject) {
   const patch = isPlainObject(params.patch) ? params.patch : undefined;
   if (!patch) throw new Error("order.update requires params.patch.");
   return withProtocolRollback([file, orderReferencesDir(projectRoot, orderId)], async () => {
+    await assertNoPendingOrderRecovery(projectRoot, orderId);
     const current = await readOrder(projectRoot, orderId);
     const next = {
       ...deepMerge(current, patch),
@@ -239,6 +242,7 @@ export async function setOrderStatus(projectRoot: string, orderId: string, statu
   requireValidStatus(status);
   const file = orderJsonPath(projectRoot, orderId);
   return withOrderMutationLock(projectRoot, orderId, "order.set_status", async () => {
+    await assertNoPendingOrderRecovery(projectRoot, orderId);
     const order = await readOrder(projectRoot, orderId);
     const currentStatus = order.status as OrderStatus | undefined;
     if (currentStatus && !isValidStatusTransition(currentStatus, status)) {
@@ -269,7 +273,11 @@ export async function addOrderRevision(projectRoot: string, orderId: string, rev
   }
   const file = orderJsonPath(projectRoot, orderId);
   return withOrderMutationLock(projectRoot, orderId, "order.add_revision", async () => {
+    await assertNoPendingOrderRecovery(projectRoot, orderId);
     const order = await readOrder(projectRoot, orderId);
+    if (!isValidStatusTransition(order.status, "needs_revision")) {
+      throw new Error(`order.add_revision: illegal transition ${order.status}→needs_revision for order ${orderId}.`);
+    }
     order.revisions ??= [];
     order.revisions.push({ requestedAt: stamp(), request: revisionRequest, status: "draft" });
     order.status = "needs_revision";
@@ -695,6 +703,9 @@ export async function promoteCandidate(projectRoot: string, orderId: string, ver
   if (!(await exists(file))) throw new Error(`Order ${id} does not exist.`);
   const originalOrderBytes = await fs.readFile(file);
   const order = validateStoredOrder(JSON.parse(originalOrderBytes.toString("utf8")), id);
+  if (!["approved", "in_progress", "delivered", "needs_revision"].includes(order.status)) {
+    throw new Error(`order.promote_candidate: cannot promote a candidate from status=${order.status}. Approve the order first.`);
+  }
 
   if (order.currentVersion === vid) {
     throw new Error(`Version ${vid} is already the current version of order ${id}.`);
@@ -819,8 +830,10 @@ export async function abortOrderRecovery(projectRoot: string, orderId: string, t
 
 /**
  * Find the project's foundation sheet order — the visual anchor for all
- * downstream assets. Returns the first delivered order whose assetType is a
- * known foundation type and that has at least one result version.
+ * downstream assets. Returns the first known foundation type with a
+ * materialized current image. This locates an artifact; callers deciding
+ * whether to continue must also inspect its order status, review, and the
+ * user's approval scope.
  */
 export async function findFoundationSheet(projectRoot: string): Promise<{
   orderId: string;

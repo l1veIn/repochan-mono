@@ -12,7 +12,7 @@ export async function assertNoProtocolSymlinkPath(target: string): Promise<void>
   const resolved = path.resolve(target);
   const parsed = path.parse(resolved);
   const segments = resolved.slice(parsed.root.length).split(path.sep).filter(Boolean);
-  const protocolIndex = segments.lastIndexOf(PROTOCOL_SEGMENT);
+  const protocolIndex = segments.indexOf(PROTOCOL_SEGMENT);
   if (protocolIndex < 0) {
     throw new Error(`Protocol path must contain ${PROTOCOL_SEGMENT}: ${target}`);
   }

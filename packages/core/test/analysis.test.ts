@@ -27,7 +27,21 @@ describe("performAnalysis", () => {
     expect(analysis.context.tech_stack.frameworks).toContain("Svelte");
     expect(analysis.context.file_structure.files).toContain("src/index.ts");
     expect(analysis.context.file_structure.files).not.toContain(".repochan/ignored.ts");
+    expect(analysis.context.inventory.has_ci).toBe(false);
   });
+
+  it.each([".github/workflows/ci.yml", ".github/workflows/build.yaml", ".gitlab-ci.yml"])(
+    "detects %s while keeping dot paths out of sampled files",
+    async (configPath) => {
+      const projectRoot = await tempProject();
+      const target = path.join(projectRoot, configPath);
+      await mkdir(path.dirname(target), { recursive: true });
+      await writeFile(target, "name: CI\n");
+      const analysis = await performAnalysis(projectRoot, { includeFileLists: true });
+      expect(analysis.context.inventory.has_ci).toBe(true);
+      expect(analysis.context.file_structure.files).not.toContain(configPath);
+    },
+  );
 
   it("derives naming seeds from repository identity instead of language identity", async () => {
     const projectRoot = await tempProject();

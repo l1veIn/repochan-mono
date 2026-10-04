@@ -94,5 +94,5 @@ Per monorepo `AGENTS.md`: **when changing core protocol or business rules, alway
 ## Related
 
 - Architecture: [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md)
-- Minimal fixture: [`../../examples/minimal`](../../examples/minimal)
+- End-to-end protocol example: [`test/smoke-flow.test.ts`](test/smoke-flow.test.ts)
 - Skills (how agents use the CLI): [`../skill/README.md`](../skill/README.md)

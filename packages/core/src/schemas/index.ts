@@ -285,7 +285,7 @@ const SingleOrderSchema = Type.Object({
     Type.Literal("variant"),
     Type.Literal("batch_item"),
   ]),
-  assetType: Type.String(),
+  assetType: Type.String({ minLength: 1 }),
   brief: BriefSchema,
   deliverables: Type.Array(DeliverableSchema),
   acceptanceCriteria: Type.Array(Type.String()),
