@@ -4,6 +4,14 @@ This changelog records coordinated public package sets.
 
 ## Unreleased
 
+### Starter sync portability
+
+- Starter sync invokes system tar from the archive directory with a relative
+  archive filename. This replaces the earlier Windows `--force-local` workaround
+  recorded below: that GNU-only flag is unsupported by Windows system tar.
+  Drive-letter paths, spaces, and local archive filenames remain supported,
+  and failed extraction preserves the existing cache.
+
 ### Skill rename: `repochan-page-designer` → `repochan-starter-localizer`
 
 - The default-chain team skill that localizes and assembles an existing Starter is

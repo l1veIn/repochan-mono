@@ -53,23 +53,17 @@ function syncFailure(error: unknown): Error {
 // environments without an npm binary on PATH. Both avoid new dependencies.
 
 /**
- * Windows bsdtar interprets drive-letter paths as remote archives unless
- * --force-local is present. BSD tar on macOS does not support that option, so
- * keep the workaround scoped to win32 and leave POSIX paths untouched.
+ * Run tar from the archive's directory and pass a relative archive name.
+ * This avoids GNU tar's drive-letter/remote-archive ambiguity without using
+ * flags unsupported by BSD tar (including the Windows system tar).
  */
 export function resolveTarExtractionArgs(
   tarball: string,
   destination: string,
   platform: NodeJS.Platform = process.platform,
 ): string[] {
-  if (platform !== "win32") return ["-xzf", tarball, "-C", destination];
-  return [
-    "-xzf",
-    tarball.replaceAll("\\", "/"),
-    "--force-local",
-    "-C",
-    destination.replaceAll("\\", "/"),
-  ];
+  const paths = platform === "win32" ? path.win32 : path.posix;
+  return ["-xzf", `./${paths.basename(tarball)}`, "-C", destination];
 }
 
 async function execNpm(args: string[]) {
@@ -162,9 +156,11 @@ async function httpsDownload(version: string, destDir: string): Promise<string> 
  * Windows 10+ bsdtar) so the CLI needs no npm dependency for archive handling.
  */
 async function extractTarball(tarball: string, destination: string): Promise<void> {
-  await fs.mkdir(destination, { recursive: true });
+  const archive = path.resolve(tarball);
+  const target = path.resolve(destination);
+  await fs.mkdir(target, { recursive: true });
   try {
-    await execFileAsync("tar", resolveTarExtractionArgs(tarball, destination));
+    await execFileAsync("tar", resolveTarExtractionArgs(archive, target), { cwd: path.dirname(archive) });
   } catch (error) {
     throw syncFailure(new Error(`tar extraction failed for ${tarball}: ${error instanceof Error ? error.message : String(error)}`));
   }
