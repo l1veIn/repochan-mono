@@ -6,13 +6,8 @@ import type { SiteContent } from "../lib/i18n/types";
 type Props = { content: SiteContent["galleryB"] };
 const { content } = Astro.props;
 
-const studyImgs = [
-  assets.studies.exprExcited,
-  assets.studies.exprFocused,
-  assets.studies.exprDeadpan,
-  assets.studies.chibiFull,
-];
-const propImgs = [assets.props.clip, assets.props.earring, assets.props.headphones, assets.props.pendant];
+const studyImgs = assets.studies;
+const propImgs = assets.props;
 ---
 
 <section class="room" id="gallery-b">

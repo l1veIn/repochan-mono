@@ -136,6 +136,54 @@
       },
       "orderId": "ord-webstates-001",
       "versionId": "v2026-07-21T04-07-05-763Z"
+    },
+    "study-excited": {
+      "kind": "scalar",
+      "src": "/assets/studies/expr-excited.webp",
+      "status": "source",
+      "orderId": "ord-sticker-001"
+    },
+    "study-focused": {
+      "kind": "scalar",
+      "src": "/assets/studies/expr-focused.webp",
+      "status": "source",
+      "orderId": "ord-sticker-001"
+    },
+    "study-deadpan": {
+      "kind": "scalar",
+      "src": "/assets/studies/expr-deadpan.webp",
+      "status": "source",
+      "orderId": "ord-sticker-001"
+    },
+    "study-chibi": {
+      "kind": "scalar",
+      "src": "/assets/studies/chibi-full.webp",
+      "status": "source",
+      "orderId": "ord-sticker-001"
+    },
+    "prop-one": {
+      "kind": "scalar",
+      "src": "/assets/props/motif-clip-alpha.webp",
+      "status": "source",
+      "orderId": "ord-props-001"
+    },
+    "prop-two": {
+      "kind": "scalar",
+      "src": "/assets/props/motif-earring-alpha.webp",
+      "status": "source",
+      "orderId": "ord-props-001"
+    },
+    "prop-three": {
+      "kind": "scalar",
+      "src": "/assets/props/motif-headphones-alpha.webp",
+      "status": "source",
+      "orderId": "ord-props-001"
+    },
+    "prop-four": {
+      "kind": "scalar",
+      "src": "/assets/props/motif-pendant-alpha.webp",
+      "status": "source",
+      "orderId": "ord-props-001"
     }
   }
 }

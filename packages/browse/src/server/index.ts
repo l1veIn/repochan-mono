@@ -19,8 +19,10 @@ import {
   readJsonIfExists,
   readOrder,
   readOrderDerived,
+  readReviewArtifact,
   relativeProtocolPath,
   resolveOrderReferences,
+  reviewJsonPath,
   safeProtocolPath,
   validateOrderId,
   type OrderDerivedIndex,
@@ -28,6 +30,7 @@ import {
 } from "@repochan/core";
 import { serveStaticPath } from "./static.js";
 import { closeStarterPreviews, previewStarter } from "./starter-preview.js";
+import { allowLocalRequest } from "./local-request.js";
 
 /** Image extensions the viewer will serve / use as covers (mirrors core shared). */
 const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"];
@@ -46,6 +49,14 @@ const CONTENT_TYPES: Record<string, string> = {
   ".txt": "text/plain; charset=utf-8",
   ".md": "text/markdown; charset=utf-8",
 };
+
+/** Image documents are data, including SVG opened directly in the viewer's origin. */
+function imageSecurityHeaders(ext: string): Record<string, string> {
+  return CONTENT_TYPES[ext]?.startsWith("image/") ? {
+    "content-security-policy": "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+    "x-content-type-options": "nosniff",
+  } : {};
+}
 
 /** Starter metadata injected by the CLI (starter resolution lives in the CLI's starter-loader). */
 export type BrowseStarterMeta = {
@@ -273,6 +284,21 @@ async function resolveReferenceTolerant(projectRoot: string, ownerOrderId: strin
   }
 }
 
+async function readVersionReview(projectRoot: string, orderId: string, versionId: string) {
+  try {
+    const file = reviewJsonPath(projectRoot, orderId, versionId);
+    await assertNoProtocolSymlinkPath(file);
+    const review = await readReviewArtifact(file);
+    if (review.orderId !== orderId || review.versionId !== versionId) {
+      throw new Error(`Review subject does not match ${orderId}/${versionId}.`);
+    }
+    return { review, reviewError: null };
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException)?.code === "ENOENT") return { review: null, reviewError: null };
+    return { review: null, reviewError: error instanceof Error ? error.message : String(error) };
+  }
+}
+
 async function handleOrderDetail(projectRoot: string, orderId: string) {
   const order = await readOrder(projectRoot, orderId);
   const { results, currentVersion, candidateVersions } = await listOrderResults(projectRoot, orderId).catch(() => ({
@@ -280,14 +306,15 @@ async function handleOrderDetail(projectRoot: string, orderId: string) {
     currentVersion: order.currentVersion,
     candidateVersions: order.candidateVersions ?? [],
   }));
-  const versions = results.map((version) => ({
+  const versions = await Promise.all(results.map(async (version) => ({
     ...version,
+    ...await readVersionReview(projectRoot, orderId, version.versionId),
     files: version.files.map((name) => ({
       name,
       path: `orders/${orderId}/versions/${version.versionId}/${name}`,
       image: IMAGE_EXTENSIONS.includes(path.extname(name).toLowerCase()),
     })),
-  }));
+  })));
   const references = [];
   for (const ref of order.references ?? []) {
     references.push(await resolveReferenceTolerant(projectRoot, orderId, ref));
@@ -437,6 +464,7 @@ async function handleFile(projectRoot: string, rawPath: string, res: http.Server
     return;
   }
   const headers: Record<string, string | number> = {
+    ...imageSecurityHeaders(ext),
     "content-type": CONTENT_TYPES[ext] ?? "application/octet-stream",
     "content-length": stat.size,
     "cache-control": "no-cache",
@@ -478,6 +506,7 @@ async function handleStarterFile(options: BrowseServerOptions, starterId: string
     return;
   }
   res.writeHead(200, {
+    ...imageSecurityHeaders(ext),
     "content-type": CONTENT_TYPES[ext] ?? "application/octet-stream",
     "content-length": stat.size,
     "cache-control": "no-cache",
@@ -502,6 +531,7 @@ export function createBrowseServer(options: BrowseServerOptions): http.Server {
   const webDir = webDistDir();
 
   const server = http.createServer((req, res) => {
+    if (!allowLocalRequest(req, res)) return;
     void (async () => {
       const url = new URL(req.url ?? "/", "http://127.0.0.1");
       const pathname = url.pathname;

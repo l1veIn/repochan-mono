@@ -8,6 +8,6 @@ export default defineConfig({
     emptyOutDir: true,
   },
   test: {
-    include: ["src/server/**/*.test.ts"],
+    include: ["src/server/**/*.test.ts", "src/web/**/*.test.ts"],
   },
 });

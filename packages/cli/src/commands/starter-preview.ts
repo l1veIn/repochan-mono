@@ -53,29 +53,55 @@ export async function runStarterPreview(_projectRoot: string, id: string | undef
   };
   if (!opts.json) console.log(`Preparing starter '${starter.id}' — ${starter.dir}`);
 
-  const preview = await previewStarter({
-    id: starter.id,
-    dir: starter.dir,
-    port,
-    rebuild: opts.rebuild === true,
-    stdio: opts.json ? "pipe" : "inherit",
-    onProgress: progress,
-  });
+  let stopping = false;
+  let shutdownTask: Promise<void> | undefined;
+  let signalReceived!: () => void;
+  const stopped = new Promise<void>((resolve) => { signalReceived = resolve; });
+  const shutdown = () => {
+    if (stopping) return;
+    stopping = true;
+    shutdownTask = closeStarterPreviews();
+    // Preparation can take time to settle. Observe a cleanup rejection now and
+    // propagate it from finally once preparation has settled.
+    void shutdownTask.catch(() => undefined);
+    signalReceived();
+  };
+  // npm/build run in an isolated process group: catch signals before starting
+  // preparation, and keep repeated signals from exiting before cleanup finishes.
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
+  try {
+    let preview;
+    try {
+      preview = await previewStarter({
+        id: starter.id,
+        dir: starter.dir,
+        port,
+        rebuild: opts.rebuild === true,
+        stdio: opts.json ? "pipe" : "inherit",
+        onProgress: progress,
+      });
+    } catch (error) {
+      if (stopping) return;
+      throw error;
+    }
+    if (stopping) return;
 
-  if (opts.json) {
-    printJson({ ok: true, id: starter.id, url: preview.url, port: preview.port, reused: preview.reused });
-  } else {
-    console.log(preview.reused ? `Serving cached build: ${preview.url}` : `Built and serving: ${preview.url}`);
-    console.log("  press Ctrl+C to stop");
+    if (opts.json) {
+      printJson({ ok: true, id: starter.id, url: preview.url, port: preview.port, reused: preview.reused });
+    } else {
+      console.log(preview.reused ? `Serving cached build: ${preview.url}` : `Built and serving: ${preview.url}`);
+      console.log("  press Ctrl+C to stop");
+    }
+    if (opts.open !== false) openBrowser(preview.url);
+    await stopped;
+  } finally {
+    try {
+      try { await shutdownTask; }
+      finally { await closeStarterPreviews(); }
+    } finally {
+      process.removeListener("SIGINT", shutdown);
+      process.removeListener("SIGTERM", shutdown);
+    }
   }
-  if (opts.open !== false) openBrowser(preview.url);
-
-  await new Promise<void>((resolve) => {
-    const shutdown = () => {
-      void closeStarterPreviews().then(() => resolve());
-      setTimeout(() => resolve(), 1500).unref();
-    };
-    process.once("SIGINT", shutdown);
-    process.once("SIGTERM", shutdown);
-  });
 }

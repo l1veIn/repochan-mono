@@ -56,20 +56,12 @@ export const assets = {
     posterMemphis: { src: scalarSrc("exhibit-poster-memphis"), width: 1536, height: 1536 },
     patternTile: { src: scalarSrc("exhibit-pattern"), width: 1024, height: 1024 },
   },
-  // 研究墙 / 器物组：ord-sticker-001 / ord-props-001 母图的自由组合切片，
-  // 非 slot（下游通过 stickers bundle 重出同一母图后自然覆盖），静态 source 资产。
-  studies: {
-    exprExcited: { src: "/assets/studies/expr-excited.webp", width: 640, height: 640 },
-    exprFocused: { src: "/assets/studies/expr-focused.webp", width: 640, height: 640 },
-    exprDeadpan: { src: "/assets/studies/expr-deadpan.webp", width: 640, height: 640 },
-    chibiFull: { src: "/assets/studies/chibi-full.webp", width: 640, height: 640 },
-  },
-  props: {
-    clip: { src: "/assets/props/motif-clip-alpha.webp", width: 640, height: 640 },
-    earring: { src: "/assets/props/motif-earring-alpha.webp", width: 640, height: 640 },
-    headphones: { src: "/assets/props/motif-headphones-alpha.webp", width: 640, height: 640 },
-    pendant: { src: "/assets/props/motif-pendant-alpha.webp", width: 640, height: 640 },
-  },
+  studies: ["study-excited", "study-focused", "study-deadpan", "study-chibi"].map((slot) => ({
+    src: scalarSrc(slot), width: 640, height: 640,
+  })),
+  props: ["prop-one", "prop-two", "prop-three", "prop-four"].map((slot) => ({
+    src: scalarSrc(slot), width: 640, height: 640,
+  })),
   stickers: gridKeys.map((_, i) => ({
     src: bundleSrc("stickers", i),
     width: 640,

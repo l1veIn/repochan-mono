@@ -8,6 +8,8 @@ import {
   type OrderVersion,
 } from "../api";
 import { Badge, EmptyState, Lightbox, statusBadge, type LightboxImage } from "../components";
+import { OrderReview } from "./OrderReview";
+import { OrderRevisions } from "./OrderRevisions";
 
 function firstImage(version: OrderVersion | undefined) {
   return version?.files.find((f) => f.image);
@@ -131,6 +133,9 @@ export function OrderDetailView(props: { orderId: string; onBack: () => void; on
           </details>
         ) : null}
       </div>
+
+      <OrderReview version={selected} />
+      <OrderRevisions revisions={order.revisions} />
 
       <div className="detail-grid">
         <div>

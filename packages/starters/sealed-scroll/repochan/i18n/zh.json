@@ -104,35 +104,35 @@
       "note": "图像库从不写 .repochan/；协议写入永远经过 core。core 在构造上就是零凭证、零 agent、零像素。"
     },
     "brandKit": {
-      "eyebrow": "自证",
-      "title": "本页面本身就是管线产出",
-      "lede": "这个站点上的每一张图都由它所描述的管线生产——persona、foundation、贴纸、海报、横幅、pattern、icon。每张卡片都标注可验证的 orderId。",
+      "eyebrow": "源项目示例",
+      "title": "RepoChan 原项目的管线产物",
+      "lede": "这六张图保留 RepoChan 原 Source Starter 的真实产物示例。所列 orderId 属于该源项目，不属于本地化目标项目。替换项目素材槽位不会改变这些示例。",
       "cards": [
         { "img": "/assets/gallery-foundation.webp", "square": true, "title": "Foundation 设定集", "body": "所有下游资产共同引用的唯一视觉锚点。", "orderId": "ord-foundation-001", "alt": "仓库酱 foundation 角色设定集" },
         { "img": "/assets/gallery-poster.webp", "title": "海报", "body": "深夜工房 signature scene，后续美术的风格参照。", "orderId": "ord-poster-001", "alt": "仓库酱海报，深夜工房场景" },
-        { "img": "/assets/gallery-sticker.webp", "square": true, "title": "3×3 贴纸", "body": "uniform-matte 语义网格——本页的 cameo 都从它切片而来。", "orderId": "ord-sticker-001", "alt": "仓库酱 3×3 Q 版贴纸网格" },
-        { "img": "/assets/icon.webp", "square": true, "title": "Icon", "body": "品牌标识、favicon 来源、导航火漆印。", "orderId": "ord-icon-001", "alt": "RepoChan 火漆印图标" },
+        { "img": "/assets/gallery-sticker.webp", "square": true, "title": "3×3 贴纸", "body": "RepoChan 原项目网格——Source Starter 的 cameo 曾由它切片而来。", "orderId": "ord-sticker-001", "alt": "仓库酱 3×3 Q 版贴纸网格" },
+        { "img": "/assets/gallery-source-icon.webp", "square": true, "title": "Icon", "body": "RepoChan 原品牌标识、favicon 来源与导航火漆印。", "orderId": "ord-icon-001", "alt": "RepoChan 原项目火漆印图标" },
         { "img": "/assets/gallery-banner.webp", "title": "README 横幅", "body": "社交分享 / og:image 预览横幅。", "orderId": "ord-readme-banner-001", "alt": "RepoChan README 横幅" },
-        { "img": "/assets/pattern-tile.webp", "square": true, "title": "Pattern tile", "body": "canonical L1b：一张无缝火漆戳 tile，全站 CSS 参数化复用。", "orderId": "ord-pattern-001", "alt": "无缝火漆戳 pattern tile" }
+        { "img": "/assets/gallery-source-pattern.webp", "square": true, "title": "Pattern tile", "body": "RepoChan 原 L1b：在 Source Starter 全站复用的无缝火漆戳 tile。", "orderId": "ord-pattern-001", "alt": "RepoChan 原项目无缝火漆戳 pattern" }
       ],
       "self": {
-        "title": "……以及本页面",
-        "body": "hero 与 cta 合成图、cameo 切片、配色与字体——全部经由你刚读到的同一条订单管线交付。",
+        "title": "……以及原 Source Starter 网站",
+        "body": "所列 hero 与 cta 订单交付了 RepoChan 原网站。本地化项目的图片与订单来源需要单独记录。",
         "orderId": "ord-web-hero-composite-001 · ord-web-cta-composite-001"
       },
       "lightboxClose": "关闭"
     },
     "starters": {
       "eyebrow": "Starters",
-      "title": "今天就能 pull 的成品脚手架",
-      "lede": "monorepo 自带四套完整 Astro 落地页 starter——可检视、可拉取、可本地化。",
+      "title": "其他 Source Starter 示例",
+      "lede": "这些预览展示 Source Starter 原网站，不是本地化项目。同步并列出当前目录；默认 Starter 是 landing-museum。",
       "items": [
         { "id": "caddy", "img": "/assets/starters/caddy.webp", "name": "Caddy Gatehouse", "body": "自动 HTTPS 叙事，网关母题与有序的段落转场。" },
         { "id": "marktext", "img": "/assets/starters/marktext.webp", "name": "MarkText Midnight Editorial", "body": "午夜 Art Deco hero、纸质段落与真实编辑器画廊。" },
-        { "id": "minimal", "img": "/assets/starters/minimal.webp", "name": "Minimal Hero", "body": "默认的纯 Hero starter：一个构图、一个视觉 slot。" },
+        { "id": "minimal", "img": "/assets/starters/minimal.webp", "name": "Minimal Hero", "body": "纯 Hero starter：一个构图、一个视觉 slot。" },
         { "id": "redis", "img": "/assets/starters/redis.webp", "name": "Redis Signal Relay", "body": "动感赛璐璐角色美术，共享无缝 relay pattern。" }
       ],
-      "previewAltPrefix": "starter 预览截图：",
+      "previewAltPrefix": "Source Starter 预览截图：",
       "cmdPrefix": "repochan starter pull --starter "
     },
     "principles": {

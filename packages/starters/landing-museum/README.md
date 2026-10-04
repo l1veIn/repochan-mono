@@ -47,7 +47,7 @@ src/
     motion.ts              # 渐进增强动效（入场 fade / lightbox / 复制，无 JS 完整可读）
   styles/global.css        # 白盒子视觉系统（装裱画框 + 聚光）+ 响应式 + reduced-motion 降级（颜色只引用 CSS 变量）
 public/
-  assets/                  # 页面实际引用的压缩素材（slot 输出 + 静态研究墙/器物切片）
+  assets/                  # 页面实际引用的压缩素材（全部声明 slot 的输出，包括研究墙与器物）
   favicon.ico / icon-*.png / apple-touch-icon.png   # 由 icon slot 离线派生
 ```
 
@@ -66,11 +66,11 @@ public/
   重出后走 chroma-key v2 + compress。
   favicon 派生：`repochan image edit favicon public/assets/icon.webp --out public/favicon.ico --sizes 16,32,48 --overwrite`，
   再由 `image edit resize --sizes 180,192,512` 派生 apple-touch-icon.png / icon-192.png / icon-512.png。
-- **研究墙 / 器物组（非 slot）**：`public/assets/studies/*`（3 表情 + Q 版，
-  来自 ord-sticker-001 同一母图）与 `public/assets/props/*`（4 件器物，
-  来自 ord-props-001）是母图的自由组合切片，不单独声明 slot——下游按
-  stickers bundle 重出同一母图后语义自然覆盖；需要替换时用新的 640px
-  透明 tile 直接覆盖同名文件即可（路径硬编码在 `src/lib/site.ts`，有注释）。
+- **研究墙 / 器物组**：四个 `study-*` 与四个 `prop-*` 必需单文件槽位。
+  页面从 `assets.json` 读取这些输出；用 `starter create-order` 建立订单，
+  生成原图后由 `starter asset-apply` 完成抠图和压缩。器物应来自目标人设，
+  同步改写 locale 展签；原站配饰只是 Source Starter 的示例。
+  `starter validate --localized` 会拒绝这些槽位仍处于 `source` 的实例。
 - **动效**：`src/lib/motion.ts` 统一挂载；`prefers-reduced-motion` 下全部跳过，
   页面静态完整可读（本方向的默认态就是克制）。
 - **a11y**：语义 section + `aria-labelledby`、lightbox 键盘可关、复制按钮键盘可达、

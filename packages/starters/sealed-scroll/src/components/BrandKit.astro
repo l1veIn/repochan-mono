@@ -1,6 +1,6 @@
 ---
-// brand-kit — proof gallery (§6.6): the real delivered assets, each card
-// annotated with its orderId, plus the self-referential "this page" card.
+// Preserved Source Starter examples; order ids refer to RepoChan's original
+// project, and gallery files are independent of localized asset-slot outputs.
 import type { Copy } from '../lib/copy';
 const { c } = Astro.props as { c: Copy };
 ---
@@ -37,7 +37,7 @@ const { c } = Astro.props as { c: Copy };
   <dialog class="lightbox" aria-label={c.brandKit.lightboxClose}>
     <button class="close">{c.brandKit.lightboxClose}</button>
     <figure>
-      <img src="/assets/gallery-foundation.webp" alt="" />
+      <img src={c.brandKit.cards[0].img} alt={c.brandKit.cards[0].alt} />
       <figcaption></figcaption>
     </figure>
   </dialog>
